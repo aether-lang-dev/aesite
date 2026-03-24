@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FAQ — Aether Language</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="subpages.css">
+  <style>
+    /* PAGE SPECIFIC STYLES */
+    .section {
+      padding: 120px calc(max(2rem, (100% - 900px) / 2)) 80px;
+    }
+    .accordion {
+      margin-top: 3.5rem;
+    }
+    .accordion-title {
+      font-size: 1.35rem;
+    }
+    .accordion-body-content {
+      padding-bottom: 2rem;
+      font-size: 1rem;
+      max-width: 640px;
+    }
+    footer {
+      background: #eef1f4;
+    }
+    @media (max-width: 768px) {
+      .section { padding: 100px 1.5rem 60px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <a class="nav-logo" href="index.html">Aether<span>.</span></a>
+    <ul class="nav-links">
+      <li><a href="index.html#features">Features</a></li>
+      <li><a href="index.html#syntax">Syntax</a></li>
+      <li><a href="index.html#install">Install</a></li>
+      <li><a href="docs.html">Docs</a></li>
+    </ul>
+  </nav>
+
+  <!-- FAQ SECTION -->
+  <main class="section">
+    <div class="fade-in">
+      <p class="section-label">Support</p>
+      <h1 class="subpage-title">Common <em>questions.</em></h1>
+    </div>
+
+    <div class="accordion fade-in" id="faq-accordion">
+
+      <!-- ITEM 1 (OPEN BY DEFAULT) -->
+      <div class="accordion-item">
+        <button class="accordion-trigger open" onclick="toggleAccordion(this, 'faq-accordion')">
+          <span class="accordion-title">What makes Aether different from Go or Rust?</span>
+          <span class="accordion-arrow">▼</span>
+        </button>
+        <div class="accordion-body open">
+          <div class="accordion-body-inner">
+            <div class="accordion-body-content">
+              Aether focuses on extreme clarity and high-level actor abstractions. While Rust emphasizes memory safety through ownership and Go through simplicity/goroutines, Aether provides a built-in actor model with location-aware scheduling, making distributed and concurrent systems feel like writing single-threaded code.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ITEM 2 -->
+      <div class="accordion-item">
+        <button class="accordion-trigger" onclick="toggleAccordion(this, 'faq-accordion')">
+          <span class="accordion-title">Is Aether production-ready?</span>
+          <span class="accordion-arrow">▼</span>
+        </button>
+        <div class="accordion-body">
+          <div class="accordion-body-inner">
+            <div class="accordion-body-content">
+              Aether is currently in Beta (v0.25.0). While the core runtime is stable and used in several internal projects, the ecosystem is still growing. We recommend it for microservices, tooling, and performance-critical components.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ITEM 3 -->
+      <div class="accordion-item">
+        <button class="accordion-trigger" onclick="toggleAccordion(this, 'faq-accordion')">
+          <span class="accordion-title">How does the memory management work?</span>
+          <span class="accordion-arrow">▼</span>
+        </button>
+        <div class="accordion-body">
+          <div class="accordion-body-inner">
+            <div class="accordion-body-content">
+              Aether uses a hybrid approach: local actor memory is managed via high-performance arena allocators, while long-lived shared data uses explicit manual management with 'defer' blocks. This eliminates the "stop-the-world" latency of traditional garbage collection.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ITEM 4 -->
+      <div class="accordion-item">
+        <button class="accordion-trigger" onclick="toggleAccordion(this, 'faq-accordion')">
+          <span class="accordion-title">Can I call C libraries from Aether?</span>
+          <span class="accordion-arrow">▼</span>
+        </button>
+        <div class="accordion-body">
+          <div class="accordion-body-inner">
+            <div class="accordion-body-content">
+              Yes. Aether compiles to C and has been designed with seamless FFI (Foreign Function Interface) in mind. You can import C headers directly and call native functions with zero overhead.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ITEM 5 -->
+      <div class="accordion-item">
+        <button class="accordion-trigger" onclick="toggleAccordion(this, 'faq-accordion')">
+          <span class="accordion-title">What platforms are supported?</span>
+          <span class="accordion-arrow">▼</span>
+        </button>
+        <div class="accordion-body">
+          <div class="accordion-body-inner">
+            <div class="accordion-body-content">
+              Aether currently supports macOS (Intel/M-series), Linux (x86_64/ARM64), and Windows 11. Since it compiles to standard C99, it can be ported to almost any platform with a C compiler.
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- FOOTER -->
+  <footer>
+    <p>© 2026 Nicolas Maman</p>
+    <p><a href="#">Privacy</a> · <a href="https://github.com/nicolasmd87/aether/blob/main/LICENSE">License</a> · <a href="mailto:hello@aether.org">Contact</a></p>
+  </footer>
+
+  <script>
+    function toggleAccordion(trigger, groupId) {
+      const group = document.getElementById(groupId);
+      const allTriggers = group.querySelectorAll('.accordion-trigger');
+      const allBodies = group.querySelectorAll('.accordion-body');
+      const body = trigger.nextElementSibling;
+      const isOpen = trigger.classList.contains('open');
+
+      allTriggers.forEach(t => t.classList.remove('open'));
+      allBodies.forEach(b => b.classList.remove('open'));
+
+      if (!isOpen) {
+        trigger.classList.add('open');
+        body.classList.add('open');
+      }
+    }
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(e => { if (e.isIntersecting) e.target.classList.add("visible"); });
+    }, { threshold: 0.1 });
+    document.querySelectorAll(".fade-in").forEach(el => observer.observe(el));
+  </script>
+</body>
+</html>

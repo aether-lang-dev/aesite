@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Articles — Aether Language</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="subpages.css">
+  <style>
+    .section {
+      padding: 120px calc(max(2rem, (100% - 900px) / 2)) 100px;
+    }
+    footer { background: #eef1f4; }
+    @media (max-width: 768px) {
+      .section { padding: 100px 1.5rem 60px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <a class="nav-logo" href="index.html">Aether<span>.</span></a>
+    <ul class="nav-links">
+      <li><a href="index.html#features">Features</a></li>
+      <li><a href="index.html#syntax">Syntax</a></li>
+      <li><a href="index.html#install">Install</a></li>
+      <li><a href="faq.html">FAQ</a></li>
+    </ul>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="section">
+    <div class="fade-in">
+      <p class="section-label">Read</p>
+      <h1 class="subpage-title">All <em>articles.</em></h1>
+    </div>
+
+    <!-- FILTER -->
+    <div class="filter-wrap fade-in">
+      <input
+        class="filter-input"
+        id="article-filter"
+        type="text"
+        placeholder="Filter articles…"
+        autocomplete="off"
+        spellcheck="false"
+      />
+      <span class="filter-icon">↵</span>
+    </div>
+
+    <!-- ARTICLE LIST -->
+    <div class="article-list fade-in" id="article-list">
+
+      <a class="article-list-item" href="#" data-title="Why Actor-Based Concurrency Changes Everything">
+        <h2 class="article-list-title">Why Actor-Based Concurrency Changes Everything</h2>
+        <p class="article-list-desc">A look at why shared-state concurrency keeps causing bugs, and how the actor model sidesteps these problems by treating isolation as a first-class guarantee.</p>
+      </a>
+
+      <a class="article-list-item" href="#" data-title="The Case for Static Typing Without the Boilerplate">
+        <h2 class="article-list-title">The Case for Static Typing Without the Boilerplate</h2>
+        <p class="article-list-desc">How Hindley-Milner inference gives you the safety of a strict type system without forcing you to write annotations on every line of code.</p>
+      </a>
+
+      <a class="article-list-item" href="#" data-title="Designing Fault-Tolerant Systems in Aether">
+        <h2 class="article-list-title">Designing Fault-Tolerant Systems in Aether</h2>
+        <p class="article-list-desc">Supervision trees let you define exactly how a system should recover when something goes wrong. This article explores the patterns that make Aether services resilient by default.</p>
+      </a>
+
+      <a class="article-list-item" href="#" data-title="Pattern Matching as a Design Tool">
+        <h2 class="article-list-title">Pattern Matching as a Design Tool</h2>
+        <p class="article-list-desc">Beyond syntax sugar — how exhaustive pattern matching shapes the way you model data, eliminates impossible states, and makes your intent explicit to the compiler.</p>
+      </a>
+
+      <a class="article-list-item" href="#" data-title="Immutability in Practice">
+        <h2 class="article-list-title">Immutability in Practice</h2>
+        <p class="article-list-desc">Mutable state is convenient until it isn't. Here's how Aether's immutable-by-default model simplifies reasoning about program behaviour, especially in concurrent contexts.</p>
+      </a>
+
+      <a class="article-list-item" href="#" data-title="Writing Readable Aether: Style and Idioms">
+        <h2 class="article-list-title">Writing Readable Aether: Style and Idioms</h2>
+        <p class="article-list-desc">A collection of conventions the Aether community has converged on — naming, module structure, and expression style — that keep codebases easy to navigate.</p>
+      </a>
+
+      <a class="article-list-item" href="#" data-title="What Makes a Good Module Boundary">
+        <h2 class="article-list-title">What Makes a Good Module Boundary</h2>
+        <p class="article-list-desc">Thinking carefully about what a module exposes and hides is one of the most valuable design decisions you can make. This article offers a practical framework for drawing those lines.</p>
+      </a>
+
+      <a class="article-list-item" href="#" data-title="The Philosophy Behind Aether's Standard Library">
+        <h2 class="article-list-title">The Philosophy Behind Aether's Standard Library</h2>
+        <p class="article-list-desc">An overview of the guiding principles that shaped std — small surface area, composable primitives, and explicit rather than implicit behaviour — and what that means for day-to-day use.</p>
+      </a>
+
+      <a class="article-list-item" href="#" data-title="From Prototype to Production">
+        <h2 class="article-list-title">From Prototype to Production</h2>
+        <p class="article-list-desc">The path from a working proof-of-concept to a deployable Aether service: structuring your project, adding observability, and deciding when to optimise.</p>
+      </a>
+
+    </div>
+
+    <!-- EMPTY STATE -->
+    <p class="articles-empty" id="articles-empty">No articles match your search.</p>
+  </main>
+
+  <!-- FOOTER -->
+  <footer>
+    <p>© 2026 Nicolas Maman</p>
+    <p><a href="#">Privacy</a> · <a href="https://github.com/nicolasmd87/aether/blob/main/LICENSE">License</a> · <a href="mailto:hello@aether.org">Contact</a></p>
+  </footer>
+
+  <script>
+    /* Filter logic */
+    const filterInput = document.getElementById('article-filter');
+    const list = document.getElementById('article-list');
+    const empty = document.getElementById('articles-empty');
+
+    filterInput.addEventListener('input', () => {
+      const query = filterInput.value.trim().toLowerCase();
+      const items = list.querySelectorAll('.article-list-item');
+      let visible = 0;
+
+      items.forEach(item => {
+        const title = item.dataset.title.toLowerCase();
+        const desc = item.querySelector('.article-list-desc').textContent.toLowerCase();
+        const match = !query || title.includes(query) || desc.includes(query);
+        item.classList.toggle('hidden', !match);
+        if (match) visible++;
+      });
+
+      empty.classList.toggle('visible', visible === 0);
+    });
+
+    /* Fade-in observer */
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+    }, { threshold: 0.08 });
+    document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+  </script>
+</body>
+</html>

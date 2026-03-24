@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Documentation — Aether Language</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="subpages.css">
+  <style>
+    /* PAGE SPECIFIC STYLES */
+    .section {
+      padding: 120px calc(max(2rem, (100% - 900px) / 2)) 80px;
+    }
+    .accordion {
+      margin-top: 3.5rem;
+    }
+    .accordion-title {
+      font-size: 1.35rem;
+    }
+    .accordion-body-content {
+      padding-bottom: 2rem;
+      font-size: 1rem;
+      max-width: 640px;
+    }
+    footer {
+      background: #eef1f4;
+    }
+    @media (max-width: 768px) {
+      .section { padding: 100px 1.5rem 60px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <a class="nav-logo" href="index.html">Aether<span>.</span></a>
+    <ul class="nav-links">
+      <li><a href="index.html#features">Features</a></li>
+      <li><a href="index.html#syntax">Syntax</a></li>
+      <li><a href="index.html#install">Install</a></li>
+      <li><a href="faq.html">FAQ</a></li>
+    </ul>
+  </nav>
+
+  <!-- DOCS SECTION -->
+  <main class="section">
+    <div class="fade-in">
+      <p class="section-label">Documentation</p>
+      <h1 class="subpage-title">Language <em>guide.</em></h1>
+    </div>
+
+    <div class="accordion fade-in" id="docs-accordion">
+
+      <!-- ITEM 1 (OPEN BY DEFAULT) -->
+      <div class="accordion-item">
+        <button class="accordion-trigger open" onclick="toggleAccordion(this, 'docs-accordion')">
+          <span class="accordion-title">Getting Started</span>
+          <span class="accordion-arrow">▼</span>
+        </button>
+        <div class="accordion-body open">
+          <div class="accordion-body-inner">
+            <div class="accordion-body-content">
+              Welcome to Aether. To start developing, ensure you have the 'ae' compiler installed. You can verify your installation by running 'ae version'. A typical Aether project starts with an entry point function named 'main'.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ITEM 2 -->
+      <div class="accordion-item">
+        <button class="accordion-trigger" onclick="toggleAccordion(this, 'docs-accordion')">
+          <span class="accordion-title">The Actor Model</span>
+          <span class="accordion-arrow">▼</span>
+        </button>
+        <div class="accordion-body">
+          <div class="accordion-body-inner">
+            <div class="accordion-body-content">
+              Everything in Aether is an actor. Actors are autonomous units of computation that communicate via asynchronous message passing. This isolation ensures that state is never shared, eliminating a whole class of concurrency bugs.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ITEM 3 -->
+      <div class="accordion-item">
+        <button class="accordion-trigger" onclick="toggleAccordion(this, 'docs-accordion')">
+          <span class="accordion-title">Type Inference</span>
+          <span class="accordion-arrow">▼</span>
+        </button>
+        <div class="accordion-body">
+          <div class="accordion-body-inner">
+            <div class="accordion-body-content">
+              Aether features a powerful Hindley-Milner based type system. In most cases, you don't need to specify types; the compiler will infer them for you while still maintaining full static type safety.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ITEM 4 -->
+      <div class="accordion-item">
+        <button class="accordion-trigger" onclick="toggleAccordion(this, 'docs-accordion')">
+          <span class="accordion-title">Standard Library</span>
+          <span class="accordion-arrow">▼</span>
+        </button>
+        <div class="accordion-body">
+          <div class="accordion-body-inner">
+            <div class="accordion-body-content">
+              The Aether standard library (std) provides high-level modules for I/O, networking, collections, and concurrency primitives. For example, 'std.io' handles printing and terminal interactions.
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- FOOTER -->
+  <footer>
+    <p>© 2026 Nicolas Maman</p>
+    <p><a href="#">Privacy</a> · <a href="https://github.com/nicolasmd87/aether/blob/main/LICENSE">License</a> · <a href="mailto:hello@aether.org">Contact</a></p>
+  </footer>
+
+  <script>
+    function toggleAccordion(trigger, groupId) {
+      const group = document.getElementById(groupId);
+      const allTriggers = group.querySelectorAll('.accordion-trigger');
+      const allBodies = group.querySelectorAll('.accordion-body');
+      const body = trigger.nextElementSibling;
+      const isOpen = trigger.classList.contains('open');
+
+      allTriggers.forEach(t => t.classList.remove('open'));
+      allBodies.forEach(b => b.classList.remove('open'));
+
+      if (!isOpen) {
+        trigger.classList.add('open');
+        body.classList.add('open');
+      }
+    }
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(e => { if (e.isIntersecting) e.target.classList.add("visible"); });
+    }, { threshold: 0.1 });
+    document.querySelectorAll(".fade-in").forEach(el => observer.observe(el));
+  </script>
+</body>
+</html>

@@ -1,0 +1,45 @@
+        <p>
+          SECOND PAGE HERE, SERVED
+          <br>
+          In Aether, you declare a variable with <strong>let</strong>.
+          <br>
+          The compiler performs Hindley-Milner inference, deducing the most general type that is consistent
+          with how the value is used throughout the program.
+        </p>
+
+        <code><span class="kw">let</span> name  = <span class="str">"Ada"</span>          <span class="cm">-- inferred: String</span>
+<span class="kw">let</span> count = <span class="num">42</span>             <span class="cm">-- inferred: Int</span>
+<span class="kw">let</span> ratio = <span class="num">3.14</span>           <span class="cm">-- inferred: Float</span>
+<span class="kw">let</span> active = <span class="kw">true</span>          <span class="cm">-- inferred: Bool</span></code>
+
+        <p>
+          All bindings in Aether are <strong>immutable by default</strong>. Once a value is bound to a name,
+          that binding cannot be reassigned. This design choice eliminates an entire class of bugs caused
+          by unintended mutation — a root cause of many real-world failures in concurrent systems.
+        </p>
+
+        <h3>Shadowing</h3>
+        <p>
+          Because bindings are immutable, Aether permits <strong>shadowing</strong> — re-binding the same
+          name in an inner scope. The outer binding is untouched; inside the new scope, the name refers
+          to the new value. Shadowing is particularly handy after transformations:
+        </p>
+
+        <code><span class="kw">let</span> input = <span class="fn">readLine</span>()          <span class="cm">-- String</span>
+<span class="kw">let</span> input = input.<span class="fn">trim</span>()        <span class="cm">-- still String, but trimmed</span>
+<span class="kw">let</span> input = input.<span class="fn">toLower</span>()     <span class="cm">-- normalised</span></code>
+
+        <div class="theory-note">
+          <span class="theory-note-icon">◆</span>
+          <span>
+            Shadowing is <em>not</em> the same as mutation. Each <strong>let</strong> creates a fresh,
+            independent binding. The previous value remains accessible to anything that already holds
+            a reference to it — this keeps Aether's concurrency guarantees intact.
+          </span>
+        </div>
+
+        <p>
+          Try editing the code on the right and pressing <strong>Run</strong> to experiment with
+          these patterns interactively. The REPL evaluates each expression in isolation and prints
+          the inferred type alongside the result.
+        </p>
