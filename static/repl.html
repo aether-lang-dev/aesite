@@ -282,7 +282,11 @@
       color: #24292e;
       background: #ffffff;
       overflow-y: auto;
-      position: relative;
+      resize: none;
+      border: none;
+      outline: none;
+      box-sizing: border-box;
+      width: 100%;
     }
 
     .repl-placeholder-label {
@@ -445,38 +449,7 @@
       </div>
 
       <!-- Editor area -->
-      <div class="repl-editor">
-        <div class="repl-placeholder-label">// Kirjoita koodia tähän</div>
-
-        <div class="repl-placeholder-line">
-          <span class="repl-line-num">1</span>
-          <span class="repl-line-text"><span class="kw">let</span> name = <span class="str">"Ada"</span></span>
-        </div>
-        <div class="repl-placeholder-line">
-          <span class="repl-line-num">2</span>
-          <span class="repl-line-text"><span class="kw">let</span> count = <span class="num">42</span></span>
-        </div>
-        <div class="repl-placeholder-line">
-          <span class="repl-line-num">3</span>
-          <span class="repl-line-text"></span>
-        </div>
-        <div class="repl-placeholder-line">
-          <span class="repl-line-num">4</span>
-          <span class="repl-line-text"><span class="cm">-- Kokeile tähän:</span></span>
-        </div>
-        <div class="repl-placeholder-line">
-          <span class="repl-line-num">5</span>
-          <span class="repl-line-text"><span class="kw">let</span> greeting = <span class="str">"Hello, "</span> ++ name<span class="repl-cursor" id="repl-cursor"></span></span>
-        </div>
-        <div class="repl-placeholder-line">
-          <span class="repl-line-num">6</span>
-          <span class="repl-line-text"></span>
-        </div>
-        <div class="repl-placeholder-line">
-          <span class="repl-line-num">7</span>
-          <span class="repl-line-text"><span class="fn">print</span>(greeting)</span>
-        </div>
-      </div>
+      <textarea class="repl-editor" id="repl-editor-input" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off" placeholder="// Kirjoita koodia tähän"></textarea>
 
       <!-- Output area -->
       <div class="repl-output" id="repl-output">
@@ -522,14 +495,12 @@
     const btnNext    = document.getElementById('btn-next');
     const theoryBody   = document.querySelector('.theory-body');
     const lessonTitle  = document.getElementById('lesson-title');
-    const replEditor   = document.querySelector('.repl-editor');
+    const replEditor   = document.getElementById('repl-editor-input');
     const btnRun       = document.getElementById('btn-run');
     const outputText   = document.getElementById('repl-output-text');
 
     function getEditorCode() {
-      return Array.from(replEditor.querySelectorAll('.repl-line-text'))
-        .map(el => el.textContent)
-        .join('\n');
+      return replEditor.value;
     }
 
     function showOutput(stdout, stderr) {
@@ -567,13 +538,7 @@
     });
 
     function renderCode(code) {
-      const lines = code.split('\n');
-      replEditor.innerHTML = lines.map((line, i) =>
-        `<div class="repl-placeholder-line">` +
-          `<span class="repl-line-num">${i + 1}</span>` +
-          `<span class="repl-line-text">${line}</span>` +
-        `</div>`
-      ).join('');
+      replEditor.value = code;
     }
 
     async function loadLesson(nbr) {
@@ -606,13 +571,7 @@
     updateNav();
     loadLesson(currentPage);
 
-    /* ── Blinking cursor in REPL ───────────────────────────────── */
-    const cursor = document.getElementById('repl-cursor');
-    let visible = false;
-    setInterval(() => {
-      visible = !visible;
-      cursor.style.opacity = visible ? '1' : '0';
-    }, 530);
+
   </script>
 </body>
 </html>
