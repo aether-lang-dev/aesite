@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>stdlib-api</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/style.css" />
+  <link rel="stylesheet" href="/subpages.css" />
+  <link rel="stylesheet" href="/articles.css" />
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <a class="nav-logo" href="/index.html">Aether<span>.</span></a>
+    <ul class="nav-links">
+      <li><a href="/index.html#features">Features</a></li>
+      <li><a href="/index.html#syntax">Syntax</a></li>
+      <li><a href="/index.html#install">Install</a></li>
+      <li><a href="/faq.html">FAQ</a></li>
+    </ul>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="section">
+    <div>
+      <p class="section-label">Learning Material</p>
+    </div>
+
+    <article class="article-content">
+<h1 id="aether-standard-library-guide">Aether Standard Library
+Guide</h1>
+<h2 id="overview">Overview</h2>
+<p>Aether provides a standard library for strings, I/O, math, file
+system, networking, and actor concurrency. The library is automatically
+linked when you compile Aether programs.</p>
+<h2 id="namespace-calling-convention">Namespace Calling Convention</h2>
+<p>Functions are called using <strong>namespace-style syntax</strong>:
+<code>namespace.function()</code></p>
+<table>
+<thead>
+<tr>
+<th>Import</th>
+<th>Namespace</th>
+<th>Example Call</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>import std.string</code></td>
+<td><code>string</code></td>
+<td><code>string.new("hello")</code>,
+<code>string.release(s)</code></td>
+</tr>
+<tr>
+<td><code>import std.file</code></td>
+<td><code>file</code></td>
+<td><code>file.exists("path")</code>,
+<code>file.open("path", "r")</code></td>
+</tr>
+<tr>
+<td><code>import std.dir</code></td>
+<td><code>dir</code></td>
+<td><code>dir.exists("path")</code>,
+<code>dir.create("path")</code></td>
+</tr>
+<tr>
+<td><code>import std.path</code></td>
+<td><code>path</code></td>
+<td><code>path.join("a", "b")</code>,
+<code>path.dirname("/a/b")</code></td>
+</tr>
+<tr>
+<td><code>import std.json</code></td>
+<td><code>json</code></td>
+<td><code>json.parse(str)</code>, <code>json.create_object()</code></td>
+</tr>
+<tr>
+<td><code>import std.http</code></td>
+<td><code>http</code></td>
+<td><code>http.get(url)</code>,
+<code>http.server_create(port)</code></td>
+</tr>
+<tr>
+<td><code>import std.tcp</code></td>
+<td><code>tcp</code></td>
+<td><code>tcp.connect(host, port)</code>,
+<code>tcp.send(sock, data)</code></td>
+</tr>
+<tr>
+<td><code>import std.list</code></td>
+<td><code>list</code></td>
+<td><code>list.new()</code>, <code>list.add(l, item)</code></td>
+</tr>
+<tr>
+<td><code>import std.map</code></td>
+<td><code>map</code></td>
+<td><code>map.new()</code>, <code>map.put(m, key, val)</code></td>
+</tr>
+<tr>
+<td><code>import std.math</code></td>
+<td><code>math</code></td>
+<td><code>math.sqrt(x)</code>, <code>math.sin(x)</code></td>
+</tr>
+<tr>
+<td><code>import std.log</code></td>
+<td><code>log</code></td>
+<td><code>log.init(file, level)</code>,
+<code>log.write(level, msg)</code></td>
+</tr>
+<tr>
+<td><code>import std.io</code></td>
+<td><code>io</code></td>
+<td><code>io.print(str)</code>, <code>io.read_file(path)</code>,
+<code>io.getenv(name)</code></td>
+</tr>
+<tr>
+<td><code>import std.os</code></td>
+<td><code>os</code></td>
+<td><code>os.system(cmd)</code>, <code>os.exec(cmd)</code>,
+<code>os.getenv(name)</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="using-the-standard-library">Using the Standard Library</h2>
+<p>Import modules with the <code>import</code> statement:</p>
+<pre class="aether"><code>import std.string       // String functions
+import std.file         // File operations
+import std.dir          // Directory operations
+import std.json         // JSON parsing
+import std.http         // HTTP client &amp; server
+import std.tcp          // TCP sockets
+import std.list         // ArrayList
+import std.map          // HashMap
+import std.math         // Math functions
+import std.log          // Logging
+import std.io           // Console I/O, environment variables
+import std.os           // Shell execution, environment variables</code></pre>
+<p>Call functions using namespace syntax:</p>
+<pre class="aether"><code>import std.string
+import std.file
+
+main() {
+    // String operations
+    s = string.new(&quot;hello&quot;)
+    len = string.length(s)
+    string.release(s)
+
+    // File operations
+    if (file.exists(&quot;data.txt&quot;) == 1) {
+        size = file.size(&quot;data.txt&quot;)
+    }
+}</code></pre>
+<p>Or use <code>extern</code> for direct C bindings:</p>
+<pre class="aether"><code>extern my_c_function(x: int) -&gt; ptr</code></pre>
+<hr />
+<h2 id="string-library">String Library</h2>
+<h3 id="types">Types</h3>
+<div class="sourceCode" id="cb4"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">typedef</span> <span class="kw">struct</span> AetherString <span class="op">{</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">unsigned</span> <span class="dt">int</span> magic<span class="op">;</span>    <span class="co">// Always 0xAE57C0DE — enables runtime type detection</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> ref_count<span class="op">;</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">size_t</span> length<span class="op">;</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">size_t</span> capacity<span class="op">;</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">char</span><span class="op">*</span> data<span class="op">;</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="op">}</span> AetherString<span class="op">;</span></span></code></pre></div>
+<blockquote>
+<p><strong>Note:</strong> All <code>std.string</code> functions accept
+both plain <code>char*</code> strings and managed
+<code>AetherString*</code> transparently. The <code>magic</code> field
+is used internally to distinguish between the two at runtime.</p>
+</blockquote>
+<h3 id="available-functions">Available Functions</h3>
+<h4 id="creating-strings">Creating Strings</h4>
+<ul>
+<li><code>string_new(const char* cstr)</code> - Create from C
+string</li>
+<li><code>string_from_literal(const char* cstr)</code> - Alias for
+new</li>
+<li><code>string_empty()</code> - Create empty string</li>
+<li><code>string_new_with_length(const char* data, size_t len)</code> -
+Create with explicit length</li>
+</ul>
+<h4 id="string-operations">String Operations</h4>
+<ul>
+<li><code>string_concat(AetherString* a, AetherString* b)</code> -
+Concatenate strings</li>
+<li><code>string_length(AetherString* str)</code> - Get length</li>
+<li><code>string_char_at(AetherString* str, int index)</code> - Get
+character</li>
+<li><code>string_equals(AetherString* a, AetherString* b)</code> - Check
+equality</li>
+<li><code>string_compare(AetherString* a, AetherString* b)</code> -
+Compare (-1, 0, 1)</li>
+</ul>
+<h4 id="string-methods">String Methods</h4>
+<ul>
+<li><code>string_starts_with()</code> - Check prefix</li>
+<li><code>string_ends_with()</code> - Check suffix</li>
+<li><code>string_contains()</code> - Search for substring</li>
+<li><code>string_index_of()</code> - Find position</li>
+<li><code>string_substring()</code> - Extract substring</li>
+<li><code>string_to_upper()</code> - Convert to uppercase</li>
+<li><code>string_to_lower()</code> - Convert to lowercase</li>
+<li><code>string_trim()</code> - Remove whitespace</li>
+</ul>
+<h4 id="conversion">Conversion</h4>
+<ul>
+<li><code>string_to_cstr(AetherString* str)</code> - Get C string
+pointer</li>
+<li><code>string_from_int(int value)</code> - Convert int to string</li>
+<li><code>string_from_float(float value)</code> - Convert float to
+string</li>
+<li><code>string_to_int(str, out_ptr)</code> - Parse integer (returns 1
+on success, 0 on failure)</li>
+<li><code>string_to_long(str, out_ptr)</code> - Parse 64-bit integer
+(returns 1 on success, 0 on failure)</li>
+<li><code>string_to_float(str, out_ptr)</code> - Parse float (returns 1
+on success, 0 on failure)</li>
+<li><code>string_to_double(str, out_ptr)</code> - Parse double (returns
+1 on success, 0 on failure)</li>
+</ul>
+<h4 id="memory-management">Memory Management</h4>
+<ul>
+<li><code>string.new(cstr)</code> - Allocate a new string (use
+<code>string.free</code> when done)</li>
+<li><code>string.free(str)</code> - Free the string</li>
+</ul>
+<p>Use <code>defer string.free(s)</code> right after
+<code>string.new()</code> to ensure cleanup at scope exit.</p>
+<p>The underlying C implementation also exposes
+<code>string.retain()</code> / <code>string.release()</code> for
+advanced use cases (e.g., sharing ownership across C callbacks), but
+Aether programs should use <code>string.free()</code> directly.</p>
+<hr />
+<h2 id="file-system-library">File System Library</h2>
+<p>Complete filesystem library with file and directory operations.</p>
+<h3 id="usage">Usage</h3>
+<pre class="aether"><code>import std.file
+import std.dir
+
+main() {
+    if (file.exists(&quot;data.txt&quot;) == 1) {
+        print(&quot;File exists!\n&quot;)
+        size = file.size(&quot;data.txt&quot;)
+        print(&quot;Size: &quot;)
+        print(size)
+        print(&quot; bytes\n&quot;)
+    }
+
+    dir.create(&quot;output&quot;)
+}</code></pre>
+<h3 id="file-operations">File Operations</h3>
+<ul>
+<li><code>file.open(path, mode)</code> - Open a file (returns
+File*)</li>
+<li><code>file.close(file)</code> - Close a file</li>
+<li><code>file.read_all(file)</code> - Read entire file contents</li>
+<li><code>file.write(file, data, length)</code> - Write data to
+file</li>
+<li><code>file.exists(path)</code> - Check if file exists (returns 1 or
+0)</li>
+<li><code>file.size(path)</code> - Get file size in bytes</li>
+<li><code>file.delete(path)</code> - Delete a file</li>
+</ul>
+<h3 id="directory-operations">Directory Operations</h3>
+<ul>
+<li><code>dir.exists(path)</code> - Check if directory exists</li>
+<li><code>dir.create(path)</code> - Create a directory</li>
+<li><code>dir.delete(path)</code> - Delete an empty directory</li>
+<li><code>dir.list(path)</code> - List directory contents (returns
+DirList*)</li>
+<li><code>dir.list_free(list)</code> - Free directory listing</li>
+</ul>
+<h3 id="path-utilities">Path Utilities</h3>
+<ul>
+<li><code>path.join(path1, path2)</code> - Join two path components</li>
+<li><code>path.dirname(path)</code> - Get directory name</li>
+<li><code>path.basename(path)</code> - Get file name</li>
+<li><code>path.extension(path)</code> - Get file extension</li>
+<li><code>path.is_absolute(path)</code> - Check if path is absolute</li>
+</ul>
+<hr />
+<h2 id="io-library">I/O Library</h2>
+<h3 id="console-output">Console Output</h3>
+<p>The primary I/O functions in Aether are <code>print()</code> and
+<code>println()</code>:</p>
+<pre class="aether"><code>print(&quot;Hello, World!\n&quot;)
+println(&quot;Hello, World!&quot;)       // same, with automatic newline
+println(&quot;Value: ${x}&quot;)         // string interpolation
+println(&quot;Float: ${pi}&quot;)</code></pre>
+<h3 id="additional-io">Additional I/O</h3>
+<ul>
+<li><code>io.print(str)</code> - Print string</li>
+<li><code>io.print_line(str)</code> - Print string with newline</li>
+<li><code>io.print_int(value)</code> - Print integer</li>
+<li><code>io.print_float(value)</code> - Print float</li>
+<li><code>io.read_file(path)</code> - Read entire file as a string
+(print directly with <code>println(content)</code>)</li>
+<li><code>io.write_file(path, content)</code> - Write to file</li>
+<li><code>io.append_file(path, content)</code> - Append to file</li>
+<li><code>io.file_exists(path)</code> - Check if file exists (returns
+1/0)</li>
+<li><code>io.delete_file(path)</code> - Delete file</li>
+<li><code>io.file_info(path)</code> - Get file metadata (returns
+ptr)</li>
+<li><code>io.file_info_free(info)</code> - Free file info</li>
+<li><code>io.getenv(name)</code> - Get environment variable as a string
+(print directly with <code>println(value)</code>)</li>
+<li><code>io.setenv(name, value)</code> - Set environment variable</li>
+<li><code>io.unsetenv(name)</code> - Unset environment variable</li>
+</ul>
+<hr />
+<h2 id="math-library">Math Library</h2>
+<h3 id="basic-operations">Basic Operations</h3>
+<ul>
+<li><code>math.abs_int(x)</code> - Absolute value (int)</li>
+<li><code>math.abs_float(x)</code> - Absolute value (float)</li>
+<li><code>math.min_int(a, b)</code> - Minimum (int)</li>
+<li><code>math.max_int(a, b)</code> - Maximum (int)</li>
+<li><code>math.min_float(a, b)</code> - Minimum (float)</li>
+<li><code>math.max_float(a, b)</code> - Maximum (float)</li>
+<li><code>math.clamp_int(x, min, max)</code> - Clamp value to range</li>
+<li><code>math.clamp_float(x, min, max)</code> - Clamp value to
+range</li>
+</ul>
+<h3 id="advanced-math">Advanced Math</h3>
+<ul>
+<li><code>math.sqrt(x)</code> - Square root</li>
+<li><code>math.pow(base, exp)</code> - Power</li>
+<li><code>math.sin(x)</code> - Sine</li>
+<li><code>math.cos(x)</code> - Cosine</li>
+<li><code>math.tan(x)</code> - Tangent</li>
+<li><code>math.asin(x)</code> - Arc sine</li>
+<li><code>math.acos(x)</code> - Arc cosine</li>
+<li><code>math.atan(x)</code> - Arc tangent</li>
+<li><code>math.atan2(y, x)</code> - Two-argument arc tangent</li>
+<li><code>math.floor(x)</code> - Floor</li>
+<li><code>math.ceil(x)</code> - Ceiling</li>
+<li><code>math.round(x)</code> - Round to nearest</li>
+<li><code>math.log(x)</code> - Natural logarithm</li>
+<li><code>math.log10(x)</code> - Base-10 logarithm</li>
+<li><code>math.exp(x)</code> - Exponential</li>
+</ul>
+<h3 id="random-numbers">Random Numbers</h3>
+<ul>
+<li><code>math.random_seed(seed)</code> - Set random seed</li>
+<li><code>math.random_int(min, max)</code> - Random int in range [min,
+max]</li>
+<li><code>math.random_float()</code> - Random float in [0.0, 1.0)</li>
+</ul>
+<hr />
+<h2 id="json-library">JSON Library</h2>
+<h3 id="parsing-and-serialization">Parsing and Serialization</h3>
+<pre class="aether"><code>import std.json
+
+main() {
+    obj = json.create_object()
+    arr = json.create_array()
+    num = json.create_number(42.5)
+    bool_val = json.create_bool(1)
+    null_val = json.create_null()
+
+    json.array_add(arr, num)
+
+    type = json.type(num)  // Returns JSON_NUMBER (2)
+
+    value = json.get_number(num)
+    is_true = json.get_bool(bool_val)
+
+    json.free(obj)
+}</code></pre>
+<h3 id="json-functions">JSON Functions</h3>
+<ul>
+<li><code>json.parse(str)</code> - Parse JSON string</li>
+<li><code>json.stringify(value)</code> - Convert to JSON string</li>
+<li><code>json.free(value)</code> - Free JSON value</li>
+<li><code>json.create_object()</code> - Create empty object</li>
+<li><code>json.create_array()</code> - Create empty array</li>
+<li><code>json.create_string(str)</code> - Create string value</li>
+<li><code>json.create_number(num)</code> - Create number value</li>
+<li><code>json.create_bool(val)</code> - Create boolean value</li>
+<li><code>json.create_null()</code> - Create null value</li>
+<li><code>json.type(value)</code> - Get value type</li>
+<li><code>json.is_null(value)</code> - Check if null</li>
+<li><code>json.get_number(value)</code> - Get number</li>
+<li><code>json.get_bool(value)</code> - Get boolean</li>
+<li><code>json.get_string(value)</code> - Get string</li>
+<li><code>json.array_add(arr, value)</code> - Add to array</li>
+<li><code>json.array_size(arr)</code> - Get array size</li>
+<li><code>json.array_get(arr, index)</code> - Get array element</li>
+<li><code>json.object_set(obj, key, value)</code> - Set object
+property</li>
+<li><code>json.object_get(obj, key)</code> - Get object property</li>
+</ul>
+<h3 id="json-type-constants">JSON Type Constants</h3>
+<ul>
+<li><code>JSON_NULL</code> = 0</li>
+<li><code>JSON_BOOL</code> = 1</li>
+<li><code>JSON_NUMBER</code> = 2</li>
+<li><code>JSON_STRING</code> = 3</li>
+<li><code>JSON_ARRAY</code> = 4</li>
+<li><code>JSON_OBJECT</code> = 5</li>
+</ul>
+<hr />
+<h2 id="networking-library">Networking Library</h2>
+<h3 id="http-client">HTTP Client</h3>
+<pre class="aether"><code>import std.http
+
+main() {
+    response = http.get(&quot;http://example.com&quot;)
+    if (response != 0) {
+        println(&quot;Got response&quot;)
+        http.response_free(response)
+    }
+}</code></pre>
+<h3 id="http-functions">HTTP Functions</h3>
+<ul>
+<li><code>http.get(url)</code> - HTTP GET request</li>
+<li><code>http.post(url, body, content_type)</code> - HTTP POST
+request</li>
+<li><code>http.put(url, body, content_type)</code> - HTTP PUT
+request</li>
+<li><code>http.delete(url)</code> - HTTP DELETE request</li>
+<li><code>http.response_free(response)</code> - Free response</li>
+</ul>
+<h3 id="http-server">HTTP Server</h3>
+<pre class="aether"><code>import std.http
+
+main() {
+    server = http.server_create(8080)
+    http.server_bind(server, &quot;127.0.0.1&quot;, 8080)
+    http.server_start(server)  // Blocks
+    http.server_free(server)
+}</code></pre>
+<h3 id="server-functions">Server Functions</h3>
+<ul>
+<li><code>http.server_create(port)</code> - Create server</li>
+<li><code>http.server_bind(server, host, port)</code> - Bind to
+address</li>
+<li><code>http.server_start(server)</code> - Start serving
+(blocking)</li>
+<li><code>http.server_stop(server)</code> - Stop server</li>
+<li><code>http.server_free(server)</code> - Free server</li>
+<li><code>http.server_get(server, path, handler, data)</code> - Register
+GET handler</li>
+<li><code>http.server_post(server, path, handler, data)</code> -
+Register POST handler</li>
+<li><code>http.response_json(res, json)</code> - Send JSON response</li>
+<li><code>http.response_set_status(res, code)</code> - Set status
+code</li>
+<li><code>http.response_set_header(res, name, value)</code> - Set
+header</li>
+</ul>
+<h3 id="tcp-sockets">TCP Sockets</h3>
+<ul>
+<li><code>tcp.connect(host, port)</code> - Connect to server</li>
+<li><code>tcp.send(sock, data)</code> - Send data</li>
+<li><code>tcp.receive(sock, max_bytes)</code> - Receive data</li>
+<li><code>tcp.close(sock)</code> - Close socket</li>
+<li><code>tcp.listen(port)</code> - Create listening server socket</li>
+<li><code>tcp.accept(server)</code> - Accept connection</li>
+<li><code>tcp.server_close(server)</code> - Close server socket</li>
+</ul>
+<hr />
+<h2 id="collections-library">Collections Library</h2>
+<h3 id="arraylist">ArrayList</h3>
+<pre class="aether"><code>import std.list
+
+main() {
+    mylist = list.new()
+    defer list.free(mylist)
+
+    list.add(mylist, some_ptr)
+    item = list.get(mylist, 0)
+    size = list.size(mylist)
+}</code></pre>
+<h3 id="arraylist-functions">ArrayList Functions</h3>
+<ul>
+<li><code>list.new()</code> - Create new list</li>
+<li><code>list.add(list, item)</code> - Add item</li>
+<li><code>list.get(list, index)</code> - Get item</li>
+<li><code>list.set(list, index, item)</code> - Set item</li>
+<li><code>list.remove(list, index)</code> - Remove item</li>
+<li><code>list.size(list)</code> - Get size</li>
+<li><code>list.clear(list)</code> - Clear all items</li>
+<li><code>list.free(list)</code> - Free list</li>
+</ul>
+<h3 id="hashmap">HashMap</h3>
+<pre class="aether"><code>import std.map
+
+main() {
+    mymap = map.new()
+    defer map.free(mymap)
+
+    map.put(mymap, &quot;name&quot;, some_ptr)
+    result = map.get(mymap, &quot;name&quot;)
+    exists = map.has(mymap, &quot;name&quot;)
+}</code></pre>
+<h3 id="hashmap-functions">HashMap Functions</h3>
+<ul>
+<li><code>map.new()</code> - Create new map</li>
+<li><code>map.put(map, key, value)</code> - Put key-value pair</li>
+<li><code>map.get(map, key)</code> - Get value by key</li>
+<li><code>map.remove(map, key)</code> - Remove key</li>
+<li><code>map.has(map, key)</code> - Check if key exists</li>
+<li><code>map.size(map)</code> - Get number of entries</li>
+<li><code>map.clear(map)</code> - Clear all entries</li>
+<li><code>map.free(map)</code> - Free map</li>
+</ul>
+<hr />
+<h2 id="logging-library">Logging Library</h2>
+<pre class="aether"><code>import std.log
+
+main() {
+    log.init(&quot;app.log&quot;, 0)  // 0 = DEBUG level
+
+    log.write(0, &quot;Debug message&quot;)
+    log.write(1, &quot;Info message&quot;)
+    log.write(2, &quot;Warning message&quot;)
+    log.write(3, &quot;Error message&quot;)
+
+    log.print_stats()
+    log.shutdown()
+}</code></pre>
+<h3 id="logging-functions">Logging Functions</h3>
+<ul>
+<li><code>log.init(filename, level)</code> - Initialize logging to file
+with minimum level</li>
+<li><code>log.shutdown()</code> - Shutdown logging</li>
+<li><code>log.write(level, message)</code> - Write a log message at the
+given level</li>
+<li><code>log.set_level(level)</code> - Set minimum level</li>
+<li><code>log.set_colors(enabled)</code> - Enable/disable colored output
+(1/0)</li>
+<li><code>log.set_timestamps(enabled)</code> - Enable/disable timestamps
+(1/0)</li>
+<li><code>log.get_stats()</code> - Get logging statistics</li>
+<li><code>log.print_stats()</code> - Print logging statistics</li>
+</ul>
+<h3 id="log-levels">Log Levels</h3>
+<ul>
+<li><code>0</code> = DEBUG</li>
+<li><code>1</code> = INFO</li>
+<li><code>2</code> = WARN</li>
+<li><code>3</code> = ERROR</li>
+<li><code>4</code> = FATAL</li>
+</ul>
+<hr />
+<h2 id="concurrency-functions">Concurrency Functions</h2>
+<h3 id="actor-management">Actor Management</h3>
+<ul>
+<li><code>spawn(ActorName())</code> - Create a new actor instance</li>
+</ul>
+<h3 id="synchronization">Synchronization</h3>
+<ul>
+<li><code>wait_for_idle()</code> - Block until all actors finish
+processing</li>
+<li><code>sleep(milliseconds)</code> - Pause execution</li>
+</ul>
+<h3 id="example">Example</h3>
+<pre class="aether"><code>message Task { id: int }
+
+actor Worker {
+    state completed = 0
+
+    receive {
+        Task(id) -&gt; {
+            completed = completed + 1
+        }
+    }
+}
+
+main() {
+    w = spawn(Worker())
+
+    w ! Task { id: 1 }
+    w ! Task { id: 2 }
+
+    wait_for_idle()
+
+    print(&quot;Completed: &quot;)
+    print(w.completed)
+    print(&quot;\n&quot;)
+}</code></pre>
+<hr />
+<h2 id="memory-management-1">Memory Management</h2>
+<p>Aether uses <strong>manual memory management</strong> with
+<code>defer</code> as the primary tool.</p>
+<h3 id="defer">defer</h3>
+<p>Use <code>defer</code> immediately after allocation to ensure cleanup
+at scope exit:</p>
+<pre class="aether"><code>import std.list
+import std.string
+
+main() {
+    mylist = list.new()
+    defer list.free(mylist)
+
+    s = string.new(&quot;hello&quot;)
+    defer string.free(s)
+
+    // ... use mylist and s ...
+    // Automatically freed when scope exits
+}</code></pre>
+<h3 id="guidelines">Guidelines</h3>
+<ul>
+<li><strong><code>defer type.free(x)</code></strong> — primary cleanup
+pattern for all allocations</li>
+<li><strong>Stack allocations</strong> — freed automatically (no
+<code>defer</code> needed)</li>
+<li><strong>Actors</strong> — managed by the runtime</li>
+<li><strong>Managed strings</strong> — reference-counted internally; use
+<code>string.free()</code> (alias for
+<code>string.release()</code>)</li>
+<li><strong><code>string.retain(str)</code></strong> — advanced:
+increment reference count when sharing ownership across C callbacks</li>
+</ul>
+<hr />
+<h2 id="best-practices">Best Practices</h2>
+<ol type="1">
+<li><strong>Use <code>import</code> for stdlib</strong> - Cleaner than
+<code>extern</code></li>
+<li><strong>Use <code>print()</code> for output</strong> - Simple and
+reliable</li>
+<li><strong>Free resources</strong> - Use
+<code>defer type.free(x)</code> after allocation, or explicit
+<code>.free()</code> calls</li>
+<li><strong>Enable bounds checking in debug</strong> - Catches array
+errors</li>
+<li><strong>Use actors for concurrency</strong> - Safer than manual
+threading</li>
+</ol>
+<hr />
+<h2 id="example-complete-program">Example: Complete Program</h2>
+<pre class="aether"><code>import std.file
+
+message Increment { amount: int }
+
+actor Counter {
+    state count = 0
+
+    receive {
+        Increment(amount) -&gt; {
+            count = count + amount
+        }
+    }
+}
+
+main() {
+    print(&quot;Aether Runtime Example\n&quot;)
+
+    if (file.exists(&quot;README.md&quot;) == 1) {
+        print(&quot;README.md found!\n&quot;)
+    }
+
+    counter = spawn(Counter())
+    counter ! Increment { amount: 1 }
+    counter ! Increment { amount: 1 }
+
+    wait_for_idle()
+
+    print(&quot;Final count: &quot;)
+    print(counter.count)
+    print(&quot;\n&quot;)
+}</code></pre>
+    </article>
+  </main>
+
+  <!-- FOOTER -->
+  <footer>
+    <p>&copy; 2026 Nicolas Maman</p>
+    <p><a href="#">Privacy</a> &middot; <a href="https://github.com/nicolasmd87/aether/blob/main/LICENSE">License</a> &middot; <a href="mailto:hello@aether.org">Contact</a></p>
+  </footer>
+</body>
+</html>

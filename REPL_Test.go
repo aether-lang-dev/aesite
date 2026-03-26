@@ -29,6 +29,7 @@ func main() {
 
 	// Static files
 	e.Static("/static", "static")
+	e.Static("/Docs", "static/Docs")
 	e.Static("/", "static")
 
 	// Routes

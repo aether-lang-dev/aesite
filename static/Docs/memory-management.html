@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>memory-management</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/style.css" />
+  <link rel="stylesheet" href="/subpages.css" />
+  <link rel="stylesheet" href="/articles.css" />
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <a class="nav-logo" href="/index.html">Aether<span>.</span></a>
+    <ul class="nav-links">
+      <li><a href="/index.html#features">Features</a></li>
+      <li><a href="/index.html#syntax">Syntax</a></li>
+      <li><a href="/index.html#install">Install</a></li>
+      <li><a href="/faq.html">FAQ</a></li>
+    </ul>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="section">
+    <div>
+      <p class="section-label">Learning Material</p>
+    </div>
+
+    <article class="article-content">
+<h1 id="aether-memory-management">Aether Memory Management</h1>
+<p>Aether's memory model is <strong>deterministic scope-exit
+cleanup</strong>, not garbage collection.</p>
+<p>The guiding principle:</p>
+<blockquote>
+<p><strong>Allocations visible at call site. Cleanup explicit and
+composable. <code>defer</code> is your primary tool.</strong></p>
+</blockquote>
+<p>No hidden allocations. No GC pauses. No magic.</p>
+<h3 id="why-defer">Why <code>defer</code>?</h3>
+<ol type="1">
+<li><strong>Visible</strong> -- you can see every allocation and its
+cleanup in the source</li>
+<li><strong>Composable</strong> -- works with any function, not just
+stdlib types</li>
+<li><strong>Predictable</strong> -- no special naming conventions, no
+hidden registry, no surprises</li>
+<li><strong>Familiar</strong> -- same pattern as Go's <code>defer</code>
+and Zig's <code>defer</code></li>
+</ol>
+<p>The one-line cost (<code>defer type.free(x)</code>) is the price for
+knowing exactly what your program does.</p>
+<hr />
+<h2 id="the-actual-model">The Actual Model</h2>
+<p>Aether uses two allocation mechanisms:</p>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>What</th>
+<th>When</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Actor arena</strong></td>
+<td>Actor state, message queues</td>
+<td>Freed when actor is destroyed</td>
+</tr>
+<tr>
+<td><strong>Stdlib heap</strong></td>
+<td><code>map.new()</code>, <code>list.new()</code>, etc.</td>
+<td>Freed via <code>defer</code> or explicit <code>.free()</code>
+call</td>
+</tr>
+</tbody>
+</table>
+<p>There is <strong>no garbage collector</strong>.</p>
+<h3 id="arena-vs-defer-when-to-use-which">Arena vs defer: when to use
+which</h3>
+<p>They solve different problems and are used in different layers:</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Arena</th>
+<th>defer</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>What</strong></td>
+<td>A region of memory; many small allocations share one region. One
+"free" destroys the whole region.</td>
+<td>A language construct: run cleanup when leaving the current
+scope.</td>
+</tr>
+<tr>
+<td><strong>Who uses it</strong></td>
+<td>The <strong>runtime</strong> uses arenas for actor state and message
+queues. You don't allocate from arenas directly.</td>
+<td><strong>You</strong> use it in Aether code for stdlib types
+(<code>list.new</code>/<code>list.free</code>,
+<code>map.new</code>/<code>map.free</code>) and FFI buffers.</td>
+</tr>
+<tr>
+<td><strong>Lifetime</strong></td>
+<td>Everything in the arena lives until the arena is destroyed (e.g.
+when the actor is destroyed).</td>
+<td>The resource lives until scope exit; the deferred call runs
+then.</td>
+</tr>
+<tr>
+<td><strong>Typical use</strong></td>
+<td>Actor internals: the runtime allocates actor state and messages from
+an arena; when the actor goes away, the arena is freed in one shot. No
+per-field frees.</td>
+<td>Any heap allocation you make:
+<code>items = list.new(); defer list.free(items);</code> so the list is
+freed when the function (or block) exits.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="stdlib-convention">Stdlib Convention</h2>
+<p>All stdlib types follow one consistent naming pattern. In Aether you
+call them with dot syntax; the underlying C functions use underscores
+(<code>type_new</code>/<code>type_free</code>):</p>
+<pre><code>type.new()    -&gt; allocates on the heap, returns a pointer (must be freed)
+type.free(t)  -&gt; frees the allocation</code></pre>
+<table>
+<thead>
+<tr>
+<th>Module</th>
+<th>Constructor</th>
+<th>Destructor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>std.map</code></td>
+<td><code>map.new()</code></td>
+<td><code>map.free(m)</code></td>
+</tr>
+<tr>
+<td><code>std.list</code></td>
+<td><code>list.new()</code></td>
+<td><code>list.free(l)</code></td>
+</tr>
+<tr>
+<td><code>std.string</code></td>
+<td><code>string.new()</code></td>
+<td><code>string.free(s)</code></td>
+</tr>
+<tr>
+<td><code>std.dir</code></td>
+<td><code>dir.list(path)</code></td>
+<td><code>dir.list_free(l)</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Rule</strong>: Any function whose name ends in
+<code>_new()</code> or <code>_create()</code> (at the C level) returns
+an allocated object. Its matching <code>_free()</code> is its
+destructor. In Aether, use <code>type.new()</code> and
+<code>type.free(x)</code>.</p>
+<hr />
+<h2 id="the-defer-pattern">The <code>defer</code> Pattern</h2>
+<p>Aether's primary memory management pattern is <code>defer</code>:
+allocate, immediately defer the free, then use the resource. Cleanup
+runs at scope exit in LIFO order.</p>
+<pre class="aether"><code>import std.map
+
+main() {
+    m = map.new()
+    defer map.free(m)
+
+    map.put(m, &quot;k&quot;, &quot;v&quot;)
+    print(map.get(m, &quot;k&quot;))
+    print(&quot;\n&quot;)
+    // map.free(m) runs here (scope exit)
+}</code></pre>
+<p>This is explicit, visible, and composable. It works with any function
+-- not just stdlib types.</p>
+<h3 id="multiple-allocations">Multiple allocations</h3>
+<pre class="aether"><code>import std.list
+import std.map
+
+main() {
+    m = map.new()
+    defer map.free(m)
+
+    items = list.new()
+    defer list.free(items)
+
+    // Use both...
+    // At scope exit: list.free(items) runs first (LIFO), then map.free(m)
+}</code></pre>
+<h3 id="returning-allocated-values">Returning allocated values</h3>
+<p>When a function allocates and returns a value, the caller receives
+ownership:</p>
+<pre class="aether"><code>import std.list
+
+build_items(n) : ptr {
+    result = list.new()
+    i = 0
+    while i &lt; n {
+        list.add(result, i)
+        i = i + 1
+    }
+    return result
+}
+
+main() {
+    items = build_items(10)
+    defer list.free(items)
+
+    print(list.size(items))
+    print(&quot;\n&quot;)
+}</code></pre>
+<hr />
+<h2 id="actor-state">Actor State</h2>
+<p>Actor <code>state</code> variables initialized with
+<code>*.new()</code> outlive any single message handler. Free them in
+the actor's <code>Stop</code> handler (or wherever the actor is shut
+down):</p>
+<pre class="aether"><code>import std.map
+
+message Store { key: string, value: string }
+message Lookup { key: string }
+message Stop {}
+
+actor Cache {
+    state data = map.new()
+
+    receive {
+        Store(key, value) -&gt; {
+            map.put(data, key, value)
+        }
+        Lookup(key) -&gt; {
+            print(map.get(data, key))
+            print(&quot;\n&quot;)
+        }
+        Stop() -&gt; {
+            map.free(data)
+        }
+    }
+}</code></pre>
+<p>The actor runtime frees the actor's arena (and its internal state)
+when the actor is shut down.</p>
+<hr />
+<h2 id="common-mistakes">Common Mistakes</h2>
+<p><strong>Forgetting <code>defer</code> after allocation:</strong></p>
+<pre class="aether"><code>m = map.new()
+map.put(m, &quot;k&quot;, &quot;v&quot;)
+// LEAK: m is never freed</code></pre>
+<p>Fix: always pair allocation with <code>defer</code>:</p>
+<pre class="aether"><code>m = map.new()
+defer map.free(m)</code></pre>
+<p><strong>Deferring before the allocation succeeds:</strong></p>
+<p><code>defer</code> registers immediately. Place it right after the
+allocation, not before.</p>
+<p><strong>Allocating inside a loop:</strong></p>
+<p><code>defer</code> fires at scope exit, not at end of each iteration.
+If you allocate inside a loop, free explicitly at the end of each
+iteration instead:</p>
+<pre class="aether"><code>while i &lt; n {
+    item = list.new()
+    // ... use item ...
+    list.free(item)
+    i = i + 1
+}</code></pre>
+<hr />
+<h2 id="summary-when-to-use-what">Summary: When to Use What</h2>
+<table>
+<thead>
+<tr>
+<th>Situation</th>
+<th>Approach</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Typical local allocation</td>
+<td><code>defer type.free(x)</code> right after allocation</td>
+</tr>
+<tr>
+<td>Value returned from function</td>
+<td>Caller defers the free</td>
+</tr>
+<tr>
+<td>Value passed to an actor via <code>!</code></td>
+<td>Actor owns it; no defer in sender</td>
+</tr>
+<tr>
+<td>Actor <code>state</code> initialized with <code>*.new()</code></td>
+<td>Free in <code>Stop</code> handler: <code>map.free(data)</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="examples">Examples</h2>
+<p>See the following runnable examples:</p>
+<ul>
+<li><a
+href="../examples/basics/memory_defer.ae">examples/basics/memory_defer.ae</a>
+-- defer pattern (recommended)</li>
+<li><a
+href="../examples/basics/memory_manual.ae">examples/basics/memory_manual.ae</a>
+-- manual free pattern</li>
+<li><a
+href="../examples/basics/memory_escape.ae">examples/basics/memory_escape.ae</a>
+-- returning allocated values</li>
+</ul>
+    </article>
+  </main>
+
+  <!-- FOOTER -->
+  <footer>
+    <p>&copy; 2026 Nicolas Maman</p>
+    <p><a href="#">Privacy</a> &middot; <a href="https://github.com/nicolasmd87/aether/blob/main/LICENSE">License</a> &middot; <a href="mailto:hello@aether.org">Contact</a></p>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>c-interop</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/style.css" />
+  <link rel="stylesheet" href="/subpages.css" />
+  <link rel="stylesheet" href="/articles.css" />
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <a class="nav-logo" href="/index.html">Aether<span>.</span></a>
+    <ul class="nav-links">
+      <li><a href="/index.html#features">Features</a></li>
+      <li><a href="/index.html#syntax">Syntax</a></li>
+      <li><a href="/index.html#install">Install</a></li>
+      <li><a href="/faq.html">FAQ</a></li>
+    </ul>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="section">
+    <div>
+      <p class="section-label">Learning Material</p>
+    </div>
+
+    <article class="article-content">
+<h1 id="c-interoperability">C Interoperability</h1>
+<p>Aether provides seamless interoperability with C code, allowing you
+to leverage the entire C ecosystem including existing libraries like
+SQLite, libcurl, and OpenSSL.</p>
+<h2 id="calling-c-functions">Calling C Functions</h2>
+<p>Aether compiles to C, and the generated code already includes
+<code>&lt;stdio.h&gt;</code>, <code>&lt;stdlib.h&gt;</code>,
+<code>&lt;string.h&gt;</code>, <code>&lt;math.h&gt;</code>, etc. To call
+any C function — whether from the standard library, your own
+<code>.c</code> files, or a third-party library — you declare it with
+<code>extern</code>:</p>
+<pre class="aether"><code>extern abs(x: int) -&gt; int
+extern atoi(s: string) -&gt; int
+extern puts(s: string) -&gt; int
+extern rand() -&gt; int
+
+main() {
+    puts(&quot;Hello from C&#39;s puts()!&quot;)
+
+    n = abs(0 - 42)
+    print(&quot;abs(-42) = &quot;)
+    println(n)
+
+    val = atoi(&quot;123&quot;)
+    print(&quot;atoi = &quot;)
+    println(val)
+}</code></pre>
+<p>The <code>extern</code> signature must match the real C signature.
+See the type mapping table below.</p>
+<blockquote>
+<p><strong>Note:</strong> Aether has built-in functions
+(<code>print</code>, <code>println</code>, <code>sleep</code>,
+<code>clock_ns</code>, <code>spawn</code>, etc.) that don't need
+<code>extern</code>. See <a
+href="language-reference.md#built-in-functions">Built-in Functions</a>
+in the language reference.</p>
+</blockquote>
+<h2 id="the-extern-keyword">The <code>extern</code> Keyword</h2>
+<p>Use <code>extern</code> to declare C functions you want to call from
+Aether code:</p>
+<ul>
+<li>Standard C library functions (<code>abs</code>, <code>atoi</code>,
+<code>puts</code>, <code>rand</code>, etc.)</li>
+<li>Your own C functions in separate <code>.c</code> files</li>
+<li>Third-party C libraries (SQLite, libcurl, etc.)</li>
+<li>System APIs</li>
+</ul>
+<h3 id="syntax">Syntax</h3>
+<pre class="aether"><code>extern function_name(param1: type1, param2: type2) -&gt; return_type
+extern void_function(param: type)  // No return type = void</code></pre>
+<h3 id="type-mapping">Type Mapping</h3>
+<table>
+<thead>
+<tr>
+<th>Aether Type</th>
+<th>C Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>int</code></td>
+<td><code>int</code></td>
+</tr>
+<tr>
+<td><code>float</code></td>
+<td><code>double</code></td>
+</tr>
+<tr>
+<td><code>string</code></td>
+<td><code>const char*</code></td>
+</tr>
+<tr>
+<td><code>bool</code></td>
+<td><code>int</code></td>
+</tr>
+<tr>
+<td><code>ptr</code></td>
+<td><code>void*</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="example-custom-c-functions">Example: Custom C Functions</h3>
+<p><strong>my_math.c:</strong></p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;math.h&gt;</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> my_add<span class="op">(</span><span class="dt">int</span> a<span class="op">,</span> <span class="dt">int</span> b<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> a <span class="op">+</span> b<span class="op">;</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="dt">double</span> my_power<span class="op">(</span><span class="dt">double</span> base<span class="op">,</span> <span class="dt">double</span> exp<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> pow<span class="op">(</span>base<span class="op">,</span> exp<span class="op">);</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> my_greet<span class="op">(</span><span class="dt">const</span> <span class="dt">char</span><span class="op">*</span> name<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>    printf<span class="op">(</span><span class="st">&quot;Hello, </span><span class="sc">%s</span><span class="st">!</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">,</span> name<span class="op">);</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p><strong>main.ae:</strong></p>
+<pre class="aether"><code>// Declare our C functions
+extern my_add(a: int, b: int) -&gt; int
+extern my_power(base: float, exp: float) -&gt; float
+extern my_greet(name: string)
+
+main() {
+    result = my_add(10, 20)
+    print(&quot;10 + 20 = &quot;)
+    print(result)
+    print(&quot;\n&quot;)
+
+    power = my_power(2.0, 10.0)
+    print(&quot;2^10 = &quot;)
+    print(power)
+    print(&quot;\n&quot;)
+
+    my_greet(&quot;Aether&quot;)
+}</code></pre>
+<p><strong>Build and run:</strong></p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Compile C code</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">gcc</span> <span class="at">-c</span> my_math.c <span class="at">-o</span> my_math.o <span class="at">-lm</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Compile Aether code to C</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="ex">aetherc</span> main.ae main.c</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Link everything together</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="fu">gcc</span> <span class="at">-I</span><span class="va">$HOME</span>/.aether/include/aether/runtime main.c my_math.o <span class="dt">\</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">-L</span><span class="va">$HOME</span>/.aether/lib <span class="at">-laether</span> <span class="at">-lm</span> <span class="at">-o</span> myapp</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a><span class="ex">./myapp</span></span></code></pre></div>
+<h2 id="linking-external-libraries">Linking External Libraries</h2>
+<p>Use <code>link_flags</code> in your <code>aether.toml</code> to link
+external C libraries:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode toml"><code class="sourceCode toml"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">[project]</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="dt">name</span> <span class="op">=</span> <span class="st">&quot;my-project&quot;</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="dt">version</span> <span class="op">=</span> <span class="st">&quot;1.0.0&quot;</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="kw">[build]</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="dt">link_flags</span> <span class="op">=</span> <span class="op">[</span><span class="st">&quot;-lsqlite3&quot;</span><span class="op">,</span> <span class="st">&quot;-lcurl&quot;</span><span class="op">,</span> <span class="st">&quot;-lm&quot;</span><span class="op">]</span></span></code></pre></div>
+<h3 id="example-using-sqlite">Example: Using SQLite</h3>
+<p><strong>database.ae:</strong></p>
+<pre class="aether"><code>// SQLite C API
+extern sqlite3_open(path: string, db: ptr) -&gt; int
+extern sqlite3_close(db: ptr) -&gt; int
+extern sqlite3_exec(db: ptr, sql: string, callback: ptr, arg: ptr, errmsg: ptr) -&gt; int
+
+main() {
+    db = 0  // Will hold database pointer
+
+    // Open database
+    result = sqlite3_open(&quot;test.db&quot;, db)
+    if (result != 0) {
+        print(&quot;Failed to open database\n&quot;)
+        return
+    }
+
+    // Execute SQL
+    sql = &quot;CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, name TEXT)&quot;
+    sqlite3_exec(db, sql, 0, 0, 0)
+
+    // Close database
+    sqlite3_close(db)
+    print(&quot;Database operations complete\n&quot;)
+}</code></pre>
+<p><strong>aether.toml:</strong></p>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode toml"><code class="sourceCode toml"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="kw">[project]</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="dt">name</span> <span class="op">=</span> <span class="st">&quot;sqlite-demo&quot;</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="dt">version</span> <span class="op">=</span> <span class="st">&quot;1.0.0&quot;</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="kw">[build]</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="dt">link_flags</span> <span class="op">=</span> <span class="op">[</span><span class="st">&quot;-lsqlite3&quot;</span><span class="op">]</span></span></code></pre></div>
+<h2 id="best-practices">Best Practices</h2>
+<ol type="1">
+<li><strong>Prefer Aether's standard library</strong> for common
+operations when available (e.g. <code>import std.list</code> rather than
+hand-rolling a linked list in C)</li>
+<li><strong>Use <code>extern</code> for any C function</strong> you want
+to call — including standard library functions like <code>abs</code>,
+<code>atoi</code>, <code>puts</code>, etc.</li>
+<li><strong>Document your C dependencies</strong> in your project's
+README</li>
+<li><strong>Handle errors</strong> - C functions often return error
+codes</li>
+<li><strong>Memory management</strong> - Be careful with C memory; use
+Aether's memory management where possible</li>
+</ol>
+<h2 id="working-with-pointers">Working with Pointers</h2>
+<p>The <code>ptr</code> type maps to <code>void*</code> in C, useful for
+opaque handles and callbacks:</p>
+<pre class="aether"><code>extern create_handle() -&gt; ptr
+extern use_handle(h: ptr) -&gt; int
+extern destroy_handle(h: ptr)
+
+main() {
+    handle = create_handle()
+    if (handle != 0) {
+        use_handle(handle)
+        destroy_handle(handle)
+    }
+}</code></pre>
+<h3 id="passing-integers-to-ptr-parameters">Passing Integers to
+<code>ptr</code> Parameters</h3>
+<p>When an extern function expects a <code>ptr</code> parameter and you
+pass an <code>int</code>, the compiler automatically emits the correct
+<code>(void*)(intptr_t)</code> cast — no explicit casting required:</p>
+<pre class="aether"><code>import std.list
+
+main() {
+    items = list.new()
+    defer list.free(items)
+
+    i = 0
+    while i &lt; 5 {
+        list.add(items, i)   // int passed to void* — cast emitted automatically
+        i = i + 1
+    }
+    print(list.size(items))
+    print(&quot;\n&quot;)
+}</code></pre>
+<p>The generated C is
+<code>list_add(items, (void*)(intptr_t)(i))</code>, which is the
+well-defined idiom for storing integer values in <code>void*</code>
+containers.</p>
+<h2 id="embedding-aether-in-c-applications">Embedding Aether in C
+Applications</h2>
+<p>If you want to embed Aether actors in your existing C application
+(the reverse direction), see the <a href="c-embedding.md">C Embedding
+Guide</a>. This covers:</p>
+<ul>
+<li>Compiling Aether to C and linking with your application</li>
+<li>Using the Aether runtime API directly from C</li>
+<li>The <code>--emit-header</code> compiler flag for generating C
+headers</li>
+</ul>
+<h2 id="see-also">See Also</h2>
+<ul>
+<li><a href="getting-started.md">Getting Started</a></li>
+<li><a href="c-embedding.md">C Embedding Guide</a> - Embed Aether actors
+in C applications</li>
+<li><a href="stdlib-reference.md">Standard Library Reference</a></li>
+<li><a href="language-reference.md">Language Reference</a></li>
+</ul>
+    </article>
+  </main>
+
+  <!-- FOOTER -->
+  <footer>
+    <p>&copy; 2026 Nicolas Maman</p>
+    <p><a href="#">Privacy</a> &middot; <a href="https://github.com/nicolasmd87/aether/blob/main/LICENSE">License</a> &middot; <a href="mailto:hello@aether.org">Contact</a></p>
+  </footer>
+</body>
+</html>

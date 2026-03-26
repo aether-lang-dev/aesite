@@ -1,0 +1,1434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>language-reference</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/style.css" />
+  <link rel="stylesheet" href="/subpages.css" />
+  <link rel="stylesheet" href="/articles.css" />
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <a class="nav-logo" href="/index.html">Aether<span>.</span></a>
+    <ul class="nav-links">
+      <li><a href="/index.html#features">Features</a></li>
+      <li><a href="/index.html#syntax">Syntax</a></li>
+      <li><a href="/index.html#install">Install</a></li>
+      <li><a href="/faq.html">FAQ</a></li>
+    </ul>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="section">
+    <div>
+      <p class="section-label">Learning Material</p>
+    </div>
+
+    <article class="article-content">
+<h1 id="aether-language-reference">Aether Language Reference</h1>
+<p>Complete syntax and semantics of the Aether programming language.</p>
+<h2 id="overview">Overview</h2>
+<p>Aether is a statically-typed, compiled language combining
+Erlang-inspired actor concurrency with type inference. It features
+clean, minimal syntax and compiles to C code.</p>
+<h2 id="table-of-contents">Table of Contents</h2>
+<ol type="1">
+<li><a href="#types">Types</a></li>
+<li><a href="#variables">Variables</a></li>
+<li><a href="#functions">Functions</a></li>
+<li><a href="#pattern-matching-functions">Pattern Matching
+Functions</a></li>
+<li><a href="#control-flow">Control Flow</a></li>
+<li><a href="#match-statements">Match Statements</a></li>
+<li><a href="#switch-statements">Switch Statements</a></li>
+<li><a href="#defer-statement">Defer Statement</a></li>
+<li><a href="#memory-management">Memory Management</a></li>
+<li><a href="#structs">Structs</a></li>
+<li><a href="#messages">Messages</a></li>
+<li><a href="#actors">Actors</a></li>
+<li><a href="#operators">Operators</a></li>
+<li><a href="#modules-and-imports">Modules and Imports</a></li>
+<li><a href="#extern-functions">Extern Functions</a></li>
+<li><a href="#built-in-functions">Built-in Functions</a></li>
+<li><a href="#comments">Comments</a></li>
+<li><a href="#compilation">Compilation</a></li>
+</ol>
+<hr />
+<h2 id="types">Types</h2>
+<h3 id="primitive-types">Primitive Types</h3>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Description</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>int</code></td>
+<td>32-bit signed integer</td>
+<td><code>42</code>, <code>-17</code>, <code>0xFF</code>,
+<code>0b1010</code></td>
+</tr>
+<tr>
+<td><code>float</code></td>
+<td>64-bit floating point</td>
+<td><code>3.14</code>, <code>-0.5</code></td>
+</tr>
+<tr>
+<td><code>string</code></td>
+<td>UTF-8 encoded strings</td>
+<td><code>"Hello"</code></td>
+</tr>
+<tr>
+<td><code>bool</code></td>
+<td>Boolean type</td>
+<td><code>true</code>, <code>false</code></td>
+</tr>
+<tr>
+<td><code>void</code></td>
+<td>No value (for functions)</td>
+<td>-</td>
+</tr>
+<tr>
+<td><code>long</code></td>
+<td>64-bit signed integer</td>
+<td><code>long x = 0</code></td>
+</tr>
+<tr>
+<td><code>ptr</code></td>
+<td>Raw pointer (for C interop)</td>
+<td><code>null</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="composite-types">Composite Types</h3>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>struct</code></td>
+<td>User-defined composite data</td>
+</tr>
+<tr>
+<td><code>actor</code></td>
+<td>Concurrency primitive with state</td>
+</tr>
+<tr>
+<td><code>message</code></td>
+<td>Structured data for actor communication</td>
+</tr>
+<tr>
+<td><code>array</code></td>
+<td>Fixed-size homogeneous collections</td>
+</tr>
+</tbody>
+</table>
+<h3 id="array-types">Array Types</h3>
+<pre class="aether"><code>int[10] numbers;           // Array of 10 integers
+string[5] names;           // Array of 5 strings
+float[100] values;         // Array of 100 floats</code></pre>
+<h3 id="numeric-literal-formats">Numeric Literal Formats</h3>
+<p>Integer literals support hex, octal, and binary notation. Underscore
+separators are allowed anywhere in digits for readability.</p>
+<table>
+<thead>
+<tr>
+<th>Format</th>
+<th>Prefix</th>
+<th>Example</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Decimal</td>
+<td>(none)</td>
+<td><code>255</code></td>
+<td>255</td>
+</tr>
+<tr>
+<td>Hexadecimal</td>
+<td><code>0x</code> / <code>0X</code></td>
+<td><code>0xFF</code></td>
+<td>255</td>
+</tr>
+<tr>
+<td>Octal</td>
+<td><code>0o</code> / <code>0O</code></td>
+<td><code>0o377</code></td>
+<td>255</td>
+</tr>
+<tr>
+<td>Binary</td>
+<td><code>0b</code> / <code>0B</code></td>
+<td><code>0b1111_1111</code></td>
+<td>255</td>
+</tr>
+</tbody>
+</table>
+<pre class="aether"><code>mask = 0xFF
+flags = 0b1010_0101
+perms = 0o755
+big = 1_000_000</code></pre>
+<p>All numeric literal formats work with bitwise operators and in any
+expression context.</p>
+<hr />
+<h2 id="variables">Variables</h2>
+<p>Variables support both explicit types and automatic type
+inference:</p>
+<pre class="aether"><code>// Type inference (recommended)
+x = 10;
+y = 20;
+name = &quot;Alice&quot;;
+pi = 3.14159;
+
+// Explicit types (optional)
+int z = 30;
+string greeting = &quot;Hello&quot;;
+float temperature = 98.6;</code></pre>
+<p>Variables are inferred from their initialization or usage
+context.</p>
+<h3 id="null">Null</h3>
+<p>The <code>null</code> keyword represents a null pointer, typed as
+<code>ptr</code>:</p>
+<pre class="aether"><code>x = null             // inferred: ptr
+if x == null {
+    println(&quot;no value&quot;)
+}</code></pre>
+<h3 id="constants">Constants</h3>
+<p>Top-level constants are declared with <code>const</code>:</p>
+<pre class="aether"><code>const MAX_SIZE = 100
+const GREETING = &quot;hello&quot;
+const PI = 3
+
+main() {
+    println(MAX_SIZE)           // 100
+    half = MAX_SIZE / 2         // constants work in expressions
+}</code></pre>
+<p>Constants are emitted as <code>#define</code> in generated C — zero
+runtime cost.</p>
+<hr />
+<h2 id="functions">Functions</h2>
+<p>Functions support type inference for parameters and return types:</p>
+<pre class="aether"><code>// Type inference (recommended)
+add(a, b) {
+    return a + b;
+}
+
+greet(name) {
+    print(&quot;Hello, &quot;);
+    print(name);
+    print(&quot;\n&quot;);
+}
+
+// Explicit types (optional, for clarity)
+int add_explicit(int a, int b) {
+    return a + b;
+}
+
+void print_hello() {
+    print(&quot;Hello\n&quot;);
+}</code></pre>
+<p>Functions can return values or <code>void</code>. The
+<code>main()</code> function is the entry point.</p>
+<hr />
+<h2 id="pattern-matching-functions">Pattern Matching Functions</h2>
+<p>Aether supports Erlang-style function clauses with pattern matching
+and guard clauses:</p>
+<h3 id="basic-pattern-matching">Basic Pattern Matching</h3>
+<pre class="aether"><code>// Match on literal values
+factorial(0) -&gt; 1;
+factorial(n) -&gt; n * factorial(n - 1);
+
+// Fibonacci with multiple clauses
+fib(0) -&gt; 0;
+fib(1) -&gt; 1;
+fib(n) -&gt; fib(n - 1) + fib(n - 2);</code></pre>
+<h3 id="guard-clauses">Guard Clauses</h3>
+<p>Guards add conditions using the <code>when</code> keyword:</p>
+<pre class="aether"><code>// Classify numbers using guards
+classify(x) when x &lt; 0 -&gt; print(&quot;negative\n&quot;);
+classify(x) when x == 0 -&gt; print(&quot;zero\n&quot;);
+classify(x) when x &gt; 0 -&gt; print(&quot;positive\n&quot;);
+
+// Factorial with guard
+factorial(0) -&gt; 1;
+factorial(n) when n &gt; 0 -&gt; n * factorial(n - 1);
+
+// Grade calculation with multiple ranges
+grade(score) when score &gt;= 90 -&gt; &quot;A&quot;;
+grade(score) when score &gt;= 80 -&gt; &quot;B&quot;;
+grade(score) when score &gt;= 70 -&gt; &quot;C&quot;;
+grade(score) when score &gt;= 60 -&gt; &quot;D&quot;;
+grade(score) when score &lt; 60 -&gt; &quot;F&quot;;</code></pre>
+<h3 id="multi-statement-arrow-bodies">Multi-Statement Arrow Bodies</h3>
+<p>Arrow functions can have block bodies with
+<code>-&gt; { ... }</code>. The last expression is the implicit return
+value:</p>
+<pre class="aether"><code>// Single expression (existing)
+twice(x) -&gt; x * 2
+
+// Multi-statement with implicit return
+sum_squares(a, b) -&gt; {
+    sq_a = a * a
+    sq_b = b * b
+    sq_a + sq_b
+}
+
+// Multi-statement with early return
+clamp(x, lo, hi) -&gt; {
+    if x &lt; lo {
+        return lo
+    }
+    if x &gt; hi {
+        return hi
+    }
+    x
+}</code></pre>
+<p>This allows complex logic in arrow-style functions without switching
+to block syntax.</p>
+<h3 id="multi-parameter-guards">Multi-parameter Guards</h3>
+<pre class="aether"><code>// Max of two numbers
+max(a, b) when a &gt;= b -&gt; a;
+max(a, b) when a &lt; b -&gt; b;
+
+// GCD with pattern matching
+gcd(a, 0) -&gt; a;
+gcd(a, b) when b &gt; 0 -&gt; gcd(b, a - (a / b) * b);</code></pre>
+<h3 id="mutual-recursion-with-guards">Mutual Recursion with Guards</h3>
+<pre class="aether"><code>is_even(n) when n == 0 -&gt; 1;
+is_even(n) when n &gt; 0 -&gt; is_odd(n - 1);
+
+is_odd(n) when n == 0 -&gt; 0;
+is_odd(n) when n &gt; 0 -&gt; is_even(n - 1);</code></pre>
+<hr />
+<h2 id="control-flow">Control Flow</h2>
+<h3 id="if-statements">If Statements</h3>
+<pre class="aether"><code>if (x &gt; 0) {
+    print(&quot;Positive\n&quot;);
+} else if (x &lt; 0) {
+    print(&quot;Negative\n&quot;);
+} else {
+    print(&quot;Zero\n&quot;);
+}</code></pre>
+<h3 id="if-expressions">If-Expressions</h3>
+<p><code>if</code>/<code>else</code> can be used as an expression that
+produces a value (like a ternary operator):</p>
+<pre class="aether"><code>// Assign based on condition
+max = if a &gt; b { a } else { b }
+
+// Use inline in function calls
+println(if x &gt; 0 { x } else { 0 - x })
+
+// Nested if-expressions
+grade = if score &gt;= 90 { 4 } else { if score &gt;= 80 { 3 } else { 2 } }</code></pre>
+<p>Both branches must produce a value of the same type. The
+<code>else</code> branch is required.</p>
+<h3 id="while-loops">While Loops</h3>
+<pre class="aether"><code>i = 0;
+while (i &lt; 10) {
+    print(i);
+    print(&quot;\n&quot;);
+    i = i + 1;
+}</code></pre>
+<h3 id="for-loops">For Loops</h3>
+<pre class="aether"><code>for (i = 0; i &lt; 10; i = i + 1) {
+    print(i);
+    print(&quot;\n&quot;);
+}</code></pre>
+<h3 id="range-based-for-loops">Range-Based For Loops</h3>
+<p>Iterate over a range with <code>for VAR in START..END</code>:</p>
+<pre class="aether"><code>// Prints 0 1 2 3 4
+for i in 0..5 {
+    print(i)
+    print(&quot; &quot;)
+}
+
+// Sum with variable bound
+sum = 0
+for i in 1..n {
+    sum += i
+}</code></pre>
+<p>The range <code>start..end</code> is exclusive of <code>end</code>
+(like Python's <code>range(start, end)</code>). It desugars to a C-style
+for loop internally.</p>
+<h3 id="loop-control">Loop Control</h3>
+<pre class="aether"><code>// Break - exit loop early
+for (i = 0; i &lt; 100; i = i + 1) {
+    if (i == 50) {
+        break;
+    }
+}
+
+// Continue - skip to next iteration
+for (i = 0; i &lt; 10; i = i + 1) {
+    if (i == 5) {
+        continue;
+    }
+    print(i);
+}</code></pre>
+<hr />
+<h2 id="match-statements">Match Statements</h2>
+<p>Match statements provide pattern-based dispatch:</p>
+<h3 id="integer-matching">Integer Matching</h3>
+<pre class="aether"><code>match (value) {
+    0 -&gt; { print(&quot;zero\n&quot;); }
+    1 -&gt; { print(&quot;one\n&quot;); }
+    2 -&gt; { print(&quot;two\n&quot;); }
+    _ -&gt; { print(&quot;other\n&quot;); }
+}</code></pre>
+<h3 id="string-matching">String Matching</h3>
+<p>Strings are compared by content (via <code>strcmp</code>), so string
+literal arms work correctly:</p>
+<pre class="aether"><code>match (command) {
+    &quot;start&quot; -&gt; { println(&quot;starting...&quot;) }
+    &quot;stop&quot; -&gt; { println(&quot;stopping...&quot;) }
+    &quot;help&quot; -&gt; { println(&quot;available: start, stop, help&quot;) }
+    _ -&gt; { println(&quot;unknown command&quot;) }
+}</code></pre>
+<h3 id="list-pattern-matching">List Pattern Matching</h3>
+<p>Arrays can be matched with list patterns. Requires a corresponding
+<code>_len</code> variable:</p>
+<pre class="aether"><code>nums = [1, 2, 3];
+nums_len = 3;
+
+match (nums) {
+    [] -&gt; { print(&quot;empty list\n&quot;); }
+    [x] -&gt; {
+        print(&quot;single element: &quot;);
+        print(x);
+        print(&quot;\n&quot;);
+    }
+    [a, b] -&gt; {
+        print(&quot;pair: &quot;);
+        print(a);
+        print(&quot;, &quot;);
+        print(b);
+        print(&quot;\n&quot;);
+    }
+    [h|t] -&gt; {
+        print(&quot;head: &quot;);
+        print(h);
+        print(&quot;, tail has rest\n&quot;);
+    }
+}</code></pre>
+<h3 id="list-pattern-types">List Pattern Types</h3>
+<table>
+<thead>
+<tr>
+<th>Pattern</th>
+<th>Matches</th>
+<th>Bindings</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>[]</code></td>
+<td>Empty array</td>
+<td>None</td>
+</tr>
+<tr>
+<td><code>[x]</code></td>
+<td>Single-element array</td>
+<td><code>x</code> = element</td>
+</tr>
+<tr>
+<td><code>[x, y]</code></td>
+<td>Two-element array</td>
+<td><code>x</code>, <code>y</code> = elements</td>
+</tr>
+<tr>
+<td><code>[x, y, z]</code></td>
+<td>Three-element array</td>
+<td><code>x</code>, <code>y</code>, <code>z</code> = elements</td>
+</tr>
+<tr>
+<td><code>[h|t]</code></td>
+<td>Non-empty array</td>
+<td><code>h</code> = first, <code>t</code> = rest</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="switch-statements">Switch Statements</h2>
+<p>C-style switch for simple value dispatch:</p>
+<pre class="aether"><code>switch (month) {
+    case 1: name = &quot;January&quot;;
+    case 2: name = &quot;February&quot;;
+    case 3: name = &quot;March&quot;;
+    // ... more cases
+    default: name = &quot;Invalid&quot;;
+}</code></pre>
+<h3 id="switch-vs-match">Switch vs Match</h3>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th><code>switch</code></th>
+<th><code>match</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Pattern types</td>
+<td>Integer/string literals</td>
+<td>Literals, lists, wildcards</td>
+</tr>
+<tr>
+<td>Binding</td>
+<td>No</td>
+<td>Yes (captures variables)</td>
+</tr>
+<tr>
+<td>Use case</td>
+<td>Simple dispatch</td>
+<td>Pattern destructuring</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="defer-statement">Defer Statement</h2>
+<p>The <code>defer</code> statement schedules code to run when leaving
+the current scope:</p>
+<pre class="aether"><code>process_file() {
+    handle = open_resource();
+    defer close_resource(handle);  // Runs when function exits
+
+    use_resource(handle);
+    use_resource(handle);
+    // close_resource(handle) called automatically here
+}</code></pre>
+<h3 id="lifo-order">LIFO Order</h3>
+<p>Multiple defers execute in Last-In-First-Out order:</p>
+<pre class="aether"><code>example() {
+    defer print(&quot;First\n&quot;);   // Runs third
+    defer print(&quot;Second\n&quot;);  // Runs second
+    defer print(&quot;Third\n&quot;);   // Runs first
+}
+// Output: Third, Second, First</code></pre>
+<h3 id="use-cases">Use Cases</h3>
+<ul>
+<li>Resource cleanup (files, connections)</li>
+<li>Unlocking mutexes</li>
+<li>Logging function exit</li>
+<li>Guaranteed cleanup regardless of return path</li>
+</ul>
+<hr />
+<h2 id="memory-management">Memory Management</h2>
+<p>Aether uses <strong>deterministic scope-exit cleanup</strong> -- no
+garbage collector, no GC pauses. The primary mechanism is
+<code>defer</code>.</p>
+<h3 id="defer-for-cleanup-default"><code>defer</code> for Cleanup
+(default)</h3>
+<p>Allocate, immediately defer the free, then use the resource. Cleanup
+runs at scope exit in LIFO order:</p>
+<pre class="aether"><code>import std.list
+
+main() {
+    items = list.new()
+    defer list.free(items)
+
+    list.add(items, &quot;hello&quot;)
+    print(list.size(items))
+    print(&quot;\n&quot;)
+    // list.free(items) runs here (scope exit)
+}</code></pre>
+<p>This works with any function, not just stdlib types.</p>
+<h3 id="returning-allocated-values">Returning Allocated Values</h3>
+<p>The caller receives ownership and is responsible for cleanup:</p>
+<pre class="aether"><code>import std.list
+
+build_list(n) : ptr {
+    result = list.new()
+    i = 0
+    while i &lt; n {
+        list.add(result, i)
+        i = i + 1
+    }
+    return result
+}
+
+main() {
+    items = build_list(10)
+    defer list.free(items)
+
+    print(list.size(items))
+    print(&quot;\n&quot;)
+}</code></pre>
+<p>See <a href="memory-management.md">Memory Management Guide</a> for
+the full reference.</p>
+<hr />
+<h2 id="structs">Structs</h2>
+<p>Structs group related data:</p>
+<pre class="aether"><code>struct Point {
+    x,
+    y
+}
+
+struct Person {
+    name,
+    age
+}
+
+main() {
+    p = Point { x: 10, y: 20 };
+    print(p.x);  // 10
+    print(p.y);  // 20
+}</code></pre>
+<h3 id="explicit-field-types">Explicit Field Types</h3>
+<pre class="aether"><code>struct Point {
+    int x,
+    int y
+}
+
+struct Config {
+    string name,
+    int timeout,
+    float threshold
+}</code></pre>
+<hr />
+<h2 id="messages">Messages</h2>
+<p>Messages define structured data for actor communication:</p>
+<pre class="aether"><code>message Increment {
+    amount: int
+}
+
+message Greet {
+    name: string
+}
+
+message SetPosition {
+    x: int,
+    y: int
+}
+
+message Reset {}  // Empty message</code></pre>
+<hr />
+<h2 id="actors">Actors</h2>
+<p>Actors are the core concurrency primitive with encapsulated state and
+message handling.</p>
+<h3 id="actor-definition">Actor Definition</h3>
+<pre class="aether"><code>actor Counter {
+    state count = 0;
+
+    receive {
+        Increment(amount) -&gt; {
+            count = count + amount;
+        }
+        GetCount() -&gt; {
+            print(count);
+            print(&quot;\n&quot;);
+        }
+        _ -&gt; {
+            print(&quot;Unknown message\n&quot;);
+        }
+    }
+}</code></pre>
+<h3 id="state-variables">State Variables</h3>
+<p>State persists across messages:</p>
+<pre class="aether"><code>actor BankAccount {
+    state balance = 0;
+    state transactions = 0;
+    state int[100] history;
+}</code></pre>
+<h3 id="spawning-actors">Spawning Actors</h3>
+<pre class="aether"><code>counter = spawn(Counter());
+calculator = spawn(Calculator());</code></pre>
+<h3 id="sending-messages-fire-and-forget">Sending Messages
+(Fire-and-Forget)</h3>
+<pre class="aether"><code>counter ! Increment { amount: 10 };
+counter ! Reset {};</code></pre>
+<h3 id="ask-pattern-request-reply">Ask Pattern (Request-Reply)</h3>
+<p>The <code>?</code> operator sends a message and blocks until the
+actor replies. The compiler infers the reply type from the actor's
+receive handler and extracts the first field of the reply message
+automatically. Multiple concurrent asks to the same actor are supported
+— each message carries its own reply slot.</p>
+<pre class="aether"><code>// Synchronous request-reply — result is an int (from Result.value)
+result = calculator ? Add { a: 5, b: 3 };</code></pre>
+<p>If the handler does not call <code>reply</code> within the timeout
+(default 5 seconds), <code>?</code> returns 0.</p>
+<h3 id="reply-statement">Reply Statement</h3>
+<p>The <code>reply</code> statement sends a response back to the waiting
+<code>?</code> caller. Omitting <code>reply</code> in a handler that was
+invoked via <code>?</code> causes the caller to time out.</p>
+<p>Actors respond using the <code>reply</code> statement:</p>
+<pre class="aether"><code>actor Calculator {
+    receive {
+        Add(a, b) -&gt; {
+            result = a + b;
+            reply Result { value: result };
+        }
+    }
+}</code></pre>
+<h3 id="wildcard-handler">Wildcard Handler</h3>
+<p>The <code>_</code> pattern catches unmatched messages:</p>
+<pre class="aether"><code>receive {
+    Known() -&gt; { /* handle */ }
+    _ -&gt; { print(&quot;Unknown message\n&quot;); }
+}</code></pre>
+<hr />
+<h2 id="operators">Operators</h2>
+<h3 id="arithmetic-operators">Arithmetic Operators</h3>
+<table>
+<thead>
+<tr>
+<th>Operator</th>
+<th>Description</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>+</code></td>
+<td>Addition</td>
+<td><code>a + b</code></td>
+</tr>
+<tr>
+<td><code>-</code></td>
+<td>Subtraction</td>
+<td><code>a - b</code></td>
+</tr>
+<tr>
+<td><code>*</code></td>
+<td>Multiplication</td>
+<td><code>a * b</code></td>
+</tr>
+<tr>
+<td><code>/</code></td>
+<td>Division</td>
+<td><code>a / b</code></td>
+</tr>
+<tr>
+<td><code>%</code></td>
+<td>Modulo</td>
+<td><code>a % b</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="comparison-operators">Comparison Operators</h3>
+<table>
+<thead>
+<tr>
+<th>Operator</th>
+<th>Description</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>==</code></td>
+<td>Equal</td>
+<td><code>a == b</code></td>
+</tr>
+<tr>
+<td><code>!=</code></td>
+<td>Not equal</td>
+<td><code>a != b</code></td>
+</tr>
+<tr>
+<td><code>&lt;</code></td>
+<td>Less than</td>
+<td><code>a &lt; b</code></td>
+</tr>
+<tr>
+<td><code>&gt;</code></td>
+<td>Greater than</td>
+<td><code>a &gt; b</code></td>
+</tr>
+<tr>
+<td><code>&lt;=</code></td>
+<td>Less or equal</td>
+<td><code>a &lt;= b</code></td>
+</tr>
+<tr>
+<td><code>&gt;=</code></td>
+<td>Greater or equal</td>
+<td><code>a &gt;= b</code></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>String comparison:</strong> When both operands are strings,
+<code>==</code> and <code>!=</code> compare by content (using
+<code>strcmp</code> in the generated C), not by pointer identity. Two
+strings with the same content are always equal regardless of how they
+were allocated.</p>
+</blockquote>
+<h3 id="bitwise-operators">Bitwise Operators</h3>
+<table>
+<thead>
+<tr>
+<th>Operator</th>
+<th>Description</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>&amp;</code></td>
+<td>Bitwise AND</td>
+<td><code>flags &amp; mask</code></td>
+</tr>
+<tr>
+<td><code>|</code></td>
+<td>Bitwise OR</td>
+<td><code>flags | bit</code></td>
+</tr>
+<tr>
+<td><code>^</code></td>
+<td>Bitwise XOR</td>
+<td><code>a ^ b</code></td>
+</tr>
+<tr>
+<td><code>~</code></td>
+<td>Bitwise NOT</td>
+<td><code>~mask</code></td>
+</tr>
+<tr>
+<td><code>&lt;&lt;</code></td>
+<td>Left shift</td>
+<td><code>1 &lt;&lt; 4</code></td>
+</tr>
+<tr>
+<td><code>&gt;&gt;</code></td>
+<td>Right shift</td>
+<td><code>n &gt;&gt; 2</code></td>
+</tr>
+</tbody>
+</table>
+<p>Bitwise operators work on <code>int</code> and <code>long</code>
+values and map directly to C operators (zero runtime cost).</p>
+<pre class="aether"><code>flags = 255
+mask = flags &amp; 15       // 15
+set = flags | 256       // 511
+flipped = flags ^ 255   // 0
+shifted = 1 &lt;&lt; 4        // 16</code></pre>
+<h3 id="logical-operators">Logical Operators</h3>
+<table>
+<thead>
+<tr>
+<th>Operator</th>
+<th>Description</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>&amp;&amp;</code></td>
+<td>Logical AND</td>
+<td><code>a &amp;&amp; b</code></td>
+</tr>
+<tr>
+<td><code>||</code></td>
+<td>Logical OR</td>
+<td><code>a || b</code></td>
+</tr>
+<tr>
+<td><code>!</code></td>
+<td>Logical NOT</td>
+<td><code>!a</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="assignment-operators">Assignment Operators</h3>
+<table>
+<thead>
+<tr>
+<th>Operator</th>
+<th>Description</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>=</code></td>
+<td>Assignment</td>
+<td><code>x = 5</code></td>
+</tr>
+<tr>
+<td><code>+=</code></td>
+<td>Add and assign</td>
+<td><code>x += 5</code></td>
+</tr>
+<tr>
+<td><code>-=</code></td>
+<td>Subtract and assign</td>
+<td><code>x -= 5</code></td>
+</tr>
+<tr>
+<td><code>*=</code></td>
+<td>Multiply and assign</td>
+<td><code>x *= 5</code></td>
+</tr>
+<tr>
+<td><code>/=</code></td>
+<td>Divide and assign</td>
+<td><code>x /= 5</code></td>
+</tr>
+<tr>
+<td><code>%=</code></td>
+<td>Modulo and assign</td>
+<td><code>x %= 5</code></td>
+</tr>
+<tr>
+<td><code>&amp;=</code></td>
+<td>Bitwise AND assign</td>
+<td><code>x &amp;= mask</code></td>
+</tr>
+<tr>
+<td><code>|=</code></td>
+<td>Bitwise OR assign</td>
+<td><code>x |= bit</code></td>
+</tr>
+<tr>
+<td><code>^=</code></td>
+<td>Bitwise XOR assign</td>
+<td><code>x ^= mask</code></td>
+</tr>
+<tr>
+<td><code>&lt;&lt;=</code></td>
+<td>Left shift assign</td>
+<td><code>x &lt;&lt;= 4</code></td>
+</tr>
+<tr>
+<td><code>&gt;&gt;=</code></td>
+<td>Right shift assign</td>
+<td><code>x &gt;&gt;= 2</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="postfix-operators">Postfix Operators</h3>
+<table>
+<thead>
+<tr>
+<th>Operator</th>
+<th>Description</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>++</code></td>
+<td>Post-increment</td>
+<td><code>i++</code></td>
+</tr>
+<tr>
+<td><code>--</code></td>
+<td>Post-decrement</td>
+<td><code>i--</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="actor-operators">Actor Operators</h3>
+<table>
+<thead>
+<tr>
+<th>Operator</th>
+<th>Description</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>!</code></td>
+<td>Send message (async)</td>
+<td><code>actor ! Msg {}</code></td>
+</tr>
+<tr>
+<td><code>?</code></td>
+<td>Ask (request-reply)</td>
+<td><code>actor ? Query {}</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="member-access">Member Access</h3>
+<table>
+<thead>
+<tr>
+<th>Operator</th>
+<th>Description</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>.</code></td>
+<td>Field access</td>
+<td><code>point.x</code></td>
+</tr>
+<tr>
+<td><code>[]</code></td>
+<td>Array index</td>
+<td><code>arr[0]</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="operator-precedence-high-to-low">Operator Precedence (High to
+Low)</h3>
+<ol type="1">
+<li><code>()</code> <code>[]</code> <code>.</code> - Grouping, indexing,
+member access</li>
+<li><code>!</code> <code>-</code> <code>~</code> (unary) <code>++</code>
+<code>--</code> - Unary operators</li>
+<li><code>*</code> <code>/</code> <code>%</code> - Multiplicative</li>
+<li><code>+</code> <code>-</code> - Additive</li>
+<li><code>&lt;&lt;</code> <code>&gt;&gt;</code> - Bitwise shift</li>
+<li><code>&lt;</code> <code>&gt;</code> <code>&lt;=</code>
+<code>&gt;=</code> - Relational</li>
+<li><code>==</code> <code>!=</code> - Equality</li>
+<li><code>&amp;</code> - Bitwise AND</li>
+<li><code>^</code> - Bitwise XOR</li>
+<li><code>|</code> - Bitwise OR</li>
+<li><code>&amp;&amp;</code> - Logical AND</li>
+<li><code>||</code> - Logical OR</li>
+<li><code>=</code> <code>+=</code> <code>-=</code> <code>*=</code>
+<code>/=</code> <code>%=</code> <code>&amp;=</code> <code>|=</code>
+<code>^=</code> <code>&lt;&lt;=</code> <code>&gt;&gt;=</code> -
+Assignment</li>
+<li><code>!</code> <code>?</code> - Actor send/ask</li>
+</ol>
+<hr />
+<h2 id="modules-and-imports">Modules and Imports</h2>
+<h3 id="standard-library-imports">Standard Library Imports</h3>
+<pre class="aether"><code>import std.file;         // File operations
+import std.string;       // String utilities
+import std.list;         // ArrayList
+import std.http;         // HTTP client &amp; server
+import std.json;         // JSON parsing
+
+// Use with namespace syntax
+result = string.new(&quot;hello&quot;);
+if (file.exists(&quot;config.txt&quot;) == 1) { }</code></pre>
+<h3 id="import-with-alias-planned">Import with Alias (Planned)</h3>
+<blockquote>
+<p><strong>Note:</strong> Import aliasing is parsed but not yet fully
+functional. Use the default namespace for now.</p>
+</blockquote>
+<pre class="aether"><code>// Planned syntax:
+// import std.string as str;
+// s = str.new(&quot;hello&quot;)
+
+// Current workaround: use the module name directly
+import std.string
+s = string.new(&quot;hello&quot;)
+len = string.length(s)
+string.release(s)</code></pre>
+<h3 id="local-module-imports">Local Module Imports</h3>
+<pre class="aether"><code>import utils;           // Loads lib/utils/module.ae
+import helpers;         // Loads lib/helpers/module.ae
+
+result = utils.double_value(21);</code></pre>
+<h3 id="available-standard-library-modules">Available Standard Library
+Modules</h3>
+<table>
+<thead>
+<tr>
+<th>Module</th>
+<th>Namespace</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>std.file</code></td>
+<td><code>file</code></td>
+<td>File operations (<code>file.open()</code>,
+<code>file.exists()</code>)</td>
+</tr>
+<tr>
+<td><code>std.dir</code></td>
+<td><code>dir</code></td>
+<td>Directory operations (<code>dir.list()</code>,
+<code>dir.create()</code>)</td>
+</tr>
+<tr>
+<td><code>std.path</code></td>
+<td><code>path</code></td>
+<td>Path utilities (<code>path.join()</code>,
+<code>path.basename()</code>)</td>
+</tr>
+<tr>
+<td><code>std.string</code></td>
+<td><code>string</code></td>
+<td>String manipulation (<code>string.new()</code>,
+<code>string.length()</code>)</td>
+</tr>
+<tr>
+<td><code>std.list</code></td>
+<td><code>list</code></td>
+<td>Dynamic array (<code>list.new()</code>,
+<code>list.add()</code>)</td>
+</tr>
+<tr>
+<td><code>std.map</code></td>
+<td><code>map</code></td>
+<td>Hash map (<code>map.new()</code>, <code>map.put()</code>)</td>
+</tr>
+<tr>
+<td><code>std.json</code></td>
+<td><code>json</code></td>
+<td>JSON encoding/decoding (<code>json.parse()</code>,
+<code>json.free()</code>)</td>
+</tr>
+<tr>
+<td><code>std.http</code></td>
+<td><code>http</code></td>
+<td>HTTP client &amp; server (<code>http.get()</code>,
+<code>http.server_create()</code>)</td>
+</tr>
+<tr>
+<td><code>std.tcp</code></td>
+<td><code>tcp</code></td>
+<td>TCP sockets (<code>tcp.connect()</code>,
+<code>tcp.send()</code>)</td>
+</tr>
+<tr>
+<td><code>std.math</code></td>
+<td><code>math</code></td>
+<td>Math functions (<code>math.sqrt()</code>,
+<code>math.sin()</code>)</td>
+</tr>
+<tr>
+<td><code>std.log</code></td>
+<td><code>log</code></td>
+<td>Logging utilities (<code>log.init()</code>,
+<code>log.write()</code>)</td>
+</tr>
+<tr>
+<td><code>std.io</code></td>
+<td><code>io</code></td>
+<td>Input/output (<code>io.print()</code>,
+<code>io.getenv()</code>)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="extern-functions">Extern Functions</h2>
+<p>Declare external C functions:</p>
+<pre class="aether"><code>extern puts(s: string) -&gt; int;
+extern malloc(size: int) -&gt; ptr;
+extern free(p: ptr) -&gt; void;
+
+main() {
+    puts(&quot;Direct C call!&quot;);
+}</code></pre>
+<p>Externs are useful for:</p>
+<ul>
+<li>Calling C standard library</li>
+<li>Custom C extensions</li>
+<li>Platform-specific APIs</li>
+</ul>
+<hr />
+<h2 id="built-in-functions">Built-in Functions</h2>
+<h3 id="io">I/O</h3>
+<table>
+<thead>
+<tr>
+<th>Function</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>print(value)</code></td>
+<td>Print to stdout (no newline)</td>
+</tr>
+<tr>
+<td><code>println(value)</code></td>
+<td>Print to stdout followed by a newline</td>
+</tr>
+<tr>
+<td><code>print_char(code)</code></td>
+<td>Print a single character by ASCII/Unicode code point</td>
+</tr>
+</tbody>
+</table>
+<p>String interpolation is supported inside double-quoted strings using
+<code>${expr}</code>:</p>
+<pre class="aether"><code>name = &quot;Alice&quot;
+age = 30
+println(&quot;Hello, ${name}! You are ${age} years old.&quot;)</code></pre>
+<p>Interpolated strings produce a <code>ptr</code> (heap-allocated C
+string) when used as values:</p>
+<pre class="aether"><code>msg = &quot;Hello, ${name}!&quot;     // msg is a ptr (char*), not an int
+tcp_send(conn, msg)          // can be passed to any function expecting ptr</code></pre>
+<p>When used directly inside <code>print</code>/<code>println</code>,
+the compiler optimizes to a <code>printf</code> call (no
+allocation).</p>
+<h3 id="timing">Timing</h3>
+<table>
+<thead>
+<tr>
+<th>Function</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>clock_ns()</code></td>
+<td>Returns current time in nanoseconds (<code>long</code>)</td>
+</tr>
+<tr>
+<td><code>sleep(ms)</code></td>
+<td>Pause execution (milliseconds)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="concurrency">Concurrency</h3>
+<table>
+<thead>
+<tr>
+<th>Function</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>spawn(ActorName())</code></td>
+<td>Create actor instance</td>
+</tr>
+<tr>
+<td><code>wait_for_idle()</code></td>
+<td>Wait for all actors to finish</td>
+</tr>
+</tbody>
+</table>
+<h3 id="environment--process">Environment &amp; Process</h3>
+<table>
+<thead>
+<tr>
+<th>Function</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>getenv(name)</code></td>
+<td>Get environment variable (returns string)</td>
+</tr>
+<tr>
+<td><code>atoi(s)</code></td>
+<td>Convert string to int</td>
+</tr>
+<tr>
+<td><code>exit(code)</code></td>
+<td>Terminate program with exit code (defaults to 0)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="keywords">Keywords</h2>
+<p>The following identifiers are reserved:</p>
+<table>
+<thead>
+<tr>
+<th>Keyword</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>if</code>, <code>else</code></td>
+<td>Conditionals</td>
+</tr>
+<tr>
+<td><code>while</code>, <code>for</code>, <code>in</code>,
+<code>break</code>, <code>continue</code></td>
+<td>Loops</td>
+</tr>
+<tr>
+<td><code>return</code></td>
+<td>Function return</td>
+</tr>
+<tr>
+<td><code>match</code>, <code>switch</code>, <code>case</code>,
+<code>default</code></td>
+<td>Pattern matching / dispatch</td>
+</tr>
+<tr>
+<td><code>actor</code>, <code>receive</code>, <code>spawn</code>,
+<code>reply</code></td>
+<td>Actor system</td>
+</tr>
+<tr>
+<td><code>message</code>, <code>struct</code></td>
+<td>Type definitions</td>
+</tr>
+<tr>
+<td><code>state</code></td>
+<td>Actor state (only reserved inside actor bodies)</td>
+</tr>
+<tr>
+<td><code>import</code>, <code>extern</code></td>
+<td>Modules and C interop</td>
+</tr>
+<tr>
+<td><code>const</code></td>
+<td>Top-level constants</td>
+</tr>
+<tr>
+<td><code>defer</code></td>
+<td>Scope-exit cleanup</td>
+</tr>
+<tr>
+<td><code>null</code>, <code>true</code>, <code>false</code></td>
+<td>Literals</td>
+</tr>
+<tr>
+<td><code>when</code></td>
+<td>Guard clauses</td>
+</tr>
+<tr>
+<td><code>int</code>, <code>float</code>, <code>string</code>,
+<code>bool</code>, <code>void</code>, <code>ptr</code>,
+<code>long</code></td>
+<td>Type names</td>
+</tr>
+</tbody>
+</table>
+<p>Note: <code>state</code> is context-sensitive — it is a keyword only
+inside actor bodies. In all other code, <code>state</code> can be used
+as a regular variable name.</p>
+<hr />
+<h2 id="comments">Comments</h2>
+<pre class="aether"><code>// Single-line comment
+
+/* Multi-line
+   comment */</code></pre>
+<hr />
+<h2 id="compilation">Compilation</h2>
+<h3 id="using-the-cli">Using the CLI</h3>
+<div class="sourceCode" id="cb44"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="ex">ae</span> run program.ae           <span class="co"># Compile and run (fast, -O0)</span></span>
+<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a><span class="ex">ae</span> build program.ae <span class="at">-o</span> out  <span class="co"># Compile to optimised executable (-O2 + aether.toml cflags)</span></span>
+<span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a><span class="ex">ae</span> init myproject           <span class="co"># Scaffold a new project</span></span>
+<span id="cb44-4"><a href="#cb44-4" aria-hidden="true" tabindex="-1"></a><span class="ex">ae</span> test                     <span class="co"># Discover and run .ae test files</span></span>
+<span id="cb44-5"><a href="#cb44-5" aria-hidden="true" tabindex="-1"></a><span class="ex">ae</span> cache                    <span class="co"># Show build cache info</span></span>
+<span id="cb44-6"><a href="#cb44-6" aria-hidden="true" tabindex="-1"></a><span class="ex">ae</span> cache clear              <span class="co"># Purge build cache</span></span></code></pre></div>
+<p><code>ae run</code> and <code>ae build</code> also accept:</p>
+<div class="sourceCode" id="cb45"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Include extra C source files (e.g. FFI helpers, renderer backends)</span></span>
+<span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a><span class="ex">ae</span> build main.ae <span class="at">-o</span> app <span class="at">--extra</span> src/ffi.c <span class="at">--extra</span> src/renderer.c</span>
+<span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb45-4"><a href="#cb45-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Multiple --extra flags are additive; also merged with extra_sources from aether.toml</span></span></code></pre></div>
+<h3 id="using-the-compiler-directly">Using the Compiler Directly</h3>
+<div class="sourceCode" id="cb46"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Compile to C</span></span>
+<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a><span class="ex">aetherc</span> program.ae output.c</span>
+<span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb46-4"><a href="#cb46-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Emit a C header for embedding Aether actors in a C application</span></span>
+<span id="cb46-5"><a href="#cb46-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Generates message structs, MSG_* constants, and spawn function prototypes</span></span>
+<span id="cb46-6"><a href="#cb46-6" aria-hidden="true" tabindex="-1"></a><span class="ex">aetherc</span> program.ae output.c <span class="at">--emit-header</span></span>
+<span id="cb46-7"><a href="#cb46-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb46-8"><a href="#cb46-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Print parsed AST (for debugging, no code generation)</span></span>
+<span id="cb46-9"><a href="#cb46-9" aria-hidden="true" tabindex="-1"></a><span class="ex">aetherc</span> <span class="at">--dump-ast</span> program.ae</span></code></pre></div>
+<hr />
+<h2 id="type-system">Type System</h2>
+<p>Aether uses static typing with full type inference — explicit
+annotations are never required, but are always accepted.</p>
+<h3 id="inference-rules">Inference rules</h3>
+<ul>
+<li><strong>Local variables</strong>: Inferred from their initializer
+(<code>x = 42</code> → <code>int</code>)</li>
+<li><strong>Function parameters</strong>: Inferred from call sites
+across the whole program, including through deep call chains
+(<code>main → f → g → h</code>)</li>
+<li><strong>Return types</strong>: Inferred from <code>return</code>
+statements and arrow-body expressions</li>
+<li><strong>Constraint solving</strong>: Iterative constraint
+propagation handles complex interdependencies</li>
+</ul>
+<h3 id="type-annotations-are-optional">Type annotations are
+optional</h3>
+<pre class="aether"><code>// All three are equivalent:
+add(a, b) { return a + b; }          // fully inferred from call sites
+add(a: int, b: int) { return a + b; } // explicit
+add(a, b: int) { return a + b; }     // mixed</code></pre>
+<p>Annotations are useful for documentation or when the type cannot be
+determined from call sites alone (e.g. a function that is never called,
+or an <code>extern</code> parameter).</p>
+<h3 id="extern-requires-annotations"><code>extern</code> requires
+annotations</h3>
+<p>The compiler cannot infer types of external C functions — parameter
+types must be declared explicitly:</p>
+<pre class="aether"><code>extern malloc(n: int) -&gt; ptr
+extern free(p: ptr) -&gt; void</code></pre>
+<p>Explicit types are optional but can improve clarity:</p>
+<pre class="aether"><code>// Both are valid:
+x = 42;
+int y = 42;</code></pre>
+<hr />
+<h2 id="example-programs">Example Programs</h2>
+<h3 id="hello-world">Hello World</h3>
+<pre class="aether"><code>main() {
+    print(&quot;Hello, World!\n&quot;);
+}</code></pre>
+<h3 id="factorial-with-pattern-matching">Factorial with Pattern
+Matching</h3>
+<pre class="aether"><code>factorial(0) -&gt; 1;
+factorial(n) when n &gt; 0 -&gt; n * factorial(n - 1);
+
+main() {
+    print(factorial(10));  // 3628800
+}</code></pre>
+<h3 id="counter-actor">Counter Actor</h3>
+<pre class="aether"><code>message Increment { amount: int }
+message GetCount {}
+
+actor Counter {
+    state count = 0;
+
+    receive {
+        Increment(amount) -&gt; {
+            count = count + amount;
+        }
+        GetCount() -&gt; {
+            print(count);
+            print(&quot;\n&quot;);
+        }
+    }
+}
+
+main() {
+    c = spawn(Counter());
+    c ! Increment { amount: 5 };
+    c ! Increment { amount: 3 };
+    c ! GetCount {};
+    wait_for_idle();  // Output: 8
+}</code></pre>
+<h3 id="resource-management-with-defer">Resource Management with
+Defer</h3>
+<pre class="aether"><code>extern fopen(path: string, mode: string) -&gt; ptr;
+extern fclose(file: ptr) -&gt; int;
+
+process_file(path) {
+    file = fopen(path, &quot;r&quot;);
+    defer fclose(file);
+
+    // Process file...
+    // fclose called automatically
+}</code></pre>
+    </article>
+  </main>
+
+  <!-- FOOTER -->
+  <footer>
+    <p>&copy; 2026 Nicolas Maman</p>
+    <p><a href="#">Privacy</a> &middot; <a href="https://github.com/nicolasmd87/aether/blob/main/LICENSE">License</a> &middot; <a href="mailto:hello@aether.org">Contact</a></p>
+  </footer>
+</body>
+</html>

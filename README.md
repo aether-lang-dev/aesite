@@ -38,3 +38,11 @@ Server starts at `http://localhost:1323`.
 
 - **Backend:** Go, [Echo v4](https://echo.labstack.com/)
 - **Frontend:** Vanilla HTML/CSS/JS, DM font family
+
+## Tools
+
+### `Tools/Github_md_to_html`
+
+A Python utility for converting GitHub-flavoured Markdown files into styled HTML pages for the backend. Converted documents are served under `/Docs/` and a navigable index page is generated at `static/docs.html` automatically.
+
+See [`Tools/Github_md_to_html/README.md`](Tools/Github_md_to_html/README.md) for full usage instructions.

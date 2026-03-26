@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>numa-support</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/style.css" />
+  <link rel="stylesheet" href="/subpages.css" />
+  <link rel="stylesheet" href="/articles.css" />
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <a class="nav-logo" href="/index.html">Aether<span>.</span></a>
+    <ul class="nav-links">
+      <li><a href="/index.html#features">Features</a></li>
+      <li><a href="/index.html#syntax">Syntax</a></li>
+      <li><a href="/index.html#install">Install</a></li>
+      <li><a href="/faq.html">FAQ</a></li>
+    </ul>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="section">
+    <div>
+      <p class="section-label">Learning Material</p>
+    </div>
+
+    <article class="article-content">
+<h1 id="numa-support-in-aether">NUMA Support in Aether</h1>
+<h2 id="overview">Overview</h2>
+<p>Aether's multicore scheduler now includes NUMA (Non-Uniform Memory
+Access) awareness to minimize memory access latency on multi-socket and
+multi-die systems.</p>
+<h2 id="what-is-numa">What is NUMA?</h2>
+<p>In NUMA systems, memory is physically distributed across multiple
+nodes, each connected to specific CPU cores. Accessing "local" memory
+(on the same node) is faster than "remote" memory (on another node).</p>
+<p><strong>Example NUMA System:</strong></p>
+<pre><code>┌─────────────────┐       ┌─────────────────┐
+│  NUMA Node 0    │       │  NUMA Node 1    │
+│  CPUs: 0-11     │       │  CPUs: 12-23    │
+│  Local Memory   │◄─────►│  Local Memory   │
+└─────────────────┘ slow  └─────────────────┘
+       fast ↕                    fast ↕</code></pre>
+<h2 id="implementation">Implementation</h2>
+<h3 id="architecture">Architecture</h3>
+<ol type="1">
+<li><p><strong>Topology Detection</strong>
+(<code>runtime/aether_numa.h/c</code>)</p>
+<ul>
+<li>Detects number of NUMA nodes</li>
+<li>Maps each CPU to its NUMA node</li>
+<li>Gracefully handles UMA (single-node) systems</li>
+</ul></li>
+<li><p><strong>NUMA-Aware Allocation</strong></p>
+<ul>
+<li>Actors allocated on same NUMA node as assigned core</li>
+<li>Actor arrays allocated on core's NUMA node</li>
+<li>Pool structures allocated on core's NUMA node</li>
+</ul></li>
+<li><p><strong>Platform Support</strong></p>
+<ul>
+<li><strong>Windows</strong>: <code>VirtualAllocExNuma</code>,
+<code>GetNumaProcessorNodeEx</code></li>
+<li><strong>Linux</strong>: <code>numa_alloc_onnode</code> (requires
+libnuma)</li>
+<li><strong>Fallback</strong>: Regular <code>malloc</code> on UMA
+systems</li>
+</ul></li>
+</ol>
+<h3 id="api">API</h3>
+<div class="sourceCode" id="cb2"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Initialize NUMA subsystem</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>aether_numa_topology_t aether_numa_init<span class="op">(</span><span class="dt">void</span><span class="op">);</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co">// Get NUMA node for CPU</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> aether_numa_node_of_cpu<span class="op">(</span><span class="dt">int</span> cpu_id<span class="op">);</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="co">// Allocate on specific NUMA node</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span><span class="op">*</span> aether_numa_alloc<span class="op">(</span><span class="dt">size_t</span> size<span class="op">,</span> <span class="dt">int</span> node<span class="op">);</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="co">// Free NUMA-allocated memory</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> aether_numa_free<span class="op">(</span><span class="dt">void</span><span class="op">*</span> ptr<span class="op">,</span> <span class="dt">size_t</span> size<span class="op">);</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="co">// Cleanup</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> aether_numa_cleanup<span class="op">(</span><span class="dt">void</span><span class="op">);</span></span></code></pre></div>
+<h3 id="integration-points">Integration Points</h3>
+<p>Modified <code>runtime/scheduler/multicore_scheduler.c</code>:</p>
+<ol type="1">
+<li><strong>Scheduler Init</strong>: Detects NUMA topology</li>
+<li><strong>Actor Arrays</strong>: Allocated on core's NUMA node</li>
+<li><strong>Actor Pools</strong>: Allocated on core's NUMA node</li>
+<li><strong>Actor Instances</strong>: Allocated on core's NUMA node</li>
+<li><strong>Dynamic Growth</strong>: NUMA-aware reallocation</li>
+</ol>
+<h2 id="performance-impact">Performance Impact</h2>
+<h3 id="expected-benefits-on-numa-systems">Expected Benefits on NUMA
+Systems</h3>
+<ul>
+<li><strong>Reduced latency</strong>: Local memory access typically has
+lower latency than remote access</li>
+<li><strong>Higher bandwidth</strong>: Avoids contention on remote
+memory controllers</li>
+<li><strong>Better scaling</strong>: NUMA-aware allocation improves
+scaling on multi-socket systems</li>
+</ul>
+<h3 id="uma-systems">UMA Systems</h3>
+<ul>
+<li>Zero overhead: Falls back to regular malloc</li>
+<li>No performance regression</li>
+</ul>
+<h3 id="testing">Testing</h3>
+<p><strong>Check NUMA Topology:</strong></p>
+<p>On Linux, use <code>numactl</code> to check NUMA configuration:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">numactl</span> <span class="at">--hardware</span></span></code></pre></div>
+<p>On macOS, NUMA is not supported (single memory domain).</p>
+<p><strong>Example Output (UMA system):</strong></p>
+<pre><code>NUMA Topology Detection
+=======================
+
+NUMA Available: No
+Number of NUMA nodes: 1
+Number of CPUs: 24
+
+Single NUMA node (UMA) or NUMA not available
+NUMA-aware allocation is disabled (fallback to malloc) in the multicore scheduler.</code></pre>
+<p><strong>Output Example (NUMA system):</strong></p>
+<pre><code>NUMA Topology Detection
+=======================
+
+NUMA Available: Yes
+Number of NUMA nodes: 2
+Number of CPUs: 24
+
+CPU to NUMA Node Mapping:
+  CPU  0 -&gt; NUMA Node 0
+  CPU  1 -&gt; NUMA Node 0
+  ...
+  CPU 12 -&gt; NUMA Node 1
+  CPU 13 -&gt; NUMA Node 1
+  ...
+
+NUMA-aware allocation is active in the multicore scheduler.</code></pre>
+<h2 id="build-integration">Build Integration</h2>
+<p>No changes needed. NUMA support is automatically included:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> test     <span class="co"># Tests include NUMA-aware scheduler</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> examples <span class="co"># Benchmarks use NUMA allocation</span></span></code></pre></div>
+<h2 id="linux-build-note">Linux Build Note</h2>
+<p>For full NUMA support on Linux, install libnuma:</p>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Ubuntu/Debian</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> apt-get install libnuma-dev</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Build with NUMA</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> CFLAGS=<span class="st">&quot;-DHAVE_LIBNUMA&quot;</span> LDFLAGS=<span class="st">&quot;-lnuma&quot;</span></span></code></pre></div>
+<p>Without libnuma, the system gracefully falls back to malloc.</p>
+<h2 id="technical-details">Technical Details</h2>
+<h3 id="windows-implementation">Windows Implementation</h3>
+<p>Uses Processor Groups API for systems with &gt;64 cores:</p>
+<ul>
+<li><code>GetNumaHighestNodeNumber()</code> - Get node count</li>
+<li><code>GetNumaProcessorNodeEx()</code> - Map CPU to node</li>
+<li><code>VirtualAllocExNuma()</code> - Allocate on specific node</li>
+<li><code>VirtualFree()</code> - Free NUMA allocation</li>
+</ul>
+<h3 id="linux-implementation">Linux Implementation</h3>
+<p>Uses libnuma when available:</p>
+<ul>
+<li><code>numa_available()</code> - Check NUMA support</li>
+<li><code>numa_num_configured_nodes()</code> - Get node count</li>
+<li><code>numa_node_of_cpu()</code> - Map CPU to node</li>
+<li><code>numa_alloc_onnode()</code> - Allocate on specific node</li>
+<li><code>numa_free()</code> - Free NUMA allocation</li>
+</ul>
+<h3 id="memory-management">Memory Management</h3>
+<p><strong>Allocation Strategy:</strong></p>
+<ul>
+<li>Static structures: Allocated at init on core's node</li>
+<li>Dynamic growth: Reallocated with NUMA awareness</li>
+<li>Free: Handles both NUMA and regular allocations</li>
+</ul>
+<p><strong>Overhead:</strong></p>
+<ul>
+<li>Topology detection: Once at scheduler init</li>
+<li>Per-allocation: Node lookup from CPU ID (O(1) array access)</li>
+</ul>
+<h2 id="verification">Verification</h2>
+<p>All tests pass with NUMA support:</p>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> test</span></code></pre></div>
+<p>Multicore benchmark works with NUMA allocation:</p>
+<div class="sourceCode" id="cb9"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ex">./build/mc_bench.exe</span></span></code></pre></div>
+<h2 id="future-enhancements">Future Enhancements</h2>
+<p>Potential improvements for true NUMA systems:</p>
+<ol type="1">
+<li><strong>NUMA-Aware Actor Placement</strong>: Assign actors to cores
+on same node</li>
+<li><strong>Cross-Node Messaging Optimization</strong>: Different
+strategy for remote nodes</li>
+<li><strong>Memory Binding</strong>: Bind spawned threads to their NUMA
+nodes</li>
+<li><strong>Topology-Aware Work Stealing</strong>: Prefer stealing from
+same NUMA node</li>
+</ol>
+<h2 id="references">References</h2>
+<ul>
+<li>Windows NUMA: <a
+href="https://docs.microsoft.com/en-us/windows/win32/procthread/numa-support">https://docs.microsoft.com/en-us/windows/win32/procthread/numa-support</a></li>
+<li>Linux NUMA: <a
+href="https://man7.org/linux/man-pages/man3/numa.3.html">https://man7.org/linux/man-pages/man3/numa.3.html</a></li>
+<li>NUMA Architecture: <a
+href="https://en.wikipedia.org/wiki/Non-uniform_memory_access">https://en.wikipedia.org/wiki/Non-uniform_memory_access</a></li>
+</ul>
+    </article>
+  </main>
+
+  <!-- FOOTER -->
+  <footer>
+    <p>&copy; 2026 Nicolas Maman</p>
+    <p><a href="#">Privacy</a> &middot; <a href="https://github.com/nicolasmd87/aether/blob/main/LICENSE">License</a> &middot; <a href="mailto:hello@aether.org">Contact</a></p>
+  </footer>
+</body>
+</html>

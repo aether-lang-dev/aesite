@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>performance-benchmarks</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/style.css" />
+  <link rel="stylesheet" href="/subpages.css" />
+  <link rel="stylesheet" href="/articles.css" />
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <a class="nav-logo" href="/index.html">Aether<span>.</span></a>
+    <ul class="nav-links">
+      <li><a href="/index.html#features">Features</a></li>
+      <li><a href="/index.html#syntax">Syntax</a></li>
+      <li><a href="/index.html#install">Install</a></li>
+      <li><a href="/faq.html">FAQ</a></li>
+    </ul>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="section">
+    <div>
+      <p class="section-label">Learning Material</p>
+    </div>
+
+    <article class="article-content">
+<h1 id="aether-performance-benchmarks">Aether Performance
+Benchmarks</h1>
+<h2 id="overview">Overview</h2>
+<p>This document describes the benchmark methodology and available
+performance tests for the Aether runtime. Benchmarks measure
+message-passing throughput, latency, and scalability
+characteristics.</p>
+<h2 id="benchmark-patterns">Benchmark Patterns</h2>
+<h3 id="ping-pong">Ping-Pong</h3>
+<p>Two actors exchange messages in sequence. Tests cross-actor
+message-passing latency and throughput.</p>
+<p><strong>Workload:</strong></p>
+<ul>
+<li>2 actors exchanging messages</li>
+<li>Configurable message count via <code>BENCHMARK_MESSAGES</code>
+environment variable</li>
+<li>Measures round-trip throughput</li>
+</ul>
+<p><strong>Location:</strong>
+<code>benchmarks/cross-language/aether/ping_pong.ae</code></p>
+<h3 id="counting">Counting</h3>
+<p>Single actor receives increment messages from the main thread. Tests
+main thread to actor message throughput.</p>
+<p><strong>Workload:</strong></p>
+<ul>
+<li>1 actor</li>
+<li>Main thread sends all messages</li>
+<li>Measures unidirectional throughput</li>
+</ul>
+<p><strong>Notes:</strong></p>
+<ul>
+<li>Activates Main Thread Actor Mode (synchronous processing, no
+scheduler overhead)</li>
+<li>Represents best-case single-actor performance</li>
+</ul>
+<p><strong>Location:</strong>
+<code>benchmarks/cross-language/aether/counting.ae</code></p>
+<h3 id="thread-ring">Thread Ring</h3>
+<p>N actors arranged in a ring, each forwarding messages to the next.
+Tests multi-actor coordination and scheduler efficiency.</p>
+<p><strong>Workload:</strong></p>
+<ul>
+<li>N actors (configurable)</li>
+<li>Token passed around the ring</li>
+<li>Measures ring completion time</li>
+</ul>
+<p><strong>Notes:</strong></p>
+<ul>
+<li>Benefits from locality-aware placement — all actors spawned from
+main are co-located on the same core, enabling direct mailbox delivery
+and work inlining</li>
+<li>Cross-core placement would force every message through the lock-free
+queue path, adding significant overhead for this tightly-coupled
+communication pattern</li>
+</ul>
+<p><strong>Location:</strong>
+<code>benchmarks/cross-language/aether/thread_ring.ae</code></p>
+<h3 id="fork-join">Fork-Join</h3>
+<p>Master spawns N workers, distributes work, collects results. Tests
+fan-out/fan-in patterns.</p>
+<p><strong>Workload:</strong></p>
+<ul>
+<li>1 master actor, N worker actors</li>
+<li>Master sends tasks, workers reply with results</li>
+<li>Measures parallel dispatch and aggregation</li>
+</ul>
+<p><strong>Notes:</strong></p>
+<ul>
+<li>Activates Batch Send optimization (groups messages by target
+core)</li>
+<li>Reduces atomic operations from N to num_cores</li>
+<li>Main thread fan-out pattern benefits significantly from
+batching</li>
+</ul>
+<p><strong>Location:</strong>
+<code>benchmarks/cross-language/aether/fork_join.ae</code></p>
+<h2 id="cross-language-benchmarks">Cross-Language Benchmarks</h2>
+<p>The <code>benchmarks/cross-language/</code> directory contains
+equivalent implementations across multiple languages for comparative
+analysis:</p>
+<ul>
+<li><strong>Aether</strong>: Lock-free SPSC queues, batch dequeue,
+thread-local message pools</li>
+<li><strong>Go</strong>: Goroutines with buffered channels</li>
+<li><strong>Rust</strong>: Tokio async runtime with mpsc channels</li>
+<li><strong>C++</strong>: std::thread with concurrent queues</li>
+<li><strong>Erlang</strong>: BEAM VM processes with mailboxes</li>
+<li><strong>Java</strong>: Thread pools with blocking queues</li>
+</ul>
+<p>Results vary based on hardware architecture, OS scheduler, compiler
+optimization level, and runtime design choices (VM vs native, GC vs
+manual memory management). Report your specific test environment when
+sharing results.</p>
+<p>See <a
+href="../benchmarks/cross-language/README.md">benchmarks/cross-language/README.md</a>
+for detailed methodology.</p>
+<h2 id="active-optimization-techniques">Active Optimization
+Techniques</h2>
+<h3 id="lock-free-queues">Lock-Free Queues</h3>
+<p>Single-producer, single-consumer ring buffers for cross-core
+messaging. Cache-line aligned with power-of-2 sizing for fast
+modulo.</p>
+<p><strong>Implementation:</strong>
+<code>runtime/scheduler/lockfree_queue.h</code></p>
+<h3 id="message-coalescing">Message Coalescing</h3>
+<p>Batch dequeue drains multiple messages in a single atomic operation,
+reducing per-message atomic overhead.</p>
+<p><strong>Implementation:</strong>
+<code>runtime/scheduler/multicore_scheduler.c</code></p>
+<h3 id="thread-local-message-pools">Thread-Local Message Pools</h3>
+<p>Per-thread pre-allocated buffers eliminate malloc/free on the hot
+path. Falls back to malloc for oversized messages.</p>
+<p><strong>Implementation:</strong>
+<code>runtime/actors/aether_send_message.c</code></p>
+<h3 id="adaptive-batching">Adaptive Batching</h3>
+<p>Dynamic batch size adjustment based on queue utilization. Range: 64
+to 1024 messages.</p>
+<p><strong>Implementation:</strong>
+<code>runtime/actors/aether_adaptive_batch.h</code></p>
+<h3 id="inline-single-int-messages">Inline Single-Int Messages</h3>
+<p>Messages with exactly one integer field bypass pool allocation. The
+value is stored directly in <code>Message.payload_int</code>.</p>
+<p><strong>Implementation:</strong>
+<code>compiler/codegen/codegen.c</code></p>
+<h3 id="computed-goto-dispatch">Computed Goto Dispatch</h3>
+<p>Message handlers use a dispatch table with GCC computed goto for
+direct label jumps.</p>
+<p><strong>Implementation:</strong>
+<code>compiler/codegen/codegen.c</code> (generated code)</p>
+<h2 id="methodology">Methodology</h2>
+<h3 id="measurement-approach">Measurement Approach</h3>
+<ul>
+<li>High-precision timing (<code>clock_gettime</code> with
+<code>CLOCK_MONOTONIC</code>)</li>
+<li>Multiple runs with warmup periods</li>
+<li>Isolated processes to minimize interference</li>
+<li>Compiler flags: <code>-O3 -march=native -flto</code></li>
+<li>Correctness validation before measurement</li>
+</ul>
+<h3 id="hardware-specifications">Hardware Specifications</h3>
+<p>Document your test environment when reporting results:</p>
+<ul>
+<li>CPU model, core count, and clock speed</li>
+<li>Operating system and version</li>
+<li>Compiler and version</li>
+<li>Memory configuration</li>
+</ul>
+<h3 id="statistical-validity">Statistical Validity</h3>
+<ul>
+<li>Multiple iterations to account for variance</li>
+<li>Median values to avoid outlier bias</li>
+<li>Both cold-start and warm-cache scenarios considered</li>
+</ul>
+<h2 id="running-benchmarks">Running Benchmarks</h2>
+<h3 id="cross-language-suite">Cross-Language Suite</h3>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> benchmarks/cross-language</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="ex">./run_benchmarks.sh</span></span></code></pre></div>
+<h3 id="aether-only">Aether Only</h3>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> benchmarks/cross-language/aether</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="ex">./ping_pong</span></span></code></pre></div>
+<h2 id="interpreting-results">Interpreting Results</h2>
+<h3 id="key-metrics">Key Metrics</h3>
+<ul>
+<li><strong>Throughput</strong>: Messages processed per second (M
+msg/sec)</li>
+<li><strong>ns/msg</strong>: Nanoseconds per message (lower is
+better)</li>
+<li><strong>Latency</strong>: Time from send to receive (per
+round-trip)</li>
+</ul>
+<h3 id="considerations">Considerations</h3>
+<ul>
+<li>Single-node architecture (no distributed messaging)</li>
+<li>Arena-based memory management (no tracing GC pauses)</li>
+<li>Platform-specific optimizations (PAUSE, YIELD, NUMA)</li>
+<li>Cross-language comparisons involve fundamentally different runtime
+models</li>
+</ul>
+<h2 id="references">References</h2>
+<ul>
+<li><a href="../benchmarks/cross-language/">Cross-Language
+Benchmarks</a></li>
+<li><a href="runtime-optimizations.md">Runtime Optimizations</a></li>
+<li><a href="scheduler-quick-reference.md">Scheduler
+Architecture</a></li>
+</ul>
+    </article>
+  </main>
+
+  <!-- FOOTER -->
+  <footer>
+    <p>&copy; 2026 Nicolas Maman</p>
+    <p><a href="#">Privacy</a> &middot; <a href="https://github.com/nicolasmd87/aether/blob/main/LICENSE">License</a> &middot; <a href="mailto:hello@aether.org">Contact</a></p>
+  </footer>
+</body>
+</html>

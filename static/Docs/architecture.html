@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>architecture</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/style.css" />
+  <link rel="stylesheet" href="/subpages.css" />
+  <link rel="stylesheet" href="/articles.css" />
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <a class="nav-logo" href="/index.html">Aether<span>.</span></a>
+    <ul class="nav-links">
+      <li><a href="/index.html#features">Features</a></li>
+      <li><a href="/index.html#syntax">Syntax</a></li>
+      <li><a href="/index.html#install">Install</a></li>
+      <li><a href="/faq.html">FAQ</a></li>
+    </ul>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="section">
+    <div>
+      <p class="section-label">Learning Material</p>
+    </div>
+
+    <article class="article-content">
+<h1 id="aether-architecture">Aether Architecture</h1>
+<p>This document provides an overview of Aether's compiler pipeline,
+runtime design, and key architectural decisions.</p>
+<h2 id="system-overview">System Overview</h2>
+<pre><code>+--------------------------------------------------------+
+|                    Aether Compiler                     |
+|                                                        |
+|  .ae -&gt; Lexer -&gt; Parser -&gt; ModuleOrch -&gt; TypeCheck -+  |
+|                                                    |   |
+|         .c  &lt;- CodeGen &lt;- Optimizer &lt;--------------+   |
++--------------------------------------------------------+
+                          |
++--------------------------------------------------------+
+|                       GCC/Clang                        |
+|              .c source -&gt; native binary                |
++--------------------------------------------------------+
+                          |
++--------------------------------------------------------+
+|                     Aether Runtime                     |
+|  Scheduler -&gt; Actors -&gt; Memory Pools -&gt; Message Passing|
++--------------------------------------------------------+</code></pre>
+<h2 id="compiler-pipeline">Compiler Pipeline</h2>
+<h3 id="1-lexer-compilerparserlexerc">1. Lexer
+(<code>compiler/parser/lexer.c</code>)</h3>
+<p><strong>Purpose:</strong> Convert source text into tokens</p>
+<p><strong>Input:</strong> Raw Aether source code (<code>.ae</code>
+file)</p>
+<p><strong>Output:</strong> Stream of tokens</p>
+<p><strong>Process:</strong></p>
+<ol type="1">
+<li>Read source character by character</li>
+<li>Identify token boundaries (whitespace, operators, keywords)</li>
+<li>Classify tokens (identifier, number, string, keyword, operator)</li>
+<li>Track line and column numbers for error reporting</li>
+</ol>
+<p><strong>Example:</strong></p>
+<pre class="aether"><code>x = 42 + y</code></pre>
+<p>Produces tokens:</p>
+<pre><code>IDENTIFIER(&quot;x&quot;) EQUALS NUMBER(42) PLUS IDENTIFIER(&quot;y&quot;)</code></pre>
+<p><strong>Key Files:</strong></p>
+<ul>
+<li><code>compiler/parser/lexer.c</code> - Implementation</li>
+<li><code>compiler/parser/tokens.h</code> - Token type definitions</li>
+</ul>
+<h3 id="2-parser-compilerparserparserc">2. Parser
+(<code>compiler/parser/parser.c</code>)</h3>
+<p><strong>Purpose:</strong> Build Abstract Syntax Tree (AST) from
+tokens</p>
+<p><strong>Input:</strong> Token stream from lexer</p>
+<p><strong>Output:</strong> AST representing program structure</p>
+<p><strong>Process:</strong></p>
+<ol type="1">
+<li>Consume tokens in order</li>
+<li>Apply grammar rules (recursive descent parsing)</li>
+<li>Build tree structure with each node representing a language
+construct</li>
+<li>Report syntax errors with location information</li>
+</ol>
+<p><strong>Key Concepts:</strong></p>
+<ul>
+<li><strong>Recursive Descent:</strong> Each grammar rule is a
+function</li>
+<li><strong>Precedence Climbing:</strong> Handles operator
+precedence</li>
+<li><strong>Error Recovery:</strong> Attempts to continue parsing after
+errors</li>
+</ul>
+<p><strong>Key Files:</strong></p>
+<ul>
+<li><code>compiler/parser/parser.c</code> - Implementation</li>
+<li><code>compiler/ast.h</code> - AST node definitions</li>
+</ul>
+<h3 id="25-module-orchestrator-compileraether_modulec">2.5 Module
+Orchestrator (<code>compiler/aether_module.c</code>)</h3>
+<p><strong>Purpose:</strong> Resolve all imports, parse module files,
+cache ASTs, detect circular dependencies</p>
+<p><strong>Input:</strong> AST from parser (scanned for
+<code>AST_IMPORT_STATEMENT</code> nodes)</p>
+<p><strong>Output:</strong> Populated
+<code>global_module_registry</code> with cached module ASTs</p>
+<p><strong>Process:</strong></p>
+<ol type="1">
+<li>Scan program AST for import statements</li>
+<li>Resolve each import to a file path (stdlib paths, lib/, src/)</li>
+<li>Parse each module file (lex → parse → AST) with lexer state
+save/restore</li>
+<li>Cache parsed ASTs in <code>global_module_registry</code></li>
+<li>Recursively process each module's own imports</li>
+<li>Build dependency graph and detect circular imports via DFS</li>
+</ol>
+<p><strong>Key Files:</strong></p>
+<ul>
+<li><code>compiler/aether_module.c</code> - Orchestration, resolution,
+parsing, dependency graph</li>
+<li><code>compiler/aether_module.h</code> - Module registry, dependency
+graph types</li>
+</ul>
+<h3 id="3-type-checker-compileranalysistypecheckerc">3. Type Checker
+(<code>compiler/analysis/typechecker.c</code>)</h3>
+<p><strong>Purpose:</strong> Infer and verify types for local
+variables</p>
+<p><strong>Input:</strong> AST from parser</p>
+<p><strong>Output:</strong> Type-annotated AST</p>
+<p><strong>Process:</strong></p>
+<ol type="1">
+<li>Two-pass: first collects declarations, then checks all nodes</li>
+<li>Constraint-based type inference (Hindley-Milner style, max 100
+iterations)</li>
+<li>Report type errors with location information</li>
+</ol>
+<p><strong>Key Algorithms:</strong></p>
+<ul>
+<li><strong>Type Inference:</strong> Automatic type deduction for local
+variables</li>
+<li><strong>Two-Pass Checking:</strong> Declarations collected before
+use-sites are checked</li>
+</ul>
+<p><strong>Key Files:</strong></p>
+<ul>
+<li><code>compiler/analysis/typechecker.c</code> - Type checking
+(two-pass)</li>
+<li><code>compiler/analysis/type_inference.c</code> - Constraint-based
+inference</li>
+</ul>
+<h3 id="4-optimizer-compilercodegenoptimizerc">4. Optimizer
+(<code>compiler/codegen/optimizer.c</code>)</h3>
+<p><strong>Purpose:</strong> Apply AST-level optimizations before code
+generation</p>
+<p><strong>Input:</strong> Type-checked AST</p>
+<p><strong>Output:</strong> Optimized AST</p>
+<p><strong>Optimizations (always on):</strong></p>
+<ol type="1">
+<li><strong>Constant Folding</strong> — <code>2 + 3 * 4</code> →
+<code>14</code> at compile time</li>
+<li><strong>Dead Code Elimination</strong> —
+<code>if false { ... }</code> block removed</li>
+<li><strong>Tail Call Detection</strong> — identifies recursive tail
+calls (detection only; loop transformation is pending)</li>
+</ol>
+<p><strong>Optimizations (applied during codegen,
+<code>compiler/codegen/codegen_stmt.c</code>):</strong></p>
+<ol start="4" type="1">
+<li><strong>Arithmetic Series Collapse</strong> —
+<code>while i &lt; n { acc += C; i++ }</code> → O(1) closed form</li>
+<li><strong>Linear Counter Sum</strong> —
+<code>while i &lt; n { total += i; i++ }</code> → triangular-number
+formula</li>
+</ol>
+<p><strong>Key Files:</strong></p>
+<ul>
+<li><code>compiler/codegen/optimizer.c</code> - AST-level passes</li>
+<li><code>compiler/codegen/codegen_stmt.c</code> - Series and linear
+loop collapse</li>
+</ul>
+<h3 id="5-code-generator-compilercodegencodegenc">5. Code Generator
+(<code>compiler/codegen/codegen.c</code>)</h3>
+<p><strong>Purpose:</strong> Generate C code from AST</p>
+<p><strong>Input:</strong> Optimized AST</p>
+<p><strong>Output:</strong> C source code (<code>.c</code> file)</p>
+<p><strong>Process:</strong></p>
+<ol type="1">
+<li>Walk AST in depth-first order</li>
+<li>Generate equivalent C code for each node</li>
+<li>Emit actor runtime calls for actor constructs</li>
+<li>Generate computed goto dispatch tables for message handlers</li>
+<li>Detect single-int messages and emit inline fast paths</li>
+</ol>
+<p><strong>Key Features:</strong></p>
+<ul>
+<li>Computed goto dispatch for message handlers</li>
+<li>Inline single-int message encoding (bypasses pool allocation)</li>
+<li><code>scheduler_send_local</code> /
+<code>scheduler_send_remote</code> routing based on
+<code>current_core_id</code></li>
+<li>Locality-aware actor placement via
+<code>scheduler_spawn_pooled</code> (caller's core, or core 0 for main
+thread)</li>
+<li>NUMA-aware actor allocation with derived-struct size</li>
+</ul>
+<p><strong>Key Files:</strong></p>
+<ul>
+<li><code>compiler/codegen/codegen.c</code> - Entry point and
+includes</li>
+<li><code>compiler/codegen/codegen_expr.c</code> - Expression
+generation</li>
+<li><code>compiler/codegen/codegen_stmt.c</code> - Statement generation
+and loop optimizations</li>
+<li><code>compiler/codegen/codegen_actor.c</code> - Actor dispatch
+tables</li>
+<li><code>compiler/codegen/codegen_func.c</code> - Function
+definitions</li>
+<li><code>compiler/codegen/codegen.h</code> - API</li>
+</ul>
+<h2 id="runtime-architecture">Runtime Architecture</h2>
+<h3 id="actor-system">Actor System</h3>
+<p><strong>Design:</strong> Lightweight process model with per-core
+scheduling</p>
+<p><strong>Key Components:</strong></p>
+<ol type="1">
+<li><p><strong>Actor Structure</strong>
+(<code>runtime/scheduler/multicore_scheduler.h</code>)</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode c"><code class="sourceCode c"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">typedef</span> <span class="kw">struct</span> <span class="op">{</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    atomic_int active<span class="op">;</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> id<span class="op">;</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    Mailbox mailbox<span class="op">;</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">void</span> <span class="op">(*</span>step<span class="op">)(</span><span class="dt">void</span><span class="op">*);</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    pthread_t thread<span class="op">;</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> auto_process<span class="op">;</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>    atomic_int assigned_core<span class="op">;</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>    atomic_int migrate_to<span class="op">;</span>           <span class="co">// Affinity hint: core to migrate to (-1 = none)</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>    atomic_int main_thread_only<span class="op">;</span>     <span class="co">// If set, scheduler threads skip this actor</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>    SPSCQueue<span class="op">*</span> spsc_queue<span class="op">;</span>           <span class="co">// Lock-free same-core messaging (lazy alloc)</span></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>    <span class="kw">_Atomic</span><span class="op">(</span>ActorReplySlot<span class="op">*)</span> reply_slot<span class="op">;</span>  <span class="co">// Non-NULL during ask/reply</span></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>    atomic_flag step_lock<span class="op">;</span>           <span class="co">// Prevents concurrent step() during work-steal</span></span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a><span class="op">}</span> ActorBase<span class="op">;</span></span></code></pre></div></li>
+<li><p><strong>Message Structure</strong>
+(<code>runtime/actors/actor_state_machine.h</code>)</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode c"><code class="sourceCode c"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">typedef</span> <span class="kw">struct</span> <span class="op">{</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> type<span class="op">;</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> sender_id<span class="op">;</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">intptr_t</span> payload_int<span class="op">;</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">void</span><span class="op">*</span> payload_ptr<span class="op">;</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    <span class="kw">struct</span> <span class="op">{</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>        <span class="dt">void</span><span class="op">*</span> data<span class="op">;</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>        <span class="dt">int</span> size<span class="op">;</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>        <span class="dt">int</span> owned<span class="op">;</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span> zerocopy<span class="op">;</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a><span class="op">}</span> Message<span class="op">;</span></span></code></pre></div></li>
+<li><p><strong>Message Queue</strong>
+(<code>runtime/scheduler/lockfree_queue.h</code>)</p>
+<ul>
+<li>Lock-free SPSC ring buffer with cache-line aligned head/tail</li>
+<li>Batch enqueue and dequeue to reduce atomic operations</li>
+<li>Power-of-2 sizing with bitwise AND masking</li>
+</ul></li>
+<li><p><strong>Message Dispatch</strong> (generated code)</p>
+<ul>
+<li>Computed goto dispatch table for direct label jumps</li>
+<li>Message ID read from <code>msg.type</code> (not pointer
+dereference)</li>
+</ul></li>
+</ol>
+<h3 id="scheduler">Scheduler</h3>
+<p><strong>Design:</strong> Partitioned multicore scheduler with work
+stealing and message-driven migration</p>
+<p><strong>Architecture:</strong></p>
+<pre><code>+---------------------------------------------------------+
+|              Partitioned Scheduler                      |
+|  +------------+------------+------------+------------+  |
+|  |  Core 0    |  Core 1    |  Core 2    |  Core 3    |  |
+|  |  [A1, A2]  |  [A3, A4]  |  [A5, A6]  |  [A7]      |  |
+|  |  (local)   |  (local)   |  (local)   |  (idle)    |  |
+|  |            |            |  &lt;- steal --------+     |  |
+|  +------------+------------+------------+------------+  |
++---------------------------------------------------------+</code></pre>
+<p><strong>Locality-Aware Placement:</strong></p>
+<ol type="1">
+<li>Actors placed on the caller's core at spawn time</li>
+<li>Main thread spawns default to core 0, keeping top-level actor groups
+co-located</li>
+<li>Actors spawned from within actor handlers inherit the parent's
+core</li>
+<li>Each core processes only its local actors in the fast path</li>
+<li>Same-core messages delivered directly to mailbox (no queue
+overhead)</li>
+<li>Cross-core messages enqueued to target core's lock-free incoming
+queue</li>
+</ol>
+<p><strong>Message-Driven Migration:</strong></p>
+<ol type="1">
+<li>Cross-core sender sets <code>migrate_to</code> hint on target actor,
+requesting migration to the sender's core</li>
+<li>Owning scheduler checks migration hints after coalesce-buffer
+processing (targeted, O(batch_size)) and during idle actor scans (full,
+O(actor_count))</li>
+<li>Actor relocated using ascending core-id lock ordering with
+non-blocking try-lock</li>
+<li>Migrated-actor messages forwarded with spin-retry to prevent
+drops</li>
+</ol>
+<p><strong>Work Stealing (idle cores):</strong></p>
+<ol type="1">
+<li>Core becomes idle after extended empty cycles</li>
+<li>Scans all cores to find busiest (most pending work)</li>
+<li>Non-blocking try-lock attempt using ascending core-id ordering</li>
+<li>Steals one actor if victim has more than 4 actors</li>
+<li>Stolen actor reassigned to idle core</li>
+</ol>
+<p><strong>NUMA-Aware Allocation:</strong></p>
+<ol type="1">
+<li>Detects NUMA topology at scheduler initialization</li>
+<li>Allocates actor structures on the NUMA node local to the assigned
+core</li>
+<li>Falls back to standard malloc on single-node systems</li>
+<li>Platform support: Linux (libnuma), Windows (VirtualAllocExNuma),
+macOS (fallback)</li>
+</ol>
+<p><strong>Key Files:</strong></p>
+<ul>
+<li><code>runtime/scheduler/multicore_scheduler.c</code> -
+Implementation</li>
+<li><code>runtime/scheduler/multicore_scheduler.h</code> - API and data
+structures</li>
+<li><code>runtime/scheduler/lockfree_queue.h</code> - Cross-core message
+queue</li>
+<li><code>runtime/aether_numa.c</code> - NUMA detection and
+allocation</li>
+</ul>
+<h3 id="memory-management">Memory Management</h3>
+<p><strong>Message Payloads:</strong></p>
+<ul>
+<li>Thread-local pool of 256 pre-allocated buffers (256 bytes each)</li>
+<li>Pool acquisition and release use plain loads/stores (no atomics for
+TLS)</li>
+<li>Falls back to malloc for oversized messages or pool exhaustion</li>
+<li><code>aether_free_message</code> returns buffers to the pool or
+calls <code>free</code></li>
+</ul>
+<p><strong>Actor Allocation:</strong></p>
+<ul>
+<li><code>scheduler_spawn_pooled</code> allocates via
+<code>aether_numa_alloc</code> with the full derived-struct size</li>
+<li>NUMA-aware placement on the local node of the assigned core</li>
+<li>Falls back to standard allocation on non-NUMA systems</li>
+</ul>
+<h3 id="performance-optimizations">Performance Optimizations</h3>
+<p>The runtime implements these optimization strategies in the active
+code paths:</p>
+<ol type="1">
+<li><strong>Main Thread Actor Mode</strong> - Single-actor programs
+bypass scheduler entirely</li>
+<li><strong>Thread-Local Message Pools</strong> - Eliminate malloc/free
+overhead</li>
+<li><strong>Batch Dequeue</strong> - Reduce atomic operations from N to
+1 per batch</li>
+<li><strong>Adaptive Batching</strong> - Scale batch size with load (64
+to 1024)</li>
+<li><strong>Direct Mailbox Delivery</strong> - Same-core messages bypass
+the queue</li>
+<li><strong>Computed Goto Dispatch</strong> - Direct label jumps for
+message handlers</li>
+<li><strong>Inline Single-Int Messages</strong> - Bypass pool allocation
+for common messages</li>
+<li><strong>Message-Driven Migration</strong> - Co-locate communicating
+actors</li>
+<li><strong>Optimized Spinlock</strong> - PAUSE/YIELD hints during
+spin-wait</li>
+<li><strong>Cache Line Alignment</strong> - Prevent false sharing on
+shared structures</li>
+<li><strong>Relaxed Atomic Ordering</strong> - Avoid barriers on
+non-critical counters</li>
+</ol>
+<p>See <a href="runtime-optimizations.md">runtime-optimizations.md</a>
+for implementation details.</p>
+<h2 id="module-system">Module System</h2>
+<p><strong>Design:</strong> Static module resolution with circular
+import detection</p>
+<p><strong>Resolution Process:</strong></p>
+<ol type="1">
+<li>Parse import statement:
+<code>import std.collections.HashMap</code></li>
+<li>Search paths: <code>std/collections/HashMap.ae</code>,
+<code>./collections/HashMap.ae</code></li>
+<li>Load and parse module if not already loaded</li>
+<li>Build dependency graph</li>
+<li>Detect circular imports using DFS with visited tracking</li>
+<li>Generate C includes for resolved modules</li>
+</ol>
+<p><strong>Key Files:</strong></p>
+<ul>
+<li><code>compiler/aether_module.c</code> - Module resolution</li>
+<li><code>compiler/aether_module.h</code> - Module API</li>
+</ul>
+<h2 id="design-decisions">Design Decisions</h2>
+<h3 id="why-compile-to-c">Why Compile to C?</h3>
+<p><strong>Advantages:</strong></p>
+<ul>
+<li>Leverage mature C compilers (GCC, Clang)</li>
+<li>Access to optimizations (inlining, loop unrolling,
+auto-vectorization)</li>
+<li>Portable across platforms</li>
+<li>Direct FFI with C libraries</li>
+</ul>
+<p><strong>Disadvantages:</strong></p>
+<ul>
+<li>Two-stage compilation adds latency</li>
+<li>Debugging requires looking at generated C</li>
+<li>Some optimizations harder to implement at the source level</li>
+</ul>
+<h3 id="why-work-stealing">Why Work Stealing?</h3>
+<p><strong>Advantages:</strong></p>
+<ul>
+<li>Automatic load balancing for uneven workloads</li>
+<li>Cache-friendly for local work</li>
+<li>Non-blocking: failed steals do not block progress</li>
+</ul>
+<p><strong>Alternatives Considered:</strong></p>
+<ul>
+<li>Round-robin: poor load balancing</li>
+<li>Per-core task queue: no load balancing</li>
+<li>Global queue: high contention</li>
+</ul>
+<h3 id="why-lock-free-queues">Why Lock-Free Queues?</h3>
+<p><strong>Advantages:</strong></p>
+<ul>
+<li>No mutex contention in the message-passing hot path</li>
+<li>Scales with core count</li>
+<li>Batch operations amortize atomic overhead</li>
+</ul>
+<p><strong>Disadvantages:</strong></p>
+<ul>
+<li>Complexity (memory ordering, ABA considerations)</li>
+<li>Requires careful attention to cache line alignment</li>
+</ul>
+<h2 id="trade-offs">Trade-Offs</h2>
+<h3 id="compilation-speed-vs-runtime-performance">Compilation Speed vs
+Runtime Performance</h3>
+<ul>
+<li><strong>Choice:</strong> Favor runtime performance</li>
+<li><strong>Implication:</strong> Two-stage compilation with aggressive
+optimization flags</li>
+<li><strong>Mitigation:</strong> Incremental builds, parallel
+compilation</li>
+</ul>
+<h3 id="memory-safety-vs-performance">Memory Safety vs Performance</h3>
+<ul>
+<li><strong>Choice:</strong> Arena-based memory management (bulk
+deallocation, no tracing GC)</li>
+<li><strong>Implication:</strong> Deterministic cleanup, no GC
+pauses</li>
+<li><strong>Mitigation:</strong> Valgrind, AddressSanitizer for leak
+detection during development</li>
+</ul>
+<h3 id="portability-vs-optimization">Portability vs Optimization</h3>
+<ul>
+<li><strong>Choice:</strong> Portable C11 code with platform-specific
+branches</li>
+<li><strong>Implication:</strong> Platform-specific intrinsics guarded
+by <code>#if</code> directives</li>
+<li><strong>Mitigation:</strong> Fallback paths for all
+platform-specific code</li>
+</ul>
+<h2 id="references">References</h2>
+<ul>
+<li>Type Inference: Pierce &amp; Turner (2000)</li>
+<li>Michael-Scott Queue: Michael &amp; Scott (1996)</li>
+<li>Work Stealing: Blumofe &amp; Leiserson (1999)</li>
+<li>Actor Model: Hewitt, Bishop, Steiger (1973)</li>
+<li>Arena Allocation: Hanson (1990)</li>
+</ul>
+    </article>
+  </main>
+
+  <!-- FOOTER -->
+  <footer>
+    <p>&copy; 2026 Nicolas Maman</p>
+    <p><a href="#">Privacy</a> &middot; <a href="https://github.com/nicolasmd87/aether/blob/main/LICENSE">License</a> &middot; <a href="mailto:hello@aether.org">Contact</a></p>
+  </footer>
+</body>
+</html>

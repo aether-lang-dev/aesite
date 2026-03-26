@@ -10,23 +10,35 @@
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="subpages.css">
   <style>
-    /* PAGE SPECIFIC STYLES */
     .section {
       padding: 120px calc(max(2rem, (100% - 900px) / 2)) 80px;
     }
-    .accordion {
-      margin-top: 3.5rem;
-    }
-    .accordion-title {
-      font-size: 1.35rem;
-    }
-    .accordion-body-content {
-      padding-bottom: 2rem;
-      font-size: 1rem;
-      max-width: 640px;
-    }
     footer {
       background: #eef1f4;
+    }
+    .doc-list {
+      margin-top: 3rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 1rem;
+    }
+    .doc-card {
+      display: block;
+      padding: 1.25rem 1.5rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      text-decoration: none;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.95rem;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .doc-card:hover {
+      border-color: var(--accent);
+      background: #f7f9fb;
+    }
+    .doc-card-title {
+      font-weight: 500;
     }
     @media (max-width: 768px) {
       .section { padding: 100px 1.5rem 60px; }
@@ -53,94 +65,46 @@
       <h1 class="subpage-title">Language <em>guide.</em></h1>
     </div>
 
-    <div class="accordion fade-in" id="docs-accordion">
-
-      <!-- ITEM 1 (OPEN BY DEFAULT) -->
-      <div class="accordion-item">
-        <button class="accordion-trigger open" onclick="toggleAccordion(this, 'docs-accordion')">
-          <span class="accordion-title">Getting Started</span>
-          <span class="accordion-arrow">▼</span>
-        </button>
-        <div class="accordion-body open">
-          <div class="accordion-body-inner">
-            <div class="accordion-body-content">
-              Welcome to Aether. To start developing, ensure you have the 'ae' compiler installed. You can verify your installation by running 'ae version'. A typical Aether project starts with an entry point function named 'main'.
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ITEM 2 -->
-      <div class="accordion-item">
-        <button class="accordion-trigger" onclick="toggleAccordion(this, 'docs-accordion')">
-          <span class="accordion-title">The Actor Model</span>
-          <span class="accordion-arrow">▼</span>
-        </button>
-        <div class="accordion-body">
-          <div class="accordion-body-inner">
-            <div class="accordion-body-content">
-              Everything in Aether is an actor. Actors are autonomous units of computation that communicate via asynchronous message passing. This isolation ensures that state is never shared, eliminating a whole class of concurrency bugs.
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ITEM 3 -->
-      <div class="accordion-item">
-        <button class="accordion-trigger" onclick="toggleAccordion(this, 'docs-accordion')">
-          <span class="accordion-title">Type Inference</span>
-          <span class="accordion-arrow">▼</span>
-        </button>
-        <div class="accordion-body">
-          <div class="accordion-body-inner">
-            <div class="accordion-body-content">
-              Aether features a powerful Hindley-Milner based type system. In most cases, you don't need to specify types; the compiler will infer them for you while still maintaining full static type safety.
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ITEM 4 -->
-      <div class="accordion-item">
-        <button class="accordion-trigger" onclick="toggleAccordion(this, 'docs-accordion')">
-          <span class="accordion-title">Standard Library</span>
-          <span class="accordion-arrow">▼</span>
-        </button>
-        <div class="accordion-body">
-          <div class="accordion-body-inner">
-            <div class="accordion-body-content">
-              The Aether standard library (std) provides high-level modules for I/O, networking, collections, and concurrency primitives. For example, 'std.io' handles printing and terminal interactions.
-            </div>
-          </div>
-        </div>
-      </div>
-
+    <div class="doc-list fade-in">
+      <a class="doc-card" href="/Docs/architecture.html"><span class="doc-card-title">Aether Architecture</span></a>
+      <a class="doc-card" href="/Docs/language-reference.html"><span class="doc-card-title">Aether Language Reference</span></a>
+      <a class="doc-card" href="/Docs/tutorial.html"><span class="doc-card-title">Aether Language Tutorial</span></a>
+      <a class="doc-card" href="/Docs/memory-management.html"><span class="doc-card-title">Aether Memory Management</span></a>
+      <a class="doc-card" href="/Docs/module-system-design.html"><span class="doc-card-title">Aether Module System</span></a>
+      <a class="doc-card" href="/Docs/performance-benchmarks.html"><span class="doc-card-title">Aether Performance
+Benchmarks</span></a>
+      <a class="doc-card" href="/Docs/actor-concurrency.html"><span class="doc-card-title">Aether Runtime Guide</span></a>
+      <a class="doc-card" href="/Docs/profiling-guide.html"><span class="doc-card-title">Aether Runtime Profiling
+Guide</span></a>
+      <a class="doc-card" href="/Docs/scheduler-quick-reference.html"><span class="doc-card-title">Aether Scheduler - Quick
+Reference</span></a>
+      <a class="doc-card" href="/Docs/stdlib-api.html"><span class="doc-card-title">Aether Standard Library
+Guide</span></a>
+      <a class="doc-card" href="/Docs/stdlib-reference.html"><span class="doc-card-title">Aether Standard Library
+Reference</span></a>
+      <a class="doc-card" href="/Docs/type-annotation-style-guide.html"><span class="doc-card-title">Aether Type Annotation Style
+Guide</span></a>
+      <a class="doc-card" href="/Docs/type-inference-guide.html"><span class="doc-card-title">Aether Type Inference Guide</span></a>
+      <a class="doc-card" href="/Docs/build-system.html"><span class="doc-card-title">Build System</span></a>
+      <a class="doc-card" href="/Docs/c-interop.html"><span class="doc-card-title">C Interoperability</span></a>
+      <a class="doc-card" href="/Docs/c-embedding.html"><span class="doc-card-title">Embedding Aether
+Actors in C Applications</span></a>
+      <a class="doc-card" href="/Docs/getting-started.html"><span class="doc-card-title">Getting Started with Aether</span></a>
+      <a class="doc-card" href="/Docs/next-steps.html"><span class="doc-card-title">Next Steps</span></a>
+      <a class="doc-card" href="/Docs/numa-support.html"><span class="doc-card-title">NUMA Support in Aether</span></a>
+      <a class="doc-card" href="/Docs/runtime-config.html"><span class="doc-card-title">Runtime Configuration -
+Quick Reference</span></a>
+      <a class="doc-card" href="/Docs/runtime-optimizations.html"><span class="doc-card-title">Runtime Optimizations</span></a>
     </div>
   </main>
 
   <!-- FOOTER -->
   <footer>
-    <p>© 2026 Nicolas Maman</p>
-    <p><a href="#">Privacy</a> · <a href="https://github.com/nicolasmd87/aether/blob/main/LICENSE">License</a> · <a href="mailto:hello@aether.org">Contact</a></p>
+    <p>&copy; 2026 Nicolas Maman</p>
+    <p><a href="#">Privacy</a> &middot; <a href="https://github.com/nicolasmd87/aether/blob/main/LICENSE">License</a> &middot; <a href="mailto:hello@aether.org">Contact</a></p>
   </footer>
 
   <script>
-    function toggleAccordion(trigger, groupId) {
-      const group = document.getElementById(groupId);
-      const allTriggers = group.querySelectorAll('.accordion-trigger');
-      const allBodies = group.querySelectorAll('.accordion-body');
-      const body = trigger.nextElementSibling;
-      const isOpen = trigger.classList.contains('open');
-
-      allTriggers.forEach(t => t.classList.remove('open'));
-      allBodies.forEach(b => b.classList.remove('open'));
-
-      if (!isOpen) {
-        trigger.classList.add('open');
-        body.classList.add('open');
-      }
-    }
-
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(e => { if (e.isIntersecting) e.target.classList.add("visible"); });
     }, { threshold: 0.1 });

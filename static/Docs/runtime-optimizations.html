@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>runtime-optimizations</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/style.css" />
+  <link rel="stylesheet" href="/subpages.css" />
+  <link rel="stylesheet" href="/articles.css" />
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <a class="nav-logo" href="/index.html">Aether<span>.</span></a>
+    <ul class="nav-links">
+      <li><a href="/index.html#features">Features</a></li>
+      <li><a href="/index.html#syntax">Syntax</a></li>
+      <li><a href="/index.html#install">Install</a></li>
+      <li><a href="/faq.html">FAQ</a></li>
+    </ul>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="section">
+    <div>
+      <p class="section-label">Learning Material</p>
+    </div>
+
+    <article class="article-content">
+<h1 id="runtime-optimizations">Runtime Optimizations</h1>
+<h2 id="overview">Overview</h2>
+<p>The Aether runtime implements several performance optimizations
+targeting message-passing overhead, synchronization primitives, and
+memory access patterns. Each optimization is integrated into the
+scheduler and message delivery paths.</p>
+<h2 id="active-optimizations">Active Optimizations</h2>
+<h3 id="main-thread-actor-mode">Main Thread Actor Mode</h3>
+<p><strong>Implementation:</strong>
+<code>runtime/actors/aether_send_message.c</code>,
+<code>runtime/scheduler/multicore_scheduler.c</code>,
+<code>runtime/config/aether_optimization_config.h</code></p>
+<p>Single-actor programs bypass the scheduler entirely. When only one
+actor exists, message processing occurs synchronously on the main thread
+with zero-copy message delivery.</p>
+<p><strong>Activation:</strong></p>
+<ul>
+<li>Automatic: Enabled when the first actor spawns, disabled if a second
+actor spawns</li>
+<li>Manual disable: Set <code>AETHER_NO_INLINE=1</code> environment
+variable</li>
+</ul>
+<p><strong>Mechanism:</strong></p>
+<p>When main thread mode is active:</p>
+<ol type="1">
+<li><code>aether_send_message</code> calls
+<code>aether_send_message_sync</code> instead of routing through
+scheduler</li>
+<li>The sync path passes the caller's stack pointer directly (no malloc,
+no memcpy)</li>
+<li><code>actor-&gt;step()</code> is called synchronously in the
+sender's context</li>
+<li>A TLS flag (<code>g_skip_free</code>) prevents the handler from
+freeing the stack pointer</li>
+</ol>
+<div class="sourceCode" id="cb1"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="dt">static</span> <span class="kw">inline</span> <span class="dt">void</span> aether_send_message_sync<span class="op">(</span>ActorBase<span class="op">*</span> actor<span class="op">,</span> <span class="dt">void</span><span class="op">*</span> message_data<span class="op">,</span> <span class="dt">size_t</span> message_size<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    Message msg<span class="op">;</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    msg<span class="op">.</span>type <span class="op">=</span> <span class="op">*(</span><span class="dt">int</span><span class="op">*)</span>message_data<span class="op">;</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    msg<span class="op">.</span>payload_ptr <span class="op">=</span> message_data<span class="op">;</span>  <span class="co">// Direct pointer to caller&#39;s stack</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    mailbox_send<span class="op">(&amp;</span>actor<span class="op">-&gt;</span>mailbox<span class="op">,</span> msg<span class="op">);</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    g_skip_free <span class="op">=</span> <span class="dv">1</span><span class="op">;</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    actor<span class="op">-&gt;</span>step<span class="op">(</span>actor<span class="op">);</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    g_skip_free <span class="op">=</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p><strong>Per-actor flag:</strong></p>
+<p>The <code>main_thread_only</code> field on <code>ActorBase</code>
+signals scheduler threads to skip processing this actor. When a second
+actor spawns, the flag is cleared on the first actor so scheduler
+threads can process both normally.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">typedef</span> <span class="kw">struct</span> <span class="op">{</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">// ...</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    atomic_int main_thread_only<span class="op">;</span>  <span class="co">// If set, scheduler threads skip this actor</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    <span class="co">// ...</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="op">}</span> ActorBase<span class="op">;</span></span></code></pre></div>
+<p><strong>Scheduler integration:</strong></p>
+<ul>
+<li><code>scheduler_start()</code> returns immediately if main thread
+mode is active</li>
+<li><code>scheduler_wait()</code> returns immediately if main thread
+mode is active (non-destructive; does not stop threads)</li>
+<li>Scheduler threads check <code>actor-&gt;main_thread_only</code>
+before processing</li>
+</ul>
+<h3 id="thread-local-message-payload-pools">Thread-Local Message Payload
+Pools</h3>
+<p><strong>Implementation:</strong>
+<code>runtime/actors/aether_send_message.c</code></p>
+<p>Per-thread pool of pre-allocated buffers eliminates dynamic
+allocation overhead in the message-passing hot path. Each pool contains
+256 buffers of up to 256 bytes. Messages that fit within the pool buffer
+size are served from the pool; larger messages fall back to
+<code>malloc</code>. Global atomic counters track pool hit/miss rates
+across threads.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#define MSG_PAYLOAD_POOL_SIZE </span><span class="dv">256</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#define MSG_PAYLOAD_MAX_SIZE </span><span class="dv">256</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="kw">typedef</span> <span class="kw">struct</span> <span class="op">{</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">char</span> buffer<span class="op">[</span>MSG_PAYLOAD_MAX_SIZE<span class="op">];</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> in_use<span class="op">;</span>  <span class="co">// Thread-local: no atomics needed</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="op">}</span> PooledPayload<span class="op">;</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="kw">typedef</span> <span class="kw">struct</span> <span class="op">{</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>    PooledPayload payloads<span class="op">[</span>MSG_PAYLOAD_POOL_SIZE<span class="op">];</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> next_index<span class="op">;</span>  <span class="co">// Thread-local: plain increment</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> initialized<span class="op">;</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a><span class="op">}</span> PayloadPool<span class="op">;</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a><span class="dt">static</span> __thread PayloadPool<span class="op">*</span> g_payload_pool <span class="op">=</span> NULL<span class="op">;</span></span></code></pre></div>
+<p>Because each pool is thread-local, acquisition and release use plain
+loads and stores rather than atomic operations. The round-robin index
+uses bitwise AND masking for constant-time slot lookup.</p>
+<h3 id="message-coalescing-with-batch-dequeue">Message Coalescing with
+Batch Dequeue</h3>
+<p><strong>Implementation:</strong>
+<code>runtime/scheduler/multicore_scheduler.c</code>,
+<code>runtime/scheduler/lockfree_queue.h</code></p>
+<p>The scheduler drains multiple messages from the lock-free incoming
+queue in a single batch dequeue operation. This reduces atomic
+operations from one-per-message to one-per-batch.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#define COALESCE_THRESHOLD </span><span class="dv">512</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="co">// Single batch dequeue: 1 atomic store for entire batch</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>count <span class="op">=</span> queue_dequeue_batch<span class="op">(&amp;</span>incoming_queue<span class="op">,</span> buffer<span class="op">.</span>actors<span class="op">,</span> buffer<span class="op">.</span>messages<span class="op">,</span> batch_size<span class="op">);</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> <span class="op">(</span><span class="dt">int</span> i <span class="op">=</span> <span class="dv">0</span><span class="op">;</span> i <span class="op">&lt;</span> count<span class="op">;</span> i<span class="op">++)</span> <span class="op">{</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Redirect migrated actors, deliver to mailbox, or enqueue to SPSC</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>The batch dequeue reads <code>head</code> and <code>tail</code> once,
+copies all available messages, then advances <code>head</code> with a
+single <code>atomic_store</code>. This matches the existing batch
+enqueue pattern used by <code>queue_enqueue_batch</code>.</p>
+<h3 id="batch-send-for-fan-out-patterns">Batch Send for Fan-Out
+Patterns</h3>
+<p><strong>Implementation:</strong>
+<code>runtime/scheduler/multicore_scheduler.c</code>,
+<code>compiler/codegen/codegen.c</code></p>
+<p>For main thread fan-out patterns (fork-join), batch send reduces
+atomic operations from N to num_cores. The compiler detects while loops
+containing sends in <code>main()</code> and wraps them with batch
+start/flush calls.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Generated code for fork-join pattern:</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>scheduler_send_batch_start<span class="op">();</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="cf">while</span> <span class="op">(</span>i <span class="op">&lt;</span> total<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    worker <span class="op">!</span> Work <span class="op">{</span> value<span class="op">:</span> i <span class="op">};</span>  <span class="co">// Buffered, not sent immediately</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    i <span class="op">=</span> i <span class="op">+</span> <span class="dv">1</span><span class="op">;</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>scheduler_send_batch_flush<span class="op">();</span>  <span class="co">// Bulk send with one atomic per core</span></span></code></pre></div>
+<p>The flush snapshots each message's target core, sorts by core using
+radix sort, then calls <code>queue_enqueue_batch</code> for each core.
+This reduces atomics from N (one per message) to num_cores (one per
+core). Target cores are read once per message at flush time to produce a
+consistent snapshot — this prevents buffer overflows that could occur if
+an actor migrates between the time a message is buffered and the time
+the batch is flushed.</p>
+<p><strong>Runtime auto-detection:</strong> The batch send path
+automatically detects when Main Thread Actor Mode is active
+(single-actor programs) and uses the synchronous zero-copy path instead
+of batching. This ensures single-actor benchmarks like counting use the
+optimal path while multi-actor fan-out patterns like fork-join benefit
+from batch send. No manual configuration is required.</p>
+<p><strong>Pattern detection:</strong> Only applied in
+<code>main()</code> function loops, not inside actor receive handlers.
+This preserves low-latency actor-to-actor messaging while optimizing
+main-to-actors fan-out.</p>
+<h3 id="adaptive-batch-size">Adaptive Batch Size</h3>
+<p><strong>Implementation:</strong>
+<code>runtime/actors/aether_adaptive_batch.h</code></p>
+<p>The batch size adjusts dynamically based on queue utilization. Under
+sustained load the batch size increases (up to 1024) to amortize
+overhead. During idle periods it decreases (down to 64) to maintain
+responsiveness.</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#define MIN_BATCH_SIZE </span><span class="dv">64</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#define MAX_BATCH_SIZE </span><span class="dv">1024</span></span></code></pre></div>
+<h3 id="optimized-spinlock-with-platform-specific-yield">Optimized
+Spinlock with Platform-Specific Yield</h3>
+<p><strong>Implementation:</strong>
+<code>runtime/scheduler/multicore_scheduler.h</code></p>
+<p>Custom spinlock using <code>atomic_flag</code> with platform-specific
+CPU yield hints during spin-wait.</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="dt">static</span> <span class="kw">inline</span> <span class="dt">void</span> spinlock_lock<span class="op">(</span>OptimizedSpinlock<span class="op">*</span> lock<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">while</span> <span class="op">(</span>atomic_flag_test_and_set_explicit<span class="op">(&amp;</span>lock<span class="op">-&gt;</span>lock<span class="op">,</span> memory_order_acquire<span class="op">))</span> <span class="op">{</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>        <span class="pp">#if defined(__x86_64__) || defined(_M_X64)</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>        __asm__ __volatile__<span class="op">(</span><span class="st">&quot;pause&quot;</span> <span class="op">:::</span> <span class="st">&quot;memory&quot;</span><span class="op">);</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>        <span class="pp">#elif defined(__aarch64__)</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>        __asm__ __volatile__<span class="op">(</span><span class="st">&quot;yield&quot;</span> <span class="op">:::</span> <span class="st">&quot;memory&quot;</span><span class="op">);</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>        <span class="pp">#endif</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>The <code>PAUSE</code> instruction (x86) and <code>YIELD</code>
+instruction (ARM) reduce power consumption during spin-wait and signal
+the CPU that the thread is in a spin-loop, improving SMT scheduling.</p>
+<h3 id="lock-free-cross-core-queue">Lock-Free Cross-Core Queue</h3>
+<p><strong>Implementation:</strong>
+<code>runtime/scheduler/lockfree_queue.h</code></p>
+<p>Single-producer, single-consumer ring buffer using atomic head/tail
+pointers with explicit memory ordering.</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="kw">typedef</span> <span class="kw">struct</span> __attribute__<span class="op">((</span>aligned<span class="op">(</span><span class="dv">64</span><span class="op">)))</span> <span class="op">{</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>    atomic_int head<span class="op">;</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">char</span> padding1<span class="op">[</span><span class="dv">60</span><span class="op">];</span>  <span class="co">// Cache line alignment</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>    atomic_int tail<span class="op">;</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">char</span> padding2<span class="op">[</span><span class="dv">60</span><span class="op">];</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>    QueueItem items<span class="op">[</span>QUEUE_SIZE<span class="op">];</span>  <span class="co">// QUEUE_SIZE = 1024</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="op">}</span> LockFreeQueue<span class="op">;</span></span></code></pre></div>
+<p>Cache line padding on <code>head</code> and <code>tail</code>
+prevents false sharing between producer and consumer cores. Power-of-2
+sizing enables bitwise AND masking instead of modulo division.</p>
+<h3 id="spsc-queue-for-same-core-messaging">SPSC Queue for Same-Core
+Messaging</h3>
+<p><strong>Implementation:</strong>
+<code>runtime/actors/aether_spsc_queue.h</code></p>
+<p>Each actor has a dedicated SPSC (single-producer, single-consumer)
+queue for receiving messages from its owning scheduler thread or from
+other actor threads via <code>scheduler_send_local</code>. This
+separates same-core and cross-core message paths.</p>
+<h3 id="direct-mailbox-delivery">Direct Mailbox Delivery</h3>
+<p><strong>Implementation:</strong>
+<code>runtime/scheduler/multicore_scheduler.c</code>
+(<code>scheduler_send_remote</code>)</p>
+<p>When the sender is on the same core as the target actor and is
+actually running on that core's scheduler thread (verified via
+<code>current_core_id</code>), messages bypass the incoming queue
+entirely and write directly to the actor's mailbox or SPSC queue.</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="op">(</span>from_core <span class="op">&gt;=</span> <span class="dv">0</span> <span class="op">&amp;&amp;</span> from_core <span class="op">==</span> target_core <span class="op">&amp;&amp;</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>    from_core <span class="op">==</span> current_core_id<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="op">(</span>unlikely<span class="op">(</span>actor<span class="op">-&gt;</span>auto_process<span class="op">))</span> <span class="op">{</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>        spsc_enqueue<span class="op">(&amp;</span>actor<span class="op">-&gt;</span>spsc_queue<span class="op">,</span> msg<span class="op">);</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span> <span class="cf">else</span> <span class="op">{</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>        mailbox_send<span class="op">(&amp;</span>actor<span class="op">-&gt;</span>mailbox<span class="op">,</span> msg<span class="op">);</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>    actor<span class="op">-&gt;</span>active <span class="op">=</span> <span class="dv">1</span><span class="op">;</span></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span><span class="op">;</span></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>The <code>current_core_id</code> guard prevents non-scheduler threads
+(such as the main thread) from writing to the mailbox concurrently with
+the scheduler thread, which would be a data race on the non-thread-safe
+ring buffer.</p>
+<h3 id="message-driven-actor-migration">Message-Driven Actor
+Migration</h3>
+<p><strong>Implementation:</strong>
+<code>runtime/scheduler/multicore_scheduler.c</code>
+(<code>scheduler_send_remote</code>, scheduler actor loop)</p>
+<p>When a cross-core send occurs, the sender sets a
+<code>migrate_to</code> hint on the target actor, requesting migration
+to the sender's core. The scheduler thread that owns the actor checks
+migration hints in two places:</p>
+<ol type="1">
+<li><p><strong>After coalesce-buffer processing</strong> (targeted,
+O(batch_size)): Immediately after delivering and processing messages
+from the coalesce buffer, the scheduler checks <code>migrate_to</code>
+on each actor it just processed. This provides fast migration response
+without scanning the full actor list.</p></li>
+<li><p><strong>During idle actor scan</strong> (full scan,
+O(actor_count)): When no messages arrived from cross-core queues, the
+scheduler scans all local actors for pending migration hints. This
+catches any hints that were not processed in the targeted path.</p></li>
+</ol>
+<p>Migration uses ascending core-id lock ordering to prevent deadlock
+between concurrent migration and work-stealing operations. Both locks
+are acquired via non-blocking try-lock — if either lock is contended,
+migration is deferred to the next iteration. The actor is always
+processed before migration is attempted, ensuring progress even under
+constant migration pressure.</p>
+<h3 id="inline-single-int-messages">Inline Single-Int Messages</h3>
+<p><strong>Implementation:</strong>
+<code>compiler/codegen/codegen.c</code></p>
+<p>The code generator detects messages with exactly one integer field
+and emits an inline fast path. Instead of allocating a pool buffer and
+copying the message struct, the message ID is stored in
+<code>msg.type</code> and the field value in
+<code>msg.payload_int</code> (typed as <code>intptr_t</code> to avoid
+truncation of actor refs on 64-bit systems). The receiver reconstructs
+the struct on the stack. This eliminates pool allocation and
+deallocation for the most common message pattern.</p>
+<h3 id="computed-goto-dispatch">Computed Goto Dispatch</h3>
+<p><strong>Implementation:</strong>
+<code>compiler/codegen/codegen.c</code> (generated code)</p>
+<p>The code generator emits a dispatch table with GCC computed goto
+(<code>goto *dispatch_table[msg_id]</code>) for message handler
+selection. This replaces indirect function calls or switch statements
+with direct label jumps. The message ID is read from
+<code>msg.type</code> rather than dereferencing the payload pointer.</p>
+<h3 id="progressive-backoff-strategy">Progressive Backoff Strategy</h3>
+<p><strong>Implementation:</strong>
+<code>runtime/scheduler/multicore_scheduler.c</code></p>
+<p>Three-phase idle strategy:</p>
+<ol type="1">
+<li><strong>Tight spin with PAUSE/YIELD:</strong> Low latency, used for
+the first 10,000 idle iterations</li>
+<li><strong>Work stealing:</strong> After 5,000 idle cycles, scan for
+busy cores and steal actors</li>
+<li><strong>OS yield:</strong> After 10,000 idle iterations, call
+<code>sched_yield()</code> and partially reset the counter</li>
+</ol>
+<div class="sourceCode" id="cb10"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="op">(</span>idle_count <span class="op">&lt;</span> <span class="dv">10000</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>    <span class="pp">#if defined(__x86_64__) || defined(_M_X64)</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>    __asm__ __volatile__<span class="op">(</span><span class="st">&quot;pause&quot;</span> <span class="op">:::</span> <span class="st">&quot;memory&quot;</span><span class="op">);</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>    <span class="pp">#endif</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="op">}</span> <span class="cf">else</span> <span class="op">{</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>    sched_yield<span class="op">();</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>    idle_count <span class="op">=</span> <span class="dv">5000</span><span class="op">;</span>  <span class="co">// Partial reset to stay responsive</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h3 id="cache-line-alignment">Cache Line Alignment</h3>
+<p><strong>Implementation:</strong> Multiple components</p>
+<p>Frequently-accessed shared data structures are aligned to 64-byte
+cache line boundaries to prevent false sharing.</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="kw">typedef</span> <span class="kw">struct</span> __attribute__<span class="op">((</span>aligned<span class="op">(</span><span class="dv">64</span><span class="op">)))</span> <span class="op">{</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>    atomic_flag lock<span class="op">;</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">char</span> padding<span class="op">[</span><span class="dv">63</span><span class="op">];</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="op">}</span> OptimizedSpinlock<span class="op">;</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a><span class="pp">#define MAILBOX_SIZE </span><span class="dv">32</span><span class="pp">   </span><span class="co">// 32 slots — small per-actor footprint for scaling to millions</span></span></code></pre></div>
+<h3 id="power-of-2-buffer-sizing">Power-of-2 Buffer Sizing</h3>
+<p><strong>Implementation:</strong> All ring buffers</p>
+<p>All ring buffers use power-of-2 sizes with bitwise AND masking
+instead of modulo division.</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#define QUEUE_SIZE </span><span class="dv">1024</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#define QUEUE_MASK </span><span class="op">(</span><span class="pp">QUEUE_SIZE </span><span class="op">-</span><span class="pp"> </span><span class="dv">1</span><span class="op">)</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> index <span class="op">=</span> <span class="op">(</span>head <span class="op">+</span> <span class="dv">1</span><span class="op">)</span> <span class="op">&amp;</span> QUEUE_MASK<span class="op">;</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a><span class="co">// Also used in thread-local pool (plain increment, no atomics)</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> idx <span class="op">=</span> pool<span class="op">-&gt;</span>next_index<span class="op">++</span> <span class="op">&amp;</span> <span class="op">(</span>MSG_PAYLOAD_POOL_SIZE <span class="op">-</span> <span class="dv">1</span><span class="op">);</span></span></code></pre></div>
+<h3 id="relaxed-atomic-memory-ordering">Relaxed Atomic Memory
+Ordering</h3>
+<p><strong>Implementation:</strong>
+<code>runtime/actors/aether_send_message.c</code>,
+<code>runtime/scheduler/multicore_scheduler.c</code></p>
+<p>Non-critical atomic operations use <code>memory_order_relaxed</code>
+to avoid unnecessary memory barriers:</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Statistics counters</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>atomic_fetch_add_explicit<span class="op">(&amp;</span>g_pool_hits<span class="op">,</span> <span class="dv">1</span><span class="op">,</span> memory_order_relaxed<span class="op">);</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="co">// Scheduler idle tracking</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>atomic_fetch_add_explicit<span class="op">(&amp;</span>sched<span class="op">-&gt;</span>idle_cycles<span class="op">,</span> <span class="dv">1</span><span class="op">,</span> memory_order_relaxed<span class="op">);</span></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>atomic_store_explicit<span class="op">(&amp;</span>sched<span class="op">-&gt;</span>idle_cycles<span class="op">,</span> <span class="dv">0</span><span class="op">,</span> memory_order_relaxed<span class="op">);</span></span></code></pre></div>
+<p>Statistics counters and approximate work counts do not require
+sequential consistency. Relaxed ordering provides atomicity without the
+overhead of full memory barriers.</p>
+<h3 id="numa-aware-allocation">NUMA-Aware Allocation</h3>
+<p><strong>Implementation:</strong> <code>runtime/aether_numa.c</code>,
+<code>runtime/aether_numa.h</code></p>
+<p>Actor structures are allocated on the NUMA node local to the assigned
+core. The topology is detected at scheduler initialization. On systems
+without NUMA support, allocation falls back to standard
+<code>malloc</code>.</p>
+<ul>
+<li><strong>Linux:</strong> <code>numa_alloc_onnode</code> (requires
+libnuma)</li>
+<li><strong>Windows:</strong> <code>VirtualAllocExNuma</code></li>
+<li><strong>Single-node systems:</strong> Graceful degradation to
+<code>malloc</code></li>
+</ul>
+<h3 id="link-time-optimization">Link-Time Optimization</h3>
+<p><strong>Implementation:</strong>
+<code>benchmarks/cross-language/aether/Makefile</code></p>
+<p>The benchmark build uses <code>-flto</code> for both compilation and
+linking, enabling cross-translation-unit inlining and dead code
+elimination.</p>
+<h3 id="cpu-detection-fallback">CPU Detection Fallback</h3>
+<p><strong>Implementation:</strong>
+<code>runtime/utils/aether_cpu_detect.c</code></p>
+<p>The <code>cpu_recommend_cores</code> function uses CPUID on x86 and
+falls back to OS-level APIs (<code>sysctl</code> on macOS,
+<code>sysconf</code> on Linux, <code>GetNativeSystemInfo</code> on
+Windows) when CPUID returns zero (ARM, virtualized environments).</p>
+<h3 id="apple-silicon-p-core-detection">Apple Silicon P-Core
+Detection</h3>
+<p><strong>Implementation:</strong>
+<code>runtime/utils/aether_cpu_detect.c</code>,
+<code>runtime/scheduler/multicore_scheduler.c</code></p>
+<p>On Apple Silicon (M1/M2/M3), the runtime detects and uses only
+Performance cores (P-cores) to ensure consistent throughput. Efficiency
+cores (E-cores) are excluded because they run at lower clock speeds and
+can cause variance in benchmarks.</p>
+<p>Detection uses <code>sysctlbyname("hw.perflevel0.physicalcpu")</code>
+to query the P-core count. Combined with
+<code>QOS_CLASS_USER_INTERACTIVE</code> thread priority, this encourages
+macOS to schedule actor threads on P-cores.</p>
+<p><strong>Platform-specific thread affinity:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Platform</th>
+<th>Mechanism</th>
+<th>Binding</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Linux</td>
+<td><code>pthread_setaffinity_np</code></td>
+<td>Hard binding</td>
+</tr>
+<tr>
+<td>macOS</td>
+<td><code>thread_policy_set</code> + QoS</td>
+<td>Hint only</td>
+</tr>
+<tr>
+<td>Windows</td>
+<td><code>SetThreadAffinityMask</code></td>
+<td>Hard binding</td>
+</tr>
+</tbody>
+</table>
+<p>Note: macOS does not support hard core pinning by design. Thread
+placement is advisory, which may cause occasional variance in
+microbenchmarks.</p>
+<h3 id="per-core-message-counters">Per-Core Message Counters</h3>
+<p><strong>Implementation:</strong>
+<code>runtime/scheduler/multicore_scheduler.c</code>,
+<code>runtime/scheduler/multicore_scheduler.h</code></p>
+<p>Idle detection uses per-core counters instead of a global atomic
+counter. This eliminates cache line contention on the message-passing
+hot path.</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="kw">typedef</span> <span class="kw">struct</span> <span class="op">{</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">// ...</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint64_t</span> messages_sent<span class="op">;</span>      <span class="co">// Messages sent FROM this core</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint64_t</span> messages_processed<span class="op">;</span> <span class="co">// Messages processed ON this core</span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">char</span> counter_padding<span class="op">[</span><span class="dv">48</span><span class="op">];</span>    <span class="co">// Cache line padding</span></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>    <span class="co">// ...</span></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a><span class="op">}</span> Scheduler<span class="op">;</span></span></code></pre></div>
+<p>Each scheduler core increments its local counters without atomic
+operations. The <code>wait_for_idle()</code> function (called internally
+by <code>scheduler_wait()</code>) sums across all cores to determine
+when all in-flight messages have been processed.
+<code>scheduler_wait()</code> is non-destructive -- it only waits for
+quiescence and does not stop scheduler threads, so it can be called
+multiple times between phases of message sending.</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Hot path: no atomic contention</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="op">(</span>current_core_id <span class="op">&gt;=</span> <span class="dv">0</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>    schedulers<span class="op">[</span>current_core_id<span class="op">].</span>messages_sent<span class="op">++;</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a><span class="co">// wait_for_idle: sum across cores (rare operation)</span></span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a><span class="dt">uint64_t</span> total_sent <span class="op">=</span> <span class="dv">0</span><span class="op">,</span> total_processed <span class="op">=</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> <span class="op">(</span><span class="dt">int</span> i <span class="op">=</span> <span class="dv">0</span><span class="op">;</span> i <span class="op">&lt;</span> num_cores<span class="op">;</span> i<span class="op">++)</span> <span class="op">{</span></span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>    total_sent <span class="op">+=</span> schedulers<span class="op">[</span>i<span class="op">].</span>messages_sent<span class="op">;</span></span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>    total_processed <span class="op">+=</span> schedulers<span class="op">[</span>i<span class="op">].</span>messages_processed<span class="op">;</span></span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>Messages sent from the main thread (before scheduler threads start)
+use a separate atomic counter, but this path is infrequent. The pattern
+follows the Linux kernel's per-CPU counter design for scalable
+counting.</p>
+<h2 id="rejected-optimizations">Rejected Optimizations</h2>
+<h3 id="manual-prefetching">Manual Prefetching</h3>
+<p>Benchmarks showed hardware prefetchers handle sequential ring buffer
+access more effectively than manual <code>__builtin_prefetch</code>
+hints. Manual prefetch introduced pipeline stalls.</p>
+<h3 id="simd-message-processing">SIMD Message Processing</h3>
+<p>Message processing is memory-bound. Vectorization overhead exceeded
+benefits for typical message sizes.</p>
+<h2 id="opt-in-features">Opt-In Features</h2>
+<p>The following optimizations are available but disabled by default.
+Enable them via runtime configuration flags when appropriate for your
+workload.</p>
+<p><strong>Message Deduplication</strong>
+(<code>runtime/actors/aether_message_dedup.h</code>)</p>
+<ul>
+<li>Filters duplicate messages using a sliding window of message
+fingerprints</li>
+<li>Enable via <code>AETHER_OPT_MESSAGE_DEDUP</code> flag</li>
+<li>Trade-off: adds overhead, changes message delivery semantics</li>
+</ul>
+<p><strong>Lock-Free Mailbox</strong>
+(<code>runtime/actors/lockfree_mailbox.h</code>)</p>
+<ul>
+<li>SPSC atomic queue replacing standard ring buffer</li>
+<li>Enable via <code>AETHER_OPT_LOCKFREE_MAILBOX</code> flag</li>
+<li>Trade-off: slower for single-threaded workloads, faster under heavy
+contention</li>
+</ul>
+<p><strong>SIMD Batch Processing</strong>
+(<code>runtime/actors/aether_simd_batch.h</code>)</p>
+<ul>
+<li>Vectorized message processing using AVX2 or NEON</li>
+<li>Auto-detected based on hardware capabilities</li>
+<li>Trade-off: overhead exceeds benefit for small message batches</li>
+</ul>
+<h2 id="compiler-optimizations">Compiler Optimizations</h2>
+<p>The Aether compiler (<code>aetherc</code>) runs its own optimization
+passes on the AST before emitting C, separate from whatever the
+downstream C compiler does. All passes are safe-by-default: if a pattern
+is not recognized, the compiler falls through to normal code
+generation.</p>
+<h3 id="hotcold-path-fixes-scheduler-level">Hot/Cold Path Fixes
+(scheduler-level)</h3>
+<p><strong>Problem A — <code>aether_main_thread_mode_active()</code>
+branch hint</strong>
+(<code>runtime/config/aether_optimization_config.h</code>)</p>
+<p>The inline accessor previously carried
+<code>__builtin_expect(..., 0)</code>, marking the main-thread path as
+<em>unlikely</em>. For single-actor programs this path is always taken,
+so the hint put the fast code in the cold instruction-cache section.
+Removed the hint; the C compiler now places the branch neutrally.</p>
+<p><strong>Problem B — Dead branch in generated send code</strong>
+(<code>compiler/codegen/codegen_expr.c</code>)</p>
+<p>Generated code for <code>actor ! Msg</code> from the main thread
+previously emitted:</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="op">(</span>current_core_id <span class="op">&gt;=</span> <span class="dv">0</span> <span class="op">&amp;&amp;</span> current_core_id <span class="op">==</span> atomic_load_explicit<span class="op">(&amp;</span>actor<span class="op">-&gt;</span>assigned_core<span class="op">,</span> memory_order_relaxed<span class="op">))</span> <span class="op">{</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>    scheduler_send_local<span class="op">(...);</span>   <span class="co">// never taken: main thread has core_id = -1</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a><span class="op">}</span> <span class="cf">else</span> <span class="op">{</span></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>    scheduler_send_remote<span class="op">(...);</span>  <span class="co">// always taken</span></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>When the codegen is in a main-function context
+(<code>gen-&gt;current_actor == NULL</code>), it now emits the
+always-taken branch directly, eliminating the dead conditional.</p>
+<h3
+id="arithmetic-series-loop-collapse-compilercodegencodegen_stmtc">Arithmetic
+Series Loop Collapse (<code>compiler/codegen/codegen_stmt.c</code>)</h3>
+<p>Detects <code>while</code> loops of the form:</p>
+<pre class="aether"><code>while counter &lt; N {
+    acc1 = acc1 + C1   // loop-invariant addend
+    acc2 = acc2 + C2
+    counter = counter + step
+}</code></pre>
+<p>And replaces them with O(1) closed-form assignments:</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="op">((</span>counter<span class="op">)</span> <span class="op">&lt;</span> <span class="op">(</span>N<span class="op">))</span> <span class="op">{</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>    acc1 <span class="op">=</span> acc1 <span class="op">+</span> <span class="op">(</span>C1<span class="op">)</span> <span class="op">*</span> <span class="op">((</span>N<span class="op">)</span> <span class="op">-</span> counter<span class="op">);</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>    acc2 <span class="op">=</span> acc2 <span class="op">+</span> <span class="op">(</span>C2<span class="op">)</span> <span class="op">*</span> <span class="op">((</span>N<span class="op">)</span> <span class="op">-</span> counter<span class="op">);</span></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>    counter <span class="op">=</span> <span class="op">(</span>N<span class="op">);</span></span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>The guard prevents the collapsed form from running when the loop
+would not have executed at all (counter ≥ bound). The formula
+<code>(N - counter)</code> computes remaining trip count correctly for
+any initial counter value.</p>
+<p><strong>What this handles that the C compiler cannot:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Loop type</th>
+<th>Clang <code>-O2</code></th>
+<th>Aether collapse</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>while i &lt; 10 { total += 5; i++ }</code></td>
+<td>Collapses (constant bound, scalar evolution)</td>
+<td>Collapses</td>
+</tr>
+<tr>
+<td><code>while i &lt; n { total += 5; i++ }</code></td>
+<td>Cannot collapse (variable bound)</td>
+<td><strong>Collapses</strong></td>
+</tr>
+<tr>
+<td>Multi-accumulator
+<code>while i &lt; n { a += 3; b += 7; i++ }</code></td>
+<td>Cannot collapse</td>
+<td><strong>Collapses</strong></td>
+</tr>
+</tbody>
+</table>
+<p>For constant-bound loops the Aether collapse is redundant with
+clang's scalar evolution pass, so both emit equivalent O(1) code. The
+unique value is for <em>variable-bound</em> loops, which clang cannot
+analyze without the semantics that Aether's type system provides (no
+aliasing, no pointers, no side effects in the body).</p>
+<p><strong>Detection requirements (all must hold):</strong></p>
+<ol type="1">
+<li>Condition is <code>var &lt; bound</code> or
+<code>var &lt;= bound</code></li>
+<li>Every body statement is <code>target = target + expr</code> (no
+other forms)</li>
+<li>One statement increments the counter variable by a positive literal
+step</li>
+<li>All addend expressions are loop-invariant (no reference to counter
+or other modified variables)</li>
+<li>Bound expression is not modified by any loop body statement</li>
+<li>No function calls or actor sends in the loop body (sends get
+batch-send treatment instead)</li>
+</ol>
+<p><strong>Pure counter elimination</strong> is a subcase handled
+automatically (zero accumulators):</p>
+<pre class="aether"><code>i = 0
+while i &lt; n { i = i + 1 }   // n can be a runtime variable</code></pre>
+<p>→ <code>if ((i) &lt; (n)) { i = (n); }</code> — clang can collapse
+only when <code>n</code> is a compile-time constant.</p>
+<p><strong>Reported in optimization stats:</strong></p>
+<pre><code>Optimization Statistics:
+  Series loops collapsed: 3</code></pre>
+<hr />
+<h3 id="linear-counter-sum-compilercodegencodegen_stmtc">Linear Counter
+Sum (<code>compiler/codegen/codegen_stmt.c</code>)</h3>
+<p>Detects loops where an accumulator adds the <strong>counter variable
+itself</strong> (or a scaled version of it):</p>
+<pre class="aether"><code>j = 0
+total = 0
+while j &lt; N {
+    total = total + j     // addend IS the induction variable
+    j = j + 1
+}</code></pre>
+<p>Replaced with the <strong>triangular-number closed form</strong>:</p>
+<div class="sourceCode" id="cb22"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="op">((</span>j<span class="op">)</span> <span class="op">&lt;</span> <span class="op">(</span>N<span class="op">))</span> <span class="op">{</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>    total <span class="op">=</span> total <span class="op">+</span> <span class="op">((</span>N<span class="op">)</span> <span class="op">*</span> <span class="op">((</span>N<span class="op">)</span> <span class="op">-</span> <span class="dv">1</span><span class="op">)</span> <span class="op">/</span> <span class="dv">2</span> <span class="op">-</span> j <span class="op">*</span> <span class="op">(</span>j <span class="op">-</span> <span class="dv">1</span><span class="op">)</span> <span class="op">/</span> <span class="dv">2</span><span class="op">);</span></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>    j <span class="op">=</span> <span class="op">(</span>N<span class="op">);</span></span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>This is the sum Σ(i = j₀ to N−1) i = N(N−1)/2 − j₀(j₀−1)/2.</p>
+<p>Also handles a scaled counter: <code>total = total + j * 3</code> →
+scale factor applied to the formula.</p>
+<p><strong>Why clang cannot do this:</strong> LLVM's Scalar Evolution
+(SCEV) identifies induction variables but does not synthesize the
+triangular-number closed form in the code generator. Polly (an optional
+LLVM extension, rarely enabled) can do affine loop transformations but
+is not part of the standard <code>-O2</code> pipeline.</p>
+<table>
+<thead>
+<tr>
+<th>Loop type</th>
+<th>Clang <code>-O2</code></th>
+<th>Aether collapse</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>while j &lt; n { total += 5; j++ }</code></td>
+<td>Cannot collapse (variable bound)</td>
+<td>Series collapse</td>
+</tr>
+<tr>
+<td><code>while j &lt; n { total += j; j++ }</code></td>
+<td>Cannot collapse (addend = counter)</td>
+<td><strong>Linear collapse</strong></td>
+</tr>
+<tr>
+<td><code>while j &lt; n { total += j * 3; j++ }</code></td>
+<td>Cannot collapse</td>
+<td><strong>Linear collapse (scaled)</strong></td>
+</tr>
+<tr>
+<td>Mixed: <code>while j &lt; n { a += 5; b += j; j++ }</code></td>
+<td>Cannot collapse</td>
+<td><strong>Both in one pass</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Reported in optimization stats:</strong></p>
+<pre><code>Optimization Statistics:
+  Linear loops collapsed: 3</code></pre>
+<h2 id="references">References</h2>
+<ul>
+<li>Lock-Free Programming: Harris, "A Pragmatic Implementation of
+Non-Blocking Linked-Lists"</li>
+<li>Cache Coherency: Intel 64 and IA-32 Architectures Optimization
+Reference Manual</li>
+<li>Memory Ordering: C11 Atomic Operations and Memory Model</li>
+<li>Actor Model: Hewitt, Bishop, Steiger (1973)</li>
+</ul>
+    </article>
+  </main>
+
+  <!-- FOOTER -->
+  <footer>
+    <p>&copy; 2026 Nicolas Maman</p>
+    <p><a href="#">Privacy</a> &middot; <a href="https://github.com/nicolasmd87/aether/blob/main/LICENSE">License</a> &middot; <a href="mailto:hello@aether.org">Contact</a></p>
+  </footer>
+</body>
+</html>

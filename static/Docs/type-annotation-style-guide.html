@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>type-annotation-style-guide</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/style.css" />
+  <link rel="stylesheet" href="/subpages.css" />
+  <link rel="stylesheet" href="/articles.css" />
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <a class="nav-logo" href="/index.html">Aether<span>.</span></a>
+    <ul class="nav-links">
+      <li><a href="/index.html#features">Features</a></li>
+      <li><a href="/index.html#syntax">Syntax</a></li>
+      <li><a href="/index.html#install">Install</a></li>
+      <li><a href="/faq.html">FAQ</a></li>
+    </ul>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="section">
+    <div>
+      <p class="section-label">Learning Material</p>
+    </div>
+
+    <article class="article-content">
+<h1 id="aether-type-annotation-style-guide">Aether Type Annotation Style
+Guide</h1>
+<h2 id="philosophy">Philosophy</h2>
+<p>Aether supports <strong>both type inference and explicit type
+annotations</strong>, giving you flexibility to choose the right
+approach for your code. This guide provides best practices for when to
+use each.</p>
+<h2 id="type-inference-recommended-default">Type Inference (Recommended
+Default)</h2>
+<p>Aether's type inference can deduce types automatically in most
+cases.</p>
+<h3 id="when-to-use-type-inference">When to Use Type Inference</h3>
+<p><strong>Local variables</strong></p>
+<pre class="aether"><code>// Type inference - clean and concise
+x = 42              // Inferred as int
+name = &quot;Alice&quot;      // Inferred as string
+points = [1, 2, 3]  // Inferred as int array</code></pre>
+<p><strong>Simple computations</strong></p>
+<pre class="aether"><code>sum = a + b
+product = x * y
+result = compute_value()</code></pre>
+<p><strong>Loop variables</strong></p>
+<pre class="aether"><code>for i in 0..10 {
+    total = total + i
+}</code></pre>
+<p><strong>Struct field access</strong></p>
+<pre class="aether"><code>point = Point{ x: 5, y: 10 }
+x_value = point.x  // Inferred from struct definition</code></pre>
+<h2 id="explicit-types-for-clarity">Explicit Types (For Clarity)</h2>
+<p>Use explicit type annotations when they improve code clarity or are
+required.</p>
+<h3 id="when-to-use-explicit-types">When to Use Explicit Types</h3>
+<p><strong>Function signatures</strong> (highly recommended)</p>
+<pre class="aether"><code>// Function parameters and return types
+add(int a, int b): int {
+    return a + b
+}
+
+greet(string name): void {
+    println(&quot;Hello, ${name}&quot;)
+}
+
+find_user(int id): User {
+    // ... implementation
+}</code></pre>
+<p><strong>Why</strong>: Makes function contracts clear, improves
+documentation, helps catch errors at call sites.</p>
+<p><strong>Public APIs and library functions</strong></p>
+<pre class="aether"><code>// Export functions should have explicit types
+export calculate_distance(Point p1, Point p2): float {
+    dx = p2.x - p1.x
+    dy = p2.y - p1.y
+    return sqrt(dx * dx + dy * dy)
+}</code></pre>
+<p><strong>Complex types or ambiguous cases</strong></p>
+<pre class="aether"><code>import std.map
+import std.list
+
+// When type inference might fail or be unclear
+ptr my_map = map.new()
+ptr users = list.new()
+
+// Explicit type prevents ambiguity
+int result = parse_number(input)  // Clarifies we want int, not float</code></pre>
+<p><strong>Actor state declarations</strong></p>
+<pre class="aether"><code>actor Counter {
+    state count: int           // Explicit for clarity
+    state name: string
+    state values: [int]
+    state users: ptr
+    
+    // ...
+}</code></pre>
+<p><strong>Struct field definitions</strong></p>
+<pre class="aether"><code>struct User {
+    int id
+    string name
+    string email
+    bool active
+    [string] tags
+}</code></pre>
+<h2 id="style-consistency">Style Consistency</h2>
+<h3 id="within-a-module">Within a Module</h3>
+<p><strong>Be consistent</strong> within a single file or module:</p>
+<pre class="aether"><code>// Option A: Pure inference (for small scripts)
+x = 10
+y = 20
+sum = x + y
+
+// Option B: Explicit types (for larger projects)
+int x = 10
+int y = 20
+int sum = x + y</code></pre>
+<p><strong>Don't mix</strong> styles randomly:</p>
+<pre class="aether"><code>// Inconsistent - avoid
+int x = 10
+y = 20           // Sudden switch to inference
+int sum = x + y  // Back to explicit</code></pre>
+<h3 id="across-a-project">Across a Project</h3>
+<p>Establish team conventions:</p>
+<ul>
+<li><strong>Scripts/prototypes</strong>: Use type inference for
+speed</li>
+<li><strong>Libraries/APIs</strong>: Use explicit types for clarity</li>
+<li><strong>Performance-critical code</strong>: Use explicit types for
+control</li>
+</ul>
+<h2 id="type-annotations-syntax">Type Annotations Syntax</h2>
+<h3 id="variables">Variables</h3>
+<pre class="aether"><code>// Explicit type annotation
+int x = 42
+string name = &quot;Alice&quot;
+float pi = 3.14159
+bool active = true
+
+// Type inference (no annotation)
+x = 42
+name = &quot;Alice&quot;
+pi = 3.14159
+active = true</code></pre>
+<h3 id="functions">Functions</h3>
+<pre class="aether"><code>// Explicit parameter and return types
+multiply(int a, int b): int {
+    return a * b
+}
+
+// Mixed: explicit parameters, inferred return
+add(int a, int b) {
+    return a + b  // Return type inferred
+}
+
+// Full inference (not recommended for public functions)
+subtract(a, b) {
+    return a - b
+}</code></pre>
+<h3 id="arrays">Arrays</h3>
+<pre class="aether"><code>// Explicit array type
+[int] numbers = [1, 2, 3, 4, 5]
+[string] names = [&quot;Alice&quot;, &quot;Bob&quot;]
+
+// Type inference from elements
+numbers = [1, 2, 3, 4, 5]  // Inferred as [int]
+names = [&quot;Alice&quot;, &quot;Bob&quot;]   // Inferred as [string]</code></pre>
+<h3 id="complex-types">Complex Types</h3>
+<pre class="aether"><code>import std.map
+import std.list
+
+// Explicit for complex types
+ptr user_map = map.new()
+ptr points = list.new()
+
+// Inference for simple cases
+my_map = map.new()
+my_points = list.new()
+counter = spawn(Counter())</code></pre>
+<h2 id="examples">Examples</h2>
+<h3 id="example-1-script-style-inference-heavy">Example 1: Script-Style
+(Inference-Heavy)</h3>
+<pre class="aether"><code>// Quick prototype or script
+fibonacci(n) {
+    if n &lt;= 1 {
+        return n
+    }
+    return fibonacci(n - 1) + fibonacci(n - 2)
+}
+
+main() {
+    result = fibonacci(10)
+    println(&quot;Fib(10) = ${result}&quot;)
+}</code></pre>
+<h3 id="example-2-library-style-explicit-types">Example 2: Library-Style
+(Explicit Types)</h3>
+<pre class="aether"><code>// Public library with clear contracts
+export struct Point {
+    float x
+    float y
+}
+
+export distance(Point p1, Point p2): float {
+    float dx = p2.x - p1.x
+    float dy = p2.y - p1.y
+    return sqrt(dx * dx + dy * dy)
+}
+
+export midpoint(Point p1, Point p2): Point {
+    return Point{
+        x: (p1.x + p2.x) / 2.0,
+        y: (p1.y + p2.y) / 2.0
+    }
+}</code></pre>
+<h3 id="example-3-balanced-approach-recommended">Example 3: Balanced
+Approach (Recommended)</h3>
+<pre class="aether"><code>// Explicit where it matters, inference elsewhere
+import std.file
+
+process_file(string filename): int {
+    int count = 0
+
+    // Inference for simple local variables
+    f = file.open(filename, &quot;r&quot;)
+    content = file.read_all(f)
+    file.close(f)
+
+    println(&quot;Read file: ${filename}&quot;)
+    println(content)
+
+    return count
+}</code></pre>
+<h2 id="type-inference-limitations">Type Inference Limitations</h2>
+<p>Sometimes explicit types are <strong>required</strong>:</p>
+<pre class="aether"><code>// This fails - type can&#39;t be inferred
+x = undefined()
+y = get_value()  // If get_value() return type is unknown
+
+// Solution: Provide explicit type
+int x = undefined()
+int y = get_value()</code></pre>
+<pre class="aether"><code>// Recursive functions need return type
+fibonacci(n) {
+    if n &lt;= 1 { return n }
+    return fibonacci(n - 1) + fibonacci(n - 2)  // ERROR
+}
+
+// Explicit return type
+fibonacci(int n): int {
+    if n &lt;= 1 { return n }
+    return fibonacci(n - 1) + fibonacci(n - 2)
+}</code></pre>
+<h2 id="summary">Summary</h2>
+<table>
+<thead>
+<tr>
+<th>Use Case</th>
+<th>Recommendation</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Local variables</td>
+<td>Inference</td>
+<td><code>x = 42</code></td>
+</tr>
+<tr>
+<td>Function parameters</td>
+<td>Explicit</td>
+<td><code>add(int a, int b)</code></td>
+</tr>
+<tr>
+<td>Function returns</td>
+<td>Explicit</td>
+<td><code>add(...): int</code></td>
+</tr>
+<tr>
+<td>Struct fields</td>
+<td>Explicit</td>
+<td><code>struct User { int id }</code></td>
+</tr>
+<tr>
+<td>Actor state</td>
+<td>Explicit</td>
+<td><code>state count: int</code></td>
+</tr>
+<tr>
+<td>Loop variables</td>
+<td>Inference</td>
+<td><code>for i in 0..10</code></td>
+</tr>
+<tr>
+<td>Complex types</td>
+<td>Explicit</td>
+<td><code>ptr my_map = map.new()</code></td>
+</tr>
+<tr>
+<td>Public APIs</td>
+<td>Explicit</td>
+<td>All types annotated</td>
+</tr>
+<tr>
+<td>Scripts/prototypes</td>
+<td>Inference</td>
+<td>Minimal annotations</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Golden Rule</strong>: Use explicit types when they add
+<strong>clarity</strong> or are <strong>required</strong>. Use inference
+when types are <strong>obvious</strong> from context.</p>
+<h2 id="tooling-support">Tooling Support</h2>
+<p>The Aether LSP provides:</p>
+<ul>
+<li>Type inference on hover</li>
+<li>Type error diagnostics</li>
+<li>Auto-completion for type annotations (planned)</li>
+<li>"Add type annotation" quick fix (planned)</li>
+</ul>
+<hr />
+<p><em>For more information on type inference, see <a
+href="type-inference-guide.md">type-inference-guide.md</a></em></p>
+    </article>
+  </main>
+
+  <!-- FOOTER -->
+  <footer>
+    <p>&copy; 2026 Nicolas Maman</p>
+    <p><a href="#">Privacy</a> &middot; <a href="https://github.com/nicolasmd87/aether/blob/main/LICENSE">License</a> &middot; <a href="mailto:hello@aether.org">Contact</a></p>
+  </footer>
+</body>
+</html>

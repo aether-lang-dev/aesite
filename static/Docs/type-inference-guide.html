@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>type-inference-guide</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/style.css" />
+  <link rel="stylesheet" href="/subpages.css" />
+  <link rel="stylesheet" href="/articles.css" />
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <a class="nav-logo" href="/index.html">Aether<span>.</span></a>
+    <ul class="nav-links">
+      <li><a href="/index.html#features">Features</a></li>
+      <li><a href="/index.html#syntax">Syntax</a></li>
+      <li><a href="/index.html#install">Install</a></li>
+      <li><a href="/faq.html">FAQ</a></li>
+    </ul>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="section">
+    <div>
+      <p class="section-label">Learning Material</p>
+    </div>
+
+    <article class="article-content">
+<h1 id="aether-type-inference-guide">Aether Type Inference Guide</h1>
+<h2 id="how-type-inference-works">How Type Inference Works</h2>
+<p>Aether implements a type inference system that automatically deduces
+types from context, reducing the need for explicit type annotations in
+most cases.</p>
+<h2 id="basic-inference">Basic Inference</h2>
+<h3 id="from-literals">From Literals</h3>
+<pre class="aether"><code>x = 42              // inferred: int
+pi = 3.14           // inferred: float
+name = &quot;Alice&quot;      // inferred: string
+flag = true         // inferred: bool
+p = null            // inferred: ptr
+big = long 0        // inferred: long (int64)</code></pre>
+<h3 id="from-expressions">From Expressions</h3>
+<pre class="aether"><code>a = 10
+b = 20
+sum = a + b           // inferred: int (both operands are int)
+
+x = 3.14
+y = 2.0
+result = x * y        // inferred: float</code></pre>
+<h3 id="from-functions">From Functions</h3>
+<pre class="aether"><code>// Return type inferred from return statement
+add(a, b) {
+    return a + b      // If used with ints -&gt; int, if with floats -&gt; float
+}
+
+// Parameters inferred from usage
+multiply(x, y) {
+    return x * y
+}
+
+main() {
+    n = add(10, 20)             // add inferred as: int -&gt; int -&gt; int
+    f = multiply(3.14, 2.0)     // multiply inferred as: float -&gt; float -&gt; float
+}</code></pre>
+<h2 id="advanced-inference">Advanced Inference</h2>
+<h3 id="struct-fields">Struct Fields</h3>
+<pre class="aether"><code>struct Point {
+    x,    // Type inferred from initialization
+    y
+}
+
+struct Player {
+    name,
+    health,
+    score
+}
+
+main() {
+    p = Point{ x: 10, y: 20 }   // x, y inferred as int
+
+    player = Player{
+        name: &quot;Alice&quot;,          // string
+        health: 100,            // int
+        score: 0                // int
+    }
+}</code></pre>
+<h3 id="array-elements">Array Elements</h3>
+<pre class="aether"><code>nums = [1, 2, 3, 4, 5]             // inferred: int[]
+names = [&quot;Alice&quot;, &quot;Bob&quot;]           // inferred: string[]
+mixed_ok = [1.0, 2.0, 3.0]         // inferred: float[]</code></pre>
+<h3 id="through-assignments">Through Assignments</h3>
+<pre class="aether"><code>x = 42            // x: int
+y = x             // y: int (inferred from x)
+z = y + 10        // z: int (inferred from y + int)</code></pre>
+<h2 id="when-to-use-explicit-types">When to Use Explicit Types</h2>
+<p>While inference handles most cases, explicit types are useful
+for:</p>
+<h3 id="1-function-signatures-documentation">1. Function Signatures
+(Documentation)</h3>
+<pre class="aether"><code>// Explicit types make intent clear
+calculate_damage(base: int, defense: int): int {
+    return base - defense
+}
+
+// vs inferred (less clear to reader)
+calculate_damage(base, defense) {
+    return base - defense
+}</code></pre>
+<h3 id="2-complex-scenarios">2. Complex Scenarios</h3>
+<pre class="aether"><code>// When inference might be ambiguous
+process_data(input: float[]) {
+    // Explicit type ensures correct interpretation
+}</code></pre>
+<h3 id="3-public-apis">3. Public APIs</h3>
+<pre class="aether"><code>// Export with explicit types for clarity
+export calculate_score(kills: int, deaths: int, assists: int): float {
+    return (kills + assists / 2.0) / (deaths + 1)
+}</code></pre>
+<h2 id="mixed-explicitinferred">Mixed Explicit/Inferred</h2>
+<p>You can mix explicit and inferred types:</p>
+<pre class="aether"><code>// Some parameters explicit, some inferred
+process(data, threshold: int) {
+    return data &gt; threshold   // data type inferred from usage
+}
+
+// Explicit return, inferred parameters
+format_name(first, last): string {
+    return &quot;${first} ${last}&quot;  // parameters inferred as string
+}</code></pre>
+<h2 id="how-inference-works-internally">How Inference Works
+Internally</h2>
+<h3 id="phase-1-constraint-collection">Phase 1: Constraint
+Collection</h3>
+<p>The compiler walks the AST and collects type constraints:</p>
+<pre class="aether"><code>x = 42
+// Constraint: x must be int (from literal 42)
+
+y = x + 10
+// Constraint: y must be int (from x:int + 10:int)</code></pre>
+<h3 id="phase-2-constraint-solving">Phase 2: Constraint Solving</h3>
+<p>Constraints are propagated iteratively until all types are known:</p>
+<pre><code>Iteration 1: x = int (from literal)
+Iteration 2: y = int (from x + int)
+Done: All types resolved</code></pre>
+<h3 id="phase-3-validation">Phase 3: Validation</h3>
+<p>Once inferred, types are validated for consistency:</p>
+<pre class="aether"><code>x = 42
+x = &quot;hello&quot;   // ERROR: Can&#39;t assign string to int</code></pre>
+<h2 id="null-and-pointer-inference">Null and Pointer Inference</h2>
+<p>The <code>null</code> keyword is typed as <code>ptr</code>:</p>
+<pre class="aether"><code>conn = null              // inferred: ptr
+conn = tcp_connect(...)  // still ptr — type is consistent</code></pre>
+<p>Integer <code>0</code> is compatible with <code>ptr</code> for
+null-initialization patterns:</p>
+<pre class="aether"><code>server = 0               // initially int
+server = tcp_listen(80)  // tcp_listen returns ptr — type widens to ptr</code></pre>
+<h3 id="constants">Constants</h3>
+<p>Top-level <code>const</code> declarations infer their type from the
+value:</p>
+<pre class="aether"><code>const MAX = 100          // inferred: int
+const NAME = &quot;hello&quot;     // inferred: string</code></pre>
+<h2 id="edge-cases">Edge Cases</h2>
+<h3 id="ambiguous-types">Ambiguous Types</h3>
+<pre class="aether"><code>// This FAILS - can&#39;t infer type without usage
+x: int              // Declare with explicit type
+x = get_value()     // OK - type is known</code></pre>
+<h3 id="generic-functions">Generic Functions</h3>
+<pre class="aether"><code>// Currently not supported - specify explicit types
+identity(x: int): int {
+    return x
+}
+
+// Future: Generic type parameters
+// identity&lt;T&gt;(x: T): T {
+//     return x
+// }</code></pre>
+<h2 id="performance-impact">Performance Impact</h2>
+<p>Type inference happens at <strong>compile-time only</strong>:</p>
+<ul>
+<li>Zero runtime overhead</li>
+<li>Same generated C code as explicit types</li>
+<li>Full type safety maintained</li>
+<li>No performance difference</li>
+</ul>
+<h2 id="limitations">Limitations</h2>
+<p>Current limitations:</p>
+<ol type="1">
+<li><strong>No higher-rank types</strong> - Functions must have
+monomorphic types</li>
+<li><strong>No type classes</strong> - No Haskell-style constraints</li>
+<li><strong>Limited polymorphism</strong> - No generic functions
+yet</li>
+<li><strong>Struct fields</strong> - Must initialize to infer type</li>
+</ol>
+<h2 id="best-practices">Best Practices</h2>
+<h3 id="do">Do:</h3>
+<ul>
+<li>Let inference handle obvious cases (literals, simple
+expressions)</li>
+<li>Use explicit types for public APIs and exports</li>
+<li>Use explicit types when it improves readability</li>
+<li>Mix explicit/inferred for balance</li>
+</ul>
+<h3 id="dont">Don't:</h3>
+<ul>
+<li>Over-annotate everything (defeats the purpose)</li>
+<li>Rely on inference for complex logic (document with types)</li>
+<li>Leave ambiguous types un-annotated</li>
+</ul>
+<h2 id="examples">Examples</h2>
+<h3 id="good-minimal-but-clear">Good: Minimal but Clear</h3>
+<pre class="aether"><code>struct Player {
+    name: string,    // Explicit for documentation
+    health,          // Inferred from init
+    score            // Inferred from init
+}
+
+calculate_total(base, bonus) {  // Inferred from usage
+    return base + bonus
+}
+
+main() {
+    p = Player{ name: &quot;Alice&quot;, health: 100, score: 0 }
+    total = calculate_total(p.score, 10)
+}</code></pre>
+<h3 id="better-strategic-explicit-types">Better: Strategic Explicit
+Types</h3>
+<pre class="aether"><code>struct Player {
+    name: string,
+    health: int,     // Explicit: important field
+    score: int       // Explicit: important field
+}
+
+// Explicit return: public function
+calculate_total(base, bonus): int {
+    return base + bonus
+}
+
+main() {
+    p = Player{ name: &quot;Alice&quot;, health: 100, score: 0 }
+    total = calculate_total(p.score, 10)
+}</code></pre>
+<h2 id="error-messages">Error Messages</h2>
+<p>When inference fails, Aether provides helpful errors:</p>
+<pre class="aether"><code>x = unknown_value()   // Type cannot be inferred
+
+// Error: Type inference failed
+//   Line 1: Variable &#39;x&#39; has ambiguous type
+//   help: Add type annotation: x: int = unknown_value()</code></pre>
+<h2 id="summary">Summary</h2>
+<ul>
+<li><strong>Inference is powerful</strong> - Handles most common cases
+automatically</li>
+<li><strong>Explicit types are documentation</strong> - Use
+strategically for public APIs</li>
+<li><strong>No runtime cost</strong> - Type inference is compile-time
+only</li>
+<li><strong>Fully type-safe</strong> - Same guarantees as explicit
+types</li>
+</ul>
+<p>Type inference gives Aether the expressiveness of ML/Haskell while
+maintaining C-level type safety and performance.</p>
+    </article>
+  </main>
+
+  <!-- FOOTER -->
+  <footer>
+    <p>&copy; 2026 Nicolas Maman</p>
+    <p><a href="#">Privacy</a> &middot; <a href="https://github.com/nicolasmd87/aether/blob/main/LICENSE">License</a> &middot; <a href="mailto:hello@aether.org">Contact</a></p>
+  </footer>
+</body>
+</html>

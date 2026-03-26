@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>stdlib-reference</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/style.css" />
+  <link rel="stylesheet" href="/subpages.css" />
+  <link rel="stylesheet" href="/articles.css" />
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <a class="nav-logo" href="/index.html">Aether<span>.</span></a>
+    <ul class="nav-links">
+      <li><a href="/index.html#features">Features</a></li>
+      <li><a href="/index.html#syntax">Syntax</a></li>
+      <li><a href="/index.html#install">Install</a></li>
+      <li><a href="/faq.html">FAQ</a></li>
+    </ul>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="section">
+    <div>
+      <p class="section-label">Learning Material</p>
+    </div>
+
+    <article class="article-content">
+<h1 id="aether-standard-library-reference">Aether Standard Library
+Reference</h1>
+<p>Complete reference for Aether's standard library modules.</p>
+<blockquote>
+<p><strong>Note:</strong> The standard library is under active
+development. The runtime provides C implementations in <code>std/</code>
+that are linked via the <code>ae</code> tool.</p>
+</blockquote>
+<h2 id="using-the-standard-library">Using the Standard Library</h2>
+<p>Import modules with the <code>import</code> statement and call
+functions with namespace syntax:</p>
+<pre class="aether"><code>import std.string
+import std.file
+
+main() {
+    // Namespace-style calls
+    s = string.new(&quot;hello&quot;);
+    len = string.length(s);
+
+    if (file.exists(&quot;data.txt&quot;) == 1) {
+        print(&quot;File exists!\n&quot;);
+    }
+
+    string.release(s);
+}</code></pre>
+<hr />
+<h2 id="collections">Collections</h2>
+<h3 id="list-stdlist">List (<code>std.list</code>)</h3>
+<p>Dynamic array (ArrayList) implementation.</p>
+<pre class="aether"><code>import std.list
+
+main() {
+    mylist = list.new()
+    defer list.free(mylist)
+
+    list.add(mylist, 10)
+    list.add(mylist, 20)
+
+    item = list.get(mylist, 0)
+    size = list.size(mylist)
+
+    list.remove(mylist, 0)
+    list.clear(mylist)
+}</code></pre>
+<p><strong>Functions:</strong></p>
+<ul>
+<li><code>list.new()</code> - Create new list</li>
+<li><code>list.add(list, item)</code> - Append item</li>
+<li><code>list.get(list, index)</code> - Get item at index</li>
+<li><code>list.set(list, index, item)</code> - Set item at index</li>
+<li><code>list.remove(list, index)</code> - Remove item at index</li>
+<li><code>list.size(list)</code> - Get number of elements</li>
+<li><code>list.clear(list)</code> - Remove all elements</li>
+<li><code>list.free(list)</code> - Free list memory</li>
+</ul>
+<h3 id="map-stdmap">Map (<code>std.map</code>)</h3>
+<p>Hash map implementation.</p>
+<pre class="aether"><code>import std.map
+import std.string
+
+main() {
+    mymap = map.new();
+    defer map.free(mymap);
+
+    // Keys are raw string literals (const char*),
+    // values are pointers (AetherString* here)
+    val = string.new(&quot;Aether&quot;);
+    defer string.release(val);
+
+    map.put(mymap, &quot;name&quot;, val);
+    result = map.get(mymap, &quot;name&quot;);
+    exists = map.has(mymap, &quot;name&quot;);
+
+    map.remove(mymap, &quot;name&quot;);
+    size = map.size(mymap);
+
+    map.clear(mymap);
+}</code></pre>
+<p><strong>Functions:</strong></p>
+<ul>
+<li><code>map.new()</code> - Create new map</li>
+<li><code>map.put(map, key, value)</code> - Insert or update key-value
+pair</li>
+<li><code>map.get(map, key)</code> - Get value by key</li>
+<li><code>map.has(map, key)</code> - Check if key exists</li>
+<li><code>map.remove(map, key)</code> - Remove key-value pair</li>
+<li><code>map.size(map)</code> - Get number of entries</li>
+<li><code>map.clear(map)</code> - Remove all entries</li>
+<li><code>map.free(map)</code> - Free map memory</li>
+</ul>
+<hr />
+<h2 id="strings-stdstring">Strings (<code>std.string</code>)</h2>
+<p>Reference-counted strings with comprehensive operations.</p>
+<h3 id="string-types-plain-strings-vs-managed-strings">String Types:
+Plain Strings vs Managed Strings</h3>
+<blockquote>
+<p><strong>Most users don't need managed strings.</strong> All
+<code>std.string</code> functions work on both plain strings and managed
+strings transparently. <code>string.length("hello")</code> just works —
+no conversion needed. Only create managed strings via
+<code>string.new()</code> when you need reference counting.</p>
+</blockquote>
+<p>Aether has two string representations:</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th><code>string</code> (plain)</th>
+<th>Managed (<code>ptr</code> via <code>string.new()</code>)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>C type</strong></td>
+<td><code>const char*</code></td>
+<td><code>AetherString*</code></td>
+</tr>
+<tr>
+<td><strong>Allocation</strong></td>
+<td>Static (literals) or manual</td>
+<td>Heap (reference-counted)</td>
+</tr>
+<tr>
+<td><strong>Memory</strong></td>
+<td>None needed</td>
+<td><code>string.release()</code> or
+<code>defer string.free()</code></td>
+</tr>
+<tr>
+<td><strong>Knows length?</strong></td>
+<td>Computed via <code>strlen</code></td>
+<td>Stored in struct (<code>O(1)</code>)</td>
+</tr>
+<tr>
+<td><strong>std.string functions</strong></td>
+<td>All work</td>
+<td>All work</td>
+</tr>
+</tbody>
+</table>
+<p><strong><code>string</code></strong> — plain C string. String
+literals like <code>"hello"</code> are this type. All
+<code>std.string</code> functions accept these directly.</p>
+<p><strong>Managed strings</strong> — heap-allocated objects returned by
+<code>string.new()</code>. Typed as <code>ptr</code> in Aether code. Use
+when you need reference counting or the result of transformation
+functions like <code>string.trim()</code>,
+<code>string.to_upper()</code>.</p>
+<p><strong>Converting between them:</strong></p>
+<pre class="aether"><code>import std.string
+
+main() {
+    // Raw literal → managed: use string.new()
+    raw = &quot;  hello  &quot;
+    managed = string.new(raw)
+    trimmed = string.trim(managed)
+
+    // Managed → raw: use string.to_cstr()
+    print(string.to_cstr(trimmed))
+
+    defer string.free(managed)
+    defer string.free(trimmed)
+}</code></pre>
+<p><strong>Best practices:</strong></p>
+<ul>
+<li>Use <code>string</code> for message fields — keeps payloads
+simple</li>
+<li>Use managed strings when you need to manipulate text (trim, split,
+concat)</li>
+<li>Always <code>defer string.free()</code> immediately after creating a
+managed string</li>
+<li>Use <code>string.to_cstr()</code> when passing managed strings to
+<code>print</code> or message fields</li>
+</ul>
+<h3 id="usage-examples">Usage Examples</h3>
+<pre class="aether"><code>import std.string
+
+main() {
+    // Create strings
+    s = string.new(&quot;Hello&quot;);
+    s2 = string.new(&quot; World&quot;);
+
+    // Operations
+    len = string.length(s);
+    combined = string.concat(s, s2);
+
+    // String methods
+    upper = string.to_upper(s);
+    lower = string.to_lower(s);
+    trimmed = string.trim(s);
+
+    // Searching
+    contains = string.contains(s, &quot;ell&quot;);
+    index = string.index_of(s, &quot;l&quot;);
+    starts = string.starts_with(s, &quot;He&quot;);
+    ends = string.ends_with(s, &quot;lo&quot;);
+
+    // Substrings
+    sub = string.substring(s, 0, 3);  // &quot;Hel&quot;
+
+    // Splitting
+    csv = string.new(&quot;a,b,c&quot;);
+    parts = string.split(csv, &quot;,&quot;);
+    count = string.array_size(parts);  // 3
+    first = string.array_get(parts, 0); // &quot;a&quot;
+    string.array_free(parts);
+    string.release(csv);
+
+    // Conversion
+    n = string.from_int(42);       // &quot;42&quot;
+    f = string.from_float(3.14);   // &quot;3.14&quot;
+    cstr = string.to_cstr(s);     // raw C string pointer
+
+    // Memory management
+    string.release(s);
+    string.release(s2);
+}</code></pre>
+<p><strong>Creation:</strong></p>
+<ul>
+<li><code>string.new(cstr)</code> - Create from C string</li>
+<li><code>string.from_literal(cstr)</code> - Create from string literal
+(alias for <code>new</code>)</li>
+<li><code>string.from_cstr(cstr)</code> - Create from C string (alias
+for <code>new</code>)</li>
+<li><code>string.empty()</code> - Create empty string</li>
+</ul>
+<p><strong>Operations:</strong></p>
+<ul>
+<li><code>string.length(str)</code> - Get length</li>
+<li><code>string.concat(a, b)</code> - Concatenate two strings (returns
+new string)</li>
+<li><code>string.char_at(str, index)</code> - Get character at
+index</li>
+<li><code>string.equals(a, b)</code> - Check equality (returns 1/0)</li>
+<li><code>string.compare(a, b)</code> - Lexicographic compare (returns
+-1, 0, 1)</li>
+</ul>
+<p><strong>Searching:</strong></p>
+<ul>
+<li><code>string.starts_with(str, prefix)</code> - Check prefix (returns
+1/0)</li>
+<li><code>string.ends_with(str, suffix)</code> - Check suffix (returns
+1/0)</li>
+<li><code>string.contains(str, sub)</code> - Check if substring exists
+(returns 1/0)</li>
+<li><code>string.index_of(str, sub)</code> - Find position of substring
+(returns -1 if not found)</li>
+</ul>
+<p><strong>Transformation:</strong></p>
+<ul>
+<li><code>string.substring(str, start, end)</code> - Extract
+substring</li>
+<li><code>string.to_upper(str)</code> - Convert to uppercase (returns
+new string)</li>
+<li><code>string.to_lower(str)</code> - Convert to lowercase (returns
+new string)</li>
+<li><code>string.trim(str)</code> - Remove leading/trailing
+whitespace</li>
+</ul>
+<p><strong>Splitting:</strong></p>
+<ul>
+<li><code>string.split(str, delimiter)</code> - Split string by
+delimiter (returns array)</li>
+<li><code>string.array_size(arr)</code> - Get number of parts in split
+result</li>
+<li><code>string.array_get(arr, index)</code> - Get string at index from
+split result</li>
+<li><code>string.array_free(arr)</code> - Free split result array</li>
+</ul>
+<p><strong>Conversion:</strong></p>
+<ul>
+<li><code>string.to_cstr(str)</code> - Get raw C string pointer</li>
+<li><code>string.from_int(value)</code> - Create string from
+integer</li>
+<li><code>string.from_float(value)</code> - Create string from
+float</li>
+</ul>
+<p><strong>Parsing:</strong></p>
+<ul>
+<li><code>string.to_int(str, out_ptr)</code> - Parse integer (returns 1
+on success, 0 on failure)</li>
+<li><code>string.to_long(str, out_ptr)</code> - Parse 64-bit integer
+(returns 1 on success, 0 on failure)</li>
+<li><code>string.to_float(str, out_ptr)</code> - Parse float (returns 1
+on success, 0 on failure)</li>
+<li><code>string.to_double(str, out_ptr)</code> - Parse double (returns
+1 on success, 0 on failure)</li>
+</ul>
+<p><strong>Memory:</strong></p>
+<ul>
+<li><code>string.retain(str)</code> - Increment reference count</li>
+<li><code>string.release(str)</code> - Decrement reference count (frees
+when zero)</li>
+<li><code>string.free(str)</code> - Alias for <code>release</code></li>
+</ul>
+<hr />
+<h2 id="file-system">File System</h2>
+<h3 id="files-stdfile">Files (<code>std.file</code>)</h3>
+<pre class="aether"><code>import std.file
+
+main() {
+    // Check existence
+    if (file.exists(&quot;data.txt&quot;) == 1) {
+        size = file.size(&quot;data.txt&quot;);
+        print(&quot;Size: &quot;);
+        print(size);
+        print(&quot; bytes\n&quot;);
+    }
+
+    // Open and read
+    f = file.open(&quot;data.txt&quot;, &quot;r&quot;);
+    if (f != 0) {
+        content = file.read_all(f);
+        file.close(f);
+        println(content)              // prints file contents directly
+        println(&quot;Read: ${content}&quot;)   // works in interpolation too
+    }
+
+    // Write
+    f = file.open(&quot;output.txt&quot;, &quot;w&quot;);
+    file.write(f, &quot;Hello&quot;, 5);
+    file.close(f);
+
+    // Delete
+    file.delete(&quot;temp.txt&quot;);
+}</code></pre>
+<p><strong>Functions:</strong></p>
+<ul>
+<li><code>file.open(path, mode)</code> - Open file (returns handle, or 0
+on failure)</li>
+<li><code>file.close(file)</code> - Close file (returns 1 on success, 0
+on failure)</li>
+<li><code>file.read_all(file)</code> - Read entire contents as
+string</li>
+<li><code>file.write(file, data, len)</code> - Write data (returns 1 on
+success, 0 on failure)</li>
+<li><code>file.exists(path)</code> - Check if file exists (returns
+1/0)</li>
+<li><code>file.size(path)</code> - Get file size in bytes</li>
+<li><code>file.delete(path)</code> - Delete file (returns 1 on success,
+0 on failure)</li>
+</ul>
+<blockquote>
+<p><strong>Note:</strong> <code>file.read_all()</code> returns a plain
+string (<code>char*</code>). You can print it directly with
+<code>print(content)</code> or use it in interpolation:
+<code>println("Got: ${content}")</code>. The memory is heap-allocated —
+use <code>defer free(content)</code> if you want explicit cleanup, but
+for short-lived programs it's fine to skip.</p>
+</blockquote>
+<h3 id="directories-stddir">Directories (<code>std.dir</code>)</h3>
+<pre class="aether"><code>import std.dir
+
+main() {
+    // Check and create
+    if dir.exists(&quot;output&quot;) == 0 {
+        dir.create(&quot;output&quot;)
+    }
+
+    // List contents
+    list = dir.list(&quot;.&quot;)
+    // Process list...
+    dir.list_free(list)
+
+    // Delete
+    dir.delete(&quot;temp_dir&quot;)
+}</code></pre>
+<p><strong>Functions:</strong></p>
+<ul>
+<li><code>dir.exists(path)</code> - Check if directory exists (returns
+1/0)</li>
+<li><code>dir.create(path)</code> - Create directory (returns 1 on
+success, 0 on failure)</li>
+<li><code>dir.delete(path)</code> - Delete empty directory (returns 1 on
+success, 0 on failure)</li>
+<li><code>dir.list(path)</code> - List directory contents</li>
+<li><code>dir.list_free(list)</code> - Free directory listing</li>
+</ul>
+<h3 id="paths-stdpath">Paths (<code>std.path</code>)</h3>
+<p>Path functions return heap-allocated plain strings
+(<code>char*</code>). Use <code>defer free(result)</code> if you want
+explicit cleanup.</p>
+<pre class="aether"><code>import std.path
+
+main() {
+    joined = path.join(&quot;dir&quot;, &quot;file.txt&quot;)
+    println(joined)                            // &quot;dir/file.txt&quot;
+
+    dirname = path.dirname(&quot;/a/b/file.txt&quot;)    // &quot;/a/b&quot;
+    basename = path.basename(&quot;/a/b/file.txt&quot;)  // &quot;file.txt&quot;
+    ext = path.extension(&quot;file.txt&quot;)           // &quot;.txt&quot; (includes dot)
+    is_abs = path.is_absolute(&quot;/usr/bin&quot;)      // 1
+
+    println(&quot;${dirname}/${basename}&quot;)
+}</code></pre>
+<p><strong>Functions:</strong></p>
+<ul>
+<li><code>path.join(a, b)</code> - Join path components</li>
+<li><code>path.dirname(path)</code> - Get directory name</li>
+<li><code>path.basename(path)</code> - Get file name</li>
+<li><code>path.extension(path)</code> - Get file extension including
+dot</li>
+<li><code>path.is_absolute(path)</code> - Check if absolute path
+(returns 1/0)</li>
+</ul>
+<hr />
+<h2 id="json-stdjson">JSON (<code>std.json</code>)</h2>
+<p>JSON parsing, creation, and serialization.</p>
+<pre class="aether"><code>import std.json
+
+main() {
+    // Parse JSON string
+    data = json.parse(&quot;{\&quot;name\&quot;: \&quot;Aether\&quot;, \&quot;version\&quot;: 1}&quot;)
+    name = json.object_get(data, &quot;name&quot;)
+    println(json.get_string(name))  // &quot;Aether&quot;
+
+    // Create values
+    obj = json.create_object()
+    json.object_set(obj, &quot;key&quot;, json.create_string(&quot;value&quot;))
+    json.object_set(obj, &quot;count&quot;, json.create_number(42.0))
+
+    // Arrays
+    arr = json.create_array()
+    json.array_add(arr, json.create_number(1.0))
+    json.array_add(arr, json.create_number(2.0))
+    size = json.array_size(arr)
+
+    // Serialize to string — returns plain char*, print directly
+    output = json.stringify(obj)
+    println(output)
+    println(&quot;JSON: ${output}&quot;)
+
+    // Type checking
+    type = json.type(json.create_number(3.0))  // 2 = JSON_NUMBER
+
+    // Cleanup
+    json.free(data)
+    json.free(obj)
+    json.free(arr)
+}</code></pre>
+<p><strong>JSON Type Constants:</strong></p>
+<ul>
+<li><code>0</code> = NULL, <code>1</code> = BOOL, <code>2</code> =
+NUMBER, <code>3</code> = STRING, <code>4</code> = ARRAY, <code>5</code>
+= OBJECT</li>
+</ul>
+<p><strong>Parsing / Serialization:</strong></p>
+<ul>
+<li><code>json.parse(json_str)</code> - Parse JSON string into value
+tree</li>
+<li><code>json.stringify(value)</code> - Serialize to JSON string
+(returns plain <code>char*</code>)</li>
+<li><code>json.free(value)</code> - Free a JSON value tree</li>
+</ul>
+<p><strong>Type Checking:</strong></p>
+<ul>
+<li><code>json.type(value)</code> - Get type constant (0-5)</li>
+<li><code>json.is_null(value)</code> - Check if null (returns 1/0)</li>
+</ul>
+<p><strong>Value Getters:</strong></p>
+<ul>
+<li><code>json.get_number(value)</code> - Get float value</li>
+<li><code>json.get_int(value)</code> - Get integer value</li>
+<li><code>json.get_bool(value)</code> - Get boolean (1/0)</li>
+<li><code>json.get_string(value)</code> - Get string value (returns
+plain <code>char*</code>)</li>
+</ul>
+<p><strong>Object Operations:</strong></p>
+<ul>
+<li><code>json.object_get(obj, key)</code> - Get value by key (key is a
+raw string)</li>
+<li><code>json.object_set(obj, key, value)</code> - Set key-value
+pair</li>
+<li><code>json.object_has(obj, key)</code> - Check if key exists
+(returns 1/0)</li>
+</ul>
+<p><strong>Array Operations:</strong></p>
+<ul>
+<li><code>json.array_get(arr, index)</code> - Get value at index</li>
+<li><code>json.array_add(arr, value)</code> - Append value</li>
+<li><code>json.array_size(arr)</code> - Get array length</li>
+</ul>
+<p><strong>Value Creation:</strong></p>
+<ul>
+<li><code>json.create_null()</code>,
+<code>json.create_bool(value)</code>,
+<code>json.create_number(value)</code></li>
+<li><code>json.create_string(value)</code>,
+<code>json.create_array()</code>, <code>json.create_object()</code></li>
+</ul>
+<hr />
+<h2 id="networking">Networking</h2>
+<h3 id="http-stdhttp">HTTP (<code>std.http</code>)</h3>
+<blockquote>
+<p><strong>Note:</strong> Use <code>import std.http</code> for the
+<code>http.*</code> prefix shown below. You can also
+<code>import std.net</code> which includes both HTTP and TCP functions,
+but the namespace prefix becomes <code>net</code> (e.g.,
+<code>net.http_get(url)</code>).</p>
+</blockquote>
+<pre class="aether"><code>import std.http
+
+main() {
+    // HTTP Client
+    response = http.get(&quot;http://example.com&quot;)
+    if response != 0 {
+        http.response_free(response)
+    }
+
+    // HTTP Server
+    server = http.server_create(8080)
+    http.server_bind(server, &quot;127.0.0.1&quot;, 8080)
+    http.server_start(server)
+    http.server_free(server)
+}</code></pre>
+<p><strong>Client:</strong></p>
+<ul>
+<li><code>http.get(url)</code> - HTTP GET request</li>
+<li><code>http.post(url, body, content_type)</code> - HTTP POST</li>
+<li><code>http.put(url, body, content_type)</code> - HTTP PUT</li>
+<li><code>http.delete(url)</code> - HTTP DELETE</li>
+<li><code>http.response_free(response)</code> - Free response</li>
+</ul>
+<p><strong>Server Lifecycle:</strong></p>
+<ul>
+<li><code>http.server_create(port)</code> - Create server</li>
+<li><code>http.server_bind(server, host, port)</code> - Bind to
+address</li>
+<li><code>http.server_start(server)</code> - Start serving
+(blocking)</li>
+<li><code>http.server_stop(server)</code> - Stop server</li>
+<li><code>http.server_free(server)</code> - Free server</li>
+</ul>
+<p><strong>Server Routing:</strong></p>
+<ul>
+<li><code>http.server_get(server, path, handler, user_data)</code> -
+Register GET route</li>
+<li><code>http.server_post(server, path, handler, user_data)</code> -
+Register POST route</li>
+<li><code>http.server_put(server, path, handler, user_data)</code> -
+Register PUT route</li>
+<li><code>http.server_delete(server, path, handler, user_data)</code> -
+Register DELETE route</li>
+<li><code>http.server_use_middleware(server, middleware, user_data)</code>
+- Add middleware</li>
+</ul>
+<p><strong>Request Accessors:</strong></p>
+<ul>
+<li><code>http.get_header(req, name)</code> - Get request header</li>
+<li><code>http.get_query_param(req, name)</code> - Get query
+parameter</li>
+<li><code>http.get_path_param(req, name)</code> - Get URL path
+parameter</li>
+<li><code>http.request_free(req)</code> - Free request</li>
+</ul>
+<p><strong>Response Building:</strong></p>
+<ul>
+<li><code>http.response_create()</code> - Create response</li>
+<li><code>http.response_set_status(res, code)</code> - Set HTTP status
+code</li>
+<li><code>http.response_set_header(res, name, value)</code> - Set
+response header</li>
+<li><code>http.response_set_body(res, body)</code> - Set response
+body</li>
+<li><code>http.response_json(res, json)</code> - Set JSON response</li>
+<li><code>http.server_response_free(res)</code> - Free response</li>
+</ul>
+<h3 id="tcp-stdtcp">TCP (<code>std.tcp</code>)</h3>
+<pre class="aether"><code>import std.tcp
+
+main() {
+    // Client
+    sock = tcp.connect(&quot;localhost&quot;, 8080);
+    tcp.send(sock, &quot;Hello&quot;);
+    data = tcp.receive(sock, 1024);
+    tcp.close(sock);
+
+    // Server
+    server = tcp.listen(8080);
+    client = tcp.accept(server);
+    tcp.send(client, &quot;Welcome&quot;);
+    tcp.close(client);
+    tcp.server_close(server);
+}</code></pre>
+<p><strong>Functions:</strong></p>
+<ul>
+<li><code>tcp.connect(host, port)</code> - Connect to server</li>
+<li><code>tcp.send(sock, data)</code> - Send data</li>
+<li><code>tcp.receive(sock, max)</code> - Receive data</li>
+<li><code>tcp.close(sock)</code> - Close socket</li>
+<li><code>tcp.listen(port)</code> - Create server socket</li>
+<li><code>tcp.accept(server)</code> - Accept connection</li>
+<li><code>tcp.server_close(server)</code> - Close server</li>
+</ul>
+<hr />
+<h2 id="logging-stdlog">Logging (<code>std.log</code>)</h2>
+<p>Structured logging with levels.</p>
+<pre class="aether"><code>import std.log
+
+main() {
+    log.init(&quot;app.log&quot;, 0)  // 0 = LOG_DEBUG
+
+    log.write(0, &quot;Debug message&quot;)
+    log.write(1, &quot;Info message&quot;)
+    log.write(2, &quot;Warning message&quot;)
+    log.write(3, &quot;Error message&quot;)
+
+    log.print_stats()
+    log.shutdown()
+}</code></pre>
+<p><strong>Log Levels:</strong></p>
+<ul>
+<li><code>0</code> = DEBUG</li>
+<li><code>1</code> = INFO</li>
+<li><code>2</code> = WARN</li>
+<li><code>3</code> = ERROR</li>
+<li><code>4</code> = FATAL</li>
+</ul>
+<p><strong>Functions:</strong></p>
+<ul>
+<li><code>log.init(filename, level)</code> - Initialize logging to file
+with minimum level</li>
+<li><code>log.shutdown()</code> - Shutdown logging</li>
+<li><code>log.write(level, message)</code> - Write a log message at the
+given level</li>
+<li><code>log.set_level(level)</code> - Set minimum level</li>
+<li><code>log.set_colors(enabled)</code> - Enable/disable colored output
+(1/0)</li>
+<li><code>log.set_timestamps(enabled)</code> - Enable/disable timestamps
+(1/0)</li>
+<li><code>log.print_stats()</code> - Print logging statistics</li>
+</ul>
+<hr />
+<h2 id="os-stdos">OS (<code>std.os</code>)</h2>
+<p>Shell execution, command output capture, and environment
+variables.</p>
+<pre class="aether"><code>import std.os
+
+main() {
+    // Run a shell command, get exit code
+    code = os.system(&quot;echo hello&quot;)
+    println(&quot;Exit: ${code}&quot;)
+
+    // Capture command output as string
+    output = os.exec(&quot;date&quot;)
+    println(&quot;Date: ${output}&quot;)
+
+    // Get environment variable
+    home = os.getenv(&quot;HOME&quot;)
+    if home != 0 {
+        println(&quot;HOME = ${home}&quot;)
+    }
+}</code></pre>
+<p><strong>Functions:</strong></p>
+<ul>
+<li><code>os.system(cmd)</code> - Run shell command, returns exit code
+(0 = success)</li>
+<li><code>os.exec(cmd)</code> - Run command and capture stdout as string
+(returns NULL on failure)</li>
+<li><code>os.getenv(name)</code> - Get environment variable (returns
+string, or NULL if not set)</li>
+</ul>
+<hr />
+<h2 id="math-stdmath">Math (<code>std.math</code>)</h2>
+<p>Mathematical functions. Note: <code>abs</code>, <code>min</code>,
+<code>max</code>, and <code>clamp</code> have separate int/float
+variants.</p>
+<pre class="aether"><code>import std.math
+
+main() {
+    // Basic operations (type-specific variants)
+    a = math.abs_int(-5)           // 5
+    af = math.abs_float(-3.14)     // 3.14
+    lo = math.min_int(3, 7)        // 3
+    hi = math.max_int(3, 7)        // 7
+    c = math.clamp_int(15, 0, 10)  // 10
+
+    // Trigonometry
+    s = math.sin(0.5)
+    c = math.cos(0.5)
+    t = math.tan(0.5)
+
+    // Inverse trig
+    as = math.asin(0.5)
+    ac = math.acos(0.5)
+    at = math.atan2(1.0, 1.0)
+
+    // Power, roots, logarithms
+    sq = math.sqrt(16.0)    // 4.0
+    p = math.pow(2.0, 3.0)  // 8.0
+    l = math.log(2.718)     // ~1.0
+    e = math.exp(1.0)       // ~2.718
+
+    // Rounding
+    fl = math.floor(3.7)    // 3.0
+    ce = math.ceil(3.2)     // 4.0
+    ro = math.round(3.5)    // 4.0
+
+    // Random
+    math.random_seed(12345)
+    r = math.random_int(1, 100)
+    f = math.random_float()
+}</code></pre>
+<p><strong>Basic (int/float variants):</strong></p>
+<ul>
+<li><code>math.abs_int(x)</code> / <code>math.abs_float(x)</code> -
+Absolute value</li>
+<li><code>math.min_int(a, b)</code> / <code>math.min_float(a, b)</code>
+- Minimum</li>
+<li><code>math.max_int(a, b)</code> / <code>math.max_float(a, b)</code>
+- Maximum</li>
+<li><code>math.clamp_int(x, min, max)</code> /
+<code>math.clamp_float(x, min, max)</code> - Clamp to range</li>
+</ul>
+<p><strong>Trigonometry:</strong></p>
+<ul>
+<li><code>math.sin(x)</code>, <code>math.cos(x)</code>,
+<code>math.tan(x)</code> - Trig functions</li>
+<li><code>math.asin(x)</code>, <code>math.acos(x)</code>,
+<code>math.atan(x)</code> - Inverse trig</li>
+<li><code>math.atan2(y, x)</code> - Two-argument arctangent</li>
+</ul>
+<p><strong>Power / Logarithms:</strong></p>
+<ul>
+<li><code>math.sqrt(x)</code> - Square root</li>
+<li><code>math.pow(base, exp)</code> - Power</li>
+<li><code>math.log(x)</code> - Natural logarithm</li>
+<li><code>math.log10(x)</code> - Base-10 logarithm</li>
+<li><code>math.exp(x)</code> - Exponential (e^x)</li>
+</ul>
+<p><strong>Rounding:</strong></p>
+<ul>
+<li><code>math.floor(x)</code>, <code>math.ceil(x)</code>,
+<code>math.round(x)</code></li>
+</ul>
+<p><strong>Random:</strong></p>
+<ul>
+<li><code>math.random_seed(seed)</code> - Seed RNG</li>
+<li><code>math.random_int(min, max)</code> - Random integer in
+range</li>
+<li><code>math.random_float()</code> - Random float 0.0-1.0</li>
+</ul>
+<hr />
+<h2 id="io-stdio">I/O (<code>std.io</code>)</h2>
+<p>Console output, file operations, and environment variable access.</p>
+<pre class="aether"><code>import std.io
+
+main() {
+    io.print(&quot;Hello &quot;)
+    io.print_line(&quot;World&quot;)
+    io.print_int(42)
+    io.print_line(&quot;&quot;)
+
+    // io.getenv() and io.read_file() return strings directly.
+    home = io.getenv(&quot;HOME&quot;)
+    if (home != 0) {
+        io.print_line(home)
+    }
+
+    content = io.read_file(&quot;myfile.txt&quot;)
+    if (content != 0) {
+        io.print_line(content)
+    }
+}</code></pre>
+<p><strong>Console Output:</strong></p>
+<ul>
+<li><code>io.print(str)</code> - Print string (takes raw
+<code>const char*</code>)</li>
+<li><code>io.print_line(str)</code> - Print string with newline (takes
+raw <code>const char*</code>)</li>
+<li><code>io.print_int(value)</code> - Print integer</li>
+<li><code>io.print_float(value)</code> - Print float</li>
+</ul>
+<p><strong>File Operations:</strong></p>
+<ul>
+<li><code>io.read_file(path)</code> - Read entire file contents as a
+string</li>
+<li><code>io.write_file(path, content)</code> - Write content to file
+(returns 1 on success, 0 on failure)</li>
+<li><code>io.append_file(path, content)</code> - Append content to file
+(returns 1 on success, 0 on failure)</li>
+<li><code>io.file_exists(path)</code> - Check if file exists (returns
+1/0)</li>
+<li><code>io.delete_file(path)</code> - Delete file (returns 1 on
+success, 0 on failure)</li>
+</ul>
+<p><strong>File Info:</strong></p>
+<ul>
+<li><code>io.file_info(path)</code> - Get file metadata (returns
+ptr)</li>
+<li><code>io.file_info_free(info)</code> - Free file info</li>
+</ul>
+<p><strong>Environment:</strong></p>
+<ul>
+<li><code>io.getenv(name)</code> - Get environment variable value as a
+string</li>
+<li><code>io.setenv(name, value)</code> - Set environment variable
+(returns 1 on success)</li>
+<li><code>io.unsetenv(name)</code> - Unset environment variable (returns
+1 on success)</li>
+</ul>
+<hr />
+<h2 id="concurrency">Concurrency</h2>
+<h3 id="built-in-functions">Built-in Functions</h3>
+<ul>
+<li><code>spawn(ActorName())</code> - Create actor instance</li>
+<li><code>wait_for_idle()</code> - Block until all actors finish</li>
+<li><code>sleep(milliseconds)</code> - Pause execution</li>
+</ul>
+<hr />
+<h2 id="see-also">See Also</h2>
+<ul>
+<li><a href="getting-started.md">Getting Started</a></li>
+<li><a href="tutorial.md">Tutorial</a></li>
+<li><a href="module-system-design.md">Module System Design</a></li>
+<li><a href="stdlib-api.md">Standard Library API</a></li>
+</ul>
+    </article>
+  </main>
+
+  <!-- FOOTER -->
+  <footer>
+    <p>&copy; 2026 Nicolas Maman</p>
+    <p><a href="#">Privacy</a> &middot; <a href="https://github.com/nicolasmd87/aether/blob/main/LICENSE">License</a> &middot; <a href="mailto:hello@aether.org">Contact</a></p>
+  </footer>
+</body>
+</html>
