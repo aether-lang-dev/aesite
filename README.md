@@ -1,48 +1,58 @@
-# Aether Language — Website & REPL Demo
+# Aether Language, website and REPL
 
-A demo project showcasing the website and interactive REPL for the **Aether** programming language. Built with Go and the Echo framework.
+The website for the Aether programming language, and its interactive REPL,
+served by Aether's own `std.http` server.
 
-## Overview
+## Serving
 
-This project serves as a full demo of the Aether language website, including a working interactive REPL page where users can read lesson theory and experiment with starter code. The backend is intentionally minimal — code execution is currently mocked, as the final backend will be written in Aether. This project made it possible to implement and test the REPL frontend.
+`serve.ae` serves the static site and the REPL API. It replaces the original
+Go/Echo backend entirely.
 
-## Features
+- Static pages and assets from `static/`.
+- `GET  /api/lesson/:nbr` returns a lesson `{ title, theory, starter_code }` from `resources/lessons/`.
+- `PUT  /api/exec` returns a code execution result (mocked until the Aether executor lands).
+- `GET  /healthz` liveness.
 
-- Static website pages served via Echo (`index.html`, `faq.html`, `articles.html`, `docs.html`, `tutorials.html`)
-- Interactive REPL page (`/`) with a split theory/editor layout
-- Lesson system: theory content and starter code loaded dynamically from `/api/lesson/:nbr`
-- Resizable output pane displaying stdout and stderr
-- Lesson navigation (previous/next) with page indicator
-- Mock code execution endpoint (`PUT /api/exec`) returning stdout and stderr
+It uses `std.http` (server, routing, zero-copy static files), `std.io`
+(lesson files off disk), and `std.json` (escaped responses).
 
-## Project Structure
+## Run
 
-```
-REPL_Test.go          # Main Go server (Echo)
-static/               # All HTML pages and CSS
-resources/
-  lessons/
-    1/                # content.html, code.ea, title.txt
-    2/                # content.html, code.ea, title.txt
-```
+    ae run serve.ae            # http://localhost:1323/
 
-## Running
+or build a binary and run it from the repository root, so `static/` and
+`resources/` resolve:
 
-```bash
-go run REPL_Test.go
-```
+    ae build serve.ae -o aesite-serve
+    ./aesite-serve
 
-Server starts at `http://localhost:1323`.
+## Test
 
-## Stack
+    ./test.sh
 
-- **Backend:** Go, [Echo v4](https://echo.labstack.com/)
-- **Frontend:** Vanilla HTML/CSS/JS, DM font family
+Builds `serve.ae`, starts it, exercises every route, and exits non-zero on
+any failure. CI runs exactly this.
 
-## Tools
+## Deploy
 
-### `Tools/Github_md_to_html`
+Pushes to `main` run `.github/workflows/deploy.yml`:
 
-A Python utility for converting GitHub-flavoured Markdown files into styled HTML pages for the backend. Converted documents are served under `/Docs/` and a navigable index page is generated at `static/docs.html` automatically.
+1. build `serve.ae` and run `./test.sh`,
+2. publish `static/` to GitHub Pages at **aether-lang.dev**.
 
-See [`Tools/Github_md_to_html/README.md`](Tools/Github_md_to_html/README.md) for full usage instructions.
+The custom domain is set by `static/CNAME`. On the registrar, point the apex
+at GitHub Pages with four `A` records: `185.199.108.153`, `185.199.109.153`,
+`185.199.110.153`, `185.199.111.153`.
+
+The live REPL backend (`/api/exec` running real Aether) is the next step. It
+deploys as the `serve.ae` server on a host of its own, since Pages serves
+static content only.
+
+## Layout
+
+    serve.ae                   # the Aether server
+    test.sh                    # integration smoke test
+    static/                    # HTML, CSS, Docs/, CNAME
+    resources/lessons/<n>/     # content.html, code.ea, title.txt
+    Tools/Github_md_to_html/   # markdown -> Docs/ generator (still Python; Aether port pending)
+    .github/workflows/         # CI + Pages deploy

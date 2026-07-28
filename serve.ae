@@ -1,0 +1,127 @@
+// aesite, in Aether.
+//
+// The Aether language website and its REPL API, served by Aether's own
+// std.http server. This replaces the original Go/Echo backend entirely.
+//
+//   std.http             server, routing, zero-copy static files
+//   std.http.middleware  gzip
+//   std.io               lesson content off disk
+//   std.json             escaped JSON responses
+//
+// Run:   ae run serve.ae
+// Build: ae build serve.ae -o aesite-serve   (run it from the repo root)
+// Test:  ./test.sh
+
+import std.http
+import std.http.middleware
+import std.io
+import std.json
+
+const PORT = 1323
+const STATIC_DIR = "static"
+const LESSON_DIR = "resources/lessons"
+
+// GET / -> the homepage.
+handle_index(req: ptr, res: ptr, ud: ptr) {
+    http.serve_file(res, "${STATIC_DIR}/index.html")
+}
+
+// GET /* -> any other file under ./static (css, html, Docs, ...).
+// serve_static resolves the request path against the base directory with
+// path-traversal protection and serves via zero-copy sendfile.
+handle_static(req: ptr, res: ptr, ud: ptr) {
+    http.serve_static(req, res, STATIC_DIR)
+}
+
+// GET /healthz -> 200 ok.
+handle_health(req: ptr, res: ptr, ud: ptr) {
+    http.response_set_status(res, 200)
+    http.response_set_header(res, "Content-Type", "text/plain")
+    http.response_set_body(res, "ok\n")
+}
+
+// GET /api/lesson/:nbr -> { title, theory, starter_code }.
+// A lesson exists when it has both content.html and code.ea. title.txt
+// is an optional label defaulting to "Lesson N".
+handle_lesson(req: ptr, res: ptr, ud: ptr) {
+    nbr = http.http_get_path_param(req, "nbr")
+
+    theory, terr = io.read_file("${LESSON_DIR}/${nbr}/content.html")
+    code, cerr = io.read_file("${LESSON_DIR}/${nbr}/code.ea")
+    if terr != "" || cerr != "" {
+        http.response_set_status(res, 404)
+        http.response_set_header(res, "Content-Type", "application/json")
+        http.response_set_body(res, "{\"error\":\"lesson ${nbr} not found\"}")
+        return
+    }
+
+    title, titerr = io.read_file("${LESSON_DIR}/${nbr}/title.txt")
+    if titerr != "" {
+        title = "Lesson ${nbr}"
+    }
+
+    root = json.obj()
+    json.set(root, "title", json.str(title))
+    json.set(root, "theory", json.str(theory))
+    json.set(root, "starter_code", json.str(code))
+    body, eerr = json.encode(root)
+    json.free(root)
+    if eerr != "" {
+        http.response_set_status(res, 500)
+        http.response_set_header(res, "Content-Type", "application/json")
+        http.response_set_body(res, "{\"error\":\"encode failed\"}")
+        return
+    }
+
+    http.response_set_status(res, 200)
+    http.response_set_header(res, "Content-Type", "application/json")
+    http.response_set_body(res, body)
+}
+
+// PUT /api/exec -> { stdout, stderr }.
+// Mocked until the Aether-executes-Aether backend lands. The frontend
+// contract is fixed so that work drops straight in.
+handle_exec(req: ptr, res: ptr, ud: ptr) {
+    root = json.obj()
+    json.set(root, "stdout", json.str("Hello, Aether!\nProgram executed successfully."))
+    json.set(root, "stderr", json.str("warning: variable 'x' is unused"))
+    body, eerr = json.encode(root)
+    json.free(root)
+
+    http.response_set_status(res, 200)
+    http.response_set_header(res, "Content-Type", "application/json")
+    http.response_set_body(res, body)
+}
+
+main() {
+    server = http.server_create(PORT)
+    if server == 0 {
+        println("server_create failed")
+        return
+    }
+
+    // Keep-alive so a browser reuses one TCP connection across the page's
+    // asset and API requests. gzip compresses text responses >= 1 KiB.
+    ka_err = http.server_set_keepalive(server, 1, 0, 30000ms)
+    if ka_err != "" {
+        println("keepalive: ${ka_err}")
+        return
+    }
+    middleware.use_gzip(server, 1024, 6)
+    http.server_set_access_log(server, "combined", "-")
+
+    // The router matches the most-recently-registered route first, so the
+    // "/*" static catch-all is registered before the specific routes and
+    // only handles what they do not claim.
+    http.server_get(server, "/*", handle_static, 0)
+    http.server_get(server, "/", handle_index, 0)
+    http.server_get(server, "/healthz", handle_health, 0)
+    http.server_get(server, "/api/lesson/:nbr", handle_lesson, 0)
+    http.server_put(server, "/api/exec", handle_exec, 0)
+
+    println("aesite listening on http://localhost:${PORT}/")
+    err = http.server_start(server)
+    if err != "" {
+        println("server_start: ${err}")
+    }
+}
