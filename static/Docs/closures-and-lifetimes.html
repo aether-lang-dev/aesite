@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Closures and Environment Lifetimes · Aether</title>
+<meta name="description" content="Closures and Environment Lifetimes — Aether language documentation.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/aether.css">
+</head>
+<body>
+<header class="site-head">
+  <div class="wrap bar">
+    <a class="brand" href="/" aria-label="Aether"><span class="ae">ae</span><span class="nm">aether</span></a>
+    <nav>
+      <a href="/repl.html">Playground</a>
+      <a href="/Docs/getting-started.html" class="on">Docs</a>
+      <a href="https://github.com/aether-lang-org/aether">Source</a>
+      <span class="vtag">v0.454</span>
+    </nav>
+  </div>
+</header>
+<div class="wrap">
+  <div class="doc-shell">
+    <nav class="doc-nav"><div class="grp">Start</div>
+<a href="/Docs/getting-started.html">Getting Started with Aether</a>
+<a href="/Docs/tutorial.html">Aether Language Tutorial</a>
+<a href="/Docs/next-steps.html">Next Steps</a>
+<div class="grp">Language</div>
+<a href="/Docs/language-reference.html">Aether Language Reference</a>
+<a href="/Docs/type-inference-guide.html">Aether Type Inference Guide</a>
+<a href="/Docs/type-annotation-style-guide.html">Aether Type Annotation Style Guide</a>
+<a href="/Docs/type-inference-multi-value-returns.html">Multi-Value Return Type Inference</a>
+<a href="/Docs/distinct-types.html">Distinct Types</a>
+<a href="/Docs/sequences.html">Sequences (`*StringSeq`)</a>
+<a href="/Docs/named-args-and-select.html">Named Arguments and select()</a>
+<a href="/Docs/closures-and-builder-dsl.html">Closures and Builder-Style DSL in Aether</a>
+<a href="/Docs/closures-and-lifetimes.html" class="on">Closures and Environment Lifetimes</a>
+<a href="/Docs/module-system-design.html">Aether Module System</a>
+<div class="grp">Runtime</div>
+<a href="/Docs/architecture.html">Aether Architecture</a>
+<a href="/Docs/actor-concurrency.html">Aether Runtime Guide</a>
+<a href="/Docs/structured-concurrency.html">Structured Concurrency for Aether, Design Direction</a>
+<a href="/Docs/scheduler-quick-reference.html">Aether Scheduler - Quick Reference</a>
+<a href="/Docs/memory-management.html">Aether Memory Management</a>
+<a href="/Docs/runtime-optimizations.html">Runtime Optimizations</a>
+<a href="/Docs/numa-support.html">NUMA Support in Aether</a>
+<div class="grp">Interop</div>
+<a href="/Docs/c-interop.html">C Interoperability</a>
+<a href="/Docs/c-embedding.html">Embedding Aether Actors in C Applications</a>
+<a href="/Docs/emit-lib.html">Embedding Aether as a Shared Library (`--emit=lib`)</a>
+<a href="/Docs/embedded-namespaces-and-host-bindings.html">Aether as a Configuration Language, v2: Namespaces and Generated Bindings</a>
+<a href="/Docs/aether-embedded-in-host-applications.html">Aether as a Configuration Language for Other Languages</a>
+<a href="/Docs/lib-caller-info.html">`--emit=lib` caller-info channel</a>
+<div class="grp">Stdlib</div>
+<a href="/Docs/stdlib-reference.html">Aether Standard Library Reference</a>
+<a href="/Docs/stdlib-api.html">Aether Standard Library Guide</a>
+<a href="/Docs/stdlib-module-pattern.html">Aether Stdlib Module Pattern</a>
+<a href="/Docs/stdlib-vs-contrib.html">`std/` vs `contrib/` placement decisions</a>
+<a href="/Docs/http-server.html">`std.http` HTTP Server</a>
+<a href="/Docs/http-reverse-proxy.html">`std.http.proxy` reverse proxy</a>
+<a href="/Docs/http-handler-context.html">HTTP handlers with per-server / per-route state</a>
+<a href="/Docs/http-vcr.html">HTTP Record/Replay (VCR), moved out of Aether</a>
+<a href="/Docs/json-parser-design.html">`std.json` Design Notes</a>
+<div class="grp">Safety</div>
+<a href="/Docs/containment-sandbox.html">Containment and Sandboxing in Aether</a>
+<a href="/Docs/hide-and-seal.html">`hide` and `seal except` scope-level capability denial</a>
+<a href="/Docs/compiler-trust-boundary.html">The Compiler Trust Boundary</a>
+<a href="/Docs/config-is-code.html">Config IS Code</a>
+<a href="/Docs/aether_compared_to_capsicum.html">Aether Sandbox Model vs. BSD Capsicum: Architecture, Parallels, and FreeBSD Integration</a>
+<div class="grp">Build</div>
+<a href="/Docs/build-system.html">Build System</a>
+<a href="/Docs/bootstrap-from-source.html">Bootstrapping Aether from source (HEAD)</a>
+<a href="/Docs/install-layout.html">Aether install layout</a>
+<a href="/Docs/runtime-config.html">Runtime Configuration - Quick Reference</a>
+<a href="/Docs/per-process-config.html">Per-process configuration in Aether</a>
+<a href="/Docs/cic-help.html">`ae help &lt;script&gt;` Offline diagnostics for config-IS-code</a>
+<div class="grp">More</div>
+<a href="/Docs/bindgen-consts.html">`ae bindgen consts`, importing C macro constants</a>
+<a href="/Docs/formatter.html">`ae fmt`, the source formatter</a>
+<a href="/Docs/isolated.html">`Isolated[T]`: move-only actor message payloads (#479)</a>
+<a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
+<a href="/Docs/profiling-guide.html">Aether Runtime Profiling Guide</a>
+<a href="/Docs/allocators.html">Allocators</a>
+<a href="/Docs/when-static-if.html">Compile-time `when` / static-if</a>
+<a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
+<a href="/Docs/contract-folding.html">Compile-time contract folding — costed design</a>
+<a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn&#x27;t need `macro_rules!`</a>
+<a href="/Docs/release-glibc-portability.html">Release binary portability across glibc versions</a>
+<a href="/Docs/error-unification.html">Unifying `T?` and `(value, err)` — costed design</a></nav>
+    <main class="doc-main">
+      <article class="doc-body">
+        <div class="bc">docs / language</div>
+<h1>Closures and Environment Lifetimes</h1>
+<p>This document covers how closure environments are allocated, captured, and freed, and the patterns that currently need workarounds. Earlier rounds of the closure/DSL feature shipped with four capture-handling and env-lifetime issues plus a chained typechecker hole that surfaced once those four were resolved. All five landed together in a single PR because testing any one in isolation was blocked by the others; they are fixed on main and documented below as the underlying mechanism.</p>
+<p>Three more closure-related bugs surfaced during the aether_ui toolkit work: emission-ordering for cross-referenced closures, nested-lambda return-type bubble-up, and captures across trailing blocks. All three are fixed on main.</p>
+<p>Five patterns are tracked, three around dynamic <code>call()</code> dispatch (L1, L2, L3), one correctness hazard in closures inside actor handlers (L4), and one memory-handling contract on closure-var reassignment (L5). L4 is now rejected at compile time with a clear error; the rest are documented with workarounds in the &quot;Closure patterns and workarounds&quot; section below.</p>
+<p>Regression tests live at <code>tests/syntax/test_closure_*.ae</code> and <code>tests/integration/closure_*/</code>.</p>
+<h2>The bugs</h2>
+<h3>1. Captured <code>ptr</code> parameters typed <code>int</code></h3>
+<p>A closure capturing a <code>ptr</code> parameter of its enclosing function got <code>int &lt;name&gt;</code> in the env struct, pointer truncated on store, segfault on deref. Capture-type resolution in <code>compiler/codegen/codegen_expr.c</code> walked only top-level <code>AST_VARIABLE_DECLARATION</code> nodes across all functions and returned the first match by name, so it never saw function parameters and silently returned the type of any unrelated same-named variable elsewhere in the program.</p>
+<p><strong>Fix:</strong> thread the enclosing function name through <code>discover_closures</code> into each <code>ClosureInfo.parent_func</code>. Capture-type lookup now searches that function&#x27;s parameters (<code>AST_PATTERN_VARIABLE</code>) and its locals in nested blocks first, only falling back to the program-wide scan when scope is unknown.</p>
+<h3>2. Mutable captures miscompiled</h3>
+<p><code>count = count + 1</code> inside a closure body emitted a shadowing local that wrote to uninitialised stack, silent wrong answers, even in-scope. Two collaborating problems: <code>is_local_var</code> treated any assignment target as a fresh local, and the closure prologue unconditionally aliased each capture to a read-only C local.</p>
+<p><strong>Fix:</strong> keep the alias pattern for read-only captures (zero cost), but detect captures that are assigned to in the body and route their reads and writes through <code>_env-&gt;name</code> directly. Scope analysis distinguishes captures from fresh body-locals while honouring Python-style <code>x = expr</code> shadowing: if the RHS does not read <code>x</code>, treat <code>x</code> as a fresh local.</p>
+<p><strong>Resulting semantics:</strong> a read-only capture stays an aliased copy (zero cost). A capture the closure <em>assigns to</em> is heap-promoted, so the enclosing binding and the closure env share one heap cell and writes are visible in both directions (the Ruby/Groovy model, verified by <code>tests/syntax/test_closure_mutable_capture_probe.ae</code>). A simple named local therefore needs no ref cell to share mutable state; ref cells remain useful for state that isn&#x27;t a plain captured local (an explicit <code>ptr</code> argument, a struct field, or an actor boundary). See <code>docs/closures-and-builder-dsl.md</code>.</p>
+<h3>3. Escaping-closure use-after-free</h3>
+<p>A closure variable <code>bump = || { ... }</code> pushed an unconditional <code>free(bump.env)</code> onto the defer stack; at return the compiler emitted every defer before returning, including the env-free of the closure being returned. The caller received a closure whose env was already freed.</p>
+<p><strong>Fix:</strong> at return emission, walk the return expression to collect every closure variable that appears (including <code>box_closure</code> wrappers) and transitively any closure vars they capture. <code>emit_all_defers_protected</code> skips the matching env-free defers and emits a <code>/* deferred (suppressed: escapes via return) */</code> marker in their place. Ownership transfers to the caller, matching the documented contract for <code>box_closure</code>.</p>
+<h3>4. Closure return types hardcoded to <code>int</code>/<code>void</code></h3>
+<p>The static <code>_closure_fn_N</code> wrapper was typed <code>int</code> (or <code>void</code>) regardless of what the closure actually returned. Closures returning a string or pointer either tripped <code>-Wint-conversion</code> and truncated the return, or the caller cast through int and dereferenced a truncated pointer.</p>
+<p><strong>Fix:</strong> pick the return type from the returned expression&#x27;s <code>node_type</code>. For <code>return call(&lt;captured_closure&gt;)</code> chains the typechecker leaves the inner call as <code>TYPE_INT</code>, so we resolve through the captured closure&#x27;s own body.</p>
+<h3>5. <code>call()</code> expression <code>node_type</code> stuck at <code>TYPE_INT</code></h3>
+<p>The global <code>call</code> builtin is symbol-typed as <code>TYPE_INT</code>, so the typechecker set <code>node_type=TYPE_INT</code> on every <code>call(x)</code> expression regardless of what <code>x</code>&#x27;s closure actually returned. Downstream, <code>print</code>/<code>println</code> picked <code>&quot;%d&quot;</code> for calls that really returned strings, and <code>s = call(w)</code> declared <code>s</code> as <code>int</code> so later comparisons dereferenced a truncated pointer.</p>
+<p><strong>Fix:</strong> a post-discovery pass walks the program and, for every <code>call(&lt;known_closure_var&gt;)</code> expression, rewrites <code>node_type</code> to match the closure&#x27;s actual return type. It also back-propagates into variable declarations whose initializer is such a call. <code>closure_var_map</code> seeding is extended to inherit a closure id through <code>w = f()</code> when <code>f</code> ends <code>return &lt;closure_var&gt;</code>, so chains like <code>w = build_pair(); call(w)</code> resolve correctly.</p>
+<h3>6. Closure body references a later-numbered closure</h3>
+<p>A closure&#x27;s body can construct inline closure literals and pass them as arguments to other functions. Each lambda gets its own <code>_closure_fn_N</code> in the emitted C. When the outer closure is numbered before its inline lambdas, its body referenced <code>_closure_fn_N</code> symbols that hadn&#x27;t been declared yet at that point in the file. Error: <code>&#x27;_closure_fn_N&#x27; undeclared</code>.</p>
+<p><strong>Fix:</strong> <code>emit_closure_definitions</code> now runs in two passes. Pass 1 emits every env typedef and every function prototype. Pass 2 emits bodies and constructors. A closure body can reference any <code>_closure_fn_N</code> by name regardless of numbering.</p>
+<h3>7. Nested lambda&#x27;s return mis-typed the enclosing closure</h3>
+<p><code>has_return_value</code> walked an AST subtree looking for return statements with values. A nested lambda&#x27;s <code>return</code> bubbled up and mis-typed the enclosing closure as <code>int</code>, producing a <code>static int _closure_fn_N(...) { ...; }</code> with no return statement, undefined behavior caught by <code>-Wreturn-type</code>.</p>
+<p><strong>Fix:</strong> <code>has_return_value</code> stops at <code>AST_CLOSURE</code> boundaries. A nested closure&#x27;s return belongs to that closure, not to any enclosing scope.</p>
+<h3>8. Captures across nested trailing blocks</h3>
+<p>A variable declared inside a trailing block (e.g. <code>root = grid() { c = 42; ... }</code>) lives in the enclosing function&#x27;s scope because trailing blocks are inlined at the call site, not hoisted. A closure inside a sibling or nested trailing block should be able to capture such variables. Previously, capture discovery stopped at <code>AST_CLOSURE</code> boundaries including trailing-block closures (value == <code>&quot;trailing&quot;</code>), so names declared inside one trailing block were invisible to inner closures.</p>
+<p><strong>Fix:</strong> scope-analysis helpers treat trailing-block closures transparently while still stopping at real closures. <code>subtree_declares</code> recurses through trailing blocks; a new <code>scope_declares_at_top_level</code> helper is used by <code>is_top_level_decl_in_function</code> to walk trailing blocks but NOT nested if/for/while blocks, preserving the &quot;fresh body-local in nested block&quot; Python-style rule that <code>calculator-tui</code> relies on.</p>
+<h2>Code layout</h2>
+<p>Nearly all changes are in the codegen layer. The typechecker is unchanged.</p>
+<table><thead><tr><th>Concern</th><th>File</th></tr></thead><tbody><tr><td>Capture discovery, type resolution, return-type inference, <code>call()</code> node_type propagation</td><td><code>compiler/codegen/codegen_expr.c</code></td></tr><tr><td>Mutated-capture write path (routes through <code>_env-&gt;</code>)</td><td><code>compiler/codegen/codegen_stmt.c</code></td></tr><tr><td>Bug-3 return-defer protection</td><td><code>compiler/codegen/codegen.c</code>, <code>codegen_stmt.c</code></td></tr><tr><td>Small additions to <code>CodeGenerator</code> state</td><td><code>compiler/codegen/codegen.h</code></td></tr><tr><td>New helpers on the public header</td><td><code>compiler/codegen/codegen_internal.h</code></td></tr></tbody></table>
+<h2>Environment reclamation</h2>
+<p>A capturing closure&#x27;s environment is a heap allocation; two common lifetimes now reclaim it automatically (the canonical reference is <a href="/Docs/memory-management.html"><code>docs/memory-management.md</code></a> → &quot;Closure environment lifetime&quot;):</p>
+<ul><li><strong>Transient callback.</strong> A capturing closure created inline and passed to</li></ul>
+<p>a parameter that only <em>calls</em> it and neither stores nor returns it (<code>run(cb) { cb() }</code>) is dead once the call returns, so its env is freed right after the call. This is gated on a proven non-escape, invoking a closure parameter (<code>cb()</code>, an indirect-<code>call</code> node whose first child is the callee) is not an escape, whereas a stored or returned closure suppresses the drain so its env follows the owner.</p>
+<ul><li><strong>Stored in a list.</strong> A closure value stored into a list is heap-boxed</li></ul>
+<p>(the <code>fn → ptr</code> coercion) and the list owns the box; <code>list.free</code> now reclaims the captured env as well as the box (<code>owned_flags == 2</code>).</p>
+<p>Still a leak (the safe side of the leak-vs-UAF trade): <strong>L5 below</strong>, reassigning a closure <em>variable</em> drops the previous env, because without whole-program escape analysis the codegen can&#x27;t prove the old env is unreachable (it may be aliased through a <code>box_closure</code> copy).</p>
+<h2>Closure patterns and workarounds</h2>
+<p>L1–L3 are ergonomic patterns with known workarounds you can apply today. L4 is a compile-time rejection, previously silent wrong answers, now surfaced at compile time with a clear error. L5 is a memory-handling contract around reassignment. Each has a near-term workaround; the &quot;proper fix&quot; notes describe the larger language work each leans on. See <a href="/Docs/next-steps.html"><code>docs/next-steps.md</code></a> for scheduling.</p>
+<h3>L1. <code>call(x)</code> where <code>x</code> comes from a list</h3>
+<pre><code>handlers = list.new()
+list.add(handlers, box_closure(|_| { return &quot;hello&quot; }))
+...
+boxed = list.get(handlers, 0)
+h = unbox_closure(boxed)
+r = call(h)                   // h&#x27;s return type is unknown at codegen</code></pre>
+<p><code>call(h)</code> falls back to generic dispatch: <code>((int(*)(void*))h.fn)(h.env)</code> it assumes <code>int</code> return even if the stored closure returns a string or pointer. Strings get their pointer truncated; pointers become garbage.</p>
+<p><strong>Workaround:</strong> use a direct-literal closure variable when possible: <code>action = |_| { ... }; call(action)</code> is statically resolved. Or accept that <code>int</code>-returning dynamic closures are the only safely dispatchable kind today.</p>
+<p><strong>Why a quick <code>intptr_t</code> widening doesn&#x27;t fix it:</strong> the obvious patch, emit <code>((intptr_t(*)(void*))h.fn)(h.env)</code> instead of <code>((int(*)(void*))</code> fixes the cast in isolation but leaves <code>r</code>&#x27;s declared C type as <code>int</code>, so the return narrows right back. Widening <code>r</code> requires changing the variable&#x27;s registration in the symbol table (not just the AST decl); downstream <code>print(r)</code> looks up <code>r</code>&#x27;s type from the symbol table and picks <code>%d</code> for anything registered as <code>TYPE_INT</code>. Propagating <code>TYPE_PTR</code> through the AST alone was attempted, it segfaulted four existing tests whose <code>call(x)</code> returns are used in arithmetic or comparisons. A real fix threads through the typechecker.</p>
+<h3>L2. <code>call(x)</code> where <code>x</code> is chosen via <code>match</code>/<code>if</code></h3>
+<pre><code>op = if user_wants_add { add_fn } else { mul_fn }
+r = call(op, 3, 4)            // op&#x27;s closure id is not knowable</code></pre>
+<p>Same failure mode as L1. <code>closure_var_map</code> records a single closure id per name, so branch-selected closures fall through to generic dispatch with the <code>int</code> default.</p>
+<h3>L3. <code>call(x)</code> where <code>x</code> is threaded through intermediate functions</h3>
+<pre><code>x = setup()                   // setup returns a closure
+y = wrap(x)                   // wrap takes fn, returns fn
+r = call(y)                   // y&#x27;s underlying closure is two hops away</code></pre>
+<p><code>closure_var_map</code>&#x27;s <code>w = f()</code> inheritance (Bug 5&#x27;s partial fix) only handles one hop when <code>f</code>&#x27;s body ends <code>return &lt;closure_var&gt;</code>. Multi-hop chains fall through to generic dispatch.</p>
+<p><strong>Proper fix for L1/L2/L3:</strong> parameterised closure types (<code>fn[T]</code>, like Rust&#x27;s <code>Fn(i32) -&gt; i32</code>) or full typechecker return-type propagation. Either is a medium-sized language feature, until it lands, the workaround sections on each limit apply.</p>
+<h3>L4. Closure inside actor handler mutating actor state</h3>
+<pre><code>actor Counter {
+    state count = 0
+    receive {
+        Go() -&gt; {
+            inc = || { count = count + 1 }   // rejected at compile time
+            call(inc)
+        }
+    }
+}</code></pre>
+<p>Closures inside actor handlers correctly capture and mutate arm-local variables (Route 1 + arm promotion, tested by <code>tests/syntax/test_closure_in_actor_handler.ae</code>). But when the closure writes a name that&#x27;s an actor <strong>state field</strong>, the closure has no access to <code>self</code>, so state accesses would compile to unscoped local reads, a silent wrong answer.</p>
+<p><strong>Current status (as of this branch):</strong> codegen walks every closure body inside every actor receive-arm and, for each write to a state field, emits a compile-time error pointing at the offending line with a suggestion to use the arm-local workaround. Regression pinned by <code>tests/integration/closure_actor_state_reject/</code>.</p>
+<p><strong>Workaround:</strong> copy state into an arm-local first, mutate that, then write back. See <code>tests/syntax/README_closure_actor_state_limitation.md</code> for the full pattern.</p>
+<p><strong>Proper fix:</strong> thread <code>self</code> through the closure&#x27;s env so state writes compile to <code>self-&gt;field = ...</code>. Medium-sized codegen change; until it lands, the compile-time rejection prevents silent wrong answers.</p>
+<h3>L5. Closure-var reassignment leaks the previous env</h3>
+<pre><code>op = |x: int| { return x + 1 }
+op = |x: int| { return x * 2 }  // old env (malloc&#x27;d) is leaked</code></pre>
+<p>When a closure variable is reassigned, the auto-defer-free fires only on the first assignment (to avoid double-free at scope exit, since reassignment overwrites <code>.env</code> in the variable). The previous env&#x27;s heap block is unreachable, leaked.</p>
+<p><strong>Why not just free on reassignment:</strong> the old env may still be reachable via a <code>box_closure()</code> copy or another closure&#x27;s transitive capture. Without escape analysis we can&#x27;t tell if it&#x27;s safe to free, so we lean safe (leak) over unsafe (UAF).</p>
+<p>Paired tests pin this trade-off:</p>
+<ul><li><code>tests/syntax/test_closure_reassign_leaks_env.ae</code> 100-iteration</li></ul>
+<p>reassignment loop exits cleanly.</p>
+<ul><li><code>tests/syntax/test_closure_reassign_after_box.ae</code> box_closure&#x27;d</li></ul>
+<p>copy survives reassignment of the source variable.</p>
+<p><strong>Proper fix:</strong> escape analysis. Track whether a closure variable has been captured or stored anywhere before the reassignment; if not, free on reassignment. Larger change; deferred.</p>
+<h2>Why the UI calculator works</h2>
+<p><code>examples/calculator-tui.ae</code> uses ref cells for all mutable state and builds handlers as anonymous inline closures passed to <code>box_closure(...)</code>. Ref cells sidestep bug 2 (the closure captures a pointer, read-only from its perspective), and anonymous box-wrapped closures sidestep bug 3 (no named variable, no defer-free insertion). It worked before these fixes and still works.</p>
+      </article>
+    </main>
+  </div>
+</div>
+<footer class="site-foot">
+  <div class="wrap foot">
+    <span class="ae">ae</span>
+    <span class="m">MIT licensed · compiles to C · v0.454</span>
+    <nav><a href="/Docs/getting-started.html">Docs</a><a href="/repl.html">Playground</a><a href="https://github.com/aether-lang-org/aether">GitHub</a></nav>
+  </div>
+</footer>
+</body>
+</html>

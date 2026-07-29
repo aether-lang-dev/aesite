@@ -1,258 +1,237 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>profiling-guide</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/style.css" />
-  <link rel="stylesheet" href="/subpages.css" />
-  <link rel="stylesheet" href="/articles.css" />
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Aether Runtime Profiling Guide · Aether</title>
+<meta name="description" content="Aether Runtime Profiling Guide — Aether language documentation.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/aether.css">
 </head>
 <body>
-
-  <!-- NAV -->
-  <nav>
-    <a class="nav-logo" href="/index.html">Aether<span>.</span></a>
-    <ul class="nav-links">
-      <li><a href="/index.html#features">Features</a></li>
-      <li><a href="/index.html#syntax">Syntax</a></li>
-      <li><a href="/index.html#install">Install</a></li>
-      <li><a href="/faq.html">FAQ</a></li>
-    </ul>
-  </nav>
-
-  <!-- MAIN -->
-  <main class="section">
-    <div>
-      <p class="section-label">Learning Material</p>
-    </div>
-
-    <article class="article-content">
-<h1 id="aether-runtime-profiling-guide">Aether Runtime Profiling
-Guide</h1>
-<h2 id="quick-start">Quick Start</h2>
-<h3 id="1-compile-with-profiling-enabled">1. Compile with Profiling
-Enabled</h3>
-<div class="sourceCode" id="cb1"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">gcc</span> <span class="at">-O2</span> <span class="at">-march</span><span class="op">=</span>native <span class="at">-DAETHER_PROFILE</span> your_app.c <span class="dt">\</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    runtime/utils/aether_runtime_profile.c <span class="dt">\</span></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">-Iruntime</span> <span class="at">-o</span> your_app_profiled</span></code></pre></div>
-<h3 id="2-run-and-get-reports">2. Run and Get Reports</h3>
-<div class="sourceCode" id="cb2"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">./your_app_profiled</span></span></code></pre></div>
+<header class="site-head">
+  <div class="wrap bar">
+    <a class="brand" href="/" aria-label="Aether"><span class="ae">ae</span><span class="nm">aether</span></a>
+    <nav>
+      <a href="/repl.html">Playground</a>
+      <a href="/Docs/getting-started.html" class="on">Docs</a>
+      <a href="https://github.com/aether-lang-org/aether">Source</a>
+      <span class="vtag">v0.454</span>
+    </nav>
+  </div>
+</header>
+<div class="wrap">
+  <div class="doc-shell">
+    <nav class="doc-nav"><div class="grp">Start</div>
+<a href="/Docs/getting-started.html">Getting Started with Aether</a>
+<a href="/Docs/tutorial.html">Aether Language Tutorial</a>
+<a href="/Docs/next-steps.html">Next Steps</a>
+<div class="grp">Language</div>
+<a href="/Docs/language-reference.html">Aether Language Reference</a>
+<a href="/Docs/type-inference-guide.html">Aether Type Inference Guide</a>
+<a href="/Docs/type-annotation-style-guide.html">Aether Type Annotation Style Guide</a>
+<a href="/Docs/type-inference-multi-value-returns.html">Multi-Value Return Type Inference</a>
+<a href="/Docs/distinct-types.html">Distinct Types</a>
+<a href="/Docs/sequences.html">Sequences (`*StringSeq`)</a>
+<a href="/Docs/named-args-and-select.html">Named Arguments and select()</a>
+<a href="/Docs/closures-and-builder-dsl.html">Closures and Builder-Style DSL in Aether</a>
+<a href="/Docs/closures-and-lifetimes.html">Closures and Environment Lifetimes</a>
+<a href="/Docs/module-system-design.html">Aether Module System</a>
+<div class="grp">Runtime</div>
+<a href="/Docs/architecture.html">Aether Architecture</a>
+<a href="/Docs/actor-concurrency.html">Aether Runtime Guide</a>
+<a href="/Docs/structured-concurrency.html">Structured Concurrency for Aether, Design Direction</a>
+<a href="/Docs/scheduler-quick-reference.html">Aether Scheduler - Quick Reference</a>
+<a href="/Docs/memory-management.html">Aether Memory Management</a>
+<a href="/Docs/runtime-optimizations.html">Runtime Optimizations</a>
+<a href="/Docs/numa-support.html">NUMA Support in Aether</a>
+<div class="grp">Interop</div>
+<a href="/Docs/c-interop.html">C Interoperability</a>
+<a href="/Docs/c-embedding.html">Embedding Aether Actors in C Applications</a>
+<a href="/Docs/emit-lib.html">Embedding Aether as a Shared Library (`--emit=lib`)</a>
+<a href="/Docs/embedded-namespaces-and-host-bindings.html">Aether as a Configuration Language, v2: Namespaces and Generated Bindings</a>
+<a href="/Docs/aether-embedded-in-host-applications.html">Aether as a Configuration Language for Other Languages</a>
+<a href="/Docs/lib-caller-info.html">`--emit=lib` caller-info channel</a>
+<div class="grp">Stdlib</div>
+<a href="/Docs/stdlib-reference.html">Aether Standard Library Reference</a>
+<a href="/Docs/stdlib-api.html">Aether Standard Library Guide</a>
+<a href="/Docs/stdlib-module-pattern.html">Aether Stdlib Module Pattern</a>
+<a href="/Docs/stdlib-vs-contrib.html">`std/` vs `contrib/` placement decisions</a>
+<a href="/Docs/http-server.html">`std.http` HTTP Server</a>
+<a href="/Docs/http-reverse-proxy.html">`std.http.proxy` reverse proxy</a>
+<a href="/Docs/http-handler-context.html">HTTP handlers with per-server / per-route state</a>
+<a href="/Docs/http-vcr.html">HTTP Record/Replay (VCR), moved out of Aether</a>
+<a href="/Docs/json-parser-design.html">`std.json` Design Notes</a>
+<div class="grp">Safety</div>
+<a href="/Docs/containment-sandbox.html">Containment and Sandboxing in Aether</a>
+<a href="/Docs/hide-and-seal.html">`hide` and `seal except` scope-level capability denial</a>
+<a href="/Docs/compiler-trust-boundary.html">The Compiler Trust Boundary</a>
+<a href="/Docs/config-is-code.html">Config IS Code</a>
+<a href="/Docs/aether_compared_to_capsicum.html">Aether Sandbox Model vs. BSD Capsicum: Architecture, Parallels, and FreeBSD Integration</a>
+<div class="grp">Build</div>
+<a href="/Docs/build-system.html">Build System</a>
+<a href="/Docs/bootstrap-from-source.html">Bootstrapping Aether from source (HEAD)</a>
+<a href="/Docs/install-layout.html">Aether install layout</a>
+<a href="/Docs/runtime-config.html">Runtime Configuration - Quick Reference</a>
+<a href="/Docs/per-process-config.html">Per-process configuration in Aether</a>
+<a href="/Docs/cic-help.html">`ae help &lt;script&gt;` Offline diagnostics for config-IS-code</a>
+<div class="grp">More</div>
+<a href="/Docs/bindgen-consts.html">`ae bindgen consts`, importing C macro constants</a>
+<a href="/Docs/formatter.html">`ae fmt`, the source formatter</a>
+<a href="/Docs/isolated.html">`Isolated[T]`: move-only actor message payloads (#479)</a>
+<a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
+<a href="/Docs/profiling-guide.html" class="on">Aether Runtime Profiling Guide</a>
+<a href="/Docs/allocators.html">Allocators</a>
+<a href="/Docs/when-static-if.html">Compile-time `when` / static-if</a>
+<a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
+<a href="/Docs/contract-folding.html">Compile-time contract folding — costed design</a>
+<a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn&#x27;t need `macro_rules!`</a>
+<a href="/Docs/release-glibc-portability.html">Release binary portability across glibc versions</a>
+<a href="/Docs/error-unification.html">Unifying `T?` and `(value, err)` — costed design</a></nav>
+    <main class="doc-main">
+      <article class="doc-body">
+        <div class="bc">docs / more</div>
+<h1>Aether Runtime Profiling Guide</h1>
+<h2>Quick Start</h2>
+<h3>1. Compile with Profiling Enabled</h3>
+<pre><code>gcc -O2 -march=native -DAETHER_PROFILE your_app.c \
+    runtime/utils/aether_runtime_profile.c \
+    -Iruntime -o your_app_profiled</code></pre>
+<h3>2. Run and Get Reports</h3>
+<pre><code>./your_app_profiled</code></pre>
 <p>Output includes:</p>
-<ul>
-<li>Per-core cycle counts for all operations</li>
-<li>Average cycles per operation</li>
-<li>Throughput estimates (at 3 GHz)</li>
-<li>CSV export for trend analysis</li>
-</ul>
-<h2 id="example-output">Example Output</h2>
-<p>Sample output (actual values depend on hardware):</p>
+<ul><li>Per-core cycle counts for all operations</li><li>Average cycles per operation</li><li>Throughput estimates derived from cycle counts and the host&#x27;s clock speed</li><li>CSV export for trend analysis</li></ul>
+<h2>Example Output</h2>
+<p>The sample below shows the structure of a run. Real numbers depend on CPU, clock speed, build flags, and workload; always run the profiled build on your own target hardware to get meaningful figures.</p>
 <pre><code>--- Core 0 ---
-  Mailbox Send:         1000000 ops,    19.28 cycles/op
-  Mailbox Receive:      1000000 ops,    20.03 cycles/op
-  Batch Send:             50000 msgs,    18.50 cycles/msg
-  SPSC Enqueue:          200000 ops,    12.34 cycles/op
-  Actor Step:            100000 ops,   125.67 cycles/op
+  Mailbox Send:         &lt;N&gt; ops,    &lt;avg&gt; cycles/op
+  Mailbox Receive:      &lt;N&gt; ops,    &lt;avg&gt; cycles/op
+  Batch Send:           &lt;N&gt; msgs,   &lt;avg&gt; cycles/msg
+  SPSC Enqueue:         &lt;N&gt; ops,    &lt;avg&gt; cycles/op
+  Actor Step:           &lt;N&gt; ops,    &lt;avg&gt; cycles/op
 
 === Performance Summary ===
-Total Messages:   1000000
-Avg Cycles/Msg:   19.28
-Throughput:       155.60 M msg/sec (at 3 GHz)</code></pre>
-<h2 id="what-gets-measured">What Gets Measured</h2>
-<h3 id="mailbox-operations">Mailbox Operations</h3>
-<ul>
-<li><code>mailbox_send()</code> - Single message send</li>
-<li><code>mailbox_receive()</code> - Single message receive</li>
-<li><code>mailbox_send_batch()</code> - Batched sends</li>
-<li><code>mailbox_receive_batch()</code> - Batched receives</li>
-</ul>
-<h3 id="spsc-queue-same-core-fast-path">SPSC Queue (Same-Core Fast
-Path)</h3>
-<ul>
-<li><code>spsc_enqueue()</code> - Lock-free enqueue</li>
-<li><code>spsc_dequeue()</code> - Lock-free dequeue</li>
-</ul>
-<h3 id="cross-core-messaging">Cross-Core Messaging</h3>
-<ul>
-<li><code>queue_enqueue()</code> - Cross-core message queue</li>
-<li><code>queue_dequeue()</code> - Dequeue from shared queue</li>
-</ul>
-<h3 id="scheduler">Scheduler</h3>
-<ul>
-<li><code>actor_step()</code> - Actor processing time</li>
-<li>Idle cycles</li>
-<li>Atomic operation counts</li>
-<li>Lock contention tracking</li>
-</ul>
-<h2 id="production-use">Production Use</h2>
-<h3 id="zero-overhead-in-production">Zero Overhead in Production</h3>
-<p>Without <code>-DAETHER_PROFILE</code>, all profiling macros compile
-to <code>((void)0)</code> - <strong>zero overhead</strong>.</p>
-<div class="sourceCode" id="cb4"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Production build - no profiling</span></span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="fu">gcc</span> <span class="at">-O2</span> <span class="at">-march</span><span class="op">=</span>native your_app.c <span class="at">-o</span> your_app_prod</span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Development build - with profiling</span></span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="fu">gcc</span> <span class="at">-O2</span> <span class="at">-march</span><span class="op">=</span>native <span class="at">-DAETHER_PROFILE</span> your_app.c <span class="dt">\</span></span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    runtime/utils/aether_runtime_profile.c <span class="at">-o</span> your_app_dev</span></code></pre></div>
-<h3 id="continuous-integration">Continuous Integration</h3>
-<p>Use profiled builds in CI to detect performance regressions:</p>
-<div class="sourceCode" id="cb5"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Run profiled benchmark</span></span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="ex">./bench_profiled.exe</span></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Export to CSV</span></span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Result: profile_results.csv</span></span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Compare the CSV output against a saved baseline manually,</span></span>
-<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="co"># or integrate with your preferred benchmarking toolchain.</span></span></code></pre></div>
-<h2 id="csv-export-format">CSV Export Format</h2>
-<pre class="csv"><code>core,operation,count,total_cycles,avg_cycles
-0,mailbox_send,1000000,19280000,19.28
-0,mailbox_receive,1000000,20030000,20.03
-0,batch_send,50000,925000,18.50</code></pre>
-<p>Use for:</p>
-<ul>
-<li>Trend analysis across commits</li>
-<li>Performance regression detection</li>
-<li>Bottleneck identification</li>
-<li>Optimization validation</li>
-</ul>
-<h2 id="integration-with-existing-code">Integration with Existing
-Code</h2>
-<h3 id="automatic-in-hot-paths">Automatic in Hot Paths</h3>
-<p>Profiling is already integrated into:</p>
-<ul>
-<li><code>actor_state_machine.h</code> - Mailbox operations</li>
-<li>(More to be added as needed)</li>
-</ul>
-<h3 id="manual-instrumentation">Manual Instrumentation</h3>
-<p>Add to custom hot paths:</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&quot;runtime/utils/aether_runtime_profile.h&quot;</span></span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> my_hot_function<span class="op">(</span><span class="dt">int</span> core_id<span class="op">)</span> <span class="op">{</span></span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    PROFILE_START<span class="op">();</span></span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Your code here</span></span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>    do_work<span class="op">();</span></span>
-<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>    PROFILE_END_ACTOR_STEP<span class="op">(</span>core_id<span class="op">);</span></span>
-<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
-<p>Available macros:</p>
-<ul>
-<li><code>PROFILE_START()</code> - Begin timing</li>
-<li><code>PROFILE_END_MAILBOX_SEND(core_id)</code></li>
-<li><code>PROFILE_END_MAILBOX_RECEIVE(core_id)</code></li>
-<li><code>PROFILE_END_BATCH_SEND(core_id, count)</code></li>
-<li><code>PROFILE_END_BATCH_RECEIVE(core_id, count)</code></li>
-<li><code>PROFILE_END_SPSC_ENQUEUE(core_id)</code></li>
-<li><code>PROFILE_END_SPSC_DEQUEUE(core_id)</code></li>
-<li><code>PROFILE_END_QUEUE_ENQUEUE(core_id)</code></li>
-<li><code>PROFILE_END_QUEUE_DEQUEUE(core_id)</code></li>
-<li><code>PROFILE_END_ACTOR_STEP(core_id)</code></li>
-<li><code>PROFILE_ATOMIC_OP(core_id)</code></li>
-<li><code>PROFILE_LOCK_CONTENTION(core_id)</code></li>
-</ul>
-<h2 id="use-cases">Use Cases</h2>
-<h3 id="1-validate-optimizations">1. Validate Optimizations</h3>
-<div class="sourceCode" id="cb8"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Baseline</span></span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="fu">gcc</span> <span class="at">-O2</span> <span class="at">-DAETHER_PROFILE</span> <span class="at">-o</span> bench_before</span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="ex">./bench_before</span> <span class="op">&gt;</span> before.txt</span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Apply optimization</span></span>
-<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="co"># ... make changes ...</span></span>
-<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Measure improvement</span></span>
-<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a><span class="fu">gcc</span> <span class="at">-O2</span> <span class="at">-DAETHER_PROFILE</span> <span class="at">-o</span> bench_after</span>
-<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a><span class="ex">./bench_after</span> <span class="op">&gt;</span> after.txt</span>
-<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Compare</span></span>
-<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a><span class="fu">diff</span> before.txt after.txt</span></code></pre></div>
-<h3 id="2-find-bottlenecks">2. Find Bottlenecks</h3>
-<p>Look for operations with highest cycle counts or lowest
-throughput:</p>
-<pre><code>Actor Step: 125.67 cycles/op  ← SLOW! Investigate actor logic
-SPSC Queue: 12.34 cycles/op   ← FAST! Lock-free working
-Mailbox:    19.28 cycles/op   ← GOOD baseline</code></pre>
-<h3 id="3-monitor-production">3. Monitor Production</h3>
-<p>Enable in staging environment to catch regressions before
-production:</p>
-<div class="sourceCode" id="cb10"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Staging with profiling</span></span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="bu">export</span> <span class="va">AETHER_PROFILE</span><span class="op">=</span>1</span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="ex">./run_staging_tests.sh</span></span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Check for regressions</span></span>
-<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="bu">[</span> <span class="va">$(</span><span class="fu">awk</span> <span class="st">&#39;/Avg Cycles/{print $NF}&#39;</span> profile.txt<span class="va">)</span> <span class="ot">-gt</span> 25 <span class="bu">]</span><span class="kw">;</span> <span class="cf">then</span></span>
-<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>    <span class="bu">echo</span> <span class="st">&quot;Performance regression detected!&quot;</span></span>
-<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>    <span class="bu">exit</span> 1</span>
-<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a><span class="cf">fi</span></span></code></pre></div>
-<h2 id="technical-details">Technical Details</h2>
-<h3 id="rdtsc-cycle-counting">RDTSC Cycle Counting</h3>
-<p>Uses <code>__rdtsc()</code> intrinsic for cycle-accurate
-measurements:</p>
-<ul>
-<li>Resolution: 1 CPU cycle</li>
-<li>Overhead: ~20-30 cycles per measurement</li>
-<li>Accuracy: ±2% on modern CPUs</li>
-</ul>
-<h3 id="atomic-statistics">Atomic Statistics</h3>
-<p>Stats use relaxed atomics for minimal overhead:</p>
-<ul>
-<li>Per-core stats (reduces contention)</li>
-<li>Atomic fetch-add for counters</li>
-<li>Final aggregation at report time</li>
-</ul>
-<h3 id="overhead-analysis">Overhead Analysis</h3>
-<p>With profiling enabled:</p>
-<ul>
-<li>~25 cycles per operation (2x overhead at 20 cycles/op)</li>
-<li>Acceptable for development/CI</li>
-<li><strong>Zero overhead in production</strong> (macros compile
-out)</li>
-</ul>
-<h2 id="examples">Examples</h2>
-<p>See:</p>
-<ul>
-<li><code>tests/runtime/bench_profiled.c</code> - Basic example</li>
-<li><code>tests/runtime/bench_atomic_overhead.c</code> - Atomic
-operation analysis</li>
-<li><code>tests/runtime/micro_profile.h</code> - Low-level
-utilities</li>
-</ul>
-<h2 id="best-practices">Best Practices</h2>
-<ol type="1">
-<li><strong>Always compare before/after</strong> - Don't guess,
-measure</li>
-<li><strong>Use CSV exports</strong> - Track trends over time</li>
-<li><strong>Profile in CI</strong> - Catch regressions early</li>
-<li><strong>Disable in production</strong> - Zero overhead by
-default</li>
-<li><strong>Focus on hot paths</strong> - Profile what matters</li>
-</ol>
-<h2 id="optimization-validation">Optimization Validation</h2>
-<p>Using this profiling system, you can measure:</p>
-<ul>
-<li>Atomic operation overhead in hot paths</li>
-<li>Mailbox operation cycles</li>
-<li>Message copy overhead</li>
-<li>Queue operation latency</li>
-</ul>
-<p>Profile your code to identify bottlenecks and validate optimizations
-on your target hardware. Results vary by platform and workload.</p>
-    </article>
-  </main>
+Total Messages:   &lt;N&gt;
+Avg Cycles/Msg:   &lt;avg&gt;
+Throughput:       &lt;N&gt; M msg/sec  (= clock_GHz × 1000 / Avg_Cycles/Msg)</code></pre>
+<h2>What Gets Measured</h2>
+<h3>Mailbox Operations</h3>
+<ul><li><code>mailbox_send()</code> - Single message send</li><li><code>mailbox_receive()</code> - Single message receive</li><li><code>mailbox_send_batch()</code> - Batched sends</li><li><code>mailbox_receive_batch()</code> - Batched receives</li></ul>
+<h3>SPSC Queue (Same-Core Fast Path)</h3>
+<ul><li><code>spsc_enqueue()</code> - Lock-free enqueue</li><li><code>spsc_dequeue()</code> - Lock-free dequeue</li></ul>
+<h3>Cross-Core Messaging</h3>
+<ul><li><code>queue_enqueue()</code> - Cross-core message queue</li><li><code>queue_dequeue()</code> - Dequeue from shared queue</li></ul>
+<h3>Scheduler</h3>
+<ul><li><code>actor_step()</code> - Actor processing time</li><li>Idle cycles</li><li>Atomic operation counts</li><li>Lock contention tracking</li></ul>
+<h2>Production Use</h2>
+<h3>Zero Overhead in Production</h3>
+<p>Without <code>-DAETHER_PROFILE</code>, all profiling macros compile to <code>((void)0)</code> - <strong>zero overhead</strong>.</p>
+<pre><code># Production build - no profiling
+gcc -O2 -march=native your_app.c -o your_app_prod
 
-  <!-- FOOTER -->
-  <footer>
-    <p>&copy; 2026 Nicolas Maman</p>
-    <p><a href="#">Privacy</a> &middot; <a href="https://github.com/nicolasmd87/aether/blob/main/LICENSE">License</a> &middot; <a href="mailto:hello@aether.org">Contact</a></p>
-  </footer>
+# Development build - with profiling
+gcc -O2 -march=native -DAETHER_PROFILE your_app.c \
+    runtime/utils/aether_runtime_profile.c -o your_app_dev</code></pre>
+<h3>Continuous Integration</h3>
+<p>Use profiled builds in CI to detect performance regressions:</p>
+<pre><code># Run profiled benchmark
+./bench_profiled.exe
+
+# Export to CSV
+# Result: profile_results.csv
+
+# Compare the CSV output against a saved baseline manually,
+# or integrate with your preferred benchmarking toolchain.</code></pre>
+<h2>CSV Export Format</h2>
+<pre><code>core,operation,count,total_cycles,avg_cycles
+0,mailbox_send,&lt;N&gt;,&lt;total&gt;,&lt;avg&gt;
+0,mailbox_receive,&lt;N&gt;,&lt;total&gt;,&lt;avg&gt;
+0,batch_send,&lt;N&gt;,&lt;total&gt;,&lt;avg&gt;</code></pre>
+<p>Use for:</p>
+<ul><li>Trend analysis across commits</li><li>Performance regression detection</li><li>Bottleneck identification</li><li>Optimization validation</li></ul>
+<h2>Integration with Existing Code</h2>
+<h3>Automatic in Hot Paths</h3>
+<p>Profiling is already integrated into:</p>
+<ul><li><code>actor_state_machine.h</code> - Mailbox operations</li><li>(More to be added as needed)</li></ul>
+<h3>Manual Instrumentation</h3>
+<p>Add to custom hot paths:</p>
+<pre><code>#include &quot;runtime/utils/aether_runtime_profile.h&quot;
+
+void my_hot_function(int core_id) {
+    PROFILE_START();
+    
+    // Your code here
+    do_work();
+    
+    PROFILE_END_ACTOR_STEP(core_id);
+}</code></pre>
+<p>Available macros:</p>
+<ul><li><code>PROFILE_START()</code> - Begin timing</li><li><code>PROFILE_END_MAILBOX_SEND(core_id)</code></li><li><code>PROFILE_END_MAILBOX_RECEIVE(core_id)</code></li><li><code>PROFILE_END_BATCH_SEND(core_id, count)</code></li><li><code>PROFILE_END_BATCH_RECEIVE(core_id, count)</code></li><li><code>PROFILE_END_SPSC_ENQUEUE(core_id)</code></li><li><code>PROFILE_END_SPSC_DEQUEUE(core_id)</code></li><li><code>PROFILE_END_QUEUE_ENQUEUE(core_id)</code></li><li><code>PROFILE_END_QUEUE_DEQUEUE(core_id)</code></li><li><code>PROFILE_END_ACTOR_STEP(core_id)</code></li><li><code>PROFILE_ATOMIC_OP(core_id)</code></li><li><code>PROFILE_LOCK_CONTENTION(core_id)</code></li></ul>
+<h2>Use Cases</h2>
+<h3>1. Validate Optimizations</h3>
+<pre><code># Baseline
+gcc -O2 -DAETHER_PROFILE -o bench_before
+./bench_before &gt; before.txt
+
+# Apply optimization
+# ... make changes ...
+
+# Measure improvement
+gcc -O2 -DAETHER_PROFILE -o bench_after
+./bench_after &gt; after.txt
+
+# Compare
+diff before.txt after.txt</code></pre>
+<h3>2. Find Bottlenecks</h3>
+<p>Look for operations with the highest cycle counts and compare them across runs:</p>
+<ul><li><code>Actor Step</code> dominating the report is the load signal, investigate handler code.</li><li><code>SPSC Queue</code> cycles indicate same-core fast-path health; a sudden rise hints at queue-full or cache-line contention.</li><li><code>Mailbox</code> cycles are the cross-core baseline; use it as the reference for relative changes.</li></ul>
+<h3>3. Monitor Production</h3>
+<p>Build your staging binary with profiling enabled to catch regressions before production. Profiling is a <strong>compile-time</strong> switch (<code>-DAETHER_PROFILE</code>), not a runtime setting, the <code>AETHER_PROFILE</code> <em>environment variable</em> is unrelated (it selects a runtime memory profile and does <strong>not</strong> enable profiling output).</p>
+<pre><code># Staging binary, built with profiling instrumentation
+gcc -O2 -march=native -DAETHER_PROFILE your_app.c -o staging_app
+./run_staging_tests.sh   # exercises the instrumented staging_app
+
+# Check for regressions against a saved baseline. Pick TOLERANCE to
+# match your run-to-run noise floor; CV% in the benchmark suite is a
+# good starting point.
+TOLERANCE=${TOLERANCE:-1.10}
+BASELINE=$(awk &#x27;/Avg Cycles/{print $NF}&#x27; baseline.txt)
+CURRENT=$(awk &#x27;/Avg Cycles/{print $NF}&#x27; profile.txt)
+if awk &quot;BEGIN { exit !($CURRENT &gt; $BASELINE * $TOLERANCE) }&quot;; then
+    echo &quot;Performance regression detected: current exceeds baseline × TOLERANCE&quot;
+    exit 1
+fi</code></pre>
+<h2>Technical Details</h2>
+<h3>RDTSC Cycle Counting</h3>
+<p>Uses <code>__rdtsc()</code> intrinsic for cycle-accurate measurements:</p>
+<ul><li>Resolution: 1 CPU cycle</li><li>Overhead: small, fixed per measurement, consult the Intel/AMD manual for your target</li><li>Accuracy: good for relative comparison on the same host; absolute cycle-to-wall-time conversion depends on TSC frequency</li></ul>
+<h3>Atomic Statistics</h3>
+<p>Stats use relaxed atomics for minimal overhead:</p>
+<ul><li>Per-core stats (reduces contention)</li><li>Atomic fetch-add for counters</li><li>Final aggregation at report time</li></ul>
+<h3>Overhead Analysis</h3>
+<p>With profiling enabled:</p>
+<ul><li><code>__rdtsc()</code> instrumentation adds a small fixed overhead per measured operation. The exact cost is target-dependent; expect the instrumented path to run measurably slower than the bare one, but not so much that relative comparisons stop being meaningful.</li><li>Acceptable for development/CI.</li><li><strong>Zero overhead in production</strong> (macros compile out).</li></ul>
+<h2>Examples</h2>
+<p>See:</p>
+<ul><li><code>tests/runtime/bench_profiled.c</code> - Basic example</li><li><code>tests/runtime/bench_atomic_overhead.c</code> - Atomic operation analysis</li><li><code>tests/runtime/micro_profile.h</code> - Low-level utilities</li></ul>
+<h2>Best Practices</h2>
+<ol><li><strong>Always compare before/after</strong> - Don&#x27;t guess, measure</li><li><strong>Use CSV exports</strong> - Track trends over time</li><li><strong>Profile in CI</strong> - Catch regressions early</li><li><strong>Disable in production</strong> - Zero overhead by default</li><li><strong>Focus on hot paths</strong> - Profile what matters</li></ol>
+<h2>Optimization Validation</h2>
+<p>Using this profiling system, you can measure:</p>
+<ul><li>Atomic operation overhead in hot paths</li><li>Mailbox operation cycles</li><li>Message copy overhead</li><li>Queue operation latency</li></ul>
+<p>Profile your code to identify bottlenecks and validate optimizations on your target hardware. Results vary by platform and workload.</p>
+      </article>
+    </main>
+  </div>
+</div>
+<footer class="site-foot">
+  <div class="wrap foot">
+    <span class="ae">ae</span>
+    <span class="m">MIT licensed · compiles to C · v0.454</span>
+    <nav><a href="/Docs/getting-started.html">Docs</a><a href="/repl.html">Playground</a><a href="https://github.com/aether-lang-org/aether">GitHub</a></nav>
+  </div>
+</footer>
 </body>
 </html>

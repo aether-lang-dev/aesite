@@ -1,40 +1,100 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>runtime-config</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/style.css" />
-  <link rel="stylesheet" href="/subpages.css" />
-  <link rel="stylesheet" href="/articles.css" />
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Runtime Configuration - Quick Reference · Aether</title>
+<meta name="description" content="Runtime Configuration - Quick Reference — Aether language documentation.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/aether.css">
 </head>
 <body>
-
-  <!-- NAV -->
-  <nav>
-    <a class="nav-logo" href="/index.html">Aether<span>.</span></a>
-    <ul class="nav-links">
-      <li><a href="/index.html#features">Features</a></li>
-      <li><a href="/index.html#syntax">Syntax</a></li>
-      <li><a href="/index.html#install">Install</a></li>
-      <li><a href="/faq.html">FAQ</a></li>
-    </ul>
-  </nav>
-
-  <!-- MAIN -->
-  <main class="section">
-    <div>
-      <p class="section-label">Learning Material</p>
-    </div>
-
-    <article class="article-content">
-<h1 id="runtime-configuration---quick-reference">Runtime Configuration -
-Quick Reference</h1>
-<h2 id="what-does-lock-free-mean">What Does "Lock-Free" Mean?</h2>
-<p><strong>Simple Explanation:</strong></p>
+<header class="site-head">
+  <div class="wrap bar">
+    <a class="brand" href="/" aria-label="Aether"><span class="ae">ae</span><span class="nm">aether</span></a>
+    <nav>
+      <a href="/repl.html">Playground</a>
+      <a href="/Docs/getting-started.html" class="on">Docs</a>
+      <a href="https://github.com/aether-lang-org/aether">Source</a>
+      <span class="vtag">v0.454</span>
+    </nav>
+  </div>
+</header>
+<div class="wrap">
+  <div class="doc-shell">
+    <nav class="doc-nav"><div class="grp">Start</div>
+<a href="/Docs/getting-started.html">Getting Started with Aether</a>
+<a href="/Docs/tutorial.html">Aether Language Tutorial</a>
+<a href="/Docs/next-steps.html">Next Steps</a>
+<div class="grp">Language</div>
+<a href="/Docs/language-reference.html">Aether Language Reference</a>
+<a href="/Docs/type-inference-guide.html">Aether Type Inference Guide</a>
+<a href="/Docs/type-annotation-style-guide.html">Aether Type Annotation Style Guide</a>
+<a href="/Docs/type-inference-multi-value-returns.html">Multi-Value Return Type Inference</a>
+<a href="/Docs/distinct-types.html">Distinct Types</a>
+<a href="/Docs/sequences.html">Sequences (`*StringSeq`)</a>
+<a href="/Docs/named-args-and-select.html">Named Arguments and select()</a>
+<a href="/Docs/closures-and-builder-dsl.html">Closures and Builder-Style DSL in Aether</a>
+<a href="/Docs/closures-and-lifetimes.html">Closures and Environment Lifetimes</a>
+<a href="/Docs/module-system-design.html">Aether Module System</a>
+<div class="grp">Runtime</div>
+<a href="/Docs/architecture.html">Aether Architecture</a>
+<a href="/Docs/actor-concurrency.html">Aether Runtime Guide</a>
+<a href="/Docs/structured-concurrency.html">Structured Concurrency for Aether, Design Direction</a>
+<a href="/Docs/scheduler-quick-reference.html">Aether Scheduler - Quick Reference</a>
+<a href="/Docs/memory-management.html">Aether Memory Management</a>
+<a href="/Docs/runtime-optimizations.html">Runtime Optimizations</a>
+<a href="/Docs/numa-support.html">NUMA Support in Aether</a>
+<div class="grp">Interop</div>
+<a href="/Docs/c-interop.html">C Interoperability</a>
+<a href="/Docs/c-embedding.html">Embedding Aether Actors in C Applications</a>
+<a href="/Docs/emit-lib.html">Embedding Aether as a Shared Library (`--emit=lib`)</a>
+<a href="/Docs/embedded-namespaces-and-host-bindings.html">Aether as a Configuration Language, v2: Namespaces and Generated Bindings</a>
+<a href="/Docs/aether-embedded-in-host-applications.html">Aether as a Configuration Language for Other Languages</a>
+<a href="/Docs/lib-caller-info.html">`--emit=lib` caller-info channel</a>
+<div class="grp">Stdlib</div>
+<a href="/Docs/stdlib-reference.html">Aether Standard Library Reference</a>
+<a href="/Docs/stdlib-api.html">Aether Standard Library Guide</a>
+<a href="/Docs/stdlib-module-pattern.html">Aether Stdlib Module Pattern</a>
+<a href="/Docs/stdlib-vs-contrib.html">`std/` vs `contrib/` placement decisions</a>
+<a href="/Docs/http-server.html">`std.http` HTTP Server</a>
+<a href="/Docs/http-reverse-proxy.html">`std.http.proxy` reverse proxy</a>
+<a href="/Docs/http-handler-context.html">HTTP handlers with per-server / per-route state</a>
+<a href="/Docs/http-vcr.html">HTTP Record/Replay (VCR), moved out of Aether</a>
+<a href="/Docs/json-parser-design.html">`std.json` Design Notes</a>
+<div class="grp">Safety</div>
+<a href="/Docs/containment-sandbox.html">Containment and Sandboxing in Aether</a>
+<a href="/Docs/hide-and-seal.html">`hide` and `seal except` scope-level capability denial</a>
+<a href="/Docs/compiler-trust-boundary.html">The Compiler Trust Boundary</a>
+<a href="/Docs/config-is-code.html">Config IS Code</a>
+<a href="/Docs/aether_compared_to_capsicum.html">Aether Sandbox Model vs. BSD Capsicum: Architecture, Parallels, and FreeBSD Integration</a>
+<div class="grp">Build</div>
+<a href="/Docs/build-system.html">Build System</a>
+<a href="/Docs/bootstrap-from-source.html">Bootstrapping Aether from source (HEAD)</a>
+<a href="/Docs/install-layout.html">Aether install layout</a>
+<a href="/Docs/runtime-config.html" class="on">Runtime Configuration - Quick Reference</a>
+<a href="/Docs/per-process-config.html">Per-process configuration in Aether</a>
+<a href="/Docs/cic-help.html">`ae help &lt;script&gt;` Offline diagnostics for config-IS-code</a>
+<div class="grp">More</div>
+<a href="/Docs/bindgen-consts.html">`ae bindgen consts`, importing C macro constants</a>
+<a href="/Docs/formatter.html">`ae fmt`, the source formatter</a>
+<a href="/Docs/isolated.html">`Isolated[T]`: move-only actor message payloads (#479)</a>
+<a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
+<a href="/Docs/profiling-guide.html">Aether Runtime Profiling Guide</a>
+<a href="/Docs/allocators.html">Allocators</a>
+<a href="/Docs/when-static-if.html">Compile-time `when` / static-if</a>
+<a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
+<a href="/Docs/contract-folding.html">Compile-time contract folding — costed design</a>
+<a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn&#x27;t need `macro_rules!`</a>
+<a href="/Docs/release-glibc-portability.html">Release binary portability across glibc versions</a>
+<a href="/Docs/error-unification.html">Unifying `T?` and `(value, err)` — costed design</a></nav>
+    <main class="doc-main">
+      <article class="doc-body">
+        <div class="bc">docs / build</div>
+<h1>Runtime Configuration - Quick Reference</h1>
+<h2>What Does &quot;Lock-Free&quot; Mean?</h2>
 <p><strong>With Locks (Old):</strong></p>
 <pre><code>Thread 1: Lock → Do Work → Unlock
 Thread 2: [WAITING...] Lock → Do Work → Unlock  ← Blocked!</code></pre>
@@ -44,382 +104,196 @@ Thread 2: [WAITING...] Lock → Do Work → Unlock  ← Blocked!</code></pre>
 Thread 2: Do Work (atomic operations)  ← No blocking!</code></pre>
 <p>Multiple threads work simultaneously.</p>
 <p><strong>Benefits:</strong></p>
-<ul>
-<li><strong>No waiting</strong> - threads never block each other</li>
-<li><strong>Lower overhead</strong> - eliminates mutex lock/unlock
-operations</li>
-<li><strong>Scalable</strong> - performance improves with more
-cores</li>
-</ul>
-<hr />
-<h2 id="integrated-optimizations">Integrated Optimizations</h2>
-<h3 id="what-was-implemented">What Was Implemented</h3>
-<ol type="1">
-<li><p><strong>Lock-Free Message Pools</strong></p>
-<ul>
-<li>TLS pools have no mutex</li>
-<li>Zero contention on hot path</li>
-<li>Automatic per-thread allocation</li>
-</ul></li>
-<li><p><strong>Lock-Free Mailboxes</strong></p>
-<ul>
-<li>SPSC (Single Producer Single Consumer) atomic queue</li>
-<li>64-byte cache line padding</li>
-<li>Runtime switchable</li>
-</ul></li>
-<li><p><strong>Runtime Configuration API</strong></p>
-<ul>
-<li>Control optimizations via flags</li>
-<li>Auto-detect CPU features</li>
-<li>Best out-of-the-box experience</li>
-</ul></li>
-</ol>
-<hr />
-<h2 id="usage">Usage</h2>
-<h3 id="option-1-auto-detect-recommended">Option 1: Auto-Detect
-(Recommended)</h3>
-<div class="sourceCode" id="cb3"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&quot;runtime/aether_runtime.h&quot;</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> main<span class="op">()</span> <span class="op">{</span></span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    <span class="co">// One line - automatically enables best optimizations</span></span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    aether_runtime_init<span class="op">(</span><span class="dv">0</span><span class="op">,</span> AETHER_FLAG_AUTO_DETECT<span class="op">);</span></span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Your code here...</span></span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>    aether_runtime_shutdown<span class="op">();</span></span>
-<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
-<p><strong>Example output on a modern CPU:</strong></p>
-<ul>
-<li>Lock-free mailboxes: active</li>
-<li>Lock-free pools: active</li>
-<li>MWAIT idle: active</li>
-<li>AVX2 SIMD: active</li>
-</ul>
-<hr />
-<h3 id="option-2-manual-control">Option 2: Manual Control</h3>
-<div class="sourceCode" id="cb4"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Explicit flags - full control</span></span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>aether_runtime_init<span class="op">(</span><span class="dv">8</span><span class="op">,</span></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    AETHER_FLAG_LOCKFREE_MAILBOX <span class="op">|</span>  <span class="co">// Use lock-free mailboxes</span></span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    AETHER_FLAG_LOCKFREE_POOLS   <span class="op">|</span>  <span class="co">// Use lock-free TLS pools</span></span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    AETHER_FLAG_ENABLE_SIMD      <span class="op">|</span>  <span class="co">// Use AVX2 vectorization</span></span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    AETHER_FLAG_ENABLE_MWAIT<span class="op">);</span>      <span class="co">// Use MWAIT for idle</span></span></code></pre></div>
-<hr />
-<h3 id="option-3-compatibility-mode">Option 3: Compatibility Mode</h3>
-<div class="sourceCode" id="cb5"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co">// No optimizations - works on any CPU</span></span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>aether_runtime_init<span class="op">(</span><span class="dv">4</span><span class="op">,</span> <span class="dv">0</span><span class="op">);</span>  <span class="co">// 4 cores, no flags</span></span></code></pre></div>
-<hr />
-<h3 id="option-4-debugverbose">Option 4: Debug/Verbose</h3>
-<div class="sourceCode" id="cb6"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Print configuration on startup</span></span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>aether_runtime_init<span class="op">(</span><span class="dv">0</span><span class="op">,</span> </span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    AETHER_FLAG_AUTO_DETECT <span class="op">|</span> </span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    AETHER_FLAG_VERBOSE<span class="op">);</span></span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="co">// Output:</span></span>
-<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="co">// ========================================</span></span>
-<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="co">//   Aether Runtime Configuration</span></span>
-<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a><span class="co">// ========================================</span></span>
-<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a><span class="co">// CPU: &lt;detected processor&gt;</span></span>
-<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a><span class="co">// Active Optimizations:</span></span>
-<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a><span class="co">//   Lock-free mailbox: active</span></span>
-<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a><span class="co">//   Lock-free pools:   active</span></span>
-<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a><span class="co">//   ...</span></span></code></pre></div>
-<hr />
-<h2 id="available-flags">Available Flags</h2>
-<table>
-<thead>
-<tr>
-<th>Flag</th>
-<th>Hex</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>AETHER_FLAG_AUTO_DETECT</code></td>
-<td>0x01</td>
-<td>Auto-detect CPU features (recommended)</td>
-</tr>
-<tr>
-<td><code>AETHER_FLAG_LOCKFREE_MAILBOX</code></td>
-<td>0x02</td>
-<td>Use lock-free SPSC mailboxes</td>
-</tr>
-<tr>
-<td><code>AETHER_FLAG_LOCKFREE_POOLS</code></td>
-<td>0x04</td>
-<td>Use lock-free TLS message pools</td>
-</tr>
-<tr>
-<td><code>AETHER_FLAG_ENABLE_SIMD</code></td>
-<td>0x08</td>
-<td>Enable AVX2 vectorization</td>
-</tr>
-<tr>
-<td><code>AETHER_FLAG_ENABLE_MWAIT</code></td>
-<td>0x10</td>
-<td>Enable MWAIT idle strategy</td>
-</tr>
-<tr>
-<td><code>AETHER_FLAG_VERBOSE</code></td>
-<td>0x20</td>
-<td>Print configuration on init</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Combine flags with bitwise OR:</strong></p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> flags <span class="op">=</span> AETHER_FLAG_LOCKFREE_MAILBOX <span class="op">|</span> </span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>            AETHER_FLAG_LOCKFREE_POOLS<span class="op">;</span></span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>aether_runtime_init<span class="op">(</span><span class="dv">8</span><span class="op">,</span> flags<span class="op">);</span></span></code></pre></div>
-<hr />
-<h2 id="performance-expectations">Performance Expectations</h2>
-<p>Performance varies by hardware and workload. Use the profiling tools
-to measure throughput on your target platform.</p>
-<p>See <a
-href="../benchmarks/cross-language/">benchmarks/cross-language</a> for
-detailed measurements.</p>
-<hr />
-<h2 id="examples">Examples</h2>
-<h3 id="example-1-simple-program">Example 1: Simple Program</h3>
-<div class="sourceCode" id="cb8"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&quot;runtime/aether_runtime.h&quot;</span></span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&quot;runtime/actors/aether_actor.h&quot;</span></span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> my_actor_process<span class="op">(</span>Actor<span class="op">*</span> self<span class="op">,</span> <span class="dt">void</span><span class="op">*</span> msg<span class="op">,</span> <span class="dt">int</span> size<span class="op">)</span> <span class="op">{</span></span>
-<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Process message</span></span>
-<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
-<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> main<span class="op">()</span> <span class="op">{</span></span>
-<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Initialize with auto-detect</span></span>
-<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>    aether_runtime_init<span class="op">(</span><span class="dv">0</span><span class="op">,</span> AETHER_FLAG_AUTO_DETECT<span class="op">);</span></span>
-<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Create actor (automatically uses configured optimizations)</span></span>
-<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>    Actor<span class="op">*</span> actor <span class="op">=</span> aether_actor_create<span class="op">(</span>my_actor_process<span class="op">);</span></span>
-<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>    aether_actor_start<span class="op">(</span>actor<span class="op">);</span></span>
-<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Send messages...</span></span>
-<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a>    aether_actor_stop<span class="op">(</span>actor<span class="op">);</span></span>
-<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a>    aether_actor_destroy<span class="op">(</span>actor<span class="op">);</span></span>
-<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a>    aether_runtime_shutdown<span class="op">();</span></span>
-<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="dv">0</span><span class="op">;</span></span>
-<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
-<h3 id="example-2-query-configuration">Example 2: Query
-Configuration</h3>
-<div class="sourceCode" id="cb9"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="dt">const</span> AetherRuntimeConfig<span class="op">*</span> config <span class="op">=</span> aether_runtime_get_config<span class="op">();</span></span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="op">(</span>config<span class="op">-&gt;</span>use_lockfree_mailbox<span class="op">)</span> <span class="op">{</span></span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>    printf<span class="op">(</span><span class="st">&quot;Using lock-free mailboxes!</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">);</span></span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
-<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="op">(</span>config<span class="op">-&gt;</span>use_simd<span class="op">)</span> <span class="op">{</span></span>
-<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>    printf<span class="op">(</span><span class="st">&quot;AVX2 SIMD enabled</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">);</span></span>
-<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
-<h3 id="example-3-feature-check">Example 3: Feature Check</h3>
-<div class="sourceCode" id="cb10"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="op">(</span>aether_runtime_has_feature<span class="op">(</span>AETHER_FLAG_ENABLE_MWAIT<span class="op">))</span> <span class="op">{</span></span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>    printf<span class="op">(</span><span class="st">&quot;MWAIT is enabled</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">);</span></span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
-<hr />
-<h2 id="testing">Testing</h2>
-<h3 id="check-cpu-features">Check CPU Features</h3>
-<p>Use the verbose flag to see detected CPU features at startup:</p>
-<div class="sourceCode" id="cb11"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>aether_runtime_init<span class="op">(</span><span class="dv">0</span><span class="op">,</span> AETHER_FLAG_AUTO_DETECT <span class="op">|</span> AETHER_FLAG_VERBOSE<span class="op">);</span></span></code></pre></div>
-<h3 id="run-configuration-example">Run Configuration Example</h3>
-<div class="sourceCode" id="cb12"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="ex">./build/runtime_example.exe</span></span></code></pre></div>
-<hr />
-<h2 id="how-it-works-internally">How It Works Internally</h2>
-<h3 id="mailbox-selection">Mailbox Selection</h3>
-<div class="sourceCode" id="cb13"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co">// In aether_actor_create()</span></span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>Actor<span class="op">*</span> actor <span class="op">=</span> aether_actor_create<span class="op">(</span>process_fn<span class="op">);</span></span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="co">// Runtime automatically selects mailbox type:</span></span>
-<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="op">(</span>runtime_config<span class="op">-&gt;</span>use_lockfree_mailbox<span class="op">)</span> <span class="op">{</span></span>
-<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Use atomic SPSC queue (no mutex)</span></span>
-<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>    lockfree_mailbox_init<span class="op">(&amp;</span>actor<span class="op">-&gt;</span>mailbox<span class="op">.</span>lockfree<span class="op">);</span></span>
-<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a><span class="op">}</span> <span class="cf">else</span> <span class="op">{</span></span>
-<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Use simple ring buffer</span></span>
-<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>    mailbox_init<span class="op">(&amp;</span>actor<span class="op">-&gt;</span>mailbox<span class="op">.</span>simple<span class="op">);</span></span>
-<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
-<h3 id="message-send">Message Send</h3>
-<div class="sourceCode" id="cb14"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co">// In aether_send_message()</span></span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="op">(</span>actor<span class="op">-&gt;</span>use_lockfree<span class="op">)</span> <span class="op">{</span></span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>    lockfree_mailbox_send<span class="op">(&amp;</span>actor<span class="op">-&gt;</span>mailbox<span class="op">.</span>lockfree<span class="op">,</span> msg<span class="op">);</span>  <span class="co">// Atomic</span></span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a><span class="op">}</span> <span class="cf">else</span> <span class="op">{</span></span>
-<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>    mailbox_send<span class="op">(&amp;</span>actor<span class="op">-&gt;</span>mailbox<span class="op">.</span>simple<span class="op">,</span> msg<span class="op">);</span>  <span class="co">// Simple</span></span>
-<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
-<h3 id="message-pool-allocation">Message Pool Allocation</h3>
-<div class="sourceCode" id="cb15"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co">// In message_pool_alloc()</span></span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="op">(</span>pool<span class="op">-&gt;</span>is_thread_local<span class="op">)</span> <span class="op">{</span></span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>    <span class="co">// LOCK-FREE PATH (no mutex)</span></span>
-<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>    buffer <span class="op">=</span> pool<span class="op">-&gt;</span>buffers<span class="op">[</span>pool<span class="op">-&gt;</span>head<span class="op">];</span></span>
-<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>    pool<span class="op">-&gt;</span>head <span class="op">=</span> <span class="op">(</span>pool<span class="op">-&gt;</span>head <span class="op">+</span> <span class="dv">1</span><span class="op">)</span> <span class="op">%</span> MESSAGE_POOL_SIZE<span class="op">;</span></span>
-<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> buffer<span class="op">;</span></span>
-<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a><span class="op">}</span> <span class="cf">else</span> <span class="op">{</span></span>
-<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Shared pool (with mutex)</span></span>
-<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>    pthread_mutex_lock<span class="op">(&amp;</span>pool<span class="op">-&gt;</span>lock<span class="op">);</span></span>
-<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>    <span class="co">// ...</span></span>
-<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
-<hr />
-<h2 id="environment-variables">Environment Variables</h2>
-<table>
-<thead>
-<tr>
-<th>Variable</th>
-<th>Effect</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>AETHER_NO_INLINE</code></td>
-<td>Disables Main Thread Actor Mode (forces scheduler-based
-processing)</td>
-</tr>
-<tr>
-<td><code>AETHER_INLINE</code></td>
-<td>Forces Main Thread Actor Mode even with multiple actors</td>
-</tr>
-<tr>
-<td><code>AETHER_SINGLE_CORE</code></td>
-<td>Pins all actors to core 0 (eliminates cross-core overhead)</td>
-</tr>
-<tr>
-<td><code>AETHER_PROFILE</code></td>
-<td>Memory profile: <code>micro</code>, <code>small</code>,
-<code>medium</code> (default), <code>large</code></td>
-</tr>
-<tr>
-<td><code>AETHER_MSG_POOL_SIZE</code></td>
-<td>Override message pool size (default from profile)</td>
-</tr>
-<tr>
-<td><code>AETHER_ACTOR_POOL_SIZE</code></td>
-<td>Override actor pool size (default from profile)</td>
-</tr>
-<tr>
-<td><code>AETHER_VERBOSE</code></td>
-<td>Print optimization configuration at startup</td>
-</tr>
-<tr>
-<td><code>BENCHMARK_MESSAGES</code></td>
-<td>Sets message count for benchmark programs</td>
-</tr>
-</tbody>
-</table>
-<hr />
-<h2 id="best-practices">Best Practices</h2>
-<ol type="1">
-<li><strong>Always use <code>AETHER_FLAG_AUTO_DETECT</code></strong>
-unless you have a specific reason not to</li>
-<li><strong>Use <code>AETHER_FLAG_VERBOSE</code></strong> during
-development to see what's enabled</li>
-<li><strong>Don't recompile</strong> for different CPUs - auto-detect
-handles it</li>
-<li><strong>Test on target hardware</strong> to verify optimizations are
-available</li>
-<li><strong>Profile first</strong> - measure actual performance
-gains</li>
-</ol>
-<hr />
-<h2 id="cross-platform-support">Cross-Platform Support</h2>
-<table>
-<thead>
-<tr>
-<th>Platform</th>
-<th>Lock-Free</th>
-<th>MWAIT</th>
-<th>SIMD</th>
-<th>Thread Affinity</th>
-<th>Status</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>Intel x86</strong> (2013+)</td>
-<td>Yes</td>
-<td>Yes</td>
-<td>AVX2</td>
-<td>Hard</td>
-<td>Full support</td>
-</tr>
-<tr>
-<td><strong>AMD Ryzen</strong></td>
-<td>Yes</td>
-<td>Yes</td>
-<td>AVX2</td>
-<td>Hard</td>
-<td>Full support</td>
-</tr>
-<tr>
-<td><strong>Apple Silicon</strong> (M1/M2/M3)</td>
-<td>Yes</td>
-<td>No (WFE)</td>
-<td>NEON</td>
-<td>Advisory</td>
-<td>P-cores only</td>
-</tr>
-<tr>
-<td><strong>Old x86</strong> (pre-2013)</td>
-<td>Yes</td>
-<td>No</td>
-<td>SSE4.2</td>
-<td>Hard</td>
-<td>Partial</td>
-</tr>
-<tr>
-<td><strong>ARM Linux</strong></td>
-<td>Yes</td>
-<td>No (WFE)</td>
-<td>NEON</td>
-<td>Hard</td>
-<td>Full support</td>
-</tr>
-<tr>
-<td><strong>Windows</strong></td>
-<td>Yes</td>
-<td>Yes</td>
-<td>AVX2</td>
-<td>Hard</td>
-<td>Full support</td>
-</tr>
-</tbody>
-</table>
-<p>Runtime automatically uses best available optimizations for each
-platform.</p>
-<p><strong>Apple Silicon Notes:</strong></p>
-<ul>
-<li>P-cores (Performance) detected via
-<code>hw.perflevel0.physicalcpu</code></li>
-<li>E-cores (Efficiency) excluded for consistent throughput</li>
-<li>QoS hints encourage P-core scheduling</li>
-<li>Thread affinity is advisory; macOS may migrate threads</li>
-</ul>
-<hr />
-<h2 id="troubleshooting">Troubleshooting</h2>
-<h3 id="issue-optimization-not-enabled">Issue: "Optimization not
-enabled"</h3>
-<p><strong>Solution:</strong> Use <code>AETHER_FLAG_VERBOSE</code> to
-see why:</p>
-<div class="sourceCode" id="cb16"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>aether_runtime_init<span class="op">(</span><span class="dv">0</span><span class="op">,</span> AETHER_FLAG_AUTO_DETECT <span class="op">|</span> AETHER_FLAG_VERBOSE<span class="op">);</span></span></code></pre></div>
-<h3 id="issue-performance-not-as-expected">Issue: "Performance not as
-expected"</h3>
-<p><strong>Check:</strong></p>
-<ol type="1">
-<li>CPU actually supports features (use <code>AETHER_FLAG_VERBOSE</code>
-to see detected capabilities)</li>
-<li>Flags are set correctly</li>
-<li>Actors created after <code>aether_runtime_init()</code></li>
-</ol>
-<h3 id="issue-works-on-development-machine-not-on-server">Issue: "Works
-on development machine, not on server"</h3>
-<p><strong>Reason:</strong> Different CPU capabilities
-<strong>Solution:</strong> Use <code>AETHER_FLAG_AUTO_DETECT</code> - it
-adapts automatically</p>
-    </article>
-  </main>
+<ul><li><strong>No waiting</strong> - threads never block each other</li><li><strong>Lower overhead</strong> - eliminates mutex lock/unlock operations</li><li><strong>Scalable</strong> - performance improves with more cores</li></ul>
+<hr>
+<h2>Integrated Optimizations</h2>
+<h3>What Was Implemented</h3>
+<ol><li><strong>Lock-Free Message Pools</strong></li><li>TLS pools have no mutex</li><li>Zero contention on hot path</li><li>Automatic per-thread allocation</li></ol>
+<ol><li><strong>Lock-Free Mailboxes</strong></li><li>SPSC (Single Producer Single Consumer) atomic queue</li><li>64-byte cache line padding</li><li>Runtime switchable</li></ol>
+<ol><li><strong>Runtime Configuration API</strong></li><li>Control optimizations via flags</li><li>Auto-detect CPU features</li><li>Enabled by default without manual configuration</li></ol>
+<hr>
+<h2>Usage</h2>
+<h3>Option 1: Auto-Detect (Recommended)</h3>
+<pre><code>#include &quot;runtime/aether_runtime.h&quot;
 
-  <!-- FOOTER -->
-  <footer>
-    <p>&copy; 2026 Nicolas Maman</p>
-    <p><a href="#">Privacy</a> &middot; <a href="https://github.com/nicolasmd87/aether/blob/main/LICENSE">License</a> &middot; <a href="mailto:hello@aether.org">Contact</a></p>
-  </footer>
+int main() {
+    // One line - automatically enables best optimizations
+    aether_runtime_init(0, AETHER_FLAG_AUTO_DETECT);
+    
+    // Your code here...
+    
+    aether_runtime_shutdown();
+}</code></pre>
+<p><strong>Example output on a modern CPU:</strong></p>
+<ul><li>Lock-free mailboxes: ENABLED</li><li>Lock-free pools: ENABLED</li><li>MWAIT idle: ENABLED</li><li>AVX2 SIMD: ENABLED</li></ul>
+<hr>
+<h3>Option 2: Manual Control</h3>
+<pre><code>// Explicit flags - full control
+aether_runtime_init(8,
+    AETHER_FLAG_LOCKFREE_MAILBOX |  // Use lock-free mailboxes
+    AETHER_FLAG_LOCKFREE_POOLS   |  // Use lock-free TLS pools
+    AETHER_FLAG_ENABLE_SIMD      |  // Use AVX2 vectorization
+    AETHER_FLAG_ENABLE_MWAIT);      // Use MWAIT for idle</code></pre>
+<hr>
+<h3>Option 3: Compatibility Mode</h3>
+<pre><code>// No optimizations - works on any CPU
+aether_runtime_init(4, 0);  // 4 cores, no flags</code></pre>
+<hr>
+<h3>Option 4: Debug/Verbose</h3>
+<pre><code>// Print configuration on startup
+aether_runtime_init(0, 
+    AETHER_FLAG_AUTO_DETECT | 
+    AETHER_FLAG_VERBOSE);
+
+// Output:
+// ========================================
+//   Aether Runtime Configuration
+// ========================================
+// CPU: &lt;detected processor&gt;
+// Active Optimizations:
+//   Lock-free mailbox: ENABLED
+//   Lock-free pools:   ENABLED
+//   ...</code></pre>
+<hr>
+<h2>Available Flags</h2>
+<table><thead><tr><th>Flag</th><th>Hex</th><th>Description</th></tr></thead><tbody><tr><td><code>AETHER_FLAG_AUTO_DETECT</code></td><td>0x01</td><td>Auto-detect CPU features (recommended)</td></tr><tr><td><code>AETHER_FLAG_LOCKFREE_MAILBOX</code></td><td>0x02</td><td>Use lock-free SPSC mailboxes</td></tr><tr><td><code>AETHER_FLAG_LOCKFREE_POOLS</code></td><td>0x04</td><td>Use lock-free TLS message pools</td></tr><tr><td><code>AETHER_FLAG_ENABLE_SIMD</code></td><td>0x08</td><td>Enable AVX2 vectorization</td></tr><tr><td><code>AETHER_FLAG_ENABLE_MWAIT</code></td><td>0x10</td><td>Enable MWAIT idle strategy</td></tr><tr><td><code>AETHER_FLAG_VERBOSE</code></td><td>0x20</td><td>Print configuration on init</td></tr></tbody></table>
+<p><strong>Combine flags with bitwise OR:</strong></p>
+<pre><code>int flags = AETHER_FLAG_LOCKFREE_MAILBOX | 
+            AETHER_FLAG_LOCKFREE_POOLS;
+aether_runtime_init(8, flags);</code></pre>
+<hr>
+<h2>Performance Expectations</h2>
+<p>Performance varies by hardware and workload. Use the profiling tools to measure throughput on your target platform.</p>
+<p>See <a href="../benchmarks/cross-language/">benchmarks/cross-language</a> for detailed measurements.</p>
+<hr>
+<h2>Examples</h2>
+<h3>Example 1: Simple Program</h3>
+<pre><code>#include &quot;runtime/aether_runtime.h&quot;
+#include &quot;runtime/actors/aether_actor.h&quot;
+
+void my_actor_process(Actor* self, void* msg, int size) {
+    // Process message
+}
+
+int main() {
+    // Initialize with auto-detect
+    aether_runtime_init(0, AETHER_FLAG_AUTO_DETECT);
+    
+    // Create actor (automatically uses configured optimizations)
+    Actor* actor = aether_actor_create(my_actor_process);
+    aether_actor_start(actor);
+    
+    // Send messages...
+    
+    aether_actor_stop(actor);
+    aether_actor_destroy(actor);
+    aether_runtime_shutdown();
+    return 0;
+}</code></pre>
+<h3>Example 2: Query Configuration</h3>
+<pre><code>const AetherRuntimeInitConfig* config = aether_runtime_get_config();
+
+if (config-&gt;use_lockfree_mailbox) {
+    printf(&quot;Using lock-free mailboxes!\n&quot;);
+}
+
+if (config-&gt;use_simd) {
+    printf(&quot;AVX2 SIMD enabled\n&quot;);
+}</code></pre>
+<h3>Example 3: Feature Check</h3>
+<pre><code>if (aether_runtime_has_feature(AETHER_FLAG_ENABLE_MWAIT)) {
+    printf(&quot;MWAIT is enabled\n&quot;);
+}</code></pre>
+<hr>
+<h2>Testing</h2>
+<h3>Check CPU Features</h3>
+<p>Use the verbose flag to see detected CPU features at startup:</p>
+<pre><code>aether_runtime_init(0, AETHER_FLAG_AUTO_DETECT | AETHER_FLAG_VERBOSE);</code></pre>
+<h3>Run Configuration Example</h3>
+<p>Build and run the C example under <code>runtime/examples/</code>:</p>
+<pre><code>cd runtime/examples
+gcc -O2 -o runtime_config runtime_config_example.c ../../runtime/*.c -I../..
+./runtime_config</code></pre>
+<hr>
+<h2>How It Works Internally</h2>
+<h3>Mailbox Selection</h3>
+<pre><code>// In aether_actor_create()
+Actor* actor = aether_actor_create(process_fn);
+
+// Runtime automatically selects mailbox type:
+if (runtime_config-&gt;use_lockfree_mailbox) {
+    // Use atomic SPSC queue (no mutex)
+    lockfree_mailbox_init(&amp;actor-&gt;mailbox.lockfree);
+} else {
+    // Use simple ring buffer
+    mailbox_init(&amp;actor-&gt;mailbox.simple);
+}</code></pre>
+<h3>Message Send</h3>
+<pre><code>// In aether_send_message()
+if (actor-&gt;use_lockfree) {
+    lockfree_mailbox_send(&amp;actor-&gt;mailbox.lockfree, msg);  // Atomic
+} else {
+    mailbox_send(&amp;actor-&gt;mailbox.simple, msg);  // Simple
+}</code></pre>
+<h3>Message Pool Allocation</h3>
+<pre><code>// In message_pool_alloc()
+if (pool-&gt;is_thread_local) {
+    // LOCK-FREE PATH (no mutex)
+    buffer = pool-&gt;buffers[pool-&gt;head];
+    pool-&gt;head = (pool-&gt;head + 1) % MESSAGE_POOL_SIZE;
+    return buffer;
+} else {
+    // Shared pool (with mutex)
+    pthread_mutex_lock(&amp;pool-&gt;lock);
+    // ...
+}</code></pre>
+<hr>
+<h2>Environment Variables</h2>
+<table><thead><tr><th>Variable</th><th>Effect</th></tr></thead><tbody><tr><td><code>AETHER_NO_INLINE</code></td><td>Disables Main Thread Actor Mode (forces scheduler-based processing)</td></tr><tr><td><code>AETHER_INLINE</code></td><td>Forces Main Thread Actor Mode even with multiple actors</td></tr><tr><td><code>AETHER_SINGLE_CORE</code></td><td>Pins all actors to core 0 (eliminates cross-core overhead)</td></tr><tr><td><code>AETHER_PROFILE</code></td><td>Memory profile: <code>micro</code>, <code>small</code>, <code>medium</code> (default), <code>large</code></td></tr><tr><td><code>AETHER_MSG_POOL_SIZE</code></td><td>Override message pool size (default from profile)</td></tr><tr><td><code>AETHER_ACTOR_POOL_SIZE</code></td><td>Override actor pool size (default from profile)</td></tr><tr><td><code>AETHER_VERBOSE</code></td><td>Print optimization configuration at startup</td></tr><tr><td><code>AETHER_PREEMPT</code></td><td>Enable cooperative preemption (time-based drain loop break, default 1ms)</td></tr><tr><td><code>AETHER_PREEMPT_MS</code></td><td>Override preemption threshold in milliseconds (default 1)</td></tr><tr><td><code>BENCHMARK_MESSAGES</code></td><td>Sets message count for benchmark programs</td></tr></tbody></table>
+<hr>
+<h2>Best Practices</h2>
+<ol><li><strong>Always use <code>AETHER_FLAG_AUTO_DETECT</code></strong> unless you have a specific reason not to</li><li><strong>Use <code>AETHER_FLAG_VERBOSE</code></strong> during development to see what&#x27;s enabled</li><li><strong>Don&#x27;t recompile</strong> for different CPUs - auto-detect handles it</li><li><strong>Test on target hardware</strong> to verify optimizations are available</li><li><strong>Profile first</strong> - measure actual performance gains</li></ol>
+<hr>
+<h2>Cross-Platform Support</h2>
+<table><thead><tr><th>Platform</th><th>Lock-Free</th><th>MWAIT</th><th>SIMD</th><th>Thread Affinity</th><th>Status</th></tr></thead><tbody><tr><td><strong>Intel x86</strong> (2013+)</td><td>Yes</td><td>Yes</td><td>AVX2</td><td>Hard</td><td>Full support</td></tr><tr><td><strong>AMD Ryzen</strong></td><td>Yes</td><td>Yes</td><td>AVX2</td><td>Hard</td><td>Full support</td></tr><tr><td><strong>Apple Silicon</strong> (M1/M2/M3)</td><td>Yes</td><td>No (WFE)</td><td>NEON</td><td>Advisory</td><td>P-cores only</td></tr><tr><td><strong>Old x86</strong> (pre-2013)</td><td>Yes</td><td>No</td><td>SSE4.2</td><td>Hard</td><td>Partial</td></tr><tr><td><strong>ARM Linux</strong></td><td>Yes</td><td>No (WFE)</td><td>NEON</td><td>Hard</td><td>Full support</td></tr><tr><td><strong>Windows</strong></td><td>Yes</td><td>Yes</td><td>AVX2</td><td>Hard</td><td>Full support</td></tr><tr><td><strong>WebAssembly</strong> (Emscripten)</td><td>N/A</td><td>No</td><td>No</td><td>No</td><td>Cooperative scheduler</td></tr><tr><td><strong>Embedded</strong> (ARM bare-metal)</td><td>N/A</td><td>No</td><td>No</td><td>No</td><td>Cooperative scheduler</td></tr></tbody></table>
+<p>With <code>AETHER_FLAG_AUTO_DETECT</code>, the runtime enables the optimizations each platform supports.</p>
+<h3>Cooperative Mode</h3>
+<p>On platforms without pthreads (WASM, embedded), or when threading is explicitly disabled (<code>-DAETHER_NO_THREADING</code>), the cooperative scheduler handles all actor processing on a single thread. Multi-actor programs work correctly, messages are processed cooperatively during <code>wait_for_idle()</code>.</p>
+<pre><code># Force cooperative mode on native (for testing):
+make stdlib EXTRA_CFLAGS=&quot;-DAETHER_NO_THREADING&quot;
+ae run examples/actors/counter.ae
+
+# Build for WebAssembly:
+make stdlib PLATFORM=wasm</code></pre>
+<h3>Platform Capability Flags</h3>
+<p>All platform-dependent code is gated behind <code>AETHER_HAS_*</code> compile-time flags defined in <code>runtime/config/aether_optimization_config.h</code>. These are auto-detected but can be overridden:</p>
+<pre><code># Disable specific features
+make stdlib EXTRA_CFLAGS=&quot;-DAETHER_NO_FILESYSTEM -DAETHER_NO_NETWORKING&quot;
+
+# Query capabilities at runtime
+AETHER_VERBOSE=1 ./program</code></pre>
+<p><strong>Apple Silicon Notes:</strong></p>
+<ul><li>P-cores (Performance) detected via <code>hw.perflevel0.physicalcpu</code></li><li>E-cores (Efficiency) excluded for consistent throughput</li><li>QoS hints encourage P-core scheduling</li><li>Thread affinity is advisory; macOS may migrate threads</li></ul>
+<hr>
+<h2>Troubleshooting</h2>
+<h3>Issue: &quot;Optimization not enabled&quot;</h3>
+<p><strong>Solution:</strong> Use <code>AETHER_FLAG_VERBOSE</code> to see why:</p>
+<pre><code>aether_runtime_init(0, AETHER_FLAG_AUTO_DETECT | AETHER_FLAG_VERBOSE);</code></pre>
+<h3>Issue: &quot;Performance not as expected&quot;</h3>
+<p><strong>Check:</strong></p>
+<ol><li>CPU actually supports features (use <code>AETHER_FLAG_VERBOSE</code> to see detected capabilities)</li><li>Flags are set correctly</li><li>Actors created after <code>aether_runtime_init()</code></li></ol>
+<h3>Issue: &quot;Works on development machine, not on server&quot;</h3>
+<p><strong>Reason:</strong> Different CPU capabilities <strong>Solution:</strong> Use <code>AETHER_FLAG_AUTO_DETECT</code> - it adapts automatically</p>
+      </article>
+    </main>
+  </div>
+</div>
+<footer class="site-foot">
+  <div class="wrap foot">
+    <span class="ae">ae</span>
+    <span class="m">MIT licensed · compiles to C · v0.454</span>
+    <nav><a href="/Docs/getting-started.html">Docs</a><a href="/repl.html">Playground</a><a href="https://github.com/aether-lang-org/aether">GitHub</a></nav>
+  </div>
+</footer>
 </body>
 </html>

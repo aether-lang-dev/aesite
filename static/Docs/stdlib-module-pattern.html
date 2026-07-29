@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Aether Stdlib Module Pattern · Aether</title>
+<meta name="description" content="Aether Stdlib Module Pattern — Aether language documentation.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/aether.css">
+</head>
+<body>
+<header class="site-head">
+  <div class="wrap bar">
+    <a class="brand" href="/" aria-label="Aether"><span class="ae">ae</span><span class="nm">aether</span></a>
+    <nav>
+      <a href="/repl.html">Playground</a>
+      <a href="/Docs/getting-started.html" class="on">Docs</a>
+      <a href="https://github.com/aether-lang-org/aether">Source</a>
+      <span class="vtag">v0.454</span>
+    </nav>
+  </div>
+</header>
+<div class="wrap">
+  <div class="doc-shell">
+    <nav class="doc-nav"><div class="grp">Start</div>
+<a href="/Docs/getting-started.html">Getting Started with Aether</a>
+<a href="/Docs/tutorial.html">Aether Language Tutorial</a>
+<a href="/Docs/next-steps.html">Next Steps</a>
+<div class="grp">Language</div>
+<a href="/Docs/language-reference.html">Aether Language Reference</a>
+<a href="/Docs/type-inference-guide.html">Aether Type Inference Guide</a>
+<a href="/Docs/type-annotation-style-guide.html">Aether Type Annotation Style Guide</a>
+<a href="/Docs/type-inference-multi-value-returns.html">Multi-Value Return Type Inference</a>
+<a href="/Docs/distinct-types.html">Distinct Types</a>
+<a href="/Docs/sequences.html">Sequences (`*StringSeq`)</a>
+<a href="/Docs/named-args-and-select.html">Named Arguments and select()</a>
+<a href="/Docs/closures-and-builder-dsl.html">Closures and Builder-Style DSL in Aether</a>
+<a href="/Docs/closures-and-lifetimes.html">Closures and Environment Lifetimes</a>
+<a href="/Docs/module-system-design.html">Aether Module System</a>
+<div class="grp">Runtime</div>
+<a href="/Docs/architecture.html">Aether Architecture</a>
+<a href="/Docs/actor-concurrency.html">Aether Runtime Guide</a>
+<a href="/Docs/structured-concurrency.html">Structured Concurrency for Aether, Design Direction</a>
+<a href="/Docs/scheduler-quick-reference.html">Aether Scheduler - Quick Reference</a>
+<a href="/Docs/memory-management.html">Aether Memory Management</a>
+<a href="/Docs/runtime-optimizations.html">Runtime Optimizations</a>
+<a href="/Docs/numa-support.html">NUMA Support in Aether</a>
+<div class="grp">Interop</div>
+<a href="/Docs/c-interop.html">C Interoperability</a>
+<a href="/Docs/c-embedding.html">Embedding Aether Actors in C Applications</a>
+<a href="/Docs/emit-lib.html">Embedding Aether as a Shared Library (`--emit=lib`)</a>
+<a href="/Docs/embedded-namespaces-and-host-bindings.html">Aether as a Configuration Language, v2: Namespaces and Generated Bindings</a>
+<a href="/Docs/aether-embedded-in-host-applications.html">Aether as a Configuration Language for Other Languages</a>
+<a href="/Docs/lib-caller-info.html">`--emit=lib` caller-info channel</a>
+<div class="grp">Stdlib</div>
+<a href="/Docs/stdlib-reference.html">Aether Standard Library Reference</a>
+<a href="/Docs/stdlib-api.html">Aether Standard Library Guide</a>
+<a href="/Docs/stdlib-module-pattern.html" class="on">Aether Stdlib Module Pattern</a>
+<a href="/Docs/stdlib-vs-contrib.html">`std/` vs `contrib/` placement decisions</a>
+<a href="/Docs/http-server.html">`std.http` HTTP Server</a>
+<a href="/Docs/http-reverse-proxy.html">`std.http.proxy` reverse proxy</a>
+<a href="/Docs/http-handler-context.html">HTTP handlers with per-server / per-route state</a>
+<a href="/Docs/http-vcr.html">HTTP Record/Replay (VCR), moved out of Aether</a>
+<a href="/Docs/json-parser-design.html">`std.json` Design Notes</a>
+<div class="grp">Safety</div>
+<a href="/Docs/containment-sandbox.html">Containment and Sandboxing in Aether</a>
+<a href="/Docs/hide-and-seal.html">`hide` and `seal except` scope-level capability denial</a>
+<a href="/Docs/compiler-trust-boundary.html">The Compiler Trust Boundary</a>
+<a href="/Docs/config-is-code.html">Config IS Code</a>
+<a href="/Docs/aether_compared_to_capsicum.html">Aether Sandbox Model vs. BSD Capsicum: Architecture, Parallels, and FreeBSD Integration</a>
+<div class="grp">Build</div>
+<a href="/Docs/build-system.html">Build System</a>
+<a href="/Docs/bootstrap-from-source.html">Bootstrapping Aether from source (HEAD)</a>
+<a href="/Docs/install-layout.html">Aether install layout</a>
+<a href="/Docs/runtime-config.html">Runtime Configuration - Quick Reference</a>
+<a href="/Docs/per-process-config.html">Per-process configuration in Aether</a>
+<a href="/Docs/cic-help.html">`ae help &lt;script&gt;` Offline diagnostics for config-IS-code</a>
+<div class="grp">More</div>
+<a href="/Docs/bindgen-consts.html">`ae bindgen consts`, importing C macro constants</a>
+<a href="/Docs/formatter.html">`ae fmt`, the source formatter</a>
+<a href="/Docs/isolated.html">`Isolated[T]`: move-only actor message payloads (#479)</a>
+<a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
+<a href="/Docs/profiling-guide.html">Aether Runtime Profiling Guide</a>
+<a href="/Docs/allocators.html">Allocators</a>
+<a href="/Docs/when-static-if.html">Compile-time `when` / static-if</a>
+<a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
+<a href="/Docs/contract-folding.html">Compile-time contract folding — costed design</a>
+<a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn&#x27;t need `macro_rules!`</a>
+<a href="/Docs/release-glibc-portability.html">Release binary portability across glibc versions</a>
+<a href="/Docs/error-unification.html">Unifying `T?` and `(value, err)` — costed design</a></nav>
+    <main class="doc-main">
+      <article class="doc-body">
+        <div class="bc">docs / stdlib</div>
+<h1>Aether Stdlib Module Pattern</h1>
+<p>This is the canonical shape for an Aether standard-library module. Use it when adding a new <code>std/&lt;name&gt;/</code> module or retrofitting an existing one.</p>
+<p>The worked example throughout this document is <a href="../std/fs/module.ae"><code>std/fs/module.ae</code></a>, read it alongside this doc.</p>
+<h2>The shape</h2>
+<p>Every <code>std/&lt;name&gt;/module.ae</code> has two layers:</p>
+<ol><li><strong>Raw externs</strong>, thin declarations of the underlying C functions.</li></ol>
+<p>Fallible externs use a <code>_raw</code> suffix and return the old C conventions (<code>ptr</code> for nullable, <code>int</code> for 1/0 success flags).</p>
+<ol><li><strong>Go-style wrappers</strong>, Aether functions that call the raw externs</li></ol>
+<p>and translate C-style returns into Go-style <code>(value, err)</code> tuples (or just <code>err</code> for operations with no return value).</p>
+<pre><code>// std.X - ... header
+//
+// API shape:
+//   - Raw externs end in `_raw` and return ptr/int in the old C-style
+//     convention. They are the escape hatch for advanced callers.
+//   - Aether-native wrappers (below) use Go-style `(value, err)` tuple
+//     returns and are the idiomatic way to call X operations.
+
+// ---- raw externs ----
+extern X_op_raw(args) -&gt; ptr
+extern X_pure_op(args) -&gt; int     // infallible, no _raw, no wrapper
+
+// ---- Go-style wrappers ----
+// Short docstring stating: what it does, and exactly what shape it
+// returns on success vs. failure.
+op(args) -&gt; {
+    r = X_op_raw(args)
+    if r == null {
+        return null, &quot;human-readable error&quot;
+    }
+    return r, &quot;&quot;
+}</code></pre>
+<h2>Rules</h2>
+<h3>When to add a <code>_raw</code> extern + wrapper</h3>
+<p>Any operation that can <strong>fail at runtime</strong>, open a file that doesn&#x27;t exist, allocate when memory is tight, parse malformed input, look up an absent key, etc. These get:</p>
+<ul><li>A <code>_raw</code>-suffixed C function (either rename the existing one or add</li></ul>
+<p>it alongside).</p>
+<ul><li>A companion Aether wrapper that turns the C return into either</li></ul>
+<p><code>(value, &quot;&quot;)</code> on success or <code>(zero-value, &quot;reason&quot;)</code> on failure.</p>
+<h3>When NOT to wrap</h3>
+<p>Keep raw externs with <strong>no</strong> <code>_raw</code> suffix and <strong>no</strong> wrapper for operations that are:</p>
+<ul><li>Pure total functions that can&#x27;t fail for any well-typed input</li></ul>
+<p>(<code>path_join</code>, <code>path_basename</code>, <code>math_sqrt</code>, <code>math_sin</code>, <code>string_length</code>, <code>list_size</code>), and infallible boolean queries (<code>file_exists</code>, <code>path_is_absolute</code>, <code>fs_is_symlink</code>, <code>json_is_null</code>, <code>map_has</code>).</p>
+<ul><li><strong>Sentinel-returning infallibles</strong> where the sentinel is part of the</li></ul>
+<p>contract, not an error. Example: <code>file_mtime</code> returns <code>0</code> for missing files or stat failure, callers already handle zero as &quot;no mtime&quot;, so wrapping would just add noise.</p>
+<ul><li><strong>Intentionally void fire-and-forget operations.</strong> Example:</li></ul>
+<p><a href="../std/log/module.ae"><code>log_write</code></a> in <code>std.log</code> the module deliberately degrades to stderr if the log file is unopenable, so callers don&#x27;t need an error from each write.</p>
+<ul><li><strong>Structural/DSL builders.</strong> Example: the manifest DSL in</li></ul>
+<p><a href="../std/host/module.ae"><code>std.host</code></a>, <code>describe</code>, <code>input</code>, <code>event</code>, <code>bindings</code>, <code>java</code>, … are void because they structurally append to a global registry. They&#x27;re not silent failures, they&#x27;re a different pattern.</p>
+<h3>Return shapes</h3>
+<table><thead><tr><th>Operation</th><th>Success return</th><th>Failure return</th></tr></thead><tbody><tr><td>Produces a value</td><td><code>(value, &quot;&quot;)</code></td><td><code>(zero-value, &quot;reason&quot;)</code></td></tr><tr><td>Produces nothing (setter, writer)</td><td><code>&quot;&quot;</code></td><td><code>&quot;reason&quot;</code></td></tr><tr><td>Lookup that can be absent</td><td><code>(value, &quot;&quot;)</code> / <code>(null, &quot;&quot;)</code> for absent</td><td><code>(null, &quot;reason&quot;)</code> for error</td></tr></tbody></table>
+<p>For the lookup row: distinguish <strong>absent</strong> from <strong>error</strong>. An absent key is not an error, the caller asked if X exists. Only return a non-empty error string when something actually went wrong (null receiver, wrong type, allocation failure).</p>
+<h3>Structured errors (pilot, issue #392)</h3>
+<p>A small set of newer wrappers extends the (value, err) shape with a <strong>third element</strong>: an integer &quot;kind&quot; that lets callers programmatically discriminate between failure modes without parsing the human-readable message. The tuple is <code>(value, kind: int, message: string)</code>. <code>kind == 0</code> means success (constant <code>KIND_OK</code>); non-zero means an error of the named class.</p>
+<pre><code>// (bytes_copied, kind, message)
+//   on success:  (n, KIND_OK, &quot;&quot;)
+//   on failure:  (bytes_so_far, KIND_NOT_FOUND, &quot;open src: ...&quot;)
+copy(src: string, dst: string) -&gt; (int, int, string) {
+    return fs_copy_raw(src, dst)
+}</code></pre>
+<p>Why kinds are returned per-call (not via process-global accessors like <code>vcr.last_kind()</code>): std.fs is called concurrently from actors; a shared mutable slot would race. The triple costs one extra register on every ABI we target (x86-64 SysV, AArch64 AAPCS, MS x64).</p>
+<p>The kinds themselves are exported <code>const int</code> values from the module that uses them (e.g. <code>fs.KIND_NOT_FOUND</code>, <code>fs.KIND_PERMISSION_DENIED</code>). Modules that use kinds <strong>must</strong> also export a matching <code>AETHER_&lt;MODULE&gt;_KIND_*</code> C macro set in their header so the C side and the Aether surface stay in lock-step.</p>
+<p>This shape is <strong>opt-in and additive</strong>. Existing wrappers keep their (value, err) or string-error returns, converting them is a non-breaking but wider change tracked separately. The pilot scope is <code>std.fs.{copy, move, realpath, chmod}</code>. Future modules may adopt the shape after the pilot has shaken out.</p>
+<table><thead><tr><th>Operation</th><th>Success return</th><th>Failure return</th></tr></thead><tbody><tr><td>Structured-error producer</td><td><code>(value, KIND_OK, &quot;&quot;)</code></td><td><code>(zero-value-or-partial, KIND_*, &quot;reason&quot;)</code></td></tr></tbody></table>
+<h3>Docstring</h3>
+<p>Every wrapper gets a short docstring stating what it does and <strong>the exact return shape</strong>. Match this voice:</p>
+<pre><code>// Open a file. Returns (handle, &quot;&quot;) on success, (null, error) on failure.
+open(path: string, mode: string) -&gt; {
+    ...
+}</code></pre>
+<h3>Ownership of returned strings</h3>
+<p>If the underlying C function returns a borrowed <code>const char*</code> (pointer into another object&#x27;s memory), the wrapper <strong>must</strong> copy it before returning so the caller&#x27;s string outlives the source object. The idiomatic copy in Aether is <code>string_concat(borrowed, &quot;&quot;)</code> see <a href="../std/fs/module.ae"><code>std.fs</code></a>&#x27;s <code>readlink</code> wrapper for the pattern.</p>
+<h2>Worked example: <code>std.fs</code></h2>
+<p><a href="../std/fs/module.ae"><code>std/fs/module.ae</code></a> is the reference implementation. Skim it start-to-finish; it demonstrates:</p>
+<ul><li>Raw <code>_raw</code> externs grouped at the top with structural comments.</li><li>Pure-function externs (the <code>path_*</code> block) that correctly have no</li></ul>
+<p><code>_raw</code> suffix and no wrapper.</p>
+<ul><li>Every fallible operation wrapped in a Go-style function below.</li><li>Consistent <code>&quot;cannot &lt;verb&gt; &lt;noun&gt;&quot;</code> error phrasing.</li><li>An explicit note where a raw extern is left unwrapped intentionally</li></ul>
+<p>(<code>file_mtime</code>&#x27;s sentinel-0 contract).</p>
+<h2>Modules that follow this pattern</h2>
+<p><code>fs</code>, <code>io</code>, <code>http</code>, <code>net</code>, <code>os</code>, <code>string</code>, <code>tcp</code>, <code>dir</code>, <code>file</code> full wrapper coverage. <code>json</code>, <code>collections</code>, <code>list</code>, <code>map</code> completed in the stdlib-consistency pass alongside this doc. <code>log</code> and <code>host</code>, intentionally follow domain-specific variants (fire-and-forget logging; DSL builders) as described above.</p>
+<h2>Adding a new stdlib module</h2>
+<ol><li>Create <code>std/&lt;name&gt;/</code> with <code>module.ae</code> and <code>aether_&lt;name&gt;.c</code>/<code>.h</code>.</li><li>Write the C functions first; split into <code>&lt;op&gt;_raw</code> (fallible) and</li></ol>
+<p><code>&lt;op&gt;</code> (infallible) per the rules above.</p>
+<ol><li>Mirror each function as an <code>extern</code> in <code>module.ae</code>, copying the</li></ol>
+<p><code>_raw</code> suffix for fallible ones.</p>
+<ol><li>Add the &quot;API shape&quot; preamble comment.</li><li>Add Go-style wrappers for every fallible extern.</li><li>Add tests exercising both the success and error paths of each</li></ol>
+<p>wrapper.</p>
+<ol><li>Add an example under <code>examples/stdlib/&lt;name&gt;-demo.ae</code> showing</li></ol>
+<p>idiomatic use of the Go-style API.</p>
+      </article>
+    </main>
+  </div>
+</div>
+<footer class="site-foot">
+  <div class="wrap foot">
+    <span class="ae">ae</span>
+    <span class="m">MIT licensed · compiles to C · v0.454</span>
+    <nav><a href="/Docs/getting-started.html">Docs</a><a href="/repl.html">Playground</a><a href="https://github.com/aether-lang-org/aether">GitHub</a></nav>
+  </div>
+</footer>
+</body>
+</html>

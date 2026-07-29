@@ -1,0 +1,522 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Closures and Builder-Style DSL in Aether · Aether</title>
+<meta name="description" content="Closures and Builder-Style DSL in Aether — Aether language documentation.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/aether.css">
+</head>
+<body>
+<header class="site-head">
+  <div class="wrap bar">
+    <a class="brand" href="/" aria-label="Aether"><span class="ae">ae</span><span class="nm">aether</span></a>
+    <nav>
+      <a href="/repl.html">Playground</a>
+      <a href="/Docs/getting-started.html" class="on">Docs</a>
+      <a href="https://github.com/aether-lang-org/aether">Source</a>
+      <span class="vtag">v0.454</span>
+    </nav>
+  </div>
+</header>
+<div class="wrap">
+  <div class="doc-shell">
+    <nav class="doc-nav"><div class="grp">Start</div>
+<a href="/Docs/getting-started.html">Getting Started with Aether</a>
+<a href="/Docs/tutorial.html">Aether Language Tutorial</a>
+<a href="/Docs/next-steps.html">Next Steps</a>
+<div class="grp">Language</div>
+<a href="/Docs/language-reference.html">Aether Language Reference</a>
+<a href="/Docs/type-inference-guide.html">Aether Type Inference Guide</a>
+<a href="/Docs/type-annotation-style-guide.html">Aether Type Annotation Style Guide</a>
+<a href="/Docs/type-inference-multi-value-returns.html">Multi-Value Return Type Inference</a>
+<a href="/Docs/distinct-types.html">Distinct Types</a>
+<a href="/Docs/sequences.html">Sequences (`*StringSeq`)</a>
+<a href="/Docs/named-args-and-select.html">Named Arguments and select()</a>
+<a href="/Docs/closures-and-builder-dsl.html" class="on">Closures and Builder-Style DSL in Aether</a>
+<a href="/Docs/closures-and-lifetimes.html">Closures and Environment Lifetimes</a>
+<a href="/Docs/module-system-design.html">Aether Module System</a>
+<div class="grp">Runtime</div>
+<a href="/Docs/architecture.html">Aether Architecture</a>
+<a href="/Docs/actor-concurrency.html">Aether Runtime Guide</a>
+<a href="/Docs/structured-concurrency.html">Structured Concurrency for Aether, Design Direction</a>
+<a href="/Docs/scheduler-quick-reference.html">Aether Scheduler - Quick Reference</a>
+<a href="/Docs/memory-management.html">Aether Memory Management</a>
+<a href="/Docs/runtime-optimizations.html">Runtime Optimizations</a>
+<a href="/Docs/numa-support.html">NUMA Support in Aether</a>
+<div class="grp">Interop</div>
+<a href="/Docs/c-interop.html">C Interoperability</a>
+<a href="/Docs/c-embedding.html">Embedding Aether Actors in C Applications</a>
+<a href="/Docs/emit-lib.html">Embedding Aether as a Shared Library (`--emit=lib`)</a>
+<a href="/Docs/embedded-namespaces-and-host-bindings.html">Aether as a Configuration Language, v2: Namespaces and Generated Bindings</a>
+<a href="/Docs/aether-embedded-in-host-applications.html">Aether as a Configuration Language for Other Languages</a>
+<a href="/Docs/lib-caller-info.html">`--emit=lib` caller-info channel</a>
+<div class="grp">Stdlib</div>
+<a href="/Docs/stdlib-reference.html">Aether Standard Library Reference</a>
+<a href="/Docs/stdlib-api.html">Aether Standard Library Guide</a>
+<a href="/Docs/stdlib-module-pattern.html">Aether Stdlib Module Pattern</a>
+<a href="/Docs/stdlib-vs-contrib.html">`std/` vs `contrib/` placement decisions</a>
+<a href="/Docs/http-server.html">`std.http` HTTP Server</a>
+<a href="/Docs/http-reverse-proxy.html">`std.http.proxy` reverse proxy</a>
+<a href="/Docs/http-handler-context.html">HTTP handlers with per-server / per-route state</a>
+<a href="/Docs/http-vcr.html">HTTP Record/Replay (VCR), moved out of Aether</a>
+<a href="/Docs/json-parser-design.html">`std.json` Design Notes</a>
+<div class="grp">Safety</div>
+<a href="/Docs/containment-sandbox.html">Containment and Sandboxing in Aether</a>
+<a href="/Docs/hide-and-seal.html">`hide` and `seal except` scope-level capability denial</a>
+<a href="/Docs/compiler-trust-boundary.html">The Compiler Trust Boundary</a>
+<a href="/Docs/config-is-code.html">Config IS Code</a>
+<a href="/Docs/aether_compared_to_capsicum.html">Aether Sandbox Model vs. BSD Capsicum: Architecture, Parallels, and FreeBSD Integration</a>
+<div class="grp">Build</div>
+<a href="/Docs/build-system.html">Build System</a>
+<a href="/Docs/bootstrap-from-source.html">Bootstrapping Aether from source (HEAD)</a>
+<a href="/Docs/install-layout.html">Aether install layout</a>
+<a href="/Docs/runtime-config.html">Runtime Configuration - Quick Reference</a>
+<a href="/Docs/per-process-config.html">Per-process configuration in Aether</a>
+<a href="/Docs/cic-help.html">`ae help &lt;script&gt;` Offline diagnostics for config-IS-code</a>
+<div class="grp">More</div>
+<a href="/Docs/bindgen-consts.html">`ae bindgen consts`, importing C macro constants</a>
+<a href="/Docs/formatter.html">`ae fmt`, the source formatter</a>
+<a href="/Docs/isolated.html">`Isolated[T]`: move-only actor message payloads (#479)</a>
+<a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
+<a href="/Docs/profiling-guide.html">Aether Runtime Profiling Guide</a>
+<a href="/Docs/allocators.html">Allocators</a>
+<a href="/Docs/when-static-if.html">Compile-time `when` / static-if</a>
+<a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
+<a href="/Docs/contract-folding.html">Compile-time contract folding — costed design</a>
+<a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn&#x27;t need `macro_rules!`</a>
+<a href="/Docs/release-glibc-portability.html">Release binary portability across glibc versions</a>
+<a href="/Docs/error-unification.html">Unifying `T?` and `(value, err)` — costed design</a></nav>
+    <main class="doc-main">
+      <article class="doc-body">
+        <div class="bc">docs / language</div>
+<h1>Closures and Builder-Style DSL in Aether</h1>
+<p>Aether supports closures, trailing blocks, and a builder-style DSL pattern inspired by Smalltalk&#x27;s blocks, Ruby&#x27;s blocks/procs, and Groovy&#x27;s closures. This document covers the syntax, semantics, and the builder context mechanism that enables pseudo-declarative DSLs.</p>
+<p>The compact name for this whole language feature, closures + trailing blocks executing in the caller&#x27;s context to give pseudo-declarative scripts, is <strong>&quot;DSL with scope&quot;</strong>, the term Yukihiro &quot;Matz&quot; Matsumoto (Ruby&#x27;s creator) said he&#x27;s always used for it. See [Paul Hammant&#x27;s &quot;That Ruby and Groovy Language Feature&quot; (2024-02-14)][matz-dsl-scope] for the genealogy from Smalltalk through Ruby, Groovy, Kotlin, SwiftUI, and the side-by-side calculator-app comparison across each.</p>
+<p>(Another lens on the same idea, less catchy but mechanically descriptive: <em>&quot;closure with context&quot;</em>, the trailing block is a closure that runs with an implicit context object available to its body, which is what <code>_ctx: ptr</code> injection and the builder context stack provide in Aether.)</p>
+<p>[matz-dsl-scope]: https://paulhammant.com/2024/02/14/that-ruby-and-groovy-language-feature</p>
+<h2>Quick reckoner (LLM cheat-sheet)</h2>
+<p>Two <strong>independent</strong> axes describe every trailing-block usage:</p>
+<p>**Axis 1, Trailing-block form (what the <em>caller</em> writes after <code>)</code>):**</p>
+<table><thead><tr><th>Form</th><th>Syntax</th><th>Runs</th><th>Captures</th></tr></thead><tbody><tr><td><strong>Immediate</strong></td><td><code>func() { body }</code></td><td>Inline, as DSL structure</td><td>Sees enclosing scope directly (it&#x27;s just inline code)</td></tr><tr><td><strong>Closure (parameterised)</strong></td><td>`func() \</td><td>x\</td><td>{ body }<code> or </code>\</td><td>x\</td><td>-&gt; expr`</td><td>Later, when invoked via <code>call(...)</code></td><td>Explicit parameters; captures enclosing locals by value</td></tr><tr><td><strong>Callback</strong></td><td><code>func() callback { body }</code> (optionally `callback \</td><td>x\</td><td><code> or </code>callback \</td><td>x\</td><td>-&gt; expr`)</td><td>Later, when invoked via <code>call(...)</code></td><td>Implicit capture of enclosing-scope locals (closure with no required params)</td></tr></tbody></table>
+<p>**Axis 2, Trailing-block-accepting function (what the <em>definition</em> declares):**</p>
+<table><thead><tr><th>Flavour</th><th>Definition</th><th>Order</th><th>Block provides</th><th>Function provides</th></tr></thead><tbody><tr><td><strong>Regular</strong></td><td>plain <code>func(...)</code> (often <code>_ctx: ptr</code> for auto-injection)</td><td>Function first, then block</td><td>Decoration / children</td><td>The container/value to fill</td></tr><tr><td><strong>Builder</strong></td><td><code>builder func(...)</code> (optionally <code>with &lt;factory&gt;</code> for the config object)</td><td><strong>Block first</strong>, then function</td><td>Configuration (a config object filled via setter calls)</td><td>The action that uses the filled config</td></tr></tbody></table>
+<p><strong>The axes multiply.</strong> Any of the three forms on the call side can target either flavour on the definition side, giving six legal combinations. Builder is not a fourth trailing-block form. It&#x27;s a function-side contract that any of the three trailing-block forms can attach to.</p>
+<p><strong>Related supporting machinery (covered later):</strong></p>
+<ul><li><strong>Builder context stack</strong> (<code>_ctx: ptr</code> auto-injection, <code>builder_context()</code>, <code>_aether_ctx_push/pop</code>)</li></ul>
+<p>wires parents to children automatically inside Immediate trailing blocks.</p>
+<ul><li><strong>Block-receiver scoping</strong>, <code>receiver.method(...) { body }</code> falls back through <code>&lt;receiver&gt;_&lt;name&gt;</code> for bare-name calls inside <code>body</code> (issue #333).</li><li><strong>Ref cells</strong> (<code>ref(v)</code> / <code>ref_get</code> / <code>ref_set</code>), shared mutable state for closures (which otherwise capture by value).</li><li><strong>Boxed closures</strong> (<code>box_closure</code> / <code>unbox_closure</code>), heap-allocate a closure so it can be stored in <code>std.list</code> / struct fields.</li><li><strong><code>fn</code> type</strong>, the parameter type for &quot;this function takes a closure&quot;; invoked with <code>call(fn_var, args...)</code>.</li></ul>
+<p><strong>Same-line rule</strong> (line 100+): a trailing block is attached to a call only when <code>{</code> appears on the same line as the call&#x27;s closing <code>)</code>. A <code>{</code> on the next line is an independent block. This is what stops <code>result = build()\n{ ... }</code> from greedily consuming the bare block as <code>build</code>&#x27;s closure (issue #286).</p>
+<p><strong>Separate axis, fluent method chaining (UFCS):</strong> the two axes above are the <em>block</em> DSL (a trailing block fills structure). The <em>value-chain</em> primitive is orthogonal: <code>x.f(args)</code> desugars to <code>f(x, args)</code> when <code>f</code>&#x27;s first parameter matches <code>typeof(x)</code>, so calls chain left-to-right (<code>expect(5).to_equal(5).to_be_gt(0)</code>). It works on imported library surfaces and is a strict last-resort that never shadows a module/field call. See <a href="#fluent-method-chaining-ufcs">Fluent Method Chaining (UFCS)</a>.</p>
+<h2>Background</h2>
+<p>The builder-style DSL pattern, where nested blocks of code describe structure declaratively while retaining full imperative power, originated in Smalltalk&#x27;s block-based APIs, was popularized by Ruby (Shoes, Sinatra, RSpec), and refined by Groovy (SwingBuilder, MarkupBuilder). Kotlin (Compose, TornadoFX) and Swift (SwiftUI) carry the tradition forward.</p>
+<p>The defining characteristic: <strong>functions accept trailing blocks that execute in the context of the caller</strong>, creating a nested, readable structure without explicit parent-child wiring.</p>
+<h2>Closure Syntax</h2>
+<p>Aether closures use pipe-delimited parameters with arrow or block bodies:</p>
+<pre><code>// Arrow closure (single expression, returns value)
+doubler = |x: int| -&gt; x * 2
+
+// Block closure (multiple statements)
+greeter = |name: string| {
+    println(&quot;Hello ${name}&quot;)
+}
+
+// No-parameter closure
+action = || {
+    println(&quot;done&quot;)
+}</code></pre>
+<p>Closures capture variables from their enclosing scope:</p>
+<pre><code>base = 100
+adder = |x: int| -&gt; x + base    // captures &#x27;base&#x27;
+result = call(adder, 42)         // 142</code></pre>
+<h2>Invoking Closures</h2>
+<p>Use the <code>call()</code> builtin:</p>
+<pre><code>doubler = |x: int| -&gt; x * 2
+result = call(doubler, 21)    // 42</code></pre>
+<h2>Closures as Function Parameters</h2>
+<p>Functions declare closure parameters with the <code>fn</code> type:</p>
+<pre><code>apply(x: int, f: fn) {
+    return call(f, x)
+}
+
+apply_twice(x: int, f: fn) {
+    return call(f, call(f, x))
+}
+
+main() {
+    doubler = |x: int| -&gt; x * 2
+    println(apply(21, doubler))         // 42
+    println(apply_twice(3, doubler))    // 12
+}</code></pre>
+<h2>Trailing Blocks</h2>
+<p>Any function call can be followed by a block <code>{ ... }</code>. This is the foundation of the builder DSL pattern:</p>
+<pre><code>setup(&quot;config&quot;) {
+    println(&quot;initializing&quot;)
+    // arbitrary code here
+}</code></pre>
+<p>There are two forms with different semantics:</p>
+<h3>Immediate blocks (DSL structure)</h3>
+<p>A bare <code>{ }</code> after a function call runs immediately, inline:</p>
+<pre><code>panel(&quot;title&quot;) {
+    button(&quot;OK&quot;)       // runs now, during construction
+    button(&quot;Cancel&quot;)
+}</code></pre>
+<h3>Same-line rule for trailing blocks</h3>
+<p>A trailing block <code>{ ... }</code> is recognised as part of a function call only when <code>{</code> appears on the <strong>same source line</strong> as the call&#x27;s closing <code>)</code>. A <code>{</code> on a later line is parsed as an independent block, not as a trailing closure for the preceding call.</p>
+<pre><code>result = build() { ... }    // trailing closure of build()
+
+result = build()
+{ ... }                     // independent block, runs after build()</code></pre>
+<p>Why: this rule lets ordinary statements like</p>
+<pre><code>base_body = read_blob(repo, sha)
+{
+    n = string.length(base_body)
+    // …
+}</code></pre>
+<p>keep the obvious lexical scoping, the bare block sees <code>base_body</code>, because it was never folded into <code>read_blob</code>&#x27;s argument list. Without the same-line rule, the parser greedily consumed any <code>{</code> that followed a call as a trailing closure (whether the call was an assignment RHS or a statement), and the block body could not see the variable being declared by the enclosing assignment. See issue #286.</p>
+<p>When a <code>{</code> on a later line follows a call directly, the compiler emits a warning suggesting the user move the <code>{</code> to the call&#x27;s line if they intended a trailing closure. This makes the typical foot-gun (intending a closure but writing the brace on the next line) self-diagnosing.</p>
+<h3>Closure blocks (callbacks)</h3>
+<p>A <code>|| { }</code> or <code>|params| { }</code> after a function call creates a real closure that is passed as an argument, it runs later when invoked:</p>
+<pre><code>save_handler = || { println(&quot;saved!&quot;) }
+button(&quot;Save&quot;, save_handler)
+
+// Later...
+call(save_handler)    // prints &quot;saved!&quot;</code></pre>
+<p>This mirrors Groovy&#x27;s <code>actionPerformed: { ... }</code> pattern.</p>
+<h3>Callback blocks</h3>
+<p>The <code>callback</code> keyword before a trailing block creates a real closure (hoisted, with variable capture) without requiring explicit parameters. This is the third trailing-block mode:</p>
+<table><thead><tr><th>Mode</th><th>Syntax</th><th>Semantics</th></tr></thead><tbody><tr><td>Immediate</td><td><code>func() { block }</code></td><td>Runs inline as DSL structure</td></tr><tr><td>Closure</td><td>`func() \</td><td>x\</td><td>{ block }`</td><td>Real closure with explicit params</td></tr><tr><td>Callback</td><td><code>func() callback { block }</code></td><td>Real closure, captures from scope</td></tr></tbody></table>
+<pre><code>counter = ref(0)
+
+btn(&quot;increment&quot;) callback { ref_set(counter, ref_get(counter) + 1) }
+btn(&quot;decrement&quot;) callback { ref_set(counter, ref_get(counter) - 1) }</code></pre>
+<p>The callbacks capture <code>counter</code> from the enclosing scope. No need to thread it through as an explicit parameter. At the call site, <code>call(handler)</code> is enough.</p>
+<p>Callback blocks also support explicit params and arrow bodies:</p>
+<pre><code>// With params, invoked as call(adder, 3, 4)
+store(action) callback |a: int, b: int| { return a + b }
+
+// Arrow body, shorthand for single-expression callbacks
+store(action) callback |x: int| -&gt; x * 2</code></pre>
+<h2>DSL Block Receiver Scoping (#333)</h2>
+<p>When a trailing closure is bound to a member-access call, <code>receiver.method(args) { body }</code> bare-name function references inside <code>body</code> fall back through the receiver&#x27;s namespace before erroring as undefined. Resolution order:</p>
+<ol><li>Block-local definitions (closure params, <code>let</code> bindings).</li><li><code>&lt;receiver&gt;_&lt;name&gt;</code> looked up walking the scope chain.</li><li>The current file&#x27;s scope (existing imports, top-level decls).</li><li>Otherwise: undefined-name error.</li></ol>
+<p>Pre-fix, every downstream project consuming an SDK module had to write a two-line import preamble:</p>
+<pre><code>import bash
+import bash (script, jobs, env)        // ← this companion line
+
+main() {
+    b = build.start()
+    bash.test(b) {
+        script(&quot;test_a.sh&quot;)             // resolves via the (script, jobs, env) tuple
+        jobs(8)
+    }
+}</code></pre>
+<p>Post-fix, the second <code>import bash (...)</code> line is unnecessary, bare-name calls inside the trailing block fall back to <code>bash_script</code> / <code>bash_jobs</code> automatically:</p>
+<pre><code>import bash
+
+main() {
+    b = build.start()
+    bash.test(b) {
+        script(&quot;test_a.sh&quot;)             // resolves via the receiver fallback
+        jobs(8)                         // (no companion import needed)
+    }
+}</code></pre>
+<p>Pure additive. Existing code with explicit selective imports keeps working unchanged; existing qualified calls (<code>bash.script(&quot;x&quot;)</code> inside the block) still resolve via the <code>module.func</code> path; explicit local definitions still shadow the receiver fallback.</p>
+<p>Receiver resolution: the prefix is checked first as a visible namespace (the <code>bash</code> case above); if not, the prefix&#x27;s typed-value struct name (e.g. <code>b: Builder</code> → receiver = <code>Builder</code>).</p>
+<p>Nested DSL blocks stack naturally: <code>outer.method(o) { mark(&quot;o&quot;); inner.method(i) { note(&quot;i&quot;) } }</code> resolves <code>mark</code> as <code>outer_mark</code> and <code>note</code> as <code>inner_note</code> the inner block&#x27;s receiver wins for inner-namespace names; outer&#x27;s receiver applies to outer-namespace names by the natural scope-walk in <code>lookup_symbol</code>.</p>
+<h2>Higher-Order Functions</h2>
+<p>Closures enable functional patterns with standard library collections:</p>
+<pre><code>import std.list
+
+// User-defined each, map, filter
+each(l: ptr, f: fn) {
+    n = list.size(l)
+    for (i = 0; i &lt; n; i++) {
+        val, _ = list.get(l, i)    // list.get returns (value, err)
+        call(f, val)
+    }
+}
+
+map(l: ptr, f: fn) {
+    result = list.new()
+    n = list.size(l)
+    for (i = 0; i &lt; n; i++) {
+        val, _ = list.get(l, i)
+        list.add(result, call(f, val))
+    }
+    return result
+}
+
+filter(l: ptr, f: fn) {
+    result = list.new()
+    n = list.size(l)
+    for (i = 0; i &lt; n; i++) {
+        val, _ = list.get(l, i)
+        if call(f, val) != 0 { list.add(result, val) }
+    }
+    return result
+}
+
+main() {
+    nums = list.new()
+    list.add(nums, 1)
+    list.add(nums, 2)
+    list.add(nums, 3)
+    list.add(nums, 4)
+    list.add(nums, 5)
+
+    each(nums) |x: int| { print(&quot;${x} &quot;) }
+    // 1 2 3 4 5
+
+    doubled = map(nums) |x: int| -&gt; x * 2
+    // [2, 4, 6, 8, 10]
+
+    big = filter(nums) |x: int| -&gt; x &gt; 2
+    // [3, 4, 5]
+}</code></pre>
+<h2>Builder Context Stack</h2>
+<p>When a function call has a trailing block, Aether automatically pushes the function&#x27;s return value onto a <strong>builder context stack</strong> before executing the block, and pops it after. Library functions can access the current context via <code>builder_context()</code>.</p>
+<p>This enables automatic parent-child wiring without the caller specifying parents:</p>
+<pre><code>import std.list
+
+frame(title: string) {
+    children = list.new()
+    return children
+}
+
+// _ctx: ptr as first param means &quot;auto-inject builder context&quot;
+panel(_ctx: ptr, title: string) {
+    children = list.new()
+    if _ctx != null { list.add(_ctx, children) }
+    return children
+}
+
+button(_ctx: ptr, label: string) {
+    if _ctx != null { list.add(_ctx, 1) }
+}
+
+main() {
+    root = frame(&quot;App&quot;) {
+        panel(&quot;Controls&quot;) {
+            button(&quot;OK&quot;)
+            button(&quot;Cancel&quot;)
+        }
+    }
+    // root -&gt; [panel_children -&gt; [button, button]]
+}</code></pre>
+<h2>Invisible Context Injection</h2>
+<p>The <code>_ctx: ptr</code> convention is the key to making builder DSLs feel declarative. When a function&#x27;s first parameter is named <code>_ctx</code> with type <code>ptr</code>:</p>
+<ol><li><strong>The parameter is hidden from callers</strong>, it doesn&#x27;t count toward arity</li><li><strong>Inside trailing blocks</strong>, the compiler auto-injects <code>builder_context()</code> as the</li></ol>
+<p>first argument</p>
+<ol><li><strong>Outside trailing blocks</strong>, the function can still be called explicitly with a</li></ol>
+<p>context value</p>
+<p>This means the user writes:</p>
+<pre><code>frame(&quot;Address&quot;) {
+    panel(&quot;Enter your address:&quot;) {
+        label(&quot;Street:&quot;)
+        textfield(&quot;Evergreen Terrace&quot;, 20)
+        label(&quot;Number:&quot;)
+        textfield(&quot;742&quot;, 5)
+    }
+    panel(&quot;Actions&quot;) {
+        button(&quot;Save&quot;)
+        button(&quot;Cancel&quot;)
+    }
+}</code></pre>
+<p>And the compiler generates:</p>
+<pre><code>frame(&quot;Address&quot;);
+_aether_ctx_push(frame_result);
+{
+    panel(_aether_ctx_get(), &quot;Enter your address:&quot;);
+    _aether_ctx_push(panel_result);
+    {
+        label(_aether_ctx_get(), &quot;Street:&quot;);
+        textfield(_aether_ctx_get(), &quot;Evergreen Terrace&quot;, 20);
+        // ...
+    }
+    _aether_ctx_pop();
+    // ...
+}
+_aether_ctx_pop();</code></pre>
+<h2>Builder Functions, &quot;Configure Then Execute&quot;</h2>
+<p>Regular trailing blocks run the function first, then decorate the result. <strong>Builder functions</strong> flip this: the block runs first to fill a configuration, then the function executes with that configuration.</p>
+<p>This is the second flavor of trailing-block function, toggled by the <code>builder</code> keyword on the definition:</p>
+<table><thead><tr><th></th><th>When does it run?</th><th>Block provides</th><th>Function provides</th></tr></thead><tbody><tr><td>Regular</td><td>Function first, block second</td><td>Decoration/children</td><td>The container to fill</td></tr><tr><td>Builder</td><td>Block first, function second</td><td>Configuration</td><td>The action to perform</td></tr></tbody></table>
+<h3>Defining a builder function</h3>
+<pre><code>import std.map
+
+builder compile(src: string) {
+    // _builder is implicitly available, it&#x27;s the config the block filled
+    // It&#x27;s null when called without a trailing block
+    rel = &quot;&quot;
+    if _builder != null {
+        if map_has(_builder, &quot;release&quot;) == 1 {
+            rel = map_get_raw(_builder, &quot;release&quot;)
+        }
+    }
+    println(&quot;compiling ${src} with release=${rel}&quot;)
+}</code></pre>
+<p>The <code>_builder</code> parameter is compiler-injected (like <code>_ctx</code> for builder functions). The caller never sees it.</p>
+<h3>Calling a builder function</h3>
+<pre><code>// With trailing block, block fills config, then compile() runs
+compile(&quot;Main.java&quot;) {
+    set_release(&quot;21&quot;)
+    set_lint(&quot;all&quot;)
+}
+
+// Without trailing block, _builder is null, zero-config
+compile(&quot;Test.java&quot;)</code></pre>
+<p>The setter functions (<code>set_release</code>, <code>set_lint</code>) are regular DSL functions with <code>_ctx: ptr</code> they work on whatever was pushed to the context stack. The compiler creates the config object (currently a map), pushes it, runs the block, pops, then calls the function with the filled config.</p>
+<h3>Builder functions can return values</h3>
+<pre><code>builder make_greeting(name: string): string {
+    prefix = &quot;Hello&quot;
+    if _builder != null {
+        if map_has(_builder, &quot;prefix&quot;) == 1 {
+            prefix = map_get_raw(_builder, &quot;prefix&quot;)
+        }
+    }
+    return &quot;${prefix}, ${name}!&quot;
+}
+
+main() {
+    g = make_greeting(&quot;Alice&quot;) {
+        set_option(&quot;prefix&quot;, &quot;Hi&quot;)
+    }
+    println(g)  // &quot;Hi, Alice!&quot;
+}</code></pre>
+<h3>Choosing the config factory with <code>with</code></h3>
+<p>By default, the compiler creates the config object via <code>map_new()</code>. The <code>with</code> clause lets the SDK author specify any zero-argument factory function:</p>
+<pre><code>// Default, map_new
+builder compile(src: string) { ... }
+
+// List, ordered collection of flags
+builder run_command(name: string) with list_new { ... }
+
+// Custom builder, any user-defined factory
+query_builder_new() {
+    m = map_new()
+    map_put_raw(m, &quot;_type&quot;, &quot;query&quot;)
+    return m
+}
+builder execute_query(db: string) with query_builder_new { ... }</code></pre>
+<p>The factory just needs to be a zero-argument function returning <code>ptr</code>. The trailing block&#x27;s setter functions and the builder function body must agree on the protocol, the compiler doesn&#x27;t care what the object is, only that it can be pushed to the context stack as <code>void*</code>.</p>
+<h3>Generated code</h3>
+<p>For <code>compile(&quot;Main.java&quot;) { set_release(&quot;21&quot;) }</code>, the compiler generates:</p>
+<pre><code>{
+    void* _bcfg = map_new();         // 1. create config
+    _aether_ctx_push(_bcfg);         // 2. push as context
+    {
+        set_release(_aether_ctx_get(), &quot;21&quot;);  // 3. block fills config
+    }
+    _aether_ctx_pop();               // 4. pop
+    compile(&quot;Main.java&quot;, _bcfg);     // 5. function runs with filled config
+}</code></pre>
+<p>Compare with the regular trailing block pattern:</p>
+<pre><code>_aether_ctx_push((void*)(intptr_t)frame(&quot;App&quot;));  // 1. function runs
+{
+    panel(_aether_ctx_get(), &quot;Controls&quot;);           // 2. block decorates
+}
+_aether_ctx_pop();                                  // 3. pop</code></pre>
+<h2>Ref Cells, Shared Mutable State for Closures</h2>
+<p>Aether heap-promotes a captured variable that a closure <strong>assigns to</strong>: the enclosing binding and every closure capturing it then share one heap cell, so <code>count = count + 1</code> inside a closure is visible to the outer scope and to sibling closures (the Ruby/Groovy model). A simple named local needs no ref cell to share mutable state this way. A capture the closure only reads stays a cheap aliased copy.</p>
+<p><strong>Ref cells</strong> are for shared mutable state that isn&#x27;t a plain captured local: a value passed explicitly as a <code>ptr</code> argument to callbacks (UI event handlers), threaded through a struct field, or handed across an actor boundary:</p>
+<pre><code>count = ref(0)           // heap-allocated mutable cell
+defer ref_free(count)
+
+inc = |r: ptr| { ref_set(r, ref_get(r) + 1) }
+
+call(inc, count)         // mutates shared state
+call(inc, count)
+println(ref_get(count))  // 2</code></pre>
+<p>Ref cells work because closures capture the pointer by value, all closures holding the same pointer see the same heap location.</p>
+<p><strong>API:</strong></p>
+<ul><li><code>ref(value)</code> create a ref cell (heap-allocated <code>intptr_t</code>)</li><li><code>ref_get(r)</code> read the value</li><li><code>ref_set(r, value)</code> write a new value</li><li><code>ref_free(r)</code> free the cell (or use <code>defer ref_free(r)</code>)</li></ul>
+<h3>Storing Closures in Collections</h3>
+<p>Closures are structs (not pointers), so they can&#x27;t be stored directly in <code>std.list</code>. Use <code>box_closure()</code> / <code>unbox_closure()</code> to heap-allocate:</p>
+<pre><code>import std.list
+
+handlers = list.new()
+action = |x: ptr| { ref_set(x, ref_get(x) + 1) }
+list.add(handlers, box_closure(action))
+
+// Later: retrieve and invoke
+boxed = list.get(handlers, 0)
+handler = unbox_closure(boxed)
+call(handler, some_ref)</code></pre>
+<h3>Interactive Calculator Example</h3>
+<p>Combining ref cells, boxed closures, and the builder DSL:</p>
+<pre><code>num  = ref(0)
+prev = ref(0)
+op   = ref(0)
+
+digit  = |n: ptr, d: int| { ref_set(n, ref_get(n) * 10 + d) }
+set_op = |n: ptr, p: ptr, o: ptr, v: int| {
+    ref_set(p, ref_get(n)); ref_set(n, 0); ref_set(o, v)
+}
+
+g = grid() {
+    btn(&quot;7&quot;) |n: ptr, p: ptr, o: ptr| { call(digit, n, 7) }
+    btn(&quot;+&quot;) |n: ptr, p: ptr, o: ptr| { call(set_op, n, p, o, PLUS) }
+    btn(&quot;=&quot;) |n: ptr, p: ptr, o: ptr| {
+        v = ref_get(n); pv = ref_get(p); ov = ref_get(o)
+        if ov == PLUS  { v = pv + v }
+        if ov == MINUS { v = pv - v }
+        ref_set(n, v); ref_set(p, 0); ref_set(o, 0)
+    }
+}
+
+// Event loop: press button → invoke its callback
+handler = unbox_closure(list.get(list.get(g, 1), cur))
+call(handler, num, prev, op)</code></pre>
+<p>Each button&#x27;s behavior is declared alongside the button, not in a separate dispatch table. The ref cells provide shared mutable state across all callbacks.</p>
+<h2>Fluent Method Chaining (UFCS)</h2>
+<p>Everything above describes the <strong>block</strong> DSL, a function accepts a trailing block that fills structure (<code>describe(&quot;x&quot;) { ... }</code>). UFCS adds the orthogonal <strong>value-chain</strong> primitive: calling a method on a value and getting a value back, so calls read left-to-right like prose (<code>expect(5).to_equal(5).to_be_gt(0)</code>). This is the shape every fluent assertion / query / builder API is built on. It composes with the trailing-block forms but is distinct from them.</p>
+<p><strong>The rule.</strong> <code>x.f(args)</code> desugars to <code>f(x, args)</code> when <code>f</code> is a free function whose <strong>first parameter type matches <code>typeof(x)</code></strong>. No new declaration syntax: any existing free function whose first parameter is the receiver type is callable in method position.</p>
+<pre><code>struct Subject { v: int, ok: int }
+expect(n: int) -&gt; Subject { return Subject { v: n, ok: 1 } }
+// returns the receiver, so calls chain (the fluent-interface contract)
+to_equal(s: Subject, want: int) -&gt; Subject {
+    ok = s.ok
+    if s.v != want { ok = 0 }
+    return Subject { v: s.v, ok: ok }
+}
+
+expect(5).to_equal(5)            // -&gt; to_equal(expect(5), 5)
+expect(5).to_equal(5).to_be_gt(0) // chains: each step returns a Subject</code></pre>
+<p>The receiver can be any expression, a call result (<code>expect(5).to_*</code>), a stored value (<code>s = expect(5); s.to_equal(5)</code>), or a pointer (<code>c.bump()</code> → <code>bump(c)</code> for <code>c: *Counter</code>, mutating in place).</p>
+<p><strong>Works across the import boundary.</strong> The fluent surface is normally provided by a <em>library</em> and chained in <em>consumer</em> code, a test framework&#x27;s matchers, a query API&#x27;s combinators. <code>value.method()</code> resolves a <code>method</code> exported by an imported module whose first parameter matches <code>typeof(value)</code>, honoring the same visibility as a normal qualified <code>mod.method(value)</code> call:</p>
+<pre><code>import assert
+r = assert.expect_int(5).to_equal(5).to_be_gt(0)  // matchers imported, chain local</code></pre>
+<p><strong>Resolution &amp; precedence.</strong> UFCS is a strict <em>last resort</em>: module-qualified calls (<code>string.length(s)</code>), struct-field access, and function-pointer-field dispatch all keep priority. A dotted call only falls back to UFCS when it would otherwise be an &quot;Undefined function&quot;, so nothing that compiled before changes meaning. Same-file functions win over imported ones; a receiver whose type doesn&#x27;t match the candidate&#x27;s first parameter declines cleanly (no silent coercion). There is no codegen change: the rewritten <code>f(x, args)</code> is an ordinary call, and a small by-value struct threaded through an N-step chain is N register-width copies the C backend elides, fluent chains are cheap.</p>
+<p><strong>Ambient state for a facade.</strong> A fluent facade often carries a shared &quot;current context&quot; cell (set by <code>init()</code>, read by the chained matchers). Use a module-level <code>var</code> (which persists across the import boundary) or <code>std.config</code> for that, see <a href="#ref-cells-shared-mutable-state-for-closures">Ref Cells</a> for the closure-capture case.</p>
+<h2>Comparison with Other Languages</h2>
+<p>For the broader &quot;why this shape exists&quot; comparison against Lisp, Smalltalk, Rust, and Zig, see <a href="/Docs/closure-lineage-and-runtime-tradeoffs.html"><code>closure-lineage-and-runtime-tradeoffs.md</code></a>.</p>
+<table><thead><tr><th>Feature</th><th>Smalltalk</th><th>Ruby</th><th>Groovy</th><th>Aether</th></tr></thead><tbody><tr><td>Block/closure syntax</td><td>`[:x</td><td>x * 2]`</td><td>`{</td><td>x</td><td>x * 2}`</td><td><code>{x -&gt; x * 2}</code></td><td>`\</td><td>x\</td><td>-&gt; x * 2`</td></tr><tr><td>Trailing block</td><td><code>do: [...]</code></td><td><code>method do ... end</code></td><td><code>method { ... }</code></td><td><code>method() { ... }</code></td></tr><tr><td>Implicit receiver</td><td><code>self</code> in block</td><td><code>instance_eval</code></td><td>Delegate</td><td><code>_ctx: ptr</code> convention</td></tr><tr><td>Builder pattern</td><td>Cascades</td><td>Shoes, Sinatra</td><td>SwingBuilder</td><td>Trailing blocks + context stack</td></tr><tr><td>Fluent method chain</td><td>Cascades (<code>;</code>)</td><td>method chaining</td><td>method chaining</td><td>UFCS (<code>x.f()</code> → <code>f(x)</code>)</td></tr><tr><td>Callback storage</td><td>Block variables</td><td>Procs/lambdas</td><td>Closures</td><td><code>fn</code> type + <code>call()</code></td></tr><tr><td>Shared mutable state</td><td>Instance vars</td><td><code>@variables</code></td><td>Delegate fields</td><td><code>ref()</code> cells</td></tr></tbody></table>
+<h2>Implementation Notes</h2>
+<p>Closures compile to C as:</p>
+<ul><li>A <code>_AeClosure</code> struct: <code>{ void (*fn)(void); void* env; }</code></li><li>Hoisted static functions: <code>_closure_fn_N(_closure_env_N* _env, params...)</code></li><li>Heap-allocated environment structs for captured variables</li><li>NULL environment for zero-capture closures</li></ul>
+<p>The builder context stack is a simple C array:</p>
+<ul><li><code>_aether_ctx_push(void*)</code> / <code>_aether_ctx_pop()</code> / <code>_aether_ctx_get()</code></li><li>Maximum nesting depth: 64 levels</li><li>Zero overhead when not used (the stack is static, no allocation)</li></ul>
+<p>Trailing blocks (parameterless <code>{ }</code>) are inlined at the call site, no closure allocation, no function pointer overhead. They are pure syntactic sugar for sequential code with automatic context management.</p>
+<p>Ref cells compile to:</p>
+<ul><li><code>ref(val)</code> → <code>malloc(sizeof(intptr_t))</code> + store</li><li><code>ref_get(r)</code> → <code>*(intptr_t*)r</code></li><li><code>ref_set(r, val)</code> → <code>*(intptr_t*)r = val</code></li><li><code>ref_free(r)</code> → <code>free(r)</code></li></ul>
+<p>Closure boxing:</p>
+<ul><li><code>box_closure(c)</code> → heap-allocates an <code>_AeClosure</code> struct, returns <code>void*</code></li><li><code>unbox_closure(p)</code> → dereferences back to <code>_AeClosure</code></li></ul>
+<p>Additional builtins for interactive programs:</p>
+<ul><li><code>read_char()</code> → <code>getchar()</code> (blocking single-character input)</li><li><code>raw_mode()</code> / <code>cooked_mode()</code> → terminal mode switching (Unix <code>termios</code>)</li><li><code>char_at(str)</code> → ASCII value of first character</li><li><code>str_eq(a, b)</code> → string equality (returns 0 or 1)</li></ul>
+      </article>
+    </main>
+  </div>
+</div>
+<footer class="site-foot">
+  <div class="wrap foot">
+    <span class="ae">ae</span>
+    <span class="m">MIT licensed · compiles to C · v0.454</span>
+    <nav><a href="/Docs/getting-started.html">Docs</a><a href="/repl.html">Playground</a><a href="https://github.com/aether-lang-org/aether">GitHub</a></nav>
+  </div>
+</footer>
+</body>
+</html>

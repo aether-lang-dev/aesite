@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>`std/` vs `contrib/` placement decisions · Aether</title>
+<meta name="description" content="`std/` vs `contrib/` placement decisions — Aether language documentation.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/aether.css">
+</head>
+<body>
+<header class="site-head">
+  <div class="wrap bar">
+    <a class="brand" href="/" aria-label="Aether"><span class="ae">ae</span><span class="nm">aether</span></a>
+    <nav>
+      <a href="/repl.html">Playground</a>
+      <a href="/Docs/getting-started.html" class="on">Docs</a>
+      <a href="https://github.com/aether-lang-org/aether">Source</a>
+      <span class="vtag">v0.454</span>
+    </nav>
+  </div>
+</header>
+<div class="wrap">
+  <div class="doc-shell">
+    <nav class="doc-nav"><div class="grp">Start</div>
+<a href="/Docs/getting-started.html">Getting Started with Aether</a>
+<a href="/Docs/tutorial.html">Aether Language Tutorial</a>
+<a href="/Docs/next-steps.html">Next Steps</a>
+<div class="grp">Language</div>
+<a href="/Docs/language-reference.html">Aether Language Reference</a>
+<a href="/Docs/type-inference-guide.html">Aether Type Inference Guide</a>
+<a href="/Docs/type-annotation-style-guide.html">Aether Type Annotation Style Guide</a>
+<a href="/Docs/type-inference-multi-value-returns.html">Multi-Value Return Type Inference</a>
+<a href="/Docs/distinct-types.html">Distinct Types</a>
+<a href="/Docs/sequences.html">Sequences (`*StringSeq`)</a>
+<a href="/Docs/named-args-and-select.html">Named Arguments and select()</a>
+<a href="/Docs/closures-and-builder-dsl.html">Closures and Builder-Style DSL in Aether</a>
+<a href="/Docs/closures-and-lifetimes.html">Closures and Environment Lifetimes</a>
+<a href="/Docs/module-system-design.html">Aether Module System</a>
+<div class="grp">Runtime</div>
+<a href="/Docs/architecture.html">Aether Architecture</a>
+<a href="/Docs/actor-concurrency.html">Aether Runtime Guide</a>
+<a href="/Docs/structured-concurrency.html">Structured Concurrency for Aether, Design Direction</a>
+<a href="/Docs/scheduler-quick-reference.html">Aether Scheduler - Quick Reference</a>
+<a href="/Docs/memory-management.html">Aether Memory Management</a>
+<a href="/Docs/runtime-optimizations.html">Runtime Optimizations</a>
+<a href="/Docs/numa-support.html">NUMA Support in Aether</a>
+<div class="grp">Interop</div>
+<a href="/Docs/c-interop.html">C Interoperability</a>
+<a href="/Docs/c-embedding.html">Embedding Aether Actors in C Applications</a>
+<a href="/Docs/emit-lib.html">Embedding Aether as a Shared Library (`--emit=lib`)</a>
+<a href="/Docs/embedded-namespaces-and-host-bindings.html">Aether as a Configuration Language, v2: Namespaces and Generated Bindings</a>
+<a href="/Docs/aether-embedded-in-host-applications.html">Aether as a Configuration Language for Other Languages</a>
+<a href="/Docs/lib-caller-info.html">`--emit=lib` caller-info channel</a>
+<div class="grp">Stdlib</div>
+<a href="/Docs/stdlib-reference.html">Aether Standard Library Reference</a>
+<a href="/Docs/stdlib-api.html">Aether Standard Library Guide</a>
+<a href="/Docs/stdlib-module-pattern.html">Aether Stdlib Module Pattern</a>
+<a href="/Docs/stdlib-vs-contrib.html" class="on">`std/` vs `contrib/` placement decisions</a>
+<a href="/Docs/http-server.html">`std.http` HTTP Server</a>
+<a href="/Docs/http-reverse-proxy.html">`std.http.proxy` reverse proxy</a>
+<a href="/Docs/http-handler-context.html">HTTP handlers with per-server / per-route state</a>
+<a href="/Docs/http-vcr.html">HTTP Record/Replay (VCR), moved out of Aether</a>
+<a href="/Docs/json-parser-design.html">`std.json` Design Notes</a>
+<div class="grp">Safety</div>
+<a href="/Docs/containment-sandbox.html">Containment and Sandboxing in Aether</a>
+<a href="/Docs/hide-and-seal.html">`hide` and `seal except` scope-level capability denial</a>
+<a href="/Docs/compiler-trust-boundary.html">The Compiler Trust Boundary</a>
+<a href="/Docs/config-is-code.html">Config IS Code</a>
+<a href="/Docs/aether_compared_to_capsicum.html">Aether Sandbox Model vs. BSD Capsicum: Architecture, Parallels, and FreeBSD Integration</a>
+<div class="grp">Build</div>
+<a href="/Docs/build-system.html">Build System</a>
+<a href="/Docs/bootstrap-from-source.html">Bootstrapping Aether from source (HEAD)</a>
+<a href="/Docs/install-layout.html">Aether install layout</a>
+<a href="/Docs/runtime-config.html">Runtime Configuration - Quick Reference</a>
+<a href="/Docs/per-process-config.html">Per-process configuration in Aether</a>
+<a href="/Docs/cic-help.html">`ae help &lt;script&gt;` Offline diagnostics for config-IS-code</a>
+<div class="grp">More</div>
+<a href="/Docs/bindgen-consts.html">`ae bindgen consts`, importing C macro constants</a>
+<a href="/Docs/formatter.html">`ae fmt`, the source formatter</a>
+<a href="/Docs/isolated.html">`Isolated[T]`: move-only actor message payloads (#479)</a>
+<a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
+<a href="/Docs/profiling-guide.html">Aether Runtime Profiling Guide</a>
+<a href="/Docs/allocators.html">Allocators</a>
+<a href="/Docs/when-static-if.html">Compile-time `when` / static-if</a>
+<a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
+<a href="/Docs/contract-folding.html">Compile-time contract folding — costed design</a>
+<a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn&#x27;t need `macro_rules!`</a>
+<a href="/Docs/release-glibc-portability.html">Release binary portability across glibc versions</a>
+<a href="/Docs/error-unification.html">Unifying `T?` and `(value, err)` — costed design</a></nav>
+    <main class="doc-main">
+      <article class="doc-body">
+        <div class="bc">docs / stdlib</div>
+<h1><code>std/</code> vs <code>contrib/</code> placement decisions</h1>
+<p>When adding a new Aether module that wraps an external C library or provides a capability not covered by the core language, the first question is: <strong>does it belong in <code>std/</code> or <code>contrib/</code>?</strong></p>
+<p>This document captures the rubric used to make that call and applies it to the modules currently shipped on each side. It complements <a href="/Docs/stdlib-module-pattern.html">stdlib-module-pattern.md</a>, which covers the <em>shape</em> of a module once you know <em>where</em> it lives.</p>
+<h2>The rubric</h2>
+<p>Ask four questions. A <code>std/</code> module should answer &quot;yes&quot; to all four. If any one is &quot;no&quot;, it belongs in <code>contrib/</code>.</p>
+<ol><li>**Is this something a typical Aether project expects to find in</li></ol>
+<p>the standard library?** The bar is what a developer coming from Go, Rust, Python, or Node would consider &quot;batteries included&quot;. File I/O, HTTP, hashing, compression, yes. A database driver, a JSON schema validator, a WebSocket framework, no.</p>
+<ol><li><strong>Does it have a single obvious API shape?</strong> <code>std/</code> modules don&#x27;t</li></ol>
+<p>have competing implementations. There is one way to hash with SHA-256; the Aether wrapper is a thin Go-style veneer over whatever library we picked. A database driver, by contrast, can reasonably expose a &quot;prepared statement + bind + fetch&quot; API, an &quot;execute returning rows&quot; API, or an ORM-ish builder. Not in <code>std/</code>.</p>
+<ol><li><strong>Are the dependencies minimal and well-scoped?</strong> A <code>std/</code> module</li></ol>
+<p>adds to the baseline cost of building Aether. <code>OpenSSL</code> is already a dependency (auto-detected via <code>pkg-config</code>, linked through <code>$(OPENSSL_LDFLAGS)</code>), so <code>std.cryptography</code> is free. <code>zlib</code> is similarly ambient on every POSIX box. <code>libnghttp2</code> is auto-detected via <code>pkg-config</code>, present on every distro that ships HTTP-aware tools, gracefully stubbed out when absent. <code>SQLite</code> is a 4 MiB amalgamation, significant weight for projects that don&#x27;t need it.</p>
+<ol><li><strong>Is the API surface stable and small?</strong> <code>std/</code> modules have a</li></ol>
+<p>stability commitment, changes ripple to every Aether user. If the API has many knobs, many optional parameters, or many places where a &quot;just use the library directly&quot; escape hatch makes sense, that friction belongs in <code>contrib/</code> where the module can evolve without the stability constraint.</p>
+<h2>Modules currently in <code>std/</code></h2>
+<p>Each clears all four rubric questions. Listed roughly by purpose:</p>
+<table><thead><tr><th>Domain</th><th>Modules</th></tr></thead><tbody><tr><td>Strings + bytes</td><td><code>string</code>, <code>bytes</code>, <code>intarr</code>, <code>floatarr</code> (packed-double twin of <code>intarr</code>), <code>regex</code> (PCRE2), <code>url</code> (RFC 3986 percent-encoding), <code>xml</code></td></tr><tr><td>Identifiers</td><td><code>uuid</code> (UUID v4/v7, RFC 9562)</td></tr><tr><td>Collections</td><td><code>list</code>, <code>map</code>, <code>collections</code></td></tr><tr><td>File system + paths</td><td><code>file</code>, <code>dir</code>, <code>path</code>, <code>fs</code></td></tr><tr><td>Networking</td><td><code>net</code> (low-level TCP/HTTP client), <code>tcp</code>, <code>http</code> (high-level: <code>http.server</code>, <code>http.client</code>, <code>http.middleware</code>, <code>http.server.h2</code> for HTTP/2)</td></tr><tr><td>Numeric + time</td><td><code>math</code></td></tr><tr><td>Serialisation</td><td><code>json</code></td></tr><tr><td>Hashing + crypto primitives</td><td><code>cryptography</code> (SHA-1/256, MD4/MD5, HMAC-SHA256, Base64, CSPRNG, streaming digests, plus the public-key/cipher families — RSA, AES, ChaCha20-Poly1305, Ed25519, X25519, P-256/384/521, …)</td></tr><tr><td>Compression</td><td><code>zlib</code> (deflate/inflate, ambient on POSIX)</td></tr><tr><td>Process + env</td><td><code>os</code>, <code>io</code>, <code>dl</code> (dlopen)</td></tr><tr><td>Memory primitives</td><td><code>arena</code> (bulk allocator), <code>cas</code> (content-addressed store, sha256 + atomic-rename)</td></tr><tr><td>Concurrency</td><td><code>actors</code> (name → actor_ref registry)</td></tr><tr><td>Configuration</td><td><code>config</code> (process-wide string→string KV, <code>set-during-init</code>, <code>read-everywhere</code> shape)</td></tr><tr><td>Logging</td><td><code>log</code></td></tr><tr><td>Host integration</td><td><code>host</code> (event-emit primitives for <code>--emit=lib</code>)</td></tr></tbody></table>
+<p>The <code>http</code> module is the canonical &quot;single split done right&quot; example of the rubric, when both client- and server-side became too large for one flat module, the split landed as <code>std.http.client</code>, <code>std.http.middleware</code>, <code>std.http.server.*</code> sub-namespaces, all under the same stability bar. The HTTP/2 surface (<code>std.http.server.h2</code>, issue #260) is built on libnghttp2 with <code>AETHER_HAS_NGHTTP2</code> auto-detection, same mechanism <code>cryptography</code> uses for OpenSSL and <code>zlib</code> uses for libz.</p>
+<h2>Modules currently in <code>contrib/</code></h2>
+<table><thead><tr><th>Module</th><th>Reason for <code>contrib/</code></th></tr></thead><tbody><tr><td><code>contrib/sqlite/</code></td><td>DB driver, fails rubric Q1 (not universal) and Q3 (4 MiB amalgamation).</td></tr><tr><td><code>contrib/tinyweb/</code></td><td>Builder DSL for HTTP services, competes with <code>std.http.server</code>&#x27;s closure-config approach; opinionated shape that&#x27;s better off evolving without the stability constraint.</td></tr><tr><td><code>contrib/templating/{native,liquid}/</code></td><td>Escape-correct output emission, <code>native</code> (Aether-as-template-language) and <code>liquid</code> (Shopify Liquid port). Opinionated template surfaces; fail Q2.</td></tr><tr><td><code>contrib/parsers/xml_expat/</code></td><td>Expat-backed streaming XML parser, third-party C dependency; fails Q3 (<code>std.xml</code> covers the in-tree case).</td></tr><tr><td><code>contrib/host/{python,lua,perl,ruby,js,tcl,go,java,factor,aether,…}/</code></td><td>Per-language embedding bridges, each one is a separate sub-decision that wouldn&#x27;t share an API; fails Q2.</td></tr></tbody></table>
+<h2>Spun out to sibling repos</h2>
+<p>A <code>contrib/</code> module can graduate further, out of this repo entirely into a sibling project that consumes Aether downstream. This keeps the core compiler / runtime / stdlib repo focused while the spun-out project iterates on its own release cadence.</p>
+<table><thead><tr><th>Sibling repo</th><th>Replaces</th></tr></thead><tbody><tr><td><a href="https://github.com/aether-lang-org/aether-ui">aether-lang-org/aether-ui</a></td><td>The widget toolkit (GTK4 / AppKit / Win32 backends + AetherUIDriver HTTP test server), formerly <code>contrib/aether_ui/</code>.</td></tr><tr><td><a href="https://github.com/aether-lang-org/aeb">aether-lang-org/aeb</a></td><td>The build system (formerly aetherBuild / <code>aeb-link</code>); a downstream consumer of <code>share/aether/MANIFEST</code> and the runtime sources.</td></tr><tr><td>servirtium-vcr (<code>integration/climate_interop/</code>)</td><td>The Servirtium climate-API record/replay harness, formerly <code>contrib/climate_http_tests/</code>. The VCR tapes + record-then-replay tests live alongside the other-language reference impls there.</td></tr></tbody></table>
+<h2>Migration test</h2>
+<p>A module can always move later, <code>std/</code> → <code>contrib/</code> is painful (breaks every caller), but <code>contrib/</code> → <code>std/</code> is low-cost (add an alias import path, deprecate the <code>contrib/</code> one, remove after a release cycle). When in doubt, <strong>start in <code>contrib/</code></strong>. The only things that should start in <code>std/</code> are the ones that clearly pass all four rubric questions on day one.</p>
+<p>The recent additions of <code>std.arena</code> and <code>std.cas</code> are good worked examples: each is a tiny universal primitive (bulk allocator; content-addressed sha256 store) with a single obvious shape and no new dependencies, all four rubric questions answer &quot;yes,&quot; and they landed directly in <code>std/</code>.</p>
+<h2>Cross-reference</h2>
+<ul><li><a href="/Docs/stdlib-module-pattern.html">stdlib-module-pattern.md</a>, how to</li></ul>
+<p><em>shape</em> a module once you know where it lives.</p>
+<ul><li><a href="/Docs/stdlib-reference.html">stdlib-reference.md</a>, full surface</li></ul>
+<p>reference for every <code>std.X</code> module currently shipped.</p>
+<ul><li><a href="/Docs/CONTRIBUTING.html">CONTRIBUTING.md</a>, PR process, including</li></ul>
+<p>the <code>[current]</code> CHANGELOG convention.</p>
+<ul><li><a href="/Docs/README.html">contrib/tinyweb/README.md</a>,</li></ul>
+<p><a href="/Docs/README.html">contrib/templating/README.md</a>, reference examples of <code>contrib/</code> modules that clear three of the four rubric questions but failed on opinionated API shape (Q2) or specific niche (Q1).</p>
+      </article>
+    </main>
+  </div>
+</div>
+<footer class="site-foot">
+  <div class="wrap foot">
+    <span class="ae">ae</span>
+    <span class="m">MIT licensed · compiles to C · v0.454</span>
+    <nav><a href="/Docs/getting-started.html">Docs</a><a href="/repl.html">Playground</a><a href="https://github.com/aether-lang-org/aether">GitHub</a></nav>
+  </div>
+</footer>
+</body>
+</html>

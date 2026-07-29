@@ -1,61 +1,124 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>type-inference-guide</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/style.css" />
-  <link rel="stylesheet" href="/subpages.css" />
-  <link rel="stylesheet" href="/articles.css" />
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Aether Type Inference Guide · Aether</title>
+<meta name="description" content="Aether Type Inference Guide — Aether language documentation.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/aether.css">
 </head>
 <body>
-
-  <!-- NAV -->
-  <nav>
-    <a class="nav-logo" href="/index.html">Aether<span>.</span></a>
-    <ul class="nav-links">
-      <li><a href="/index.html#features">Features</a></li>
-      <li><a href="/index.html#syntax">Syntax</a></li>
-      <li><a href="/index.html#install">Install</a></li>
-      <li><a href="/faq.html">FAQ</a></li>
-    </ul>
-  </nav>
-
-  <!-- MAIN -->
-  <main class="section">
-    <div>
-      <p class="section-label">Learning Material</p>
-    </div>
-
-    <article class="article-content">
-<h1 id="aether-type-inference-guide">Aether Type Inference Guide</h1>
-<h2 id="how-type-inference-works">How Type Inference Works</h2>
-<p>Aether implements a type inference system that automatically deduces
-types from context, reducing the need for explicit type annotations in
-most cases.</p>
-<h2 id="basic-inference">Basic Inference</h2>
-<h3 id="from-literals">From Literals</h3>
-<pre class="aether"><code>x = 42              // inferred: int
+<header class="site-head">
+  <div class="wrap bar">
+    <a class="brand" href="/" aria-label="Aether"><span class="ae">ae</span><span class="nm">aether</span></a>
+    <nav>
+      <a href="/repl.html">Playground</a>
+      <a href="/Docs/getting-started.html" class="on">Docs</a>
+      <a href="https://github.com/aether-lang-org/aether">Source</a>
+      <span class="vtag">v0.454</span>
+    </nav>
+  </div>
+</header>
+<div class="wrap">
+  <div class="doc-shell">
+    <nav class="doc-nav"><div class="grp">Start</div>
+<a href="/Docs/getting-started.html">Getting Started with Aether</a>
+<a href="/Docs/tutorial.html">Aether Language Tutorial</a>
+<a href="/Docs/next-steps.html">Next Steps</a>
+<div class="grp">Language</div>
+<a href="/Docs/language-reference.html">Aether Language Reference</a>
+<a href="/Docs/type-inference-guide.html" class="on">Aether Type Inference Guide</a>
+<a href="/Docs/type-annotation-style-guide.html">Aether Type Annotation Style Guide</a>
+<a href="/Docs/type-inference-multi-value-returns.html">Multi-Value Return Type Inference</a>
+<a href="/Docs/distinct-types.html">Distinct Types</a>
+<a href="/Docs/sequences.html">Sequences (`*StringSeq`)</a>
+<a href="/Docs/named-args-and-select.html">Named Arguments and select()</a>
+<a href="/Docs/closures-and-builder-dsl.html">Closures and Builder-Style DSL in Aether</a>
+<a href="/Docs/closures-and-lifetimes.html">Closures and Environment Lifetimes</a>
+<a href="/Docs/module-system-design.html">Aether Module System</a>
+<div class="grp">Runtime</div>
+<a href="/Docs/architecture.html">Aether Architecture</a>
+<a href="/Docs/actor-concurrency.html">Aether Runtime Guide</a>
+<a href="/Docs/structured-concurrency.html">Structured Concurrency for Aether, Design Direction</a>
+<a href="/Docs/scheduler-quick-reference.html">Aether Scheduler - Quick Reference</a>
+<a href="/Docs/memory-management.html">Aether Memory Management</a>
+<a href="/Docs/runtime-optimizations.html">Runtime Optimizations</a>
+<a href="/Docs/numa-support.html">NUMA Support in Aether</a>
+<div class="grp">Interop</div>
+<a href="/Docs/c-interop.html">C Interoperability</a>
+<a href="/Docs/c-embedding.html">Embedding Aether Actors in C Applications</a>
+<a href="/Docs/emit-lib.html">Embedding Aether as a Shared Library (`--emit=lib`)</a>
+<a href="/Docs/embedded-namespaces-and-host-bindings.html">Aether as a Configuration Language, v2: Namespaces and Generated Bindings</a>
+<a href="/Docs/aether-embedded-in-host-applications.html">Aether as a Configuration Language for Other Languages</a>
+<a href="/Docs/lib-caller-info.html">`--emit=lib` caller-info channel</a>
+<div class="grp">Stdlib</div>
+<a href="/Docs/stdlib-reference.html">Aether Standard Library Reference</a>
+<a href="/Docs/stdlib-api.html">Aether Standard Library Guide</a>
+<a href="/Docs/stdlib-module-pattern.html">Aether Stdlib Module Pattern</a>
+<a href="/Docs/stdlib-vs-contrib.html">`std/` vs `contrib/` placement decisions</a>
+<a href="/Docs/http-server.html">`std.http` HTTP Server</a>
+<a href="/Docs/http-reverse-proxy.html">`std.http.proxy` reverse proxy</a>
+<a href="/Docs/http-handler-context.html">HTTP handlers with per-server / per-route state</a>
+<a href="/Docs/http-vcr.html">HTTP Record/Replay (VCR), moved out of Aether</a>
+<a href="/Docs/json-parser-design.html">`std.json` Design Notes</a>
+<div class="grp">Safety</div>
+<a href="/Docs/containment-sandbox.html">Containment and Sandboxing in Aether</a>
+<a href="/Docs/hide-and-seal.html">`hide` and `seal except` scope-level capability denial</a>
+<a href="/Docs/compiler-trust-boundary.html">The Compiler Trust Boundary</a>
+<a href="/Docs/config-is-code.html">Config IS Code</a>
+<a href="/Docs/aether_compared_to_capsicum.html">Aether Sandbox Model vs. BSD Capsicum: Architecture, Parallels, and FreeBSD Integration</a>
+<div class="grp">Build</div>
+<a href="/Docs/build-system.html">Build System</a>
+<a href="/Docs/bootstrap-from-source.html">Bootstrapping Aether from source (HEAD)</a>
+<a href="/Docs/install-layout.html">Aether install layout</a>
+<a href="/Docs/runtime-config.html">Runtime Configuration - Quick Reference</a>
+<a href="/Docs/per-process-config.html">Per-process configuration in Aether</a>
+<a href="/Docs/cic-help.html">`ae help &lt;script&gt;` Offline diagnostics for config-IS-code</a>
+<div class="grp">More</div>
+<a href="/Docs/bindgen-consts.html">`ae bindgen consts`, importing C macro constants</a>
+<a href="/Docs/formatter.html">`ae fmt`, the source formatter</a>
+<a href="/Docs/isolated.html">`Isolated[T]`: move-only actor message payloads (#479)</a>
+<a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
+<a href="/Docs/profiling-guide.html">Aether Runtime Profiling Guide</a>
+<a href="/Docs/allocators.html">Allocators</a>
+<a href="/Docs/when-static-if.html">Compile-time `when` / static-if</a>
+<a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
+<a href="/Docs/contract-folding.html">Compile-time contract folding — costed design</a>
+<a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn&#x27;t need `macro_rules!`</a>
+<a href="/Docs/release-glibc-portability.html">Release binary portability across glibc versions</a>
+<a href="/Docs/error-unification.html">Unifying `T?` and `(value, err)` — costed design</a></nav>
+    <main class="doc-main">
+      <article class="doc-body">
+        <div class="bc">docs / language</div>
+<h1>Aether Type Inference Guide</h1>
+<h2>How Type Inference Works</h2>
+<p>Aether implements a type inference system that automatically deduces types from context, reducing the need for explicit type annotations in most cases.</p>
+<h2>Basic Inference</h2>
+<h3>From Literals</h3>
+<pre><code>x = 42              // inferred: int
 pi = 3.14           // inferred: float
 name = &quot;Alice&quot;      // inferred: string
 flag = true         // inferred: bool
-p = null            // inferred: ptr
-big = long 0        // inferred: long (int64)</code></pre>
-<h3 id="from-expressions">From Expressions</h3>
-<pre class="aether"><code>a = 10
+p = null            // inferred: ptr</code></pre>
+<p>A bare integer literal always infers as <code>int</code> there is no <code>long</code> literal or <code>long &lt;value&gt;</code> prefix. To get a <code>long</code> (64-bit) binding, annotate the declaration explicitly:</p>
+<pre><code>big = 0             // inferred: int
+long wide = 0       // explicit: long (64-bit)</code></pre>
+<h3>From Expressions</h3>
+<pre><code>a = 10
 b = 20
 sum = a + b           // inferred: int (both operands are int)
 
 x = 3.14
 y = 2.0
 result = x * y        // inferred: float</code></pre>
-<h3 id="from-functions">From Functions</h3>
-<pre class="aether"><code>// Return type inferred from return statement
+<h3>From Functions</h3>
+<pre><code>// Return type inferred from return statement
 add(a, b) {
-    return a + b      // If used with ints -&gt; int, if with floats -&gt; float
+    return a + b      // monomorphizes to one signature from the first
+                      // inferred call site (not per-call polymorphism)
 }
 
 // Parameters inferred from usage
@@ -67,9 +130,9 @@ main() {
     n = add(10, 20)             // add inferred as: int -&gt; int -&gt; int
     f = multiply(3.14, 2.0)     // multiply inferred as: float -&gt; float -&gt; float
 }</code></pre>
-<h2 id="advanced-inference">Advanced Inference</h2>
-<h3 id="struct-fields">Struct Fields</h3>
-<pre class="aether"><code>struct Point {
+<h2>Advanced Inference</h2>
+<h3>Struct Fields</h3>
+<pre><code>struct Point {
     x,    // Type inferred from initialization
     y
 }
@@ -89,20 +152,19 @@ main() {
         score: 0                // int
     }
 }</code></pre>
-<h3 id="array-elements">Array Elements</h3>
-<pre class="aether"><code>nums = [1, 2, 3, 4, 5]             // inferred: int[]
+<p>Struct fields infer their types from the initialisation site. A struct declared with bare field names (no <code>: type</code>) and never initialised keeps the fields at the parser&#x27;s fallback type. Always initialise via a struct literal at least once, or annotate the field explicitly.</p>
+<h3>Array Elements</h3>
+<pre><code>nums = [1, 2, 3, 4, 5]             // inferred: int[]
 names = [&quot;Alice&quot;, &quot;Bob&quot;]           // inferred: string[]
 mixed_ok = [1.0, 2.0, 3.0]         // inferred: float[]</code></pre>
-<h3 id="through-assignments">Through Assignments</h3>
-<pre class="aether"><code>x = 42            // x: int
+<h3>Through Assignments</h3>
+<pre><code>x = 42            // x: int
 y = x             // y: int (inferred from x)
 z = y + 10        // z: int (inferred from y + int)</code></pre>
-<h2 id="when-to-use-explicit-types">When to Use Explicit Types</h2>
-<p>While inference handles most cases, explicit types are useful
-for:</p>
-<h3 id="1-function-signatures-documentation">1. Function Signatures
-(Documentation)</h3>
-<pre class="aether"><code>// Explicit types make intent clear
+<h2>When to Use Explicit Types</h2>
+<p>While inference handles most cases, explicit types are useful for:</p>
+<h3>1. Function Signatures (Documentation)</h3>
+<pre><code>// Explicit types make intent clear
 calculate_damage(base: int, defense: int): int {
     return base - defense
 }
@@ -111,19 +173,19 @@ calculate_damage(base: int, defense: int): int {
 calculate_damage(base, defense) {
     return base - defense
 }</code></pre>
-<h3 id="2-complex-scenarios">2. Complex Scenarios</h3>
-<pre class="aether"><code>// When inference might be ambiguous
+<h3>2. Complex Scenarios</h3>
+<pre><code>// When inference might be ambiguous
 process_data(input: float[]) {
     // Explicit type ensures correct interpretation
 }</code></pre>
-<h3 id="3-public-apis">3. Public APIs</h3>
-<pre class="aether"><code>// Export with explicit types for clarity
+<h3>3. Public APIs</h3>
+<pre><code>// Export with explicit types for clarity
 export calculate_score(kills: int, deaths: int, assists: int): float {
     return (kills + assists / 2.0) / (deaths + 1)
 }</code></pre>
-<h2 id="mixed-explicitinferred">Mixed Explicit/Inferred</h2>
+<h2>Mixed Explicit/Inferred</h2>
 <p>You can mix explicit and inferred types:</p>
-<pre class="aether"><code>// Some parameters explicit, some inferred
+<pre><code>// Some parameters explicit, some inferred
 process(data, threshold: int) {
     return data &gt; threshold   // data type inferred from usage
 }
@@ -132,45 +194,45 @@ process(data, threshold: int) {
 format_name(first, last): string {
     return &quot;${first} ${last}&quot;  // parameters inferred as string
 }</code></pre>
-<h2 id="how-inference-works-internally">How Inference Works
-Internally</h2>
-<h3 id="phase-1-constraint-collection">Phase 1: Constraint
-Collection</h3>
+<h2>How Inference Works Internally</h2>
+<h3>Phase 1: Constraint Collection</h3>
 <p>The compiler walks the AST and collects type constraints:</p>
-<pre class="aether"><code>x = 42
+<pre><code>x = 42
 // Constraint: x must be int (from literal 42)
 
 y = x + 10
 // Constraint: y must be int (from x:int + 10:int)</code></pre>
-<h3 id="phase-2-constraint-solving">Phase 2: Constraint Solving</h3>
+<h3>Phase 2: Constraint Solving</h3>
 <p>Constraints are propagated iteratively until all types are known:</p>
 <pre><code>Iteration 1: x = int (from literal)
 Iteration 2: y = int (from x + int)
 Done: All types resolved</code></pre>
-<h3 id="phase-3-validation">Phase 3: Validation</h3>
+<h3>Phase 3: Validation</h3>
 <p>Once inferred, types are validated for consistency:</p>
-<pre class="aether"><code>x = 42
-x = &quot;hello&quot;   // ERROR: Can&#39;t assign string to int</code></pre>
-<h2 id="null-and-pointer-inference">Null and Pointer Inference</h2>
+<pre><code>x = 42
+x = &quot;hello&quot;   // rejected at the C-compile stage (-Wint-conversion),
+              // not by an Aether type-inference diagnostic</code></pre>
+<h2>Null and Pointer Inference</h2>
 <p>The <code>null</code> keyword is typed as <code>ptr</code>:</p>
-<pre class="aether"><code>conn = null              // inferred: ptr
-conn = tcp_connect(...)  // still ptr — type is consistent</code></pre>
-<p>Integer <code>0</code> is compatible with <code>ptr</code> for
-null-initialization patterns:</p>
-<pre class="aether"><code>server = 0               // initially int
-server = tcp_listen(80)  // tcp_listen returns ptr — type widens to ptr</code></pre>
-<h3 id="constants">Constants</h3>
-<p>Top-level <code>const</code> declarations infer their type from the
-value:</p>
-<pre class="aether"><code>const MAX = 100          // inferred: int
+<pre><code>conn = null                  // inferred: ptr
+conn = tcp_connect_raw(...)  // still ptr, type is consistent</code></pre>
+<p>Integer <code>0</code> interoperates with <code>ptr</code> only in limited cases. Assigning <code>0</code> to a variable that is already <code>ptr</code>-typed is fine (a null slot). But <code>0</code>-first-then-<code>ptr</code> widening is not a general rule: the pass in <code>compiler/analysis/type_inference.c</code> (<code>widen_ptr_assigned_locals</code>) only retypes a <code>0</code>-initialized local as <code>ptr</code> when that local lives inside a <code>ptr</code>-returning function. The same pattern in a plain <code>int</code>-returning <code>main()</code> keeps the local as <code>int</code> and fails to compile with <code>incompatible pointer to integer conversion</code>:</p>
+<pre><code>listen(): ptr {
+    server = 0                   // widened to ptr: this function returns ptr
+    server = tcp_listen_raw(80)  // OK
+    return server
+}</code></pre>
+<h3>Constants</h3>
+<p>Top-level <code>const</code> declarations infer their type from the value:</p>
+<pre><code>const MAX = 100          // inferred: int
 const NAME = &quot;hello&quot;     // inferred: string</code></pre>
-<h2 id="edge-cases">Edge Cases</h2>
-<h3 id="ambiguous-types">Ambiguous Types</h3>
-<pre class="aether"><code>// This FAILS - can&#39;t infer type without usage
-x: int              // Declare with explicit type
-x = get_value()     // OK - type is known</code></pre>
-<h3 id="generic-functions">Generic Functions</h3>
-<pre class="aether"><code>// Currently not supported - specify explicit types
+<h2>Edge Cases</h2>
+<h3>Ambiguous Types</h3>
+<p>A local declaration uses C-style prefix syntax (<code>type name = value</code>), not the postfix <code>name: type</code> form. A bare <code>x: int</code> local does not parse; it reports <code>error[E0100]: Expected statement in block</code>. Postfix <code>name: type</code> is valid only for function parameters and struct fields.</p>
+<pre><code>// Give the local an explicit type up front
+int x = get_value()   // OK - x is int</code></pre>
+<h3>Generic Functions</h3>
+<pre><code>// Currently not supported - specify explicit types
 identity(x: int): int {
     return x
 }
@@ -179,42 +241,17 @@ identity(x: int): int {
 // identity&lt;T&gt;(x: T): T {
 //     return x
 // }</code></pre>
-<h2 id="performance-impact">Performance Impact</h2>
+<h2>Performance Impact</h2>
 <p>Type inference happens at <strong>compile-time only</strong>:</p>
-<ul>
-<li>Zero runtime overhead</li>
-<li>Same generated C code as explicit types</li>
-<li>Full type safety maintained</li>
-<li>No performance difference</li>
-</ul>
-<h2 id="limitations">Limitations</h2>
-<p>Current limitations:</p>
-<ol type="1">
-<li><strong>No higher-rank types</strong> - Functions must have
-monomorphic types</li>
-<li><strong>No type classes</strong> - No Haskell-style constraints</li>
-<li><strong>Limited polymorphism</strong> - No generic functions
-yet</li>
-<li><strong>Struct fields</strong> - Must initialize to infer type</li>
-</ol>
-<h2 id="best-practices">Best Practices</h2>
-<h3 id="do">Do:</h3>
-<ul>
-<li>Let inference handle obvious cases (literals, simple
-expressions)</li>
-<li>Use explicit types for public APIs and exports</li>
-<li>Use explicit types when it improves readability</li>
-<li>Mix explicit/inferred for balance</li>
-</ul>
-<h3 id="dont">Don't:</h3>
-<ul>
-<li>Over-annotate everything (defeats the purpose)</li>
-<li>Rely on inference for complex logic (document with types)</li>
-<li>Leave ambiguous types un-annotated</li>
-</ul>
-<h2 id="examples">Examples</h2>
-<h3 id="good-minimal-but-clear">Good: Minimal but Clear</h3>
-<pre class="aether"><code>struct Player {
+<ul><li>Zero runtime overhead</li><li>Same generated C code as explicit types</li><li>Full type safety maintained</li><li>No performance difference</li></ul>
+<h2>Best Practices</h2>
+<h3>Do:</h3>
+<ul><li>Let inference handle obvious cases (literals, simple expressions)</li><li>Use explicit types for public APIs and exports</li><li>Use explicit types when it improves readability</li><li>Mix explicit/inferred for balance</li></ul>
+<h3>Don&#x27;t:</h3>
+<ul><li>Over-annotate everything (defeats the purpose)</li><li>Rely on inference for complex logic (document with types)</li><li>Leave ambiguous types un-annotated</li></ul>
+<h2>Examples</h2>
+<h3>Good: Minimal but Clear</h3>
+<pre><code>struct Player {
     name: string,    // Explicit for documentation
     health,          // Inferred from init
     score            // Inferred from init
@@ -228,9 +265,8 @@ main() {
     p = Player{ name: &quot;Alice&quot;, health: 100, score: 0 }
     total = calculate_total(p.score, 10)
 }</code></pre>
-<h3 id="better-strategic-explicit-types">Better: Strategic Explicit
-Types</h3>
-<pre class="aether"><code>struct Player {
+<h3>Better: Strategic Explicit Types</h3>
+<pre><code>struct Player {
     name: string,
     health: int,     // Explicit: important field
     score: int       // Explicit: important field
@@ -245,33 +281,23 @@ main() {
     p = Player{ name: &quot;Alice&quot;, health: 100, score: 0 }
     total = calculate_total(p.score, 10)
 }</code></pre>
-<h2 id="error-messages">Error Messages</h2>
-<p>When inference fails, Aether provides helpful errors:</p>
-<pre class="aether"><code>x = unknown_value()   // Type cannot be inferred
-
-// Error: Type inference failed
-//   Line 1: Variable &#39;x&#39; has ambiguous type
-//   help: Add type annotation: x: int = unknown_value()</code></pre>
-<h2 id="summary">Summary</h2>
-<ul>
-<li><strong>Inference is powerful</strong> - Handles most common cases
-automatically</li>
-<li><strong>Explicit types are documentation</strong> - Use
-strategically for public APIs</li>
-<li><strong>No runtime cost</strong> - Type inference is compile-time
-only</li>
-<li><strong>Fully type-safe</strong> - Same guarantees as explicit
-types</li>
-</ul>
-<p>Type inference gives Aether the expressiveness of ML/Haskell while
-maintaining C-level type safety and performance.</p>
-    </article>
-  </main>
-
-  <!-- FOOTER -->
-  <footer>
-    <p>&copy; 2026 Nicolas Maman</p>
-    <p><a href="#">Privacy</a> &middot; <a href="https://github.com/nicolasmd87/aether/blob/main/LICENSE">License</a> &middot; <a href="mailto:hello@aether.org">Contact</a></p>
-  </footer>
+<h2>Error Messages</h2>
+<p>Compiler diagnostics are E-coded (for example <code>E0100</code>, <code>E0301</code>) and print with a source span and a <code>help:</code> line. There is no free-form &quot;Type inference failed&quot; message. For instance, a call to a name the compiler cannot resolve reports:</p>
+<pre><code>error[E0301]: Undefined function &#x27;unknown_value&#x27;</code></pre>
+<p>When you do need to pin a local&#x27;s type, use the C-style prefix form <code>int x = ...</code>; the postfix <code>x: int = ...</code> form does not parse.</p>
+<h2>Summary</h2>
+<ul><li>Inference covers literals, simple expressions, and single-call-site functions.</li><li>Explicit types double as documentation; use them for public APIs and exports.</li><li>Inference is compile-time only, with no runtime cost.</li><li>Inferred types carry the same guarantees as explicit ones.</li></ul>
+<p>Type inference removes most annotations while keeping the generated C strictly typed.</p>
+      </article>
+    </main>
+  </div>
+</div>
+<footer class="site-foot">
+  <div class="wrap foot">
+    <span class="ae">ae</span>
+    <span class="m">MIT licensed · compiles to C · v0.454</span>
+    <nav><a href="/Docs/getting-started.html">Docs</a><a href="/repl.html">Playground</a><a href="https://github.com/aether-lang-org/aether">GitHub</a></nav>
+  </div>
+</footer>
 </body>
 </html>

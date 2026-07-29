@@ -1,0 +1,419 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Embedding Aether as a Shared Library (`--emit=lib`) · Aether</title>
+<meta name="description" content="Embedding Aether as a Shared Library (`--emit=lib`) — Aether language documentation.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/aether.css">
+</head>
+<body>
+<header class="site-head">
+  <div class="wrap bar">
+    <a class="brand" href="/" aria-label="Aether"><span class="ae">ae</span><span class="nm">aether</span></a>
+    <nav>
+      <a href="/repl.html">Playground</a>
+      <a href="/Docs/getting-started.html" class="on">Docs</a>
+      <a href="https://github.com/aether-lang-org/aether">Source</a>
+      <span class="vtag">v0.454</span>
+    </nav>
+  </div>
+</header>
+<div class="wrap">
+  <div class="doc-shell">
+    <nav class="doc-nav"><div class="grp">Start</div>
+<a href="/Docs/getting-started.html">Getting Started with Aether</a>
+<a href="/Docs/tutorial.html">Aether Language Tutorial</a>
+<a href="/Docs/next-steps.html">Next Steps</a>
+<div class="grp">Language</div>
+<a href="/Docs/language-reference.html">Aether Language Reference</a>
+<a href="/Docs/type-inference-guide.html">Aether Type Inference Guide</a>
+<a href="/Docs/type-annotation-style-guide.html">Aether Type Annotation Style Guide</a>
+<a href="/Docs/type-inference-multi-value-returns.html">Multi-Value Return Type Inference</a>
+<a href="/Docs/distinct-types.html">Distinct Types</a>
+<a href="/Docs/sequences.html">Sequences (`*StringSeq`)</a>
+<a href="/Docs/named-args-and-select.html">Named Arguments and select()</a>
+<a href="/Docs/closures-and-builder-dsl.html">Closures and Builder-Style DSL in Aether</a>
+<a href="/Docs/closures-and-lifetimes.html">Closures and Environment Lifetimes</a>
+<a href="/Docs/module-system-design.html">Aether Module System</a>
+<div class="grp">Runtime</div>
+<a href="/Docs/architecture.html">Aether Architecture</a>
+<a href="/Docs/actor-concurrency.html">Aether Runtime Guide</a>
+<a href="/Docs/structured-concurrency.html">Structured Concurrency for Aether, Design Direction</a>
+<a href="/Docs/scheduler-quick-reference.html">Aether Scheduler - Quick Reference</a>
+<a href="/Docs/memory-management.html">Aether Memory Management</a>
+<a href="/Docs/runtime-optimizations.html">Runtime Optimizations</a>
+<a href="/Docs/numa-support.html">NUMA Support in Aether</a>
+<div class="grp">Interop</div>
+<a href="/Docs/c-interop.html">C Interoperability</a>
+<a href="/Docs/c-embedding.html">Embedding Aether Actors in C Applications</a>
+<a href="/Docs/emit-lib.html" class="on">Embedding Aether as a Shared Library (`--emit=lib`)</a>
+<a href="/Docs/embedded-namespaces-and-host-bindings.html">Aether as a Configuration Language, v2: Namespaces and Generated Bindings</a>
+<a href="/Docs/aether-embedded-in-host-applications.html">Aether as a Configuration Language for Other Languages</a>
+<a href="/Docs/lib-caller-info.html">`--emit=lib` caller-info channel</a>
+<div class="grp">Stdlib</div>
+<a href="/Docs/stdlib-reference.html">Aether Standard Library Reference</a>
+<a href="/Docs/stdlib-api.html">Aether Standard Library Guide</a>
+<a href="/Docs/stdlib-module-pattern.html">Aether Stdlib Module Pattern</a>
+<a href="/Docs/stdlib-vs-contrib.html">`std/` vs `contrib/` placement decisions</a>
+<a href="/Docs/http-server.html">`std.http` HTTP Server</a>
+<a href="/Docs/http-reverse-proxy.html">`std.http.proxy` reverse proxy</a>
+<a href="/Docs/http-handler-context.html">HTTP handlers with per-server / per-route state</a>
+<a href="/Docs/http-vcr.html">HTTP Record/Replay (VCR), moved out of Aether</a>
+<a href="/Docs/json-parser-design.html">`std.json` Design Notes</a>
+<div class="grp">Safety</div>
+<a href="/Docs/containment-sandbox.html">Containment and Sandboxing in Aether</a>
+<a href="/Docs/hide-and-seal.html">`hide` and `seal except` scope-level capability denial</a>
+<a href="/Docs/compiler-trust-boundary.html">The Compiler Trust Boundary</a>
+<a href="/Docs/config-is-code.html">Config IS Code</a>
+<a href="/Docs/aether_compared_to_capsicum.html">Aether Sandbox Model vs. BSD Capsicum: Architecture, Parallels, and FreeBSD Integration</a>
+<div class="grp">Build</div>
+<a href="/Docs/build-system.html">Build System</a>
+<a href="/Docs/bootstrap-from-source.html">Bootstrapping Aether from source (HEAD)</a>
+<a href="/Docs/install-layout.html">Aether install layout</a>
+<a href="/Docs/runtime-config.html">Runtime Configuration - Quick Reference</a>
+<a href="/Docs/per-process-config.html">Per-process configuration in Aether</a>
+<a href="/Docs/cic-help.html">`ae help &lt;script&gt;` Offline diagnostics for config-IS-code</a>
+<div class="grp">More</div>
+<a href="/Docs/bindgen-consts.html">`ae bindgen consts`, importing C macro constants</a>
+<a href="/Docs/formatter.html">`ae fmt`, the source formatter</a>
+<a href="/Docs/isolated.html">`Isolated[T]`: move-only actor message payloads (#479)</a>
+<a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
+<a href="/Docs/profiling-guide.html">Aether Runtime Profiling Guide</a>
+<a href="/Docs/allocators.html">Allocators</a>
+<a href="/Docs/when-static-if.html">Compile-time `when` / static-if</a>
+<a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
+<a href="/Docs/contract-folding.html">Compile-time contract folding — costed design</a>
+<a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn&#x27;t need `macro_rules!`</a>
+<a href="/Docs/release-glibc-portability.html">Release binary portability across glibc versions</a>
+<a href="/Docs/error-unification.html">Unifying `T?` and `(value, err)` — costed design</a></nav>
+    <main class="doc-main">
+      <article class="doc-body">
+        <div class="bc">docs / interop</div>
+<h1>Embedding Aether as a Shared Library (<code>--emit=lib</code>)</h1>
+<p><code>aetherc --emit=lib</code> (or <code>ae build --emit=lib</code>) compiles a <code>.ae</code> file into a dynamic library (<code>.so</code> on Linux, <code>.dylib</code> on macOS) with ABI-stable entry points that any FFI-capable language can call: C, Java (Panama), Python (ctypes or SWIG), Go (cgo), Ruby, Rust (<code>extern &quot;C&quot;</code>), and so on.</p>
+<p>This document covers the v1 contract. For the broader design rationale, see <a href="/Docs/aether-embedded-in-host-applications.html">aether-embedded-in-host-applications.md</a>.</p>
+<h2>Quick example</h2>
+<pre><code>// config.ae
+import std.map
+
+build_config(env: string, port: int) {
+    m = map_new()
+    map_put(m, &quot;env&quot;, env)
+    map_put(m, &quot;port&quot;, port)
+    return m
+}</code></pre>
+<p>Build:</p>
+<pre><code>ae build --emit=lib config.ae
+# produces libconfig.so (or libconfig.dylib on macOS)</code></pre>
+<p>Consume from C:</p>
+<pre><code>#include &quot;aether_config.h&quot;
+#include &lt;dlfcn.h&gt;
+
+typedef AetherValue* (*build_fn)(const char*, int32_t);
+
+int main(void) {
+    void* h = dlopen(&quot;./libconfig.so&quot;, RTLD_NOW);
+    build_fn build = dlsym(h, &quot;aether_build_config&quot;);
+    AetherValue* cfg = build(&quot;prod&quot;, 8080);
+
+    const char* env  = aether_config_get_string(cfg, &quot;env&quot;);
+    int32_t     port = aether_config_get_int(cfg, &quot;port&quot;, 0);
+    printf(&quot;%s on %d\n&quot;, env, port);   // prod on 8080
+
+    aether_config_free(cfg);
+    dlclose(h);
+}</code></pre>
+<h2>The flag matrix</h2>
+<table><thead><tr><th>Flag</th><th>Effect</th></tr></thead><tbody><tr><td><code>--emit=exe</code> <em>(default)</em></td><td>Current behaviour, produces an executable.</td></tr><tr><td><code>--emit=lib</code></td><td>No <code>main()</code> in the output; every top-level Aether function gets an <code>aether_&lt;name&gt;()</code> C-ABI alias; built with <code>-fPIC -shared</code>.</td></tr><tr><td><code>--emit=both</code></td><td>Produces both an executable AND a shared library from one source. <code>ae build --emit=both foo.ae -o foo</code> writes <code>foo</code> (the exe) and <code>foo.dylib</code> / <code>foo.so</code> (the lib) side by side. With no <code>-o</code>, defaults are <code>&lt;base&gt;</code> (exe) and <code>lib&lt;base&gt;.&lt;ext&gt;</code> (lib). Internally dispatches <code>cmd_build</code> twice (once per emit mode); the lib pass appends the platform lib extension to the user&#x27;s <code>-o</code> so the second pass doesn&#x27;t overwrite the first.</td></tr><tr><td><code>--emit=csrc</code></td><td>Emits the <strong>portable generated C source</strong> (<code>foo.c</code>), a <strong>catalog header</strong> (<code>foo.h</code>, the <code>aether_&lt;name&gt;()</code> prototypes), and a <strong>machine-readable catalog</strong> (<code>foo.catalog.json</code>), and stops. No <code>gcc</code>, no native artifact. Same catalog codegen as <code>--emit=lib</code>; the difference is you get <em>source</em> plus a describable ABI surface, not a host <code>.so</code>.</td></tr></tbody></table>
+<h2><code>--emit=csrc</code>: distribute source, not N native libs (#996)</h2>
+<p>A single <strong>native</strong> lib can&#x27;t be universal across OSes — ELF vs Mach-O vs PE/COFF are different loader formats. But the <strong>pre-native</strong> artifact can be: the generated C is portable, so <code>--emit=csrc</code> moves the &quot;which platform&quot; decision from <em>distribution time</em> (ship 6 natives) to the consumer&#x27;s build:</p>
+<pre><code>ae build --emit=csrc mylib.ae -o mylib
+# writes mylib.c (portable C) + mylib.h (aether_&lt;name&gt; prototypes)
+#      + mylib.catalog.json (the describable ABI surface)
+
+# compile it wherever, against the runtime:
+cc -fPIC -shared mylib.c $(ae cflags) -o libmylib.so   # this host
+# or feed mylib.c to WASM, or static-link it into a compiled host, or
+# publish {mylib.c, mylib.h, mylib.catalog.json} as a content-addressable
+# source package.</code></pre>
+<p>The <code>.h</code> is a normal C header (include guard + <code>extern &quot;C&quot;</code>); a consumer <code>#include</code>s it and calls <code>aether_add(...)</code> / <code>aether_greet(...)</code> directly. This is the enabling primitive for compile-on-install bindings (Python C-extension / Ruby-gem style) and a &quot;source registry&quot; story where every binding compiles the same hash-pinned source in its own toolchain. Follow-ups noted in #996: single-file amalgamation and expressing the required runtime <code>.c</code> set for a fully standalone external compile.</p>
+<h3>The JSON catalog (<code>&lt;name&gt;.catalog.json</code>)</h3>
+<p>The same <code>aether_lib_meta()</code> symbol catalog the <code>.c</code> carries in <code>.rodata</code> (see the reflection section below) is also written as a JSON document, so a binding generator in any language can consume it without dlopening a native artifact. It is a faithful serialization of the C struct, driven by the identical codegen tables, so the two can never drift; it is deterministic (source order, stable version strings) and human-diffable, which makes the source artifact content-addressable. Fields:</p>
+<table><thead><tr><th>Field</th><th>Meaning</th></tr></thead><tbody><tr><td><code>schema_version</code></td><td><code>&quot;1.0&quot;</code> functions only, <code>&quot;1.1&quot;</code> adds closures, <code>&quot;1.2&quot;</code> adds constants (the highest feature level present)</td></tr><tr><td><code>aether_version</code></td><td>Compiler version stamp</td></tr><tr><td><code>primary_source</code></td><td>The <code>.ae</code> the artifact was built from (mirrors the path passed to the compiler: pass a relative path for a reproducible, machine-independent value)</td></tr><tr><td><code>capabilities</code></td><td>The <code>--with</code> grants this artifact was built with (e.g. <code>[&quot;fs&quot;,&quot;net&quot;]</code>), empty when capability-empty. Because the emitted C only contains code paths for granted capabilities, this is the syscall surface a consumer can inspect <em>before</em> compiling the source</td></tr><tr><td><code>functions[]</code></td><td><code>aether_name</code>, <code>c_symbol</code> (the <code>dlsym</code>/link name), <code>signature</code>, <code>source_file</code>, <code>source_line</code></td></tr><tr><td><code>closures[]</code></td><td>Closure surface reachable from exports: <code>name</code>, <code>role</code> (<code>builder</code> / <code>param</code> / <code>literal</code>), <code>enclosing_export</code>, <code>signature</code>, <code>captures[]</code> (<code>name</code> + <code>type</code>), <code>source_file</code>, <code>source_line</code></td></tr><tr><td><code>constants[]</code></td><td>Exported scalar/string consts: <code>name</code>, <code>type</code>, <code>value</code></td></tr></tbody></table>
+<pre><code>{
+  &quot;schema_version&quot;: &quot;1.0&quot;,
+  &quot;aether_version&quot;: &quot;0.0.0-dev&quot;,
+  &quot;primary_source&quot;: &quot;mylib.ae&quot;,
+  &quot;capabilities&quot;: [],
+  &quot;functions&quot;: [
+    { &quot;aether_name&quot;: &quot;add&quot;, &quot;c_symbol&quot;: &quot;aether_add&quot;, &quot;signature&quot;: &quot;(int, int) -&gt; int&quot;, &quot;source_file&quot;: &quot;mylib.ae&quot;, &quot;source_line&quot;: 4 }
+  ],
+  &quot;closures&quot;: [],
+  &quot;constants&quot;: []
+}</code></pre>
+<h2>Naming</h2>
+<p>Every exported Aether function becomes <code>aether_&lt;name&gt;</code> in the library:</p>
+<table><thead><tr><th>Aether declaration</th><th>C symbol</th></tr></thead><tbody><tr><td><code>sum(a: int, b: int) { ... }</code></td><td><code>aether_sum</code></td></tr><tr><td><code>greet(name: string) { ... }</code></td><td><code>aether_greet</code></td></tr><tr><td><code>build_config(env, port)</code></td><td><code>aether_build_config</code></td></tr></tbody></table>
+<p>The internal <code>sum</code>, <code>greet</code>, etc. symbols are <strong>also present</strong> in the library with external linkage. Callers should use the <code>aether_&lt;name&gt;</code> entry points for ABI stability, the un-prefixed names are an implementation detail and may be hidden in a future version. See <a href="#symbol-visibility-matrix">Symbol visibility matrix</a> below for the full picture across emit modes.</p>
+<h2>Type mapping</h2>
+<p>Parameter and return types on exported functions are mapped to a fixed public ABI:</p>
+<table><thead><tr><th>Aether type</th><th>Public C type</th><th>Notes</th></tr></thead><tbody><tr><td><code>int</code></td><td><code>int32_t</code></td><td>Fixed width for cross-language clarity</td></tr><tr><td><code>long</code></td><td><code>int64_t</code></td><td>The Aether source keyword for 64-bit integers is <code>long</code>; the lexer token <code>TOKEN_INT64</code> backs both <code>long</code> and <code>int64_t</code> internally</td></tr><tr><td><code>float</code></td><td><code>float</code></td><td>IEEE 754 binary32</td></tr><tr><td><code>bool</code></td><td><code>int32_t</code></td><td><code>0</code> = false, <code>1</code> = true</td></tr><tr><td><code>string</code></td><td><code>const char*</code></td><td>Borrowed pointer; copy in the host if the lifetime matters</td></tr><tr><td><code>ptr</code> / <code>list</code> / <code>map</code></td><td><code>AetherValue*</code></td><td>Opaque handle; walk with <code>aether_config_*</code> accessors</td></tr></tbody></table>
+<p>Functions whose parameters or returns use types outside this table (tuples, structs, closures, actor refs) compile but <strong>don&#x27;t get an <code>aether_&lt;name&gt;</code> alias</strong>. <code>aetherc</code> prints a warning naming the skipped function. You can still use those types internally; they just can&#x27;t cross the FFI boundary in v1.</p>
+<p>Two private-helper conventions also opt out of the <code>aether_&lt;name&gt;</code> surface:</p>
+<ul><li><strong>Trailing-underscore</strong>: a function whose name ends in <code>_</code></li></ul>
+<p>(e.g. <code>record_start_</code>, <code>helper_</code>, <code>parse_line_</code>) is treated as file-local. It&#x27;s emitted with C <code>static</code> storage and gets no <code>aether_*</code> alias. This lets two <code>.ae</code> files in the same project declare their own <code>record_start_</code> without colliding at link time and without leaking either into the public ABI. The convention is enforced by codegen, so adding the <code>_</code> is enough, no annotation.</p>
+<ul><li><strong>Tuple-returning helpers</strong>: <code>helper(n: int) -&gt; { return n, n+1 }</code></li></ul>
+<p>returns a <code>_tuple_int_int</code> struct that doesn&#x27;t fit the public ABI table. The function itself is fine; the alias is skipped. Wrap with a single-value-returning function if it needs to be exposed across the library boundary.</p>
+<h2>The <code>AetherValue*</code> accessor API</h2>
+<p>Composite Aether values, maps, lists, generic <code>ptr</code>s, come back to the host as <code>AetherValue*</code> handles. The host walks them with the functions declared in <code>runtime/aether_config.h</code>:</p>
+<pre><code>// Map accessors
+const char*  aether_config_get_string(AetherValue* root, const char* key);
+int32_t      aether_config_get_int   (AetherValue* root, const char* key, int32_t default_value);
+int64_t      aether_config_get_int64 (AetherValue* root, const char* key, int64_t default_value);
+float        aether_config_get_float (AetherValue* root, const char* key, float  default_value);
+int32_t      aether_config_get_bool  (AetherValue* root, const char* key, int32_t default_value);
+AetherValue* aether_config_get_map   (AetherValue* root, const char* key);
+AetherValue* aether_config_get_list  (AetherValue* root, const char* key);
+int32_t      aether_config_has       (AetherValue* root, const char* key);
+
+// List accessors
+int32_t      aether_config_list_size       (AetherValue* list);
+AetherValue* aether_config_list_get        (AetherValue* list, int32_t index);
+const char*  aether_config_list_get_string (AetherValue* list, int32_t index);
+int32_t      aether_config_list_get_int    (AetherValue* list, int32_t index, int32_t default_value);
+int64_t      aether_config_list_get_int64  (AetherValue* list, int32_t index, int64_t default_value);
+float        aether_config_list_get_float  (AetherValue* list, int32_t index, float   default_value);
+int32_t      aether_config_list_get_bool   (AetherValue* list, int32_t index, int32_t default_value);
+
+// Lifetime
+void aether_config_free(AetherValue* root);</code></pre>
+<h3>Ownership</h3>
+<table><thead><tr><th>Return value</th><th>Ownership</th></tr></thead><tbody><tr><td>Root <code>AetherValue*</code> from an <code>aether_&lt;name&gt;()</code> call</td><td><strong>Owned</strong>, call <code>aether_config_free(root)</code></td></tr><tr><td>Nested map/list handle from <code>_get_map</code> / <code>_get_list</code> / <code>_list_get</code></td><td><strong>Borrowed</strong>, valid until the root is freed; do NOT free individually</td></tr><tr><td><code>const char*</code> from <code>_get_string</code> / <code>_list_get_string</code></td><td><strong>Borrowed</strong>, points into the tree; copy if you need it past <code>aether_config_free</code></td></tr></tbody></table>
+<h3>Behaviour of missing keys / out-of-range indices</h3>
+<ul><li>Typed getters return the <code>default_value</code> the caller supplied.</li><li><code>_get_string</code> / <code>_get_map</code> / <code>_get_list</code> / <code>_list_get_string</code> return <code>NULL</code>.</li><li><code>_list_size(NULL)</code> returns <code>0</code>; <code>_has(NULL, k)</code> returns <code>0</code>.</li></ul>
+<h3>Type contract</h3>
+<p>Aether maps and lists are <strong>untyped</strong> internally, values are stored as opaque <code>void*</code> with no runtime tag. The accessors reinterpret the stored value as the requested type; they do not verify it. That makes the script-to-host interface a straight FFI contract: document what the script writes at each key, and the host must read it back with the matching accessor. If the script stored an <code>int</code> at <code>&quot;port&quot;</code> and the host asks for a string, the host gets garbage, treat this exactly the way you would treat any other cross-language value exchange.</p>
+<h2>Capability-empty default</h2>
+<p><code>--emit=lib</code> rejects <code>.ae</code> files that import:</p>
+<ul><li><code>std.net</code>, <code>std.http</code>, <code>std.tcp</code> networking</li><li><code>std.fs</code> filesystem</li><li><code>std.os</code> process / environment / shell</li></ul>
+<p>The rationale: a library embedded in a host process shouldn&#x27;t have ambient network, filesystem, or process-spawning access. Those are capabilities the <strong>host</strong> grants; the script should only compute and return data. The host mediates I/O through whatever its own runtime provides.</p>
+<p><code>std.map</code>, <code>std.list</code>, <code>std.string</code>, <code>std.json</code>, <code>std.math</code>, and the other capability-free standard modules are allowed.</p>
+<h3>Opting in: <code>--with=&lt;capabilities&gt;</code></h3>
+<p>Projects that <strong>are</strong> the host, code that compiles <code>.ae</code> and handwritten C into one binary, rather than embedding Aether as an untrusted user script, opt into specific capability categories:</p>
+<pre><code>ae build --emit=lib --with=fs           file.ae   # std.fs
+ae build --emit=lib --with=net          file.ae   # std.net, std.http, std.tcp
+ae build --emit=lib --with=os           file.ae   # std.os
+ae build --emit=lib --with=fs,os        file.ae   # multiple, comma-separated
+ae build --emit=lib --with=first-party  file.ae   # alias for fs,net,os
+ae build --emit=lib --with=all          file.ae   # alias for fs,net,os</code></pre>
+<p>The gate stays default-deny: a build without <code>--with=fs</code> still rejects <code>import std.fs</code>. Unknown capability names are a hard error (typos shouldn&#x27;t silently leave a gate closed). The categories mirror the banned-import groupings above, three buckets, chosen coarsely enough that opting in is an auditable event in a project&#x27;s build invocation.</p>
+<p><code>--with=first-party</code> and <code>--with=all</code> both expand to <code>fs,net,os</code>. The two names are equivalent; pick whichever expresses intent better in your project. <code>first-party</code> reads as &quot;this Aether code is trusted-as-first-party, give it everything&quot;; <code>all</code> reads as a literal shorthand for the full set. Using either one is appropriate for tools like build systems and SDK generators where the <code>.ae</code> files ship with the toolchain itself; it is <strong>not</strong> appropriate for plugin / user- script scenarios, see &quot;When NOT to use this&quot; below.</p>
+<p><strong>When to use this.</strong> Systems code where the <code>.ae</code> files are first-party and version-controlled the same way as the <code>.c</code> files. The Aether-side <code>file_open_raw</code> is no different from the C side calling <code>fopen</code> there&#x27;s no privilege boundary to police.</p>
+<p><strong>When NOT to use this.</strong> Anywhere the library could run untrusted Aether (user scripts, a plugin loader, a DSL evaluator). Leave the default in place; the host mediates I/O on the script&#x27;s behalf.</p>
+<h2>Symbol visibility matrix</h2>
+<p>What gets <code>static</code> storage class versus external linkage in the generated <code>.c</code> file, by function origin × emit mode. This determines which symbols collide when multiple <code>.c</code> files compiled from different <code>.ae</code> sources are linked into one binary.</p>
+<table><thead><tr><th>Function origin</th><th><code>--emit=exe</code></th><th><code>--emit=lib</code></th></tr></thead><tbody><tr><td>Local (defined in this <code>.ae</code>)</td><td>external</td><td>external + <code>aether_&lt;name&gt;</code> alias</td></tr><tr><td>Local with trailing <code>_</code> (<code>helper_</code>)</td><td><strong><code>static</code></strong></td><td><strong><code>static</code></strong> (no <code>aether_&lt;name&gt;</code> alias)</td></tr><tr><td>Local with tuple return type</td><td>external</td><td>external (no <code>aether_&lt;name&gt;</code> alias)</td></tr><tr><td>Imported Aether wrapper</td><td><strong><code>static</code></strong></td><td><strong><code>static</code></strong> (no <code>aether_&lt;name&gt;</code> alias)</td></tr><tr><td><code>extern</code> declaration (any module)</td><td>declaration only, refers to external symbol from <code>libaether.a</code> or another TU</td></tr><tr><td>Stdlib C externs (<code>std/*/aether_*.c</code>)</td><td>linked from <code>libaether.a</code>; no per-TU duplication</td></tr></tbody></table>
+<p>Two consequences worth highlighting:</p>
+<p><strong>Imported Aether wrappers are private to each TU.</strong> When module A and module B both <code>import std.string</code>, both generated <code>.c</code> files contain <code>static const char* string_copy(...)</code> a private copy each. Linking the two <code>.o</code> files together produces no duplicate-symbol errors, even on linkers that don&#x27;t support <code>-Wl,--allow-multiple-definition</code> (notably macOS ld64). This is deliberate; see <a href="../compiler/aether_module.c"><code>compiler/aether_module.c</code></a> where cloned imported functions get <code>clone-&gt;is_imported = 1</code>, and <a href="../compiler/codegen/codegen_func.c"><code>compiler/codegen/codegen_func.c</code></a> where the <code>static </code> prefix is emitted for functions guarded by <code>func-&gt;is_imported || trailing_underscore_private</code>.</p>
+<p><strong>Locally-defined functions retain external linkage.</strong> If two <code>.ae</code> files both define a function with the same name (e.g. both define <code>helper</code>), they DO collide at link time. <code>--emit=lib</code> adds an <code>aether_&lt;name&gt;</code> alias on top, but the un-aliased local symbol is still external. This is the symmetric opposite of the imported case and is intentional, local functions are the unit of inter-TU linking; the user program structures around their names.</p>
+<p><strong>Implication for downstream tools.</strong> Multi-TU binaries that import the same SDK module across many <code>.ae</code> files do not need <code>-Wl,--allow-multiple-definition</code>. The static-marking on imported wrappers handles deduplication at the source level. Tools building this shape can drop the link flag and gain macOS compatibility for free, <code>ld64</code> (Apple&#x27;s linker) silently rejects <code>--allow-multiple-definition</code>, and the static-marking removes the need for it.</p>
+<h2>Using SWIG to generate Java/Python/Ruby/Go bindings</h2>
+<p>The repo ships a minimal SWIG interface at <code>runtime/aether_config.i</code>. It wraps <code>aether_config.h</code> and marks <code>aether_config_free</code> as the destructor so target-language GC integrates cleanly.</p>
+<pre><code># Python
+swig -python -o aether_config_wrap.c runtime/aether_config.i
+gcc -fPIC -shared $(python3-config --includes) aether_config_wrap.c \
+    libconfig.so $(python3-config --ldflags) -o _aether_config.so
+
+# Java
+swig -java -package com.example.aether runtime/aether_config.i
+
+# Ruby, Go, C#, ... same pattern with -ruby, -go, -csharp.</code></pre>
+<p>The generated bindings wrap <code>AetherValue*</code> as a proxy class per target language, Python gets <code>AetherValue</code>, Java gets a <code>class AetherValue</code>, etc. Users see idiomatic API calls; the opaque pointer is hidden.</p>
+<p>See <code>tests/integration/emit_lib_swig/</code> for a worked Python round-trip.</p>
+<h2>Per-call resource caps (#343)</h2>
+<p>Hosts loading untrusted Aether scripts bound the script&#x27;s resource use via two TLS-backed knobs in <code>include/libaether.h</code>:</p>
+<pre><code>#include &lt;libaether.h&gt;
+
+aether_set_memory_cap(64 * 1024 * 1024);   // 64 MiB ceiling
+aether_set_call_deadline(50);              // 50 ms wall-clock
+
+call_into_aether();                        // returns inside both bounds
+
+if (aether_deadline_tripped()) {
+    /* The deadline fired mid-call. The Aether call returned
+     * early via the codegen tripwire. Any partial state is
+     * the host&#x27;s to interpret. */
+}</code></pre>
+<p><strong>Memory cap.</strong> Process-wide. The cap-aware allocators (<code>std/string</code>, <code>std/collections</code>, <code>runtime/memory/{arena,pool}</code>) check + account against a single <code>_Atomic uint64_t</code> counter. The counter tracks <strong>current usage</strong>, not high-water-mark, long-running guests that allocate-and-free in a loop don&#x27;t trip the cap on cumulative churn. Allocations past the cap return NULL through the existing error-string convention; stdlib functions surface &quot;out of memory: cap exceeded&quot; up the call chain rather than aborting. Pass <code>0</code> to disable.</p>
+<p><strong>Wall-clock deadline.</strong> Per-thread monotonic (<code>CLOCK_MONOTONIC</code>). The codegen emits <code>if (aether_caps_deadline_tripped()) { __aether_abort_call(); break; }</code> at every <code>for</code> / <code>while</code> loop head under <code>--emit=lib</code> not under <code>--emit=exe</code> (zero overhead on non-sandboxed builds). On trip the sticky flag flips; subsequent loop heads in the same call exit too, so any depth of nested loops unwinds in O(N) tripwire-bounded breaks. Pass <code>0</code> to disable; pass a fresh ms value to clear the sticky flag and re-arm.</p>
+<p>The trip is observable via <code>aether_deadline_tripped()</code> the host checks after the call to know whether the result was complete or truncated. Retrying a tripped deadline is the host&#x27;s policy: re-arm + call again with a more generous budget, or surface <code>Deadline</code> to the user.</p>
+<h2>What&#x27;s out of scope for v1</h2>
+<ol><li><strong>Callbacks held live</strong>, a host can&#x27;t pass a closure into Aether and</li></ol>
+<p>have it retained. If you want this (the ARexx / rules-engine model), track the &quot;Shape B&quot; design note in <a href="/Docs/aether-embedded-in-host-applications.html">aether-embedded-in-host-applications.md</a>.</p>
+<ol><li><strong>Per-function capability grants</strong>, <code>--with=</code> flags are coarse</li></ol>
+<p>(fs / net / os). Fine-grained gates like &quot;allow file_open but not dir_delete&quot; don&#x27;t match any concrete threat model for the default-deny shape, and every additional flag is API surface.</p>
+<ol><li><strong>Typed returns beyond <code>void*</code></strong>, functions returning <code>map</code>/<code>list</code></li></ol>
+<p>come back as <code>AetherValue*</code> with no schema. Host knows the shape.</p>
+<h2>Kind discrimination + deep-free (<code>aether_value_kind</code>, <code>aether_config_free_deep</code>)</h2>
+<p>Aether&#x27;s collections are intentionally untyped at the storage level, a map&#x27;s value slot is <code>void*</code>, and the host knows the schema. That historically meant schema-mismatch bugs (script stores an int where a map was expected) degraded into host-side segfaults. v1 closes that gap with a magic-tagged kind discriminator.</p>
+<p>Every <code>HashMap</code> and <code>ArrayList</code> carries a <code>uint32_t _kind_magic</code> as its leading field, set at construction and cleared on free. The runtime exposes:</p>
+<pre><code>typedef enum {
+    AETHER_KIND_UNKNOWN = 0,
+    AETHER_KIND_MAP     = 1,
+    AETHER_KIND_LIST    = 2
+} AetherKind;
+
+AetherKind aether_value_kind(AetherValue* v);
+int32_t    aether_value_is_map(AetherValue* v);
+int32_t    aether_value_is_list(AetherValue* v);</code></pre>
+<p>These are <strong>safe to call on any pointer the host holds</strong>, including scalars that were intptr-cast to <code>AetherValue*</code> (e.g. <code>(void*)(intptr_t)42</code> from a schema-mismatched <code>_get_map</code> call). The probe applies two layers of safety:</p>
+<ol><li><strong>Low-address guard</strong>, the zero page + first 64 KiB are unmapped</li></ol>
+<p>on every supported OS (Linux&#x27;s <code>vm.mmap_min_addr</code> default is 65536; macOS reserves more; Windows likewise). Any pointer below <code>0x10000</code> is filtered before any deref attempt, so common intptr-cast scalars never reach the magic check.</p>
+<ol><li><strong>32-bit magic check</strong>, for higher-address values that survive</li></ol>
+<p>the guard, the leading 4 bytes either match one of the two known constants (<code>AETHER_KIND_LIST_MAGIC</code> / <code>AETHER_KIND_MAP_MAGIC</code>) or the predicate reports <code>UNKNOWN</code>. False-match probability for a non-container value is 2 / 2³² ≈ 5 × 10⁻¹⁰.</p>
+<p><code>aether_config_free_deep(root)</code> builds on the predicate to walk a nested tree of containers and free each one in post-order. Scalars encountered along the way are left untouched (the host owns those separately). <code>aether_config_free</code> (shallow) auto-detects whether the root is a map or a list via the same predicate, so it now works on either container shape uniformly.</p>
+<pre><code>AetherValue* root = aether_build_config(&quot;prod&quot;, 8080);
+
+if (aether_value_is_map(root)) {
+    /* Defensive, confirm what the script actually returned. */
+}
+
+AetherValue* db = aether_config_get_map(root, &quot;db&quot;);
+if (aether_value_kind(db) == AETHER_KIND_MAP) {
+    const char* host = aether_config_get_string(db, &quot;host&quot;);
+    /* … */
+}
+
+aether_config_free_deep(root);   /* nested map + list freed too */</code></pre>
+<p>Defense-in-depth: <code>list_free</code> and <code>map_free</code> clear the magic before releasing the struct&#x27;s memory, so a use-after-free probe via <code>aether_value_kind</code> reads the cleared magic and reports <code>UNKNOWN</code> rather than a stale match on the freed-but-still-readable original value.</p>
+<h2>Reflection: the symbol catalog (<code>aether_lib_meta</code>), #403</h2>
+<p>Every <code>--emit=lib</code> artifact exports a single reflection entry point:</p>
+<pre><code>const AetherLibMeta* aether_lib_meta(void);</code></pre>
+<p>declared in <code>runtime/aether_lib_meta.h</code>. The returned struct describes every exported function, Aether name, C symbol, public signature, source file, source line, in a layout-stable, allocation-free form that any FFI consumer (Python ctypes, Java Panama, Ruby Fiddle, Node-API, hand-rolled <code>dlsym</code>) can walk directly.</p>
+<pre><code>typedef struct {
+    const char* aether_name;     /* &quot;double_int&quot;, &quot;std.fs.copy&quot;      */
+    const char* c_symbol;         /* unmangled symbol to dlsym         */
+    const char* signature;        /* &quot;(int) -&gt; int&quot;                    */
+    const char* source_file;      /* the .ae that defined it           */
+    int         source_line;      /* 1-based                            */
+} AetherLibFunction;
+
+typedef struct {
+    const char* schema_version;   /* &quot;1.0&quot; funcs; &quot;1.1&quot; closures; &quot;1.2&quot; consts */
+    const char* aether_version;   /* compiler version                  */
+    const char* primary_source;   /* the .ae passed to aetherc         */
+    int                       function_count;
+    const AetherLibFunction*  functions;
+    int                       closure_count;   /* v2: closure-surface records */
+    const AetherLibClosure*   closures;        /* NULL when closure_count==0 */
+    int                       constant_count;  /* v3: exported-constant records */
+    const AetherLibConstant*  constants;       /* NULL when constant_count==0 */
+} AetherLibMeta;</code></pre>
+<p>No JSON, no parsing, no dynamic allocation, the struct is <code>static const</code> in the artifact and the catalog literally lives in <code>.rodata</code>. Schema is versioned; within <code>1.x</code> only additive fields appear at the struct tail, so a &quot;1.0&quot; reader walks a &quot;1.1&quot; or &quot;1.2&quot; artifact unchanged (it reads <code>function_count</code>/<code>functions</code> and ignores the closure and constant slots; those fields were always present, just NULL before). <code>schema_version</code> is &quot;1.0&quot; for function-only artifacts, &quot;1.1&quot; once closure records are present, and &quot;1.2&quot; once exported-constant records (<code>constant_count</code>/<code>constants</code>, of type <code>AetherLibConstant</code>) are present. The function table includes every Aether-defined function the linker exports; functions skipped from the <code>aether_&lt;name&gt;</code> alias surface (unsupported types, tuple returns, trailing-underscore privates) are also omitted from it.</p>
+<h4>Closure-context records (v2, schema &quot;1.1&quot;)</h4>
+<p>The flattened function table above is the foreign-FFI surface; it drops closures, real types, and the builder-DSL shape. The <code>closures</code> array is the complement: the closure surface a <em>downstream Aether</em> consumer needs to reconstruct a closure-with-context builder DSL at full fidelity, rather than the lowest-common-denominator C ABI a foreign host links against. Each record:</p>
+<pre><code>typedef struct { const char* name; const char* type; } AetherLibCapture;
+
+typedef struct {
+    const char* name;              /* param / closure name, or &quot;&quot;       */
+    const char* role;              /* &quot;builder&quot;|&quot;param&quot;|&quot;trailing-block&quot;|&quot;literal&quot; */
+    const char* enclosing_export;  /* the export it is reachable from   */
+    const char* signature;         /* &quot;|int, string| -&gt; bool&quot;           */
+    int                     capture_count;
+    const AetherLibCapture* captures;   /* NULL when capture_count == 0  */
+    const char* source_file;
+    int         source_line;
+} AetherLibClosure;</code></pre>
+<p>Three sources populate it, all reachable from the set of top-level, non-imported, non-<code>_</code>-suffixed functions (which is broader than the ABI function table, a builder or a <code>fn</code>-parameter function is exactly what the ABI gate excludes, yet its bare symbol is still linkable by an Aether consumer):</p>
+<ul><li><strong><code>builder</code></strong>, an export that takes an injected <code>_ctx</code> (the <code>builder</code></li></ul>
+<p>keyword or the <code>_ctx: ptr</code> first-param convention). The &quot;call me with a trailing block&quot; signal; <code>capture_count</code> is 0.</p>
+<ul><li><strong><code>param</code></strong>, a closure-typed (<code>fn</code>) parameter of an export. <code>name</code> is</li></ul>
+<p>the parameter, <code>signature</code> its <code>|...| -&gt; R</code> shape.</p>
+<ul><li><strong><code>trailing-block</code></strong>, a trailing-block closure literal in an export&#x27;s</li></ul>
+<p>body.</p>
+<ul><li><strong><code>literal</code></strong>, any other hoisted closure literal in an export&#x27;s body.</li></ul>
+<p>For both of these, <code>captures</code> lists the enclosing variables the closure closes over with their rendered Aether types.</p>
+<p>Closure-literal return types are best-effort: rendered when resolved, <code>?</code> when the body type-checks lazily and the type isn&#x27;t known at emit time. Captures and parameter types are exact.</p>
+<h4>Consuming a published library from Aether (<code>import</code>)</h4>
+<p>The records above are not just for inspection, they are what lets an <em>Aether</em> program consume a precompiled <code>--emit=lib</code> artifact as a first-class <code>import</code>, with the call site reading as if the library were compiled in the same cycle:</p>
+<pre><code>import std.map        // builder default factory (map_new) lives here
+import gizmo          // resolves libgizmo.so, no gizmo.ae source needed
+
+main() {
+    println(gizmo.greet(&quot;world&quot;))     // a function export
+    s = gizmo.section(&quot;intro&quot;) { }    // a builder (trailing-block DSL) export
+    println(s)
+}</code></pre>
+<p>When <code>ae run</code> / <code>ae build</code> sees an <code>import foo</code> that has no <code>foo</code> source module but a <code>libfoo.so</code> / <code>foo.so</code> on the search path, it reads that artifact&#x27;s <code>aether_lib_meta()</code> catalog and synthesizes a small Aether interface stub: an <code>@extern(&quot;&lt;c_symbol&gt;&quot;) name(...) -&gt; R</code> for each function export, and a trailing-block <code>builder</code> wrapper for each <code>builder</code> record (forwarding the block&#x27;s config map to the library function&#x27;s <code>(..., _builder)</code> entry point). The stub is dropped onto the module search path, so the <em>existing</em> source-import machinery (typecheck, namespace prefixing, builder registration) rehydrates the library, no special call-site syntax. The artifact is linked in (absolute path + <code>-rpath</code>), and the host&#x27;s <code>-rdynamic</code> + static <code>libaether</code> satisfy the <code>.so</code>&#x27;s runtime symbols.</p>
+<p>Scope of the current implementation:</p>
+<ul><li><strong>Function exports</strong> and <strong>builder DSL entry points</strong> are callable.</li></ul>
+<p>A builder consumer also <code>import std.map</code> (the default <code>map_new</code> config factory is a <code>std.map</code> facility used at the call site).</p>
+<ul><li><strong>Higher-order exports</strong> (a function taking a closure <code>fn</code> parameter)</li></ul>
+<p>are described in the metadata but not yet callable across the binary boundary, passing an Aether closure into an imported function is a follow-on (the closure ABI across the boundary).</p>
+<ul><li>POSIX only for now (the prepass is gated on <code>dlopen</code>); Windows DLL</li></ul>
+<p>hosting is a follow-up, matching <code>ae lib-info</code>.</p>
+<h3><code>ae lib-info &lt;path&gt;</code> inspect any artifact</h3>
+<p>The <code>ae</code> CLI ships a turnkey reader that <code>dlopen</code>s a <code>.so</code>/<code>.dylib</code>, calls <code>aether_lib_meta</code>, and prints a human-readable dump:</p>
+<pre><code>$ ae lib-info build/libscript.so
+Aether Library: build/libscript.so
+  Schema:        1.0
+  Aether:        0.134.0-dev
+  Source:        script.ae
+  Functions:     3
+
+  - aether_script_handle(ptr, ptr, ptr) -&gt; void
+        @ script.ae:3
+  - double_int(int) -&gt; int
+        c_symbol: aether_double_int
+        @ script.ae:7
+  - greet(string) -&gt; string
+        c_symbol: aether_greet
+        @ script.ae:11</code></pre>
+<p>The <code>c_symbol:</code> line is suppressed when the symbol equals <code>aether_&lt;name&gt;</code> (the default for plain exports, printing it would just be noise). <code>@c_callback</code>-marked functions whose Aether name <em>is</em> the C symbol show no <code>c_symbol:</code> line either; they are their own export.</p>
+<p>Windows is a follow-up, <code>ae lib-info</code> returns 1 with a &quot;DLL hosting is a follow-up&quot; message; the metadata struct <em>is</em> still emitted into the DLL&#x27;s <code>.rodata</code> and is reachable via <code>LoadLibrary</code> + <code>GetProcAddress(&quot;aether_lib_meta&quot;)</code> from any host.</p>
+<h3>What this enables for FFI hosts</h3>
+<p>Any embedder can build a typed binding without re-parsing the source:</p>
+<pre><code>import ctypes
+lib = ctypes.CDLL(&quot;./libscript.so&quot;)
+class AetherLibFunction(ctypes.Structure):
+    _fields_ = [(&quot;aether_name&quot;, ctypes.c_char_p),
+                (&quot;c_symbol&quot;,    ctypes.c_char_p),
+                (&quot;signature&quot;,   ctypes.c_char_p),
+                (&quot;source_file&quot;, ctypes.c_char_p),
+                (&quot;source_line&quot;, ctypes.c_int)]
+class AetherLibMeta(ctypes.Structure):
+    _fields_ = [(&quot;schema_version&quot;, ctypes.c_char_p),
+                (&quot;aether_version&quot;, ctypes.c_char_p),
+                (&quot;primary_source&quot;, ctypes.c_char_p),
+                (&quot;function_count&quot;, ctypes.c_int),
+                (&quot;functions&quot;,      ctypes.POINTER(AetherLibFunction)),
+                (&quot;closure_count&quot;,  ctypes.c_int),
+                (&quot;closures&quot;,       ctypes.c_void_p)]
+lib.aether_lib_meta.restype = ctypes.POINTER(AetherLibMeta)
+meta = lib.aether_lib_meta()[0]
+for i in range(meta.function_count):
+    fn = meta.functions[i]
+    print(fn.aether_name.decode(), fn.signature.decode())</code></pre>
+<p>Same struct walks from Java Panama, Ruby Fiddle, Go cgo. The flat-C layout is the lowest common denominator across every FFI in the wild.</p>
+<h2>Working tests</h2>
+<p>The integration suite under <code>tests/integration/</code> covers:</p>
+<table><thead><tr><th>Test</th><th>What it proves</th></tr></thead><tbody><tr><td><code>emit_lib/</code></td><td>Primitive round-trip through <code>dlopen</code></td></tr><tr><td><code>emit_lib_composite/</code></td><td>Nested map + list round-trip via accessors</td></tr><tr><td><code>emit_lib_lists/</code></td><td>List-of-ints, list-of-strings, empty list, out-of-range</td></tr><tr><td><code>emit_lib_primitives/</code></td><td><code>long</code>, <code>bool</code>, <code>float</code> across the boundary</td></tr><tr><td><code>emit_lib_unsupported/</code></td><td>Unsupported param types warn + skip stub</td></tr><tr><td><code>emit_lib_banned/</code></td><td>All five capability-heavy imports rejected</td></tr><tr><td><code>emit_lib_dual_build/</code></td><td>Same source → exe AND lib via separate invocations</td></tr><tr><td><code>emit_lib_swig/</code></td><td>SWIG Python round-trip (skips if <code>swig</code> missing)</td></tr><tr><td><code>emit_lib_with_capability/</code></td><td><code>--with=fs,net,os</code> opt-ins; <code>--with=first-party</code> and <code>--with=all</code> aliases</td></tr><tr><td><code>lib_meta/</code></td><td><code>aether_lib_meta</code> + <code>ae lib-info</code> round-trip, schema, source, function count, three signatures, c_symbol gating, source refs</td></tr><tr><td><code>emit_lib_kind_safe/</code></td><td>Kind-discriminator predicates + deep-free safety, adversarial low-address probe (<code>(AetherValue*)42</code>) survives, kind correctly classifies map/list/scalar slots, deep-free walks nested map+list+scalars, magic-clear-on-free defends UAF probes</td></tr></tbody></table>
+<p>Run them with the standard <code>make test-ae</code> or individually:</p>
+<pre><code>tests/integration/emit_lib_composite/test_emit_lib_composite.sh</code></pre>
+      </article>
+    </main>
+  </div>
+</div>
+<footer class="site-foot">
+  <div class="wrap foot">
+    <span class="ae">ae</span>
+    <span class="m">MIT licensed · compiles to C · v0.454</span>
+    <nav><a href="/Docs/getting-started.html">Docs</a><a href="/repl.html">Playground</a><a href="https://github.com/aether-lang-org/aether">GitHub</a></nav>
+  </div>
+</footer>
+</body>
+</html>

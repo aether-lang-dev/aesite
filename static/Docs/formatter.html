@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>`ae fmt`, the source formatter · Aether</title>
+<meta name="description" content="`ae fmt`, the source formatter — Aether language documentation.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/aether.css">
+</head>
+<body>
+<header class="site-head">
+  <div class="wrap bar">
+    <a class="brand" href="/" aria-label="Aether"><span class="ae">ae</span><span class="nm">aether</span></a>
+    <nav>
+      <a href="/repl.html">Playground</a>
+      <a href="/Docs/getting-started.html" class="on">Docs</a>
+      <a href="https://github.com/aether-lang-org/aether">Source</a>
+      <span class="vtag">v0.454</span>
+    </nav>
+  </div>
+</header>
+<div class="wrap">
+  <div class="doc-shell">
+    <nav class="doc-nav"><div class="grp">Start</div>
+<a href="/Docs/getting-started.html">Getting Started with Aether</a>
+<a href="/Docs/tutorial.html">Aether Language Tutorial</a>
+<a href="/Docs/next-steps.html">Next Steps</a>
+<div class="grp">Language</div>
+<a href="/Docs/language-reference.html">Aether Language Reference</a>
+<a href="/Docs/type-inference-guide.html">Aether Type Inference Guide</a>
+<a href="/Docs/type-annotation-style-guide.html">Aether Type Annotation Style Guide</a>
+<a href="/Docs/type-inference-multi-value-returns.html">Multi-Value Return Type Inference</a>
+<a href="/Docs/distinct-types.html">Distinct Types</a>
+<a href="/Docs/sequences.html">Sequences (`*StringSeq`)</a>
+<a href="/Docs/named-args-and-select.html">Named Arguments and select()</a>
+<a href="/Docs/closures-and-builder-dsl.html">Closures and Builder-Style DSL in Aether</a>
+<a href="/Docs/closures-and-lifetimes.html">Closures and Environment Lifetimes</a>
+<a href="/Docs/module-system-design.html">Aether Module System</a>
+<div class="grp">Runtime</div>
+<a href="/Docs/architecture.html">Aether Architecture</a>
+<a href="/Docs/actor-concurrency.html">Aether Runtime Guide</a>
+<a href="/Docs/structured-concurrency.html">Structured Concurrency for Aether, Design Direction</a>
+<a href="/Docs/scheduler-quick-reference.html">Aether Scheduler - Quick Reference</a>
+<a href="/Docs/memory-management.html">Aether Memory Management</a>
+<a href="/Docs/runtime-optimizations.html">Runtime Optimizations</a>
+<a href="/Docs/numa-support.html">NUMA Support in Aether</a>
+<div class="grp">Interop</div>
+<a href="/Docs/c-interop.html">C Interoperability</a>
+<a href="/Docs/c-embedding.html">Embedding Aether Actors in C Applications</a>
+<a href="/Docs/emit-lib.html">Embedding Aether as a Shared Library (`--emit=lib`)</a>
+<a href="/Docs/embedded-namespaces-and-host-bindings.html">Aether as a Configuration Language, v2: Namespaces and Generated Bindings</a>
+<a href="/Docs/aether-embedded-in-host-applications.html">Aether as a Configuration Language for Other Languages</a>
+<a href="/Docs/lib-caller-info.html">`--emit=lib` caller-info channel</a>
+<div class="grp">Stdlib</div>
+<a href="/Docs/stdlib-reference.html">Aether Standard Library Reference</a>
+<a href="/Docs/stdlib-api.html">Aether Standard Library Guide</a>
+<a href="/Docs/stdlib-module-pattern.html">Aether Stdlib Module Pattern</a>
+<a href="/Docs/stdlib-vs-contrib.html">`std/` vs `contrib/` placement decisions</a>
+<a href="/Docs/http-server.html">`std.http` HTTP Server</a>
+<a href="/Docs/http-reverse-proxy.html">`std.http.proxy` reverse proxy</a>
+<a href="/Docs/http-handler-context.html">HTTP handlers with per-server / per-route state</a>
+<a href="/Docs/http-vcr.html">HTTP Record/Replay (VCR), moved out of Aether</a>
+<a href="/Docs/json-parser-design.html">`std.json` Design Notes</a>
+<div class="grp">Safety</div>
+<a href="/Docs/containment-sandbox.html">Containment and Sandboxing in Aether</a>
+<a href="/Docs/hide-and-seal.html">`hide` and `seal except` scope-level capability denial</a>
+<a href="/Docs/compiler-trust-boundary.html">The Compiler Trust Boundary</a>
+<a href="/Docs/config-is-code.html">Config IS Code</a>
+<a href="/Docs/aether_compared_to_capsicum.html">Aether Sandbox Model vs. BSD Capsicum: Architecture, Parallels, and FreeBSD Integration</a>
+<div class="grp">Build</div>
+<a href="/Docs/build-system.html">Build System</a>
+<a href="/Docs/bootstrap-from-source.html">Bootstrapping Aether from source (HEAD)</a>
+<a href="/Docs/install-layout.html">Aether install layout</a>
+<a href="/Docs/runtime-config.html">Runtime Configuration - Quick Reference</a>
+<a href="/Docs/per-process-config.html">Per-process configuration in Aether</a>
+<a href="/Docs/cic-help.html">`ae help &lt;script&gt;` Offline diagnostics for config-IS-code</a>
+<div class="grp">More</div>
+<a href="/Docs/bindgen-consts.html">`ae bindgen consts`, importing C macro constants</a>
+<a href="/Docs/formatter.html" class="on">`ae fmt`, the source formatter</a>
+<a href="/Docs/isolated.html">`Isolated[T]`: move-only actor message payloads (#479)</a>
+<a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
+<a href="/Docs/profiling-guide.html">Aether Runtime Profiling Guide</a>
+<a href="/Docs/allocators.html">Allocators</a>
+<a href="/Docs/when-static-if.html">Compile-time `when` / static-if</a>
+<a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
+<a href="/Docs/contract-folding.html">Compile-time contract folding — costed design</a>
+<a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn&#x27;t need `macro_rules!`</a>
+<a href="/Docs/release-glibc-portability.html">Release binary portability across glibc versions</a>
+<a href="/Docs/error-unification.html">Unifying `T?` and `(value, err)` — costed design</a></nav>
+    <main class="doc-main">
+      <article class="doc-body">
+        <div class="bc">docs / more</div>
+<h1><code>ae fmt</code>, the source formatter</h1>
+<p><code>ae fmt</code> rewrites Aether source into a canonical layout: consistent 4-space indentation, normalized spacing around operators and punctuation, at most one blank line between constructs, no trailing whitespace, and a single final newline. Run it before committing, or wire it into an editor-save hook or CI check.</p>
+<h2>Usage</h2>
+<pre><code>ae fmt                    # read stdin, write formatted source to stdout
+ae fmt path/to/file.ae    # format one file in place
+ae fmt src tests          # format every .ae file under these directories, in place
+ae fmt --check src        # do not write; list files that would change, exit 1 if any do</code></pre>
+<ul><li>With <strong>no path</strong>, it reads standard input and writes the formatted result to</li></ul>
+<p>standard output (useful for editor &quot;format buffer&quot; integrations).</p>
+<ul><li>With <strong>paths</strong>, it formats each <code>.ae</code> file in place, recursing into</li></ul>
+<p>directories and skipping hidden ones (<code>.git</code>, <code>.aether</code>, ...). It prints the path of every file it rewrites.</p>
+<ul><li><code>--check</code> (alias <code>-c</code>) writes nothing and exits non-zero if any file is not</li></ul>
+<p>already formatted, listing those files. Use it in CI to enforce formatting.</p>
+<p>Writes are atomic (a temp file is renamed over the original), so an interrupted run never leaves a half-written file.</p>
+<h2>What it does, and does not, change</h2>
+<p>The formatter is deliberately conservative: it changes <strong>only whitespace</strong>.</p>
+<p>It normalizes:</p>
+<ul><li><strong>Indentation</strong>, by brace/bracket/paren nesting (4 spaces per level).</li><li><strong>Inter-token spacing</strong>: one space around binary operators and after <code>,</code>/<code>:</code>;</li></ul>
+<p>none before <code>,</code>/<code>;</code>/<code>:</code>, none inside <code>(</code>/<code>[</code> at their edges, one space before a <code>{</code>. Struct and message literals read <code>Name { field: value }</code>.</p>
+<ul><li><strong>Blank lines</strong>: runs of blank lines collapse to at most one, and a blank line</li></ul>
+<p>is never left immediately after <code>{</code> or before <code>}</code>.</p>
+<ul><li><strong>Trailing whitespace</strong> is stripped; the file ends in exactly one newline.</li></ul>
+<p>It preserves, byte for byte:</p>
+<ul><li><strong>Your line breaks.</strong> The formatter re-indents and re-spaces but does not</li></ul>
+<p>reflow expressions onto different lines. Where you break a long call or list is left to you.</p>
+<ul><li><strong>Comments</strong>, including inline <code>//</code> and multi-line <code>/* ... */</code>.</li><li><strong>String literals</strong> and their <code>${...}</code> interpolation, <strong>heredocs</strong></li></ul>
+<p>(<code>&lt;&lt;MARKER ... MARKER</code>, whose body indentation is significant), and <strong>backtick raw identifiers</strong> (`<code> </code>reply<code> </code>`).</p>
+<h2>Safety guarantee</h2>
+<p><code>ae fmt</code> cannot change what your program does. It works on the token stream: the sequence of significant tokens is never reordered, dropped, or fused, and string and comment bytes are copied verbatim. Because the lexer already tokenizes <code>a-b</code> and <code>a - b</code> identically, re-spacing between separated tokens cannot change how the source parses; the one hazard, gluing two tokens that would re-lex as one (<code>a b</code> becoming <code>ab</code>, or <code>&lt;</code> <code>&lt;</code> becoming <code>&lt;&lt;</code>), is explicitly prevented.</p>
+<p>This is verified, not just asserted: formatting every program in <code>examples/</code> and <code>tests/</code> produces byte-identical generated C (modulo <code>#line</code> directives), and formatting is idempotent (<code>fmt(fmt(x)) == fmt(x)</code>) across the whole corpus.</p>
+<h2>Not yet done</h2>
+<p>The formatter does not reflow long lines or align consecutive declarations. Those are layout decisions that need an opinionated style pass; they can be added later without changing the safety model above.</p>
+      </article>
+    </main>
+  </div>
+</div>
+<footer class="site-foot">
+  <div class="wrap foot">
+    <span class="ae">ae</span>
+    <span class="m">MIT licensed · compiles to C · v0.454</span>
+    <nav><a href="/Docs/getting-started.html">Docs</a><a href="/repl.html">Playground</a><a href="https://github.com/aether-lang-org/aether">GitHub</a></nav>
+  </div>
+</footer>
+</body>
+</html>

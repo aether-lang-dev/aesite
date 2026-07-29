@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Config IS Code · Aether</title>
+<meta name="description" content="Config IS Code — Aether language documentation.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/aether.css">
+</head>
+<body>
+<header class="site-head">
+  <div class="wrap bar">
+    <a class="brand" href="/" aria-label="Aether"><span class="ae">ae</span><span class="nm">aether</span></a>
+    <nav>
+      <a href="/repl.html">Playground</a>
+      <a href="/Docs/getting-started.html" class="on">Docs</a>
+      <a href="https://github.com/aether-lang-org/aether">Source</a>
+      <span class="vtag">v0.454</span>
+    </nav>
+  </div>
+</header>
+<div class="wrap">
+  <div class="doc-shell">
+    <nav class="doc-nav"><div class="grp">Start</div>
+<a href="/Docs/getting-started.html">Getting Started with Aether</a>
+<a href="/Docs/tutorial.html">Aether Language Tutorial</a>
+<a href="/Docs/next-steps.html">Next Steps</a>
+<div class="grp">Language</div>
+<a href="/Docs/language-reference.html">Aether Language Reference</a>
+<a href="/Docs/type-inference-guide.html">Aether Type Inference Guide</a>
+<a href="/Docs/type-annotation-style-guide.html">Aether Type Annotation Style Guide</a>
+<a href="/Docs/type-inference-multi-value-returns.html">Multi-Value Return Type Inference</a>
+<a href="/Docs/distinct-types.html">Distinct Types</a>
+<a href="/Docs/sequences.html">Sequences (`*StringSeq`)</a>
+<a href="/Docs/named-args-and-select.html">Named Arguments and select()</a>
+<a href="/Docs/closures-and-builder-dsl.html">Closures and Builder-Style DSL in Aether</a>
+<a href="/Docs/closures-and-lifetimes.html">Closures and Environment Lifetimes</a>
+<a href="/Docs/module-system-design.html">Aether Module System</a>
+<div class="grp">Runtime</div>
+<a href="/Docs/architecture.html">Aether Architecture</a>
+<a href="/Docs/actor-concurrency.html">Aether Runtime Guide</a>
+<a href="/Docs/structured-concurrency.html">Structured Concurrency for Aether, Design Direction</a>
+<a href="/Docs/scheduler-quick-reference.html">Aether Scheduler - Quick Reference</a>
+<a href="/Docs/memory-management.html">Aether Memory Management</a>
+<a href="/Docs/runtime-optimizations.html">Runtime Optimizations</a>
+<a href="/Docs/numa-support.html">NUMA Support in Aether</a>
+<div class="grp">Interop</div>
+<a href="/Docs/c-interop.html">C Interoperability</a>
+<a href="/Docs/c-embedding.html">Embedding Aether Actors in C Applications</a>
+<a href="/Docs/emit-lib.html">Embedding Aether as a Shared Library (`--emit=lib`)</a>
+<a href="/Docs/embedded-namespaces-and-host-bindings.html">Aether as a Configuration Language, v2: Namespaces and Generated Bindings</a>
+<a href="/Docs/aether-embedded-in-host-applications.html">Aether as a Configuration Language for Other Languages</a>
+<a href="/Docs/lib-caller-info.html">`--emit=lib` caller-info channel</a>
+<div class="grp">Stdlib</div>
+<a href="/Docs/stdlib-reference.html">Aether Standard Library Reference</a>
+<a href="/Docs/stdlib-api.html">Aether Standard Library Guide</a>
+<a href="/Docs/stdlib-module-pattern.html">Aether Stdlib Module Pattern</a>
+<a href="/Docs/stdlib-vs-contrib.html">`std/` vs `contrib/` placement decisions</a>
+<a href="/Docs/http-server.html">`std.http` HTTP Server</a>
+<a href="/Docs/http-reverse-proxy.html">`std.http.proxy` reverse proxy</a>
+<a href="/Docs/http-handler-context.html">HTTP handlers with per-server / per-route state</a>
+<a href="/Docs/http-vcr.html">HTTP Record/Replay (VCR), moved out of Aether</a>
+<a href="/Docs/json-parser-design.html">`std.json` Design Notes</a>
+<div class="grp">Safety</div>
+<a href="/Docs/containment-sandbox.html">Containment and Sandboxing in Aether</a>
+<a href="/Docs/hide-and-seal.html">`hide` and `seal except` scope-level capability denial</a>
+<a href="/Docs/compiler-trust-boundary.html">The Compiler Trust Boundary</a>
+<a href="/Docs/config-is-code.html" class="on">Config IS Code</a>
+<a href="/Docs/aether_compared_to_capsicum.html">Aether Sandbox Model vs. BSD Capsicum: Architecture, Parallels, and FreeBSD Integration</a>
+<div class="grp">Build</div>
+<a href="/Docs/build-system.html">Build System</a>
+<a href="/Docs/bootstrap-from-source.html">Bootstrapping Aether from source (HEAD)</a>
+<a href="/Docs/install-layout.html">Aether install layout</a>
+<a href="/Docs/runtime-config.html">Runtime Configuration - Quick Reference</a>
+<a href="/Docs/per-process-config.html">Per-process configuration in Aether</a>
+<a href="/Docs/cic-help.html">`ae help &lt;script&gt;` Offline diagnostics for config-IS-code</a>
+<div class="grp">More</div>
+<a href="/Docs/bindgen-consts.html">`ae bindgen consts`, importing C macro constants</a>
+<a href="/Docs/formatter.html">`ae fmt`, the source formatter</a>
+<a href="/Docs/isolated.html">`Isolated[T]`: move-only actor message payloads (#479)</a>
+<a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
+<a href="/Docs/profiling-guide.html">Aether Runtime Profiling Guide</a>
+<a href="/Docs/allocators.html">Allocators</a>
+<a href="/Docs/when-static-if.html">Compile-time `when` / static-if</a>
+<a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
+<a href="/Docs/contract-folding.html">Compile-time contract folding — costed design</a>
+<a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn&#x27;t need `macro_rules!`</a>
+<a href="/Docs/release-glibc-portability.html">Release binary portability across glibc versions</a>
+<a href="/Docs/error-unification.html">Unifying `T?` and `(value, err)` — costed design</a></nav>
+    <main class="doc-main">
+      <article class="doc-body">
+        <div class="bc">docs / safety</div>
+<h1>Config IS Code</h1>
+<p>A design pattern, and a recommendation for Aether libraries that have a &quot;start the thing&quot; surface, HTTP servers, daemons, agents, schedulers, fixtures, test rigs. The short version: don&#x27;t ship a YAML loader. Expose your library&#x27;s start surface as a closure-DSL block, and let the operator&#x27;s &quot;config&quot; be a <code>.ae</code> file they run with <code>ae run</code>.</p>
+<p>This document is the <em>why</em>. For <em>how</em>, the syntax, the <code>builder</code> keyword, the trailing-block context, see <a href="/Docs/closures-and-builder-dsl.html"><code>closures-and-builder-dsl.md</code></a>.</p>
+<h2>The progression</h2>
+<p>Most server-shaped projects walk through these stages, in order, until they get tired of it. Aether lets you skip to the end.</p>
+<h3>Level 1, Config files (YAML/JSON/TOML)</h3>
+<pre><code># my-server.yaml
+listen:
+  host: 127.0.0.1
+  port: 9990
+auth:
+  superuser_token: ${env:SUPER_TOKEN}
+repos:
+  - name: alpha
+    path: /srv/alpha
+  - name: beta
+    path: /srv/beta</code></pre>
+<p>The binary parses this at startup. Pros: anyone can edit it; tools can diff it; YAML is &quot;just data.&quot;</p>
+<p>The catch: every one of these grows a half-baked DSL anyway. First people want environment-variable interpolation (<code>${env:...}</code>). Then conditional sections (<code>if env == prod</code>). Then include directives (<code>!include common.yaml</code>). Then computed defaults. Then templating (Helm, Kustomize, Jinja). At each step you&#x27;ve reinvented a worse copy of the host language, and operators are now learning a YAML-flavoured mini-language that exists only inside your binary.</p>
+<p>Apache <code>httpd.conf</code>, Nginx config, Postgres <code>postgresql.conf</code>, Kubernetes manifests, and Helm charts are all at various stations on this slide.</p>
+<h3>Level 2, Config as code (HCL, Helm templates, Kustomize)</h3>
+<pre><code># my-server.hcl
+listen {
+  host = &quot;127.0.0.1&quot;
+  port = 9990
+}
+
+repo &quot;alpha&quot; { path = &quot;/srv/alpha&quot; }
+repo &quot;beta&quot;  { path = &quot;/srv/beta&quot; }</code></pre>
+<p>Better: typed values, blocks, expressions, sometimes loops and conditionals. Terraform, HCL, Helm-with-templating sit here.</p>
+<p>The catch: it&#x27;s a <strong>second language</strong>, with a separate parser, a separate type system, a separate set of tools. You debug it separately. Its expressivity is bounded by what the DSL author chose to expose. The first time you need something the DSL doesn&#x27;t support a per-tenant lookup against an external API at config time, a computed cache key, a quick <code>if hostname matches X</code> you reach for shell or templating around the DSL, and you&#x27;re back at Level 1&#x27;s problems.</p>
+<h3>Level 3, Config IS code</h3>
+<pre><code># pulumi-style: your config is a real program in a real language
+import pulumi
+import my_server
+
+server = my_server.Server(
+    listen=my_server.Listen(host=&quot;127.0.0.1&quot;, port=9990),
+    repos=[
+        my_server.Repo(&quot;alpha&quot;, &quot;/srv/alpha&quot;),
+        my_server.Repo(&quot;beta&quot;,  &quot;/srv/beta&quot;),
+    ],
+)</code></pre>
+<p>Now config IS a program. Loops, conditionals, library calls, custom helpers, all available, in the same language as the implementation. AWS CDK, Pulumi, Bazel rule files, and most &quot;infrastructure as code&quot; tooling lives here.</p>
+<p>The catch: the <strong>declarative readability is gone</strong>. The user is constructing objects, calling constructors, threading parameters. It reads like glue code, not like config. Operators bounce off, they wanted a config file, they got a program with import statements and type annotations.</p>
+<h3>Level 4, Closure-DSL: config IS code, <em>and reads like config</em></h3>
+<pre><code>import my_server (serve, host, port, superuser_token, repo)
+import std.os (os_getenv)
+
+main() {
+    serve {
+        host(&quot;127.0.0.1&quot;)
+        port(9990)
+        if os_getenv(&quot;STAGE&quot;) == &quot;prod&quot; {
+            host(&quot;0.0.0.0&quot;)
+        }
+        superuser_token(os_getenv(&quot;SUPER_TOKEN&quot;))
+        repo(&quot;alpha&quot;, &quot;/srv/alpha&quot;)
+        repo(&quot;beta&quot;,  &quot;/srv/beta&quot;)
+    }
+}</code></pre>
+<p>The Aether <code>builder</code> keyword (see <a href="/Docs/closures-and-builder-dsl.html"><code>closures-and-builder-dsl.md</code></a>) gives you the <em>declarative aesthetic</em> of Level 1, bare setter calls, no explicit object construction, no parameter threading, on top of <em>full code</em> underneath: control flow, library calls, env lookups, arbitrary Aether. The library author absorbs the wiring; the operator writes what looks like a config file but isn&#x27;t.</p>
+<p>This is the <strong>one step beyond config-as-code</strong> worth naming explicitly. Levels 1 and 2 give you readability without power. Level 3 gives you power without readability. Level 4 gives you both.</p>
+<h2>What this buys you</h2>
+<p>When config is just an <code>.ae</code>:</p>
+<ul><li><strong>Loops over inputs that aren&#x27;t fixed at deploy time.</strong> Read a list</li></ul>
+<p>of repos from a manifest file, iterate, call <code>repo(...)</code> for each. No schema work, no JSON-Pointer foreach extension.</p>
+<ul><li><strong>Environment-aware branching.</strong> <code>if os_getenv(&quot;STAGE&quot;) == &quot;prod&quot; { ... }</code></li></ul>
+<p>is just an <code>if</code>. No <code>${env:...}</code> mini-language.</p>
+<ul><li><strong>Pre-flight setup in the same artifact.</strong> Mount checks, key</li></ul>
+<p>fetches, <code>mkdir -p</code>, schema migrations all run in the same process, before <code>serve { ... }</code> blocks.</p>
+<ul><li><strong>One artifact in git.</strong> The deployment IS the config. No drift</li></ul>
+<p>between code and YAML.</p>
+<ul><li><strong>Same toolchain.</strong> <code>ae run</code>, <code>aetherc</code>, the type checker, the LSP,</li></ul>
+<p>and the test runner all operate on your config directly. Your YAML linter doesn&#x27;t.</p>
+<h2>When this is right</h2>
+<ul><li>The operator and the developer overlap. Self-hosted dev tooling,</li></ul>
+<p>CI runners, internal services, fixtures, test harnesses.</p>
+<ul><li>The library is &quot;start the thing&quot;-shaped: bind, configure, run.</li><li>The number of config knobs is small enough that exhaustive YAML</li></ul>
+<p>schemas would be overkill.</p>
+<h2>When YAML still wins</h2>
+<ul><li><strong>Multi-tenant ops where operators don&#x27;t write Aether.</strong> A managed</li></ul>
+<p>service with hundreds of customer-facing config files needs a schema&#x27;d, language-agnostic surface.</p>
+<ul><li><strong>GitOps pipelines with external tooling.</strong> Argo CD, Flux,</li></ul>
+<p>Kustomize all expect declarative manifests.</p>
+<ul><li><strong>Schemas that other tools consume.</strong> Kubernetes resources, OpenAPI</li></ul>
+<p>specs, JSON Schema validators.</p>
+<p>For these, build a thin YAML layer that constructs and calls the same opts struct your closure-DSL populates. The inner workhorse stays shared; only the outer entry point differs.</p>
+<h2>Library author recipe</h2>
+<p>To expose your library&#x27;s start surface as a closure-DSL, follow the standard three-layer split:</p>
+<pre><code>// 1. Opts construction, explicit API. The base everything else
+//    funnels into.
+export opts_new() -&gt; ptr {
+    return map.new()
+}
+
+// 2. Setters, take `_ctx: ptr` first, write into the map. Each
+//    setter is one knob.
+export host(_ctx: ptr, addr: string) {
+    _e = map.put(_ctx, &quot;host&quot;, addr)
+}
+
+export port(_ctx: ptr, n: int) {
+    _e = map.put(_ctx, &quot;port&quot;, string.from_int(n))
+}
+
+// (Repeatable setter, collect into a list.)
+export repo(_ctx: ptr, name: string, path: string) {
+    if map.has(_ctx, &quot;repos&quot;) == 0 {
+        _e = map.put(_ctx, &quot;repos&quot;, list.new())
+    }
+    repos, _ = map.get(_ctx, &quot;repos&quot;)
+    list.add(repos, &quot;${name}\t${path}&quot;)
+}
+
+// 3. Workhorse, reads opts, does the work. Single source of truth.
+export serve_opts(opts: ptr) -&gt; int {
+    // ... read keys, register, bind, listen, run ...
+}
+
+// 4. Closure-DSL entry, `builder` keyword wires the trailing block
+//    to populate `_builder`, then hands it to the workhorse.
+builder serve(_ctx: ptr) -&gt; int {
+    return serve_opts(_builder)
+}</code></pre>
+<p>The user&#x27;s three options stay 1:1 equivalent:</p>
+<pre><code>// (a) Closure-DSL block, the recommended surface.
+my_lib.serve {
+    host(&quot;127.0.0.1&quot;)
+    port(9990)
+}
+
+// (b) Explicit opts API, for callers who want to construct opts
+//     once and reuse, or build them programmatically from another
+//     source.
+opts = my_lib.opts_new()
+my_lib.host(opts, &quot;127.0.0.1&quot;)
+my_lib.port(opts, 9990)
+my_lib.serve_opts(opts)
+
+// (c) CLI front-end (your own main.ae), argv → setters →
+//     serve_opts. Same workhorse; argv just becomes another
+//     opts-population strategy alongside the closure-DSL.</code></pre>
+<p>Adding a knob is one new setter + one new key read in the workhorse. The CLI, the closure-DSL, and the explicit API all gain the knob in lockstep, no risk of drift between &quot;what the YAML supports&quot; and &quot;what the binary can do.&quot;</p>
+<h2>Pitfalls</h2>
+<p>A few things to watch for when designing setters:</p>
+<ul><li><strong>Avoid libc symbol names.</strong> A setter named <code>bind</code> will silently</li></ul>
+<p>shadow libc&#x27;s <code>bind(2)</code> at link time, and your listening socket won&#x27;t attach. Same for <code>listen</code>, <code>accept</code>, <code>connect</code>, <code>open</code>, <code>read</code>, <code>write</code>, <code>socket</code>, <code>select</code>. Pick <code>host</code>, <code>addr</code>, <code>subscribe</code>, <code>attach</code>, etc.</p>
+<ul><li>**Name setters for what they configure, not for the underlying</li></ul>
+<p>call.** <code>port(n)</code> reads better than <code>set_port(n)</code>; <code>host(addr)</code> reads better than <code>bind_to(addr)</code>. The closure-DSL aesthetic depends on this.</p>
+<ul><li><strong>Repeatable knobs collect into a list, not a map.</strong> `repo(&quot;a&quot;,</li></ul>
+<p>&quot;/x&quot;); repo(&quot;b&quot;, &quot;/y&quot;)` should accumulate, not overwrite. Use a list under a stable key.</p>
+<ul><li><strong>Setters write, the workhorse reads.</strong> Don&#x27;t do work inside</li></ul>
+<p>setters. The order of calls in the block shouldn&#x27;t matter (operators reorder for clarity); only the final state of the opts map should drive behaviour.</p>
+<ul><li><strong>Default in the workhorse, not the setter.</strong> A setter that wasn&#x27;t</li></ul>
+<p>called shouldn&#x27;t have planted a value. Read with <code>map.has</code> + fallback; that way every default lives in one place.</p>
+<h2>Inspecting a script, <code>ae inspect</code></h2>
+<p>Config-IS-code only lands with operators if they can ask the compiler <em>&quot;what does my script actually declare?&quot;</em> without reading generated C. <code>ae inspect &lt;file.ae&gt;</code> prints that summary:</p>
+<pre><code>$ ae inspect deploy.ae
+inspect: deploy.ae
+  artifact:  executable (entry: main)
+  capabilities required (gated imports): fs net
+             (pass --with=&lt;cap,...&gt; to grant under --emit=lib)
+  imports (3):
+    std.string                   [stdlib]
+    std.fs                       [stdlib, capability: fs]
+    std.http                     [stdlib, capability: net]
+  functions (2):
+    greet(name: string) -&gt; string
+    divmod(a: int, b: int) -&gt; (int, int)
+  structs (1): Config
+  constants (1): DEFAULT_PORT</code></pre>
+<p>It reports only what <em>this</em> file declares (imports resolved and classified as stdlib / contrib / local, with the <code>--with=</code> capability any gated module needs; the artifact shape, executable entry point vs library export surface; and the top-level functions, structs, constants, and actors with signatures), declarations merged in from imported modules are excluded. No code is generated. For a library (<code>exports (...)</code>) it lists the exported ABI surface instead of an entry point. Out of scope: full type dumps (that&#x27;s the FFI <code>aether_describe</code> metadata) and raw AST printing (that&#x27;s <code>aetherc --emit=ast</code>).</p>
+<h2>Cross-references</h2>
+<ul><li><a href="/Docs/closures-and-builder-dsl.html"><code>closures-and-builder-dsl.md</code></a>, the</li></ul>
+<p>reference for <code>builder</code>, trailing blocks, and context injection.</p>
+<ul><li><a href="/Docs/aether-embedded-in-host-applications.html"><code>aether-embedded-in-host-applications.md</code></a></li></ul>
+<p>when <code>ae run</code> isn&#x27;t the deployment vehicle and you&#x27;re embedding the script inside another binary.</p>
+<ul><li><a href="/Docs/aether-dsl-as-a-rules-engine.html"><code>aether-dsl-as-a-rules-engine.md</code></a></li></ul>
+<p>the same closure-DSL machinery applied to business rules rather than start-the-thing config.</p>
+      </article>
+    </main>
+  </div>
+</div>
+<footer class="site-foot">
+  <div class="wrap foot">
+    <span class="ae">ae</span>
+    <span class="m">MIT licensed · compiles to C · v0.454</span>
+    <nav><a href="/Docs/getting-started.html">Docs</a><a href="/repl.html">Playground</a><a href="https://github.com/aether-lang-org/aether">GitHub</a></nav>
+  </div>
+</footer>
+</body>
+</html>

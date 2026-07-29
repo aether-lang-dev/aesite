@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>`--emit=lib` caller-info channel · Aether</title>
+<meta name="description" content="`--emit=lib` caller-info channel — Aether language documentation.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/aether.css">
+</head>
+<body>
+<header class="site-head">
+  <div class="wrap bar">
+    <a class="brand" href="/" aria-label="Aether"><span class="ae">ae</span><span class="nm">aether</span></a>
+    <nav>
+      <a href="/repl.html">Playground</a>
+      <a href="/Docs/getting-started.html" class="on">Docs</a>
+      <a href="https://github.com/aether-lang-org/aether">Source</a>
+      <span class="vtag">v0.454</span>
+    </nav>
+  </div>
+</header>
+<div class="wrap">
+  <div class="doc-shell">
+    <nav class="doc-nav"><div class="grp">Start</div>
+<a href="/Docs/getting-started.html">Getting Started with Aether</a>
+<a href="/Docs/tutorial.html">Aether Language Tutorial</a>
+<a href="/Docs/next-steps.html">Next Steps</a>
+<div class="grp">Language</div>
+<a href="/Docs/language-reference.html">Aether Language Reference</a>
+<a href="/Docs/type-inference-guide.html">Aether Type Inference Guide</a>
+<a href="/Docs/type-annotation-style-guide.html">Aether Type Annotation Style Guide</a>
+<a href="/Docs/type-inference-multi-value-returns.html">Multi-Value Return Type Inference</a>
+<a href="/Docs/distinct-types.html">Distinct Types</a>
+<a href="/Docs/sequences.html">Sequences (`*StringSeq`)</a>
+<a href="/Docs/named-args-and-select.html">Named Arguments and select()</a>
+<a href="/Docs/closures-and-builder-dsl.html">Closures and Builder-Style DSL in Aether</a>
+<a href="/Docs/closures-and-lifetimes.html">Closures and Environment Lifetimes</a>
+<a href="/Docs/module-system-design.html">Aether Module System</a>
+<div class="grp">Runtime</div>
+<a href="/Docs/architecture.html">Aether Architecture</a>
+<a href="/Docs/actor-concurrency.html">Aether Runtime Guide</a>
+<a href="/Docs/structured-concurrency.html">Structured Concurrency for Aether, Design Direction</a>
+<a href="/Docs/scheduler-quick-reference.html">Aether Scheduler - Quick Reference</a>
+<a href="/Docs/memory-management.html">Aether Memory Management</a>
+<a href="/Docs/runtime-optimizations.html">Runtime Optimizations</a>
+<a href="/Docs/numa-support.html">NUMA Support in Aether</a>
+<div class="grp">Interop</div>
+<a href="/Docs/c-interop.html">C Interoperability</a>
+<a href="/Docs/c-embedding.html">Embedding Aether Actors in C Applications</a>
+<a href="/Docs/emit-lib.html">Embedding Aether as a Shared Library (`--emit=lib`)</a>
+<a href="/Docs/embedded-namespaces-and-host-bindings.html">Aether as a Configuration Language, v2: Namespaces and Generated Bindings</a>
+<a href="/Docs/aether-embedded-in-host-applications.html">Aether as a Configuration Language for Other Languages</a>
+<a href="/Docs/lib-caller-info.html" class="on">`--emit=lib` caller-info channel</a>
+<div class="grp">Stdlib</div>
+<a href="/Docs/stdlib-reference.html">Aether Standard Library Reference</a>
+<a href="/Docs/stdlib-api.html">Aether Standard Library Guide</a>
+<a href="/Docs/stdlib-module-pattern.html">Aether Stdlib Module Pattern</a>
+<a href="/Docs/stdlib-vs-contrib.html">`std/` vs `contrib/` placement decisions</a>
+<a href="/Docs/http-server.html">`std.http` HTTP Server</a>
+<a href="/Docs/http-reverse-proxy.html">`std.http.proxy` reverse proxy</a>
+<a href="/Docs/http-handler-context.html">HTTP handlers with per-server / per-route state</a>
+<a href="/Docs/http-vcr.html">HTTP Record/Replay (VCR), moved out of Aether</a>
+<a href="/Docs/json-parser-design.html">`std.json` Design Notes</a>
+<div class="grp">Safety</div>
+<a href="/Docs/containment-sandbox.html">Containment and Sandboxing in Aether</a>
+<a href="/Docs/hide-and-seal.html">`hide` and `seal except` scope-level capability denial</a>
+<a href="/Docs/compiler-trust-boundary.html">The Compiler Trust Boundary</a>
+<a href="/Docs/config-is-code.html">Config IS Code</a>
+<a href="/Docs/aether_compared_to_capsicum.html">Aether Sandbox Model vs. BSD Capsicum: Architecture, Parallels, and FreeBSD Integration</a>
+<div class="grp">Build</div>
+<a href="/Docs/build-system.html">Build System</a>
+<a href="/Docs/bootstrap-from-source.html">Bootstrapping Aether from source (HEAD)</a>
+<a href="/Docs/install-layout.html">Aether install layout</a>
+<a href="/Docs/runtime-config.html">Runtime Configuration - Quick Reference</a>
+<a href="/Docs/per-process-config.html">Per-process configuration in Aether</a>
+<a href="/Docs/cic-help.html">`ae help &lt;script&gt;` Offline diagnostics for config-IS-code</a>
+<div class="grp">More</div>
+<a href="/Docs/bindgen-consts.html">`ae bindgen consts`, importing C macro constants</a>
+<a href="/Docs/formatter.html">`ae fmt`, the source formatter</a>
+<a href="/Docs/isolated.html">`Isolated[T]`: move-only actor message payloads (#479)</a>
+<a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
+<a href="/Docs/profiling-guide.html">Aether Runtime Profiling Guide</a>
+<a href="/Docs/allocators.html">Allocators</a>
+<a href="/Docs/when-static-if.html">Compile-time `when` / static-if</a>
+<a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
+<a href="/Docs/contract-folding.html">Compile-time contract folding — costed design</a>
+<a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn&#x27;t need `macro_rules!`</a>
+<a href="/Docs/release-glibc-portability.html">Release binary portability across glibc versions</a>
+<a href="/Docs/error-unification.html">Unifying `T?` and `(value, err)` — costed design</a></nav>
+    <main class="doc-main">
+      <article class="doc-body">
+        <div class="bc">docs / interop</div>
+<h1><code>--emit=lib</code> caller-info channel</h1>
+<p>Issue #344. A thread-local channel between the host process and an Aether <code>--emit=lib</code> <code>.so</code> for <strong>per-call advisory context</strong>: the host stamps <code>(identity, attributes, deadline_ms)</code> before invoking an <code>aether_&lt;name&gt;</code> export; the loaded module reads it via <code>host.caller_*</code> accessors.</p>
+<h2>Trust model, explicit non-goal</h2>
+<p>This is <strong>not a security boundary</strong>. The host always has more authority than the loaded <code>.so</code> (it controls the process, the FD table, the address space). Adding cryptographic signing in-process buys nothing the host couldn&#x27;t fake anyway. Treat caller-info as <strong>plumbing for advisory per-call context</strong>, identity, role flags, soft deadlines, not as authenticated facts.</p>
+<p>If you need cross-machine trustworthy caller identity (the WASM guest in Pollen had this need because the host and guest live in different address spaces and could be on different machines), build that on top: have the host pass a signed JWT in <code>identity</code> and have the Aether code verify the signature.</p>
+<h2>Host C API</h2>
+<pre><code>#include &quot;aether_host.h&quot;
+
+/* Populate per-call context. Returns 0 on success, -1 if the
+ * key/value/identity bytes would exceed AETHER_CALLER_INFO_MAX_BYTES
+ * (4096 default) or the attribute count would exceed
+ * AETHER_CALLER_INFO_MAX_ATTRS (32 default). On overflow the slot
+ * is left in its previous state, no partial population. */
+int aether_set_caller(const char* identity,
+                      const char** attr_keys,
+                      const char** attr_vals,
+                      size_t n,
+                      int64_t deadline_ms);
+
+/* Wipe the slot. Hosts that load multiple plugins per thread
+ * should clear between calls so a forgotten set_caller from a
+ * previous invocation can&#x27;t leak through. */
+void aether_clear_caller(void);</code></pre>
+<p><code>identity</code> may be NULL (means &quot;no identity&quot;; the loaded module sees <code>&quot;&quot;</code>). Keys + values are deep-copied into a TLS-owned buffer at <code>aether_set_caller</code> time, so the caller&#x27;s source pointers can be freed after the call returns. <code>n == 0</code> is allowed for identity-only / deadline-only stamps; <code>attr_keys</code> / <code>attr_vals</code> may then be NULL.</p>
+<p><code>deadline_ms</code> is opaque to the runtime, whatever convention the host wants (milliseconds since epoch, absolute monotonic-clock milliseconds). Pair with the per-call deadline tripwire from issue #343 to enforce.</p>
+<h2>Aether-side accessors</h2>
+<pre><code>import std.host
+
+main() {
+    id      = host.caller_identity()           // &quot;&quot; if not set
+    role    = host.caller_attribute(&quot;role&quot;)    // &quot;&quot; if absent
+    dead_ms = host.caller_deadline_ms()        // 0 if not set
+}</code></pre>
+<p>All accessors are NULL/unset-safe. A guest that doesn&#x27;t import <code>std.host</code> or doesn&#x27;t read these accessors works fine, no requirement to consume.</p>
+<h2>Lifetime</h2>
+<p>The TLS slot persists across calls until either:</p>
+<ul><li><code>aether_set_caller</code> overwrites it with new context, or</li><li><code>aether_clear_caller</code> wipes it.</li></ul>
+<p>The runtime does <strong>not</strong> auto-clear on export return. Hosts that multiplex multiple guests on one thread should call <code>aether_clear_caller</code> between invocations themselves.</p>
+<h2>Storage limits</h2>
+<p>Default caps:</p>
+<ul><li>4096 bytes total (identity + all keys + all values, NUL bytes</li></ul>
+<p>included).</p>
+<ul><li>32 attribute pairs.</li></ul>
+<p>Both are tuneable at compile time, <code>-DAETHER_CALLER_INFO_MAX_BYTES=N</code> / <code>-DAETHER_CALLER_INFO_MAX_ATTRS=N</code>. <code>aether_set_caller</code> returns <code>-1</code> on overflow and leaves the previous state intact.</p>
+<h2>Threading</h2>
+<p>The slot is thread-local. Hosts that call into Aether from multiple threads each have their own slot. Aether code reading <code>host.caller_*</code> always sees the values populated on the current thread.</p>
+<h2>Relationship to other isolation layers</h2>
+<table><thead><tr><th>Layer</th><th>Granularity</th><th>Decision time</th><th>Issue</th></tr></thead><tbody><tr><td><code>--with=fs</code>/<code>--with=net</code> build flags</td><td>per-build</td><td>compile</td><td>existing</td></tr><tr><td><code>hide</code> / <code>seal except</code> lexical denial</td><td>per-scope</td><td>compile</td><td>existing</td></tr><tr><td><code>libaether_sandbox.so</code> LD_PRELOAD libc gate</td><td>per-process</td><td>runtime</td><td>existing</td></tr><tr><td><strong>caller-info channel</strong></td><td><strong>per-call</strong></td><td><strong>runtime</strong></td><td><strong>#344 (this)</strong></td></tr><tr><td>Resource caps (memory + deadline)</td><td>per-call</td><td>runtime</td><td>#343</td></tr></tbody></table>
+<p>Each layer answers a different question. The build flags answer &quot;what is this binary allowed to do.&quot; The lexical layer answers &quot;what can this scope name.&quot; The libc gate answers &quot;what syscalls can this process make.&quot; Caller-info answers &quot;who&#x27;s calling me right now, and what authority did the host stamp on them.&quot; Compose them as needed; they don&#x27;t conflict.</p>
+      </article>
+    </main>
+  </div>
+</div>
+<footer class="site-foot">
+  <div class="wrap foot">
+    <span class="ae">ae</span>
+    <span class="m">MIT licensed · compiles to C · v0.454</span>
+    <nav><a href="/Docs/getting-started.html">Docs</a><a href="/repl.html">Playground</a><a href="https://github.com/aether-lang-org/aether">GitHub</a></nav>
+  </div>
+</footer>
+</body>
+</html>

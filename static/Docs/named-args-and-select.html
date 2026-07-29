@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Named Arguments and select() · Aether</title>
+<meta name="description" content="Named Arguments and select() — Aether language documentation.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/aether.css">
+</head>
+<body>
+<header class="site-head">
+  <div class="wrap bar">
+    <a class="brand" href="/" aria-label="Aether"><span class="ae">ae</span><span class="nm">aether</span></a>
+    <nav>
+      <a href="/repl.html">Playground</a>
+      <a href="/Docs/getting-started.html" class="on">Docs</a>
+      <a href="https://github.com/aether-lang-org/aether">Source</a>
+      <span class="vtag">v0.454</span>
+    </nav>
+  </div>
+</header>
+<div class="wrap">
+  <div class="doc-shell">
+    <nav class="doc-nav"><div class="grp">Start</div>
+<a href="/Docs/getting-started.html">Getting Started with Aether</a>
+<a href="/Docs/tutorial.html">Aether Language Tutorial</a>
+<a href="/Docs/next-steps.html">Next Steps</a>
+<div class="grp">Language</div>
+<a href="/Docs/language-reference.html">Aether Language Reference</a>
+<a href="/Docs/type-inference-guide.html">Aether Type Inference Guide</a>
+<a href="/Docs/type-annotation-style-guide.html">Aether Type Annotation Style Guide</a>
+<a href="/Docs/type-inference-multi-value-returns.html">Multi-Value Return Type Inference</a>
+<a href="/Docs/distinct-types.html">Distinct Types</a>
+<a href="/Docs/sequences.html">Sequences (`*StringSeq`)</a>
+<a href="/Docs/named-args-and-select.html" class="on">Named Arguments and select()</a>
+<a href="/Docs/closures-and-builder-dsl.html">Closures and Builder-Style DSL in Aether</a>
+<a href="/Docs/closures-and-lifetimes.html">Closures and Environment Lifetimes</a>
+<a href="/Docs/module-system-design.html">Aether Module System</a>
+<div class="grp">Runtime</div>
+<a href="/Docs/architecture.html">Aether Architecture</a>
+<a href="/Docs/actor-concurrency.html">Aether Runtime Guide</a>
+<a href="/Docs/structured-concurrency.html">Structured Concurrency for Aether, Design Direction</a>
+<a href="/Docs/scheduler-quick-reference.html">Aether Scheduler - Quick Reference</a>
+<a href="/Docs/memory-management.html">Aether Memory Management</a>
+<a href="/Docs/runtime-optimizations.html">Runtime Optimizations</a>
+<a href="/Docs/numa-support.html">NUMA Support in Aether</a>
+<div class="grp">Interop</div>
+<a href="/Docs/c-interop.html">C Interoperability</a>
+<a href="/Docs/c-embedding.html">Embedding Aether Actors in C Applications</a>
+<a href="/Docs/emit-lib.html">Embedding Aether as a Shared Library (`--emit=lib`)</a>
+<a href="/Docs/embedded-namespaces-and-host-bindings.html">Aether as a Configuration Language, v2: Namespaces and Generated Bindings</a>
+<a href="/Docs/aether-embedded-in-host-applications.html">Aether as a Configuration Language for Other Languages</a>
+<a href="/Docs/lib-caller-info.html">`--emit=lib` caller-info channel</a>
+<div class="grp">Stdlib</div>
+<a href="/Docs/stdlib-reference.html">Aether Standard Library Reference</a>
+<a href="/Docs/stdlib-api.html">Aether Standard Library Guide</a>
+<a href="/Docs/stdlib-module-pattern.html">Aether Stdlib Module Pattern</a>
+<a href="/Docs/stdlib-vs-contrib.html">`std/` vs `contrib/` placement decisions</a>
+<a href="/Docs/http-server.html">`std.http` HTTP Server</a>
+<a href="/Docs/http-reverse-proxy.html">`std.http.proxy` reverse proxy</a>
+<a href="/Docs/http-handler-context.html">HTTP handlers with per-server / per-route state</a>
+<a href="/Docs/http-vcr.html">HTTP Record/Replay (VCR), moved out of Aether</a>
+<a href="/Docs/json-parser-design.html">`std.json` Design Notes</a>
+<div class="grp">Safety</div>
+<a href="/Docs/containment-sandbox.html">Containment and Sandboxing in Aether</a>
+<a href="/Docs/hide-and-seal.html">`hide` and `seal except` scope-level capability denial</a>
+<a href="/Docs/compiler-trust-boundary.html">The Compiler Trust Boundary</a>
+<a href="/Docs/config-is-code.html">Config IS Code</a>
+<a href="/Docs/aether_compared_to_capsicum.html">Aether Sandbox Model vs. BSD Capsicum: Architecture, Parallels, and FreeBSD Integration</a>
+<div class="grp">Build</div>
+<a href="/Docs/build-system.html">Build System</a>
+<a href="/Docs/bootstrap-from-source.html">Bootstrapping Aether from source (HEAD)</a>
+<a href="/Docs/install-layout.html">Aether install layout</a>
+<a href="/Docs/runtime-config.html">Runtime Configuration - Quick Reference</a>
+<a href="/Docs/per-process-config.html">Per-process configuration in Aether</a>
+<a href="/Docs/cic-help.html">`ae help &lt;script&gt;` Offline diagnostics for config-IS-code</a>
+<div class="grp">More</div>
+<a href="/Docs/bindgen-consts.html">`ae bindgen consts`, importing C macro constants</a>
+<a href="/Docs/formatter.html">`ae fmt`, the source formatter</a>
+<a href="/Docs/isolated.html">`Isolated[T]`: move-only actor message payloads (#479)</a>
+<a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
+<a href="/Docs/profiling-guide.html">Aether Runtime Profiling Guide</a>
+<a href="/Docs/allocators.html">Allocators</a>
+<a href="/Docs/when-static-if.html">Compile-time `when` / static-if</a>
+<a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
+<a href="/Docs/contract-folding.html">Compile-time contract folding — costed design</a>
+<a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn&#x27;t need `macro_rules!`</a>
+<a href="/Docs/release-glibc-portability.html">Release binary portability across glibc versions</a>
+<a href="/Docs/error-unification.html">Unifying `T?` and `(value, err)` — costed design</a></nav>
+    <main class="doc-main">
+      <article class="doc-body">
+        <div class="bc">docs / language</div>
+<h1>Named Arguments and select()</h1>
+<h2>Named Arguments</h2>
+<p>Function calls can use named arguments with colon syntax, consistent with Aether&#x27;s parameter definition style:</p>
+<pre><code>// Definition
+greet(name: string, count: int) {
+    for (i = 0; i &lt; count; i++) { println(name) }
+}
+
+// Call with named args
+greet(name: &quot;alice&quot;, count: 3)
+
+// Positional still works
+greet(&quot;alice&quot;, 3)
+
+// Mixed: positional first, named after
+greet(&quot;alice&quot;, count: 3)</code></pre>
+<p>Named arguments are documentation at the call site, they make code more readable but don&#x27;t change semantics. The C compiler receives positional arguments regardless.</p>
+<h3>Rules</h3>
+<ul><li>Names use colon: <code>name: value</code> (not <code>name = value</code>)</li><li>Positional and named can be mixed in the same call</li><li>Names are not validated against parameter names (they&#x27;re comments)</li><li>The colon syntax is consistent with parameter definitions: <code>func(name: type)</code></li></ul>
+<h2>List Literals</h2>
+<p>Array literals with square bracket syntax:</p>
+<pre><code>nums = [10, 20, 30]
+println(nums[0])         // 10
+
+names = [&quot;alice&quot;, &quot;bob&quot;, &quot;charlie&quot;]
+println(names[1])        // bob
+
+// Expressions in array literals
+a = 5
+computed = [a, a * 2, a * 3]     // [5, 10, 15]
+
+// Empty array
+empty = []
+
+// Single element
+one = [42]</code></pre>
+<p>Arrays are fixed-size C arrays. Element access uses <code>[]</code> subscript.</p>
+<h2>select(), Platform Conditional</h2>
+<p>Compile-time platform selection using named arguments:</p>
+<pre><code>port = select(linux: 8080, windows: 80, macos: 8080)
+timeout = select(windows: 5000, other: 3000)
+flags = select(linux: &quot;-lpthread&quot;, windows: &quot;-lws2_32&quot;, macos: &quot;-framework Security&quot;)</code></pre>
+<h3>How it works</h3>
+<p><code>select()</code> emits a C <code>#ifdef</code> chain at compile time. Only the matching platform&#x27;s value is compiled into the binary:</p>
+<pre><code>// select(linux: 8080, windows: 80, macos: 8080) compiles to:
+#ifdef _WIN32
+80
+#elif defined(__APPLE__)
+8080
+#else
+8080
+#endif</code></pre>
+<h3>Platform names</h3>
+<table><thead><tr><th>Name</th><th>C condition</th><th>Matches</th></tr></thead><tbody><tr><td><code>linux:</code></td><td><code>#else</code> (default)</td><td>Linux, FreeBSD, other POSIX</td></tr><tr><td><code>windows:</code></td><td><code>#ifdef _WIN32</code></td><td>Windows, MinGW, MSYS2</td></tr><tr><td><code>macos:</code></td><td><code>#elif defined(__APPLE__)</code></td><td>macOS, iOS</td></tr><tr><td><code>other:</code></td><td>fallback</td><td>Any platform not explicitly listed</td></tr></tbody></table>
+<h3>Fallback with <code>other:</code></h3>
+<p><code>other:</code> provides a default value for platforms not explicitly named:</p>
+<pre><code>// Only need to specify the exception
+separator = select(windows: &quot;\\&quot;, other: &quot;/&quot;)</code></pre>
+<h3>Missing platform is a compile error</h3>
+<p>If a platform is missing and there&#x27;s no <code>other:</code> fallback, the Aether compiler emits an error and the C compiler emits <code>#error</code>:</p>
+<pre><code>// ERROR: no value for windows or macos, no other: fallback
+port = select(linux: 8080)</code></pre>
+<p>This prevents silent bugs where a platform gets <code>0</code> or empty string. Either list all platforms or provide <code>other:</code>.</p>
+<h3>Use cases</h3>
+<p><strong>Build system flags:</strong></p>
+<pre><code>linker_flags = select(
+    linux: &quot;-lpthread -lrt&quot;,
+    windows: &quot;-lws2_32&quot;,
+    macos: &quot;-framework Security&quot;
+)</code></pre>
+<p><strong>Default paths:</strong></p>
+<pre><code>config_dir = select(
+    linux: &quot;/etc/myapp&quot;,
+    macos: &quot;/Library/Application Support/myapp&quot;,
+    windows: &quot;C:\\ProgramData\\myapp&quot;
+)</code></pre>
+<p><strong>Feature availability:</strong></p>
+<pre><code>max_threads = select(linux: 16, windows: 8, macos: 12)
+has_io_uring = select(linux: 1, other: 0)</code></pre>
+<h3>Printing string results</h3>
+<p>String values from <code>select()</code> store correctly as <code>const char*</code>, but type inference doesn&#x27;t yet propagate through the call site. Both a direct <code>println(os)</code> and string interpolation currently print the pointer as an integer, because the result is treated as an <code>int</code>:</p>
+<pre><code>os = select(linux: &quot;Linux&quot;, windows: &quot;Windows&quot;, macos: &quot;macOS&quot;)
+println(os)               // BROKEN: prints a garbage integer, not the string
+println(&quot;os: ${os}&quot;)      // BROKEN: emits printf(..., %d) for the const char*</code></pre>
+<p>Until this is fixed, either inline the <code>select()</code> directly in the <code>println()</code> call, or return it from a <code>-&gt; string</code> function and print that result:</p>
+<pre><code>// Works: inline, where the string type is known at the call site
+println(select(linux: &quot;Linux&quot;, windows: &quot;Windows&quot;, macos: &quot;macOS&quot;))
+
+// Works: a -&gt; string function fixes the type before printing
+os_name() -&gt; string {
+    return select(linux: &quot;Linux&quot;, windows: &quot;Windows&quot;, macos: &quot;macOS&quot;)
+}
+main() {
+    os = os_name()
+    println(os)               // macOS
+    println(&quot;os: ${os}&quot;)      // os: macOS
+}</code></pre>
+<p>Tracked under &quot;Type inference propagation through <code>select()</code>&quot; in <a href="/Docs/next-steps.html"><code>docs/next-steps.md</code></a>.</p>
+      </article>
+    </main>
+  </div>
+</div>
+<footer class="site-foot">
+  <div class="wrap foot">
+    <span class="ae">ae</span>
+    <span class="m">MIT licensed · compiles to C · v0.454</span>
+    <nav><a href="/Docs/getting-started.html">Docs</a><a href="/repl.html">Playground</a><a href="https://github.com/aether-lang-org/aether">GitHub</a></nav>
+  </div>
+</footer>
+</body>
+</html>

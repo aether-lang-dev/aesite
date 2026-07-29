@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Multi-Value Return Type Inference · Aether</title>
+<meta name="description" content="Multi-Value Return Type Inference — Aether language documentation.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/aether.css">
+</head>
+<body>
+<header class="site-head">
+  <div class="wrap bar">
+    <a class="brand" href="/" aria-label="Aether"><span class="ae">ae</span><span class="nm">aether</span></a>
+    <nav>
+      <a href="/repl.html">Playground</a>
+      <a href="/Docs/getting-started.html" class="on">Docs</a>
+      <a href="https://github.com/aether-lang-org/aether">Source</a>
+      <span class="vtag">v0.454</span>
+    </nav>
+  </div>
+</header>
+<div class="wrap">
+  <div class="doc-shell">
+    <nav class="doc-nav"><div class="grp">Start</div>
+<a href="/Docs/getting-started.html">Getting Started with Aether</a>
+<a href="/Docs/tutorial.html">Aether Language Tutorial</a>
+<a href="/Docs/next-steps.html">Next Steps</a>
+<div class="grp">Language</div>
+<a href="/Docs/language-reference.html">Aether Language Reference</a>
+<a href="/Docs/type-inference-guide.html">Aether Type Inference Guide</a>
+<a href="/Docs/type-annotation-style-guide.html">Aether Type Annotation Style Guide</a>
+<a href="/Docs/type-inference-multi-value-returns.html" class="on">Multi-Value Return Type Inference</a>
+<a href="/Docs/distinct-types.html">Distinct Types</a>
+<a href="/Docs/sequences.html">Sequences (`*StringSeq`)</a>
+<a href="/Docs/named-args-and-select.html">Named Arguments and select()</a>
+<a href="/Docs/closures-and-builder-dsl.html">Closures and Builder-Style DSL in Aether</a>
+<a href="/Docs/closures-and-lifetimes.html">Closures and Environment Lifetimes</a>
+<a href="/Docs/module-system-design.html">Aether Module System</a>
+<div class="grp">Runtime</div>
+<a href="/Docs/architecture.html">Aether Architecture</a>
+<a href="/Docs/actor-concurrency.html">Aether Runtime Guide</a>
+<a href="/Docs/structured-concurrency.html">Structured Concurrency for Aether, Design Direction</a>
+<a href="/Docs/scheduler-quick-reference.html">Aether Scheduler - Quick Reference</a>
+<a href="/Docs/memory-management.html">Aether Memory Management</a>
+<a href="/Docs/runtime-optimizations.html">Runtime Optimizations</a>
+<a href="/Docs/numa-support.html">NUMA Support in Aether</a>
+<div class="grp">Interop</div>
+<a href="/Docs/c-interop.html">C Interoperability</a>
+<a href="/Docs/c-embedding.html">Embedding Aether Actors in C Applications</a>
+<a href="/Docs/emit-lib.html">Embedding Aether as a Shared Library (`--emit=lib`)</a>
+<a href="/Docs/embedded-namespaces-and-host-bindings.html">Aether as a Configuration Language, v2: Namespaces and Generated Bindings</a>
+<a href="/Docs/aether-embedded-in-host-applications.html">Aether as a Configuration Language for Other Languages</a>
+<a href="/Docs/lib-caller-info.html">`--emit=lib` caller-info channel</a>
+<div class="grp">Stdlib</div>
+<a href="/Docs/stdlib-reference.html">Aether Standard Library Reference</a>
+<a href="/Docs/stdlib-api.html">Aether Standard Library Guide</a>
+<a href="/Docs/stdlib-module-pattern.html">Aether Stdlib Module Pattern</a>
+<a href="/Docs/stdlib-vs-contrib.html">`std/` vs `contrib/` placement decisions</a>
+<a href="/Docs/http-server.html">`std.http` HTTP Server</a>
+<a href="/Docs/http-reverse-proxy.html">`std.http.proxy` reverse proxy</a>
+<a href="/Docs/http-handler-context.html">HTTP handlers with per-server / per-route state</a>
+<a href="/Docs/http-vcr.html">HTTP Record/Replay (VCR), moved out of Aether</a>
+<a href="/Docs/json-parser-design.html">`std.json` Design Notes</a>
+<div class="grp">Safety</div>
+<a href="/Docs/containment-sandbox.html">Containment and Sandboxing in Aether</a>
+<a href="/Docs/hide-and-seal.html">`hide` and `seal except` scope-level capability denial</a>
+<a href="/Docs/compiler-trust-boundary.html">The Compiler Trust Boundary</a>
+<a href="/Docs/config-is-code.html">Config IS Code</a>
+<a href="/Docs/aether_compared_to_capsicum.html">Aether Sandbox Model vs. BSD Capsicum: Architecture, Parallels, and FreeBSD Integration</a>
+<div class="grp">Build</div>
+<a href="/Docs/build-system.html">Build System</a>
+<a href="/Docs/bootstrap-from-source.html">Bootstrapping Aether from source (HEAD)</a>
+<a href="/Docs/install-layout.html">Aether install layout</a>
+<a href="/Docs/runtime-config.html">Runtime Configuration - Quick Reference</a>
+<a href="/Docs/per-process-config.html">Per-process configuration in Aether</a>
+<a href="/Docs/cic-help.html">`ae help &lt;script&gt;` Offline diagnostics for config-IS-code</a>
+<div class="grp">More</div>
+<a href="/Docs/bindgen-consts.html">`ae bindgen consts`, importing C macro constants</a>
+<a href="/Docs/formatter.html">`ae fmt`, the source formatter</a>
+<a href="/Docs/isolated.html">`Isolated[T]`: move-only actor message payloads (#479)</a>
+<a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
+<a href="/Docs/profiling-guide.html">Aether Runtime Profiling Guide</a>
+<a href="/Docs/allocators.html">Allocators</a>
+<a href="/Docs/when-static-if.html">Compile-time `when` / static-if</a>
+<a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
+<a href="/Docs/contract-folding.html">Compile-time contract folding — costed design</a>
+<a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn&#x27;t need `macro_rules!`</a>
+<a href="/Docs/release-glibc-portability.html">Release binary portability across glibc versions</a>
+<a href="/Docs/error-unification.html">Unifying `T?` and `(value, err)` — costed design</a></nav>
+    <main class="doc-main">
+      <article class="doc-body">
+        <div class="bc">docs / language</div>
+<h1>Multi-Value Return Type Inference</h1>
+<blockquote>Post-mortem of bugs fixed in commit <code>bc42939</code> and PR #249 (commit<br><code>937b029</code>). The per-bug <strong>Cause</strong> sections describe pre-fix code that<br>no longer exists; the <strong>Fix</strong> sections describe what landed. Read the<br>&quot;Putting it together&quot; invariant and the litmus test as the durable<br>takeaways, the bug-by-bug archaeology is frozen in time and will<br>drift as <code>type_inference.c</code> evolves.</blockquote>
+<p>The Go-style <code>(value, err)</code> tuple return migration in stdlib (<code>std.map</code>, <code>std.list</code>, <code>std.fs</code>, <code>std.zlib</code>, <code>std.cryptography</code>, …) put a lot of weight on cross-function tuple-return inference. Several latent bugs in <code>compiler/analysis/type_inference.c</code> only surface once a function&#x27;s body destructures a multi-value call and then itself returns a tuple mixing a destructured local with a literal. This doc catalogs them and describes the fix shape so future regressions in the same area are recognizable.</p>
+<p>For the broader inference flow (constraint collection, propagation, phase ordering), see <a href="/Docs/type-inference-guide.html"><code>type-inference-guide.md</code></a>. This doc covers only multi-value-return-specific edge cases.</p>
+<h2>The shape that triggers the cluster</h2>
+<pre><code>import std.fs
+import std.cryptography
+
+hash_file(p: string) {
+    bytes, length, rerr = fs.read_binary(p)         // 3-tuple destructure
+    if string.length(rerr) &gt; 0 {
+        return &quot;&quot;, rerr                              // multi-value, mixes literal &quot;&quot; with destructured local
+    }
+    return cryptography.sha256_hex(bytes, length)    // single-value tuple-typed call
+}</code></pre>
+<p><code>hash_file</code> returns <code>(string, string)</code> in both branches. Pre-fix, codegen emitted it as <code>_tuple_string_int</code> and every caller produced <code>-Wint-conversion</code> errors. Four distinct bugs combined to produce that result. Each is fixable in isolation; the test <code>tests/integration/multi_return_destructure_chain/</code> exercises the combination.</p>
+<h2>Bug 1, cross-module local-var pollution</h2>
+<p><strong>Symptom.</strong> Two modules each declare a local with the same name (e.g. <code>mod_name</code>, one a string from a parameter assignment, the other a ptr from a tuple destructure). Compiling a third module that imports both fails with <code>error[E0200]: Type mismatch in variable initialization</code> on an unrelated <code>target = mod_name</code> line.</p>
+<p><strong>Cause.</strong> <code>collect_function_constraints</code> added function-local symbols to a flat global symbol table without scoping. Two functions&#x27; locals collided at the table level, <code>lookup_symbol</code> returned whichever was added more recently.</p>
+<p><strong>Fix.</strong> Snapshot <code>ctx-&gt;symbols-&gt;symbols</code> (the head of the linked list) on entry, trim back to it on exit. Function-level symbols (function defs, externs, imports) are added by other code paths before any function body is visited, so they sit beneath the snapshot and are unaffected.</p>
+<p><strong>Status.</strong> Shipped on <code>main</code> as commit <code>bc42939</code> (&quot;type inference bug fixed&quot;). Test: <code>tests/integration/tuple_destructure_cross_module/</code>.</p>
+<h2>Bug 2, empty-string literal mis-typed as int</h2>
+<p><strong>Symptom.</strong> A function ending in <code>return value, &quot;&quot;</code> (or with <code>&quot;&quot;</code> in any tuple slot) gets its return inferred as <code>(T, int)</code> instead of <code>(T, string)</code>. Every caller that destructures the second slot then fails to compile with pointer-from-int conversion errors.</p>
+<p><strong>Cause.</strong> The literal-type heuristic in <code>infer_return_type_impl</code> (and the matching loop in <code>merge_tuple_returns</code>) started <code>is_num = 1</code> and only flipped it to 0 on a non-numeric character. The empty buffer&#x27;s loop body never runs, so <code>is_num</code> stays 1, and the slot is typed as <code>TYPE_INT</code>.</p>
+<p><strong>Fix.</strong> Start <code>is_num = 0</code>; require at least one numeric character to flip it to 1, and let any non-numeric character flip it back. Empty string → <code>TYPE_STRING</code>, which is what every caller of the wrapper already expects.</p>
+<p><strong>Why it stayed latent.</strong> Stdlib wrappers conventionally write <code>return null, &quot;literal-error-message&quot;</code> for failure, never <code>return X, &quot;&quot;</code> because the success path uses an explicit non-empty string. Downstream <code>aetherBuild</code>&#x27;s cache module is the first first-party caller to hit this with <code>return &quot;&quot;, rerr</code> (success means rerr is empty; the caller needs the empty-string value as the meaningful &quot;no error&quot; signal).</p>
+<h2>Bug 3, partial tuple sticks across iterations</h2>
+<p><strong>Symptom.</strong> A function whose return is correctly typed as <code>TUPLE(string, UNKNOWN)</code> after iteration N never gets refined, even though iteration N+1 has enough information to resolve the second slot. Codegen emits the UNKNOWN slot as <code>int</code> (its &quot;default&quot;, see the <code>unresolved type in codegen, defaulting to int</code> warning).</p>
+<p><strong>Cause.</strong> <code>infer_function_return_types</code>&#x27;s gate to re-run inference was:</p>
+<pre><code>if (!node-&gt;node_type ||
+    node-&gt;node_type-&gt;kind == TYPE_UNKNOWN ||
+    node-&gt;node_type-&gt;kind == TYPE_VOID) { ... }</code></pre>
+<p>A function whose <code>node_type</code> was already a <code>TUPLE</code> (even a partially- resolved one) fell off the gate&#x27;s right side and never re-inferred. <code>merge_tuple_returns</code> did walk return statements to fill UNKNOWN slots, but only from <code>val-&gt;node_type</code> and <code>AST_LITERAL</code> value-shape heuristics, not from <code>AST_IDENTIFIER</code> lookups, which is where destructured locals&#x27; types live.</p>
+<p><strong>Fix.</strong> Extend the re-inference gate to also fire when the current type is <code>TUPLE</code> with at least one <code>TYPE_UNKNOWN</code> slot. The companion sync from <code>child-&gt;node_type</code> to <code>func_sym-&gt;type</code> inside the inference loop also needed an extension: previously synced only when func_sym was UNKNOWN/VOID; now also syncs when it&#x27;s a TUPLE and the new type is <em>strictly</em> more specific (fewer UNKNOWN slots). The strictness is load-bearing: without it, syncing TUPLE(s, UNKNOWN) → TUPLE(s, UNKNOWN) loops forever and exhausts <code>MAX_INFERENCE_ITERATIONS</code>.</p>
+<h2>Bug 4, nested return doesn&#x27;t pre-resolve outer-scope locals</h2>
+<p><strong>Symptom.</strong> A multi-value <code>return a, b</code> inside an <code>if</code>/<code>while</code>/<code>for</code> body can&#x27;t see locals defined by destructure in the surrounding block. Specifically, in:</p>
+<pre><code>hash_file(p: string) {
+    bytes, length, rerr = fs.read_binary(p)
+    if string.length(rerr) &gt; 0 {
+        return &quot;&quot;, rerr                              // &lt;-- right here
+    }
+    return cryptography.sha256_hex(bytes, length)
+}</code></pre>
+<p><code>rerr</code>&#x27;s <code>AST_IDENTIFIER</code> inside the <code>return &quot;&quot;, rerr</code> has no <code>node_type</code> set (no symbol-table entry survives across iterations after the bug-1 unwind), and <code>infer_return_type_impl</code> for the nested return falls back to <code>lookup_symbol</code>, which doesn&#x27;t have it, so the slot is UNKNOWN.</p>
+<p><strong>Cause.</strong> The <code>AST_BLOCK</code> case of <code>infer_return_type_impl</code> had a pre-resolve pass for direct single-value <code>return v</code> returns, calling <code>resolve_local_var_type(v, body, i, symbols)</code> to pull the type from a preceding sibling. But:</p>
+<ul><li>The pre-resolve only handled single-value returns, not multi-value.</li><li>It only ran for direct children of the block, not returns nested</li></ul>
+<p>inside an <code>if</code>/<code>while</code>/<code>for</code> body.</p>
+<p><strong>Fix.</strong> Add a new <code>preresolve_return_idents_in(node, outer_block, outer_index, symbols)</code> walker. Called at the top of every <code>AST_BLOCK</code> case, it walks the subtree looking for <code>AST_RETURN_STATEMENT</code>s with multi-value children. For each untyped <code>AST_IDENTIFIER</code> slot, it calls <code>resolve_local_var_type</code> from the <em>outer</em> block (where the destructure that introduced the local lives) and stamps the result onto <code>slot-&gt;node_type</code>. The recursive <code>infer_return_type_impl</code> then sees a fully-typed tuple instead of one with UNKNOWN slots.</p>
+<p>The walker also recognizes <code>AST_TUPLE_DESTRUCTURE</code> siblings in <code>resolve_local_var_type</code>, projecting the matched lvalue&#x27;s slot type from either the rhs&#x27;s resolved tuple type or, as a fallback, the function symbol&#x27;s declared tuple return type. Without this branch, a multi-value destructure of <code>some_call()</code> couldn&#x27;t be the source of a local&#x27;s type during return-type inference.</p>
+<h2>Putting it together</h2>
+<p>The four bugs have a shared shape: the inference pipeline runs in phases (constraint collection, propagation, return-type inference, constraint solving) and converges by iteration. Any phase that writes an UNKNOWN slot or a VOID type must be re-runnable when more information becomes available; any phase that <em>needs</em> type info must look it up through every avenue available (AST node_type, symbol table, sibling-aware <code>resolve_local_var_type</code>, function symbol&#x27;s declared type) before defaulting to UNKNOWN.</p>
+<p>When in doubt, the litmus test for whether the inference pipeline is self-consistent is to compile the body of a function whose return mixes a destructured local with a literal, inside a nested if-body. If codegen prints <code>unresolved type in codegen, defaulting to int</code>, one of the four pieces above is misbehaving.</p>
+<h2>Working tests</h2>
+<table><thead><tr><th>Test</th><th>What it proves</th></tr></thead><tbody><tr><td><code>tests/integration/tuple_destructure_cross_module/</code></td><td>Bug 1: two modules with same-named locals don&#x27;t collide.</td></tr><tr><td><code>tests/integration/multi_return_destructure_chain/</code></td><td>Bugs 2–4 in combination: empty-string literal in tuple slot, nested return in if-body, destructured local across the boundary.</td></tr></tbody></table>
+<p>Run individually:</p>
+<pre><code>tests/integration/multi_return_destructure_chain/test_multi_return_destructure_chain.sh</code></pre>
+<p>Or via <code>make test-ae</code> for the full suite.</p>
+<h2>What&#x27;s out of scope</h2>
+<ol><li><strong>Bidirectional type flow.</strong> The current pipeline is bottom-up</li></ol>
+<p>(returns drive function types, function types drive call-site types, call-site types drive caller&#x27;s local types). It does not propagate caller&#x27;s expectation back into a callee&#x27;s return, a function whose body returns <code>(0, 0)</code> will still infer <code>(int, int)</code> even when every caller destructures it as <code>(string, string)</code>. The destructure-aware fallback at call sites prevents this from producing wrong code, but at-the-source reasoning would let the warning go away.</p>
+<ol><li><strong>Same-name lvalue in destructure and outer scope.</strong></li></ol>
+<p><code>mod_name = some_string()</code> followed by <code>mod_name, _ = some_call()</code> in the same block &quot;reassigns&quot; <code>mod_name</code> semantically. Type inference doesn&#x27;t track reassignment, the second binding wins for subsequent reads but the first&#x27;s type is what <code>resolve_local_var_type</code> returns when walking from a later return. In practice this hasn&#x27;t bitten anyone yet because reassignment-with-different-type is rare in idiomatic Aether; flagged here so future cases get a consistent resolution rather than per-call hacks.</p>
+<ol><li><strong>Tuple slots resolved by union.</strong> A function with two returns</li></ol>
+<p><code>(string, &quot;literal&quot;)</code> and <code>(string, some_call())</code> whose call is a tuple-typed function, the slots are not unified. Whichever return is encountered first wins, and <code>merge_tuple_returns</code> fills only UNKNOWN slots. This is fine for the wrapper-style functions that dominate the stdlib; if it bites someone with a more complex shape, the fix is to widen <code>merge_tuple_returns</code> to take a &quot;compatible-supertype&quot; union rather than an UNKNOWN-only fill.</p>
+      </article>
+    </main>
+  </div>
+</div>
+<footer class="site-foot">
+  <div class="wrap foot">
+    <span class="ae">ae</span>
+    <span class="m">MIT licensed · compiles to C · v0.454</span>
+    <nav><a href="/Docs/getting-started.html">Docs</a><a href="/repl.html">Playground</a><a href="https://github.com/aether-lang-org/aether">GitHub</a></nav>
+  </div>
+</footer>
+</body>
+</html>

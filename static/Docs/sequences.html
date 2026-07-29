@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sequences (`*StringSeq`) · Aether</title>
+<meta name="description" content="Sequences (`*StringSeq`) — Aether language documentation.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/aether.css">
+</head>
+<body>
+<header class="site-head">
+  <div class="wrap bar">
+    <a class="brand" href="/" aria-label="Aether"><span class="ae">ae</span><span class="nm">aether</span></a>
+    <nav>
+      <a href="/repl.html">Playground</a>
+      <a href="/Docs/getting-started.html" class="on">Docs</a>
+      <a href="https://github.com/aether-lang-org/aether">Source</a>
+      <span class="vtag">v0.454</span>
+    </nav>
+  </div>
+</header>
+<div class="wrap">
+  <div class="doc-shell">
+    <nav class="doc-nav"><div class="grp">Start</div>
+<a href="/Docs/getting-started.html">Getting Started with Aether</a>
+<a href="/Docs/tutorial.html">Aether Language Tutorial</a>
+<a href="/Docs/next-steps.html">Next Steps</a>
+<div class="grp">Language</div>
+<a href="/Docs/language-reference.html">Aether Language Reference</a>
+<a href="/Docs/type-inference-guide.html">Aether Type Inference Guide</a>
+<a href="/Docs/type-annotation-style-guide.html">Aether Type Annotation Style Guide</a>
+<a href="/Docs/type-inference-multi-value-returns.html">Multi-Value Return Type Inference</a>
+<a href="/Docs/distinct-types.html">Distinct Types</a>
+<a href="/Docs/sequences.html" class="on">Sequences (`*StringSeq`)</a>
+<a href="/Docs/named-args-and-select.html">Named Arguments and select()</a>
+<a href="/Docs/closures-and-builder-dsl.html">Closures and Builder-Style DSL in Aether</a>
+<a href="/Docs/closures-and-lifetimes.html">Closures and Environment Lifetimes</a>
+<a href="/Docs/module-system-design.html">Aether Module System</a>
+<div class="grp">Runtime</div>
+<a href="/Docs/architecture.html">Aether Architecture</a>
+<a href="/Docs/actor-concurrency.html">Aether Runtime Guide</a>
+<a href="/Docs/structured-concurrency.html">Structured Concurrency for Aether, Design Direction</a>
+<a href="/Docs/scheduler-quick-reference.html">Aether Scheduler - Quick Reference</a>
+<a href="/Docs/memory-management.html">Aether Memory Management</a>
+<a href="/Docs/runtime-optimizations.html">Runtime Optimizations</a>
+<a href="/Docs/numa-support.html">NUMA Support in Aether</a>
+<div class="grp">Interop</div>
+<a href="/Docs/c-interop.html">C Interoperability</a>
+<a href="/Docs/c-embedding.html">Embedding Aether Actors in C Applications</a>
+<a href="/Docs/emit-lib.html">Embedding Aether as a Shared Library (`--emit=lib`)</a>
+<a href="/Docs/embedded-namespaces-and-host-bindings.html">Aether as a Configuration Language, v2: Namespaces and Generated Bindings</a>
+<a href="/Docs/aether-embedded-in-host-applications.html">Aether as a Configuration Language for Other Languages</a>
+<a href="/Docs/lib-caller-info.html">`--emit=lib` caller-info channel</a>
+<div class="grp">Stdlib</div>
+<a href="/Docs/stdlib-reference.html">Aether Standard Library Reference</a>
+<a href="/Docs/stdlib-api.html">Aether Standard Library Guide</a>
+<a href="/Docs/stdlib-module-pattern.html">Aether Stdlib Module Pattern</a>
+<a href="/Docs/stdlib-vs-contrib.html">`std/` vs `contrib/` placement decisions</a>
+<a href="/Docs/http-server.html">`std.http` HTTP Server</a>
+<a href="/Docs/http-reverse-proxy.html">`std.http.proxy` reverse proxy</a>
+<a href="/Docs/http-handler-context.html">HTTP handlers with per-server / per-route state</a>
+<a href="/Docs/http-vcr.html">HTTP Record/Replay (VCR), moved out of Aether</a>
+<a href="/Docs/json-parser-design.html">`std.json` Design Notes</a>
+<div class="grp">Safety</div>
+<a href="/Docs/containment-sandbox.html">Containment and Sandboxing in Aether</a>
+<a href="/Docs/hide-and-seal.html">`hide` and `seal except` scope-level capability denial</a>
+<a href="/Docs/compiler-trust-boundary.html">The Compiler Trust Boundary</a>
+<a href="/Docs/config-is-code.html">Config IS Code</a>
+<a href="/Docs/aether_compared_to_capsicum.html">Aether Sandbox Model vs. BSD Capsicum: Architecture, Parallels, and FreeBSD Integration</a>
+<div class="grp">Build</div>
+<a href="/Docs/build-system.html">Build System</a>
+<a href="/Docs/bootstrap-from-source.html">Bootstrapping Aether from source (HEAD)</a>
+<a href="/Docs/install-layout.html">Aether install layout</a>
+<a href="/Docs/runtime-config.html">Runtime Configuration - Quick Reference</a>
+<a href="/Docs/per-process-config.html">Per-process configuration in Aether</a>
+<a href="/Docs/cic-help.html">`ae help &lt;script&gt;` Offline diagnostics for config-IS-code</a>
+<div class="grp">More</div>
+<a href="/Docs/bindgen-consts.html">`ae bindgen consts`, importing C macro constants</a>
+<a href="/Docs/formatter.html">`ae fmt`, the source formatter</a>
+<a href="/Docs/isolated.html">`Isolated[T]`: move-only actor message payloads (#479)</a>
+<a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
+<a href="/Docs/profiling-guide.html">Aether Runtime Profiling Guide</a>
+<a href="/Docs/allocators.html">Allocators</a>
+<a href="/Docs/when-static-if.html">Compile-time `when` / static-if</a>
+<a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
+<a href="/Docs/contract-folding.html">Compile-time contract folding — costed design</a>
+<a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn&#x27;t need `macro_rules!`</a>
+<a href="/Docs/release-glibc-portability.html">Release binary portability across glibc versions</a>
+<a href="/Docs/error-unification.html">Unifying `T?` and `(value, err)` — costed design</a></nav>
+    <main class="doc-main">
+      <article class="doc-body">
+        <div class="bc">docs / language</div>
+<h1>Sequences (<code>*StringSeq</code>)</h1>
+<p><code>*StringSeq</code> is Aether&#x27;s Erlang/Elixir-shaped cons-cell linked list of strings. Empty list is the <code>NULL</code> pointer; each cell carries a <strong>cached length</strong> so <code>string.seq_length</code> is O(1); cells are <strong>reference-counted</strong> so <code>string.seq_cons(x, t)</code> and <code>string.seq_cons(y, t)</code> share the same <code>t</code> without copying. Cells are <strong>immutable</strong> after creation, so cycles can&#x27;t form and the iterative free walk can&#x27;t loop.</p>
+<h2>When to use this vs the alternatives</h2>
+<table><thead><tr><th>Shape</th><th>Typical use</th><th>Length</th><th>Random access</th><th>Refcounts</th><th>Ships in</th></tr></thead><tbody><tr><td><code>string[]</code></td><td>Compile-time literal arrays paired with a <code>count</code> field</td><td>not carried</td><td>O(1)</td><td>manual</td><td>std (always)</td></tr><tr><td><code>*StringSeq</code></td><td>Runtime-built sequences, message payloads, pattern-match walks</td><td>O(1) cached</td><td>O(n) walk</td><td>yes</td><td><code>std.string</code></td></tr><tr><td><code>std.collections.string_list_*</code></td><td>Dynamic-array shape with O(1) random access</td><td>tracked</td><td>O(1)</td><td>yes</td><td><code>std.collections</code></td></tr><tr><td><code>AetherStringArray*</code> (raw <code>string.split</code> return)</td><td>Legacy interop with the existing split surface</td><td>tracked</td><td>O(1)</td><td>manual</td><td><code>std.string</code></td></tr></tbody></table>
+<p>Reach for <code>*StringSeq</code> when:</p>
+<ul><li>You&#x27;re streaming or pattern-matching head/tail (<code>match s { [] -&gt; …; [h|t] -&gt; … }</code>),</li><li>You want O(1) <code>cons</code>/<code>head</code>/<code>tail</code>/<code>length</code> and the prepend-y shape</li></ul>
+<p>Erlang/Elixir programmers expect,</p>
+<ul><li>You&#x27;re sending the sequence across an actor boundary as a message</li></ul>
+<p>field, no separate <code>count</code> companion required,</p>
+<ul><li>You want structural sharing without an explicit copy.</li></ul>
+<p>Reach for <code>string[]</code> when the count is known at compile time. Reach for <code>string_list_*</code> when you need O(1) random access by integer index. The shapes co-exist; pick the one that fits the access pattern.</p>
+<h2>Operation complexity</h2>
+<table><thead><tr><th>Op</th><th>Cost</th></tr></thead><tbody><tr><td><code>string.seq_empty()</code></td><td>O(1)</td></tr><tr><td><code>string.seq_cons(h, t)</code></td><td>O(1), malloc one cell, retain head + tail</td></tr><tr><td><code>string.seq_head(s)</code></td><td>O(1)</td></tr><tr><td><code>string.seq_tail(s)</code></td><td>O(1)</td></tr><tr><td><code>string.seq_is_empty(s)</code></td><td>O(1)</td></tr><tr><td><code>string.seq_length(s)</code></td><td>O(1), read cached field</td></tr><tr><td><code>string.seq_retain(s)</code></td><td>O(1)</td></tr><tr><td><code>string.seq_free(s)</code></td><td>O(n) work, O(1) stack, iterative spine walk</td></tr><tr><td><code>string.seq_from_array(arr, n)</code></td><td>O(n), builds back-to-front</td></tr><tr><td><code>string.seq_to_array(s)</code></td><td>O(n), materialises an <code>AetherStringArray*</code></td></tr><tr><td><code>string.seq_reverse(s)</code></td><td>O(n), fresh independent spine</td></tr><tr><td><code>string.seq_concat(a, b)</code></td><td>O(\</td><td>a\</td><td>), <code>a</code> copied, <code>b</code> shared via refcount bump</td></tr><tr><td><code>string.seq_take(s, n)</code></td><td>O(min(n, length)), fresh independent spine</td></tr><tr><td><code>string.seq_drop(s, n)</code></td><td>O(min(n, length)), pointer walk only, returns retained tail</td></tr><tr><td><code>string.seq_each(s, f)</code></td><td>O(n), iterative spine walk, side effects</td></tr><tr><td><code>string.seq_map(s, f)</code></td><td>O(n), iterative; fresh independent spine</td></tr><tr><td><code>string.seq_filter(s, pred)</code></td><td>O(n), iterative; fresh independent spine</td></tr><tr><td><code>string.seq_reduce(s, init, f)</code></td><td>O(n), iterative left fold</td></tr><tr><td><code>string.seq_zip_each(a, b, f)</code></td><td>O(min(\</td><td>a\</td><td>, \</td><td>b\</td><td>)), iterative, stops at shorter</td></tr></tbody></table>
+<h2>Building, walking, freeing</h2>
+<pre><code>import std.string
+
+main() {
+    s = string.seq_empty()
+    s = string.seq_cons(&quot;c&quot;, s)
+    s = string.seq_cons(&quot;b&quot;, s)
+    s = string.seq_cons(&quot;a&quot;, s)        // s = a -&gt; b -&gt; c
+
+    println(&quot;length=${string.seq_length(s)}&quot;)  // 3 (O(1))
+    println(&quot;first=${string.seq_head(s)}&quot;)      // a
+
+    walk(s)                                     // pattern-match
+    string.seq_free(s)                          // optional, see below
+}
+
+walk(s: *StringSeq) {
+    match s {
+        []      -&gt; { /* end of list */ }
+        [h | t] -&gt; {
+            println(h)
+            walk(t)
+        }
+    }
+}</code></pre>
+<h2>Automatic ownership</h2>
+<p>A <code>*StringSeq</code> local is reclaimed <strong>automatically</strong>, the compiler frees it on reassignment and at scope exit, so the explicit <code>string.seq_free(s)</code> above is optional. This mirrors the heap-string ownership model:</p>
+<pre><code>deep = string.seq_empty()
+i = 0
+while i &lt; 1000 {
+    deep = string.seq_cons(&quot;x&quot;, deep)   // each prior spine freed on reassign
+    i = i + 1
+}
+// `deep` freed here at scope exit, no leak, no manual free needed</code></pre>
+<p>It is safe to <em>also</em> call <code>string.seq_free(s)</code> yourself: the explicit free clears the ownership tracker so the scope-exit free does not run twice. Freeing is a refcount <strong>decrement</strong> (<code>string_seq_free</code>), so a structurally-shared tail survives until its last owner is freed, <code>string.seq_cons(x, t)</code> and <code>string.seq_cons(y, t)</code> share <code>t</code> safely, and each rooted list can be freed independently.</p>
+<p>A sequence that <strong>escapes</strong> the function, returned, captured by a closure, or stored raw in a non-seq container (<code>list.add</code>, an actor message field), is <em>not</em> auto-freed; ownership transfers to the recipient, which is responsible for the eventual <code>string.seq_free</code>.</p>
+<h2>Pattern match</h2>
+<p>The compiler dispatches <code>[]</code> / <code>[h|t]</code> arms differently based on the matched expression&#x27;s type:</p>
+<ul><li><strong><code>*StringSeq</code> matched expression</strong> → NULL-checking pointer walk.</li><li><code>[]</code> arm tests <code>s == NULL</code>.</li><li><code>[h | t]</code> arm tests <code>s != NULL</code> and binds <code>h: string = s-&gt;head</code>,</li></ul>
+<p><code>t: *StringSeq = s-&gt;tail</code>. Tail is typed as <code>*StringSeq</code> (not as an array), so recursive walks compose without an extra cast.</p>
+<ul><li><strong><code>int[]</code> matched expression</strong> → existing slice-style lowering</li></ul>
+<p>(untouched by this addition).</p>
+<p>When the arm body doesn&#x27;t reference <code>h</code> or <code>t</code>, the binding is omitted but the dispatch test is still emitted, same <code>pattern_needs_array</code> optimisation the int-array path uses.</p>
+<h2>Combinators</h2>
+<p>There are two families. The four <strong>structural</strong> ops below are closure-free, they don&#x27;t take an Aether function, so the FFI surface stays simple. The five <strong>closure-bearing</strong> combinators (<code>each</code> / <code>map</code> / <code>filter</code> / <code>reduce</code> / <code>zip_each</code>, see the next section) take an Aether closure as the per-element callback.</p>
+<pre><code>import std.string
+
+s = string.split_to_seq(&quot;a,b,c,d,e&quot;, &quot;,&quot;)
+
+// Reverse, fresh independent spine; freeing the result doesn&#x27;t
+// affect `s`.
+r = string.seq_reverse(s)
+println(string.seq_head(r))      // &quot;e&quot;
+
+// Take the first n cells. Negative or zero n yields the empty seq.
+// n exceeding length clamps to the full spine.
+prefix = string.seq_take(s, 3)   // [&quot;a&quot;, &quot;b&quot;, &quot;c&quot;]
+
+// Drop the first n cells. Returns the n-th tail of `s`, retained
+// (the caller owns one ref).  Negative n returns `s` itself
+// retained; n exceeding length returns the empty seq.
+suffix = string.seq_drop(s, 3)   // [&quot;d&quot;, &quot;e&quot;]
+
+// take(n) ++ drop(n) round-trips the spine for any n.
+rebuilt = string.seq_concat(prefix, suffix)
+
+// concat copies the first argument and shares the second via a
+// refcount bump, freeing `rebuilt` later drops one ref from
+// `suffix` but `s` stays walkable from any other handle.
+
+string.seq_free(r)
+string.seq_free(prefix)
+string.seq_free(suffix)
+string.seq_free(rebuilt)
+string.seq_free(s)</code></pre>
+<p>Two equational laws every test exercises:</p>
+<pre><code>reverse(reverse(s)) == s
+take(s, n) ++ drop(s, n) == s          (for any 0 &lt;= n &lt;= length(s))</code></pre>
+<p><code>reverse</code> walks the source spine forward, prepending each head onto a fresh result spine, O(n) work, O(1) auxiliary stack. <code>concat</code> reverses the first argument (one O(\|a\|) walk), then iteratively conses each element back onto the second; the second argument is shared, never walked. <code>take</code> collects the first n elements into a reverse buffer then reverses to get them in order. <code>drop</code> is a pure pointer walk with a single <code>seq_retain</code> at the end.</p>
+<h2>Closure-bearing combinators</h2>
+<p>These take an Aether closure as the per-element callback (issue #421, multi-sequence iteration primitives). Every one is a single <strong>iterative spine walk, O(n) time, O(1) auxiliary stack</strong> (no recursion; that&#x27;s the O(n²)→O(n) point of the issue):</p>
+<table><thead><tr><th>Combinator</th><th>Callback</th><th>Returns</th></tr></thead><tbody><tr><td><code>string.seq_each(s, f)</code></td><td>`\</td><td>x\</td><td>{ ... }` (side effects)</td><td>nothing</td></tr><tr><td><code>string.seq_map(s, f)</code></td><td>`\</td><td>x\</td><td>{ return ... }<code> (</code>-&gt; string`)</td><td>a NEW <code>*StringSeq</code>, order preserved</td></tr><tr><td><code>string.seq_filter(s, pred)</code></td><td>`\</td><td>x\</td><td>{ return 0/1 }<code> (</code>-&gt; int`)</td><td>a NEW <code>*StringSeq</code> of truthy elements</td></tr><tr><td><code>string.seq_reduce(s, init, f)</code></td><td>`\</td><td>acc, x\</td><td>{ ... }<code> (</code>(ptr, string) -&gt; ptr`)</td><td>the final accumulator (<code>ptr</code>)</td></tr><tr><td><code>string.seq_zip_each(a, b, f)</code></td><td>`\</td><td>x, y\</td><td>{ ... }` (side effects)</td><td>nothing</td></tr></tbody></table>
+<pre><code>import std.string
+
+s = string.split_to_seq(&quot;alpha,beta,gamma,delta&quot;, &quot;,&quot;)
+
+// each, call the closure per element for its side effects. The
+// closure may capture (here, an outer `ref` counter).
+n = ref(0)
+string.seq_each(s, |x: string| {
+    ref_set(n, ref_get(n) + 1)
+    println(x)
+})                                   // prints all four; ref_get(n) == 4
+
+// map, fresh, independently-owned seq with the closure applied to
+// each element, order preserved. Free it with seq_free (or let scope
+// exit reclaim it); `s` is untouched.
+upper = string.seq_map(s, |x: string| { return string.to_upper(x) })
+// upper == [&quot;ALPHA&quot;, &quot;BETA&quot;, &quot;GAMMA&quot;, &quot;DELTA&quot;]
+
+// filter, fresh seq of the elements whose predicate is truthy.
+five = string.seq_filter(s, |x: string| {
+    if string.length(x) == 5 { return 1 }
+    return 0
+})                                   // [&quot;alpha&quot;, &quot;gamma&quot;, &quot;delta&quot;]
+
+// reduce, left fold. acc is an opaque `ptr` the closure threads
+// through; here a `ref` cell holding a running character count.
+acc = ref(0)
+total = string.seq_reduce(s, acc, |a: ptr, x: string| {
+    ref_set(acc, ref_get(acc) + string.length(x))
+    return acc
+})                                   // ref_get(total) == 19
+
+// zip_each, implicit zip over two seqs, stopping at the shorter.
+keys = string.split_to_seq(&quot;a,b,c&quot;, &quot;,&quot;)
+vals = string.split_to_seq(&quot;1,2,3,4,5&quot;, &quot;,&quot;)
+string.seq_zip_each(keys, vals, |k: string, v: string| {
+    println(&quot;${k}=${v}&quot;)             // a=1, b=2, c=3 (stops at 3)
+})
+
+string.seq_free(upper)
+string.seq_free(five)</code></pre>
+<p>Ownership: <code>map</code> / <code>filter</code> build a fresh, caller-owned spine (freed via <code>seq_free</code>, or automatically at scope exit like any seq local) and leave the input untouched, <code>map</code> releases the transient string the closure returns after consing it (the new cell takes its own ref), so a freshly allocated mapped value such as <code>string.to_upper(x)</code> does not leak. <code>reduce</code> returns the caller&#x27;s accumulator. <code>each</code> / <code>zip_each</code> return nothing and borrow their inputs. Under the hood the closure is heap-boxed into the combinator&#x27;s <code>ptr</code> slot by the codegen (<code>_aether_box_closure</code>); the std runtime unboxes it, invokes the body with the captured environment as the implicit first argument, and frees the box (and its captured environment) when the walk completes, so a one-shot <code>string.seq_map(s, |x| ...)</code> does not leak the closure.</p>
+<blockquote>Closure-literal note: Aether infers a closure&#x27;s return type from its<br>body, so write <code>|x: string| { return string.to_upper(x) }</code> (no<br><code>-&gt; Type</code> annotation on the closure itself). For a <code>reduce</code> whose<br>accumulator is a <code>ptr</code>, return a value whose <code>ptr</code> type is<br>unambiguous to inference, e.g. a captured <code>ref</code> cell, as above.</blockquote>
+<h2>Building from existing string-array shapes</h2>
+<p><code>string.split</code> keeps its existing <code>AetherStringArray*</code> (<code>ptr</code>) return shape, backwards-compatible with every caller. Two paths to migrate to a <code>*StringSeq</code>:</p>
+<pre><code>// (a) Direct: split into a seq from the start.
+sites = string.split_to_seq(csv, &quot;,&quot;)
+
+// (b) Bridge: split, then materialise into a seq.
+arr = string.split(csv, &quot;,&quot;)
+sites = string.seq_from_array(arr, string.array_size(arr))
+string.array_free(arr)   // seq cells already retained their own refs</code></pre>
+<p>The bridge form is useful when calling code that already produces an <code>AetherStringArray*</code> (<code>string.split</code>, foreign FFI helpers).</p>
+<p>The reverse, get a flat <code>AetherStringArray*</code> view of an existing seq for legacy callers, is <code>string.seq_to_array(s)</code>. The returned pointer is freed with <code>string.array_free</code>.</p>
+<h2>Sending across actor boundaries</h2>
+<p>A <code>*StringSeq</code> field on a message is sent as-is:</p>
+<pre><code>message AnalyzeBatch {
+    sites: *StringSeq
+    poller_id: int
+}
+
+actor PollWorker {
+    receive {
+        AnalyzeBatch(sites, poller_id) -&gt; {
+            walk(sites)
+            // sites is borrowed from the message, actor framework
+            // releases the wire when the handler returns. Don&#x27;t
+            // free here unless you&#x27;ve explicitly retained.
+        }
+    }
+}
+
+main() {
+    w = spawn(PollWorker())
+    w ! AnalyzeBatch {
+        sites: [&quot;alpha.example.com&quot;, &quot;beta.example.com&quot;, &quot;gamma.example.com&quot;],
+        poller_id: 1
+    }
+}</code></pre>
+<p>The literal <code>[a, b, c]</code> in the message-field initializer is disambiguated by the field type:</p>
+<ul><li>field typed <code>string[]</code> → static C array (existing behaviour).</li><li>field typed <code>*StringSeq</code> → cons chain (this addition).</li></ul>
+<p>Both shapes are first-class; pick by what the receiver wants.</p>
+<h2>Refcount + structural sharing</h2>
+<p><code>cons(h, t)</code> retains both <code>h</code> (via the AetherString refcount path, <code>string_retain</code> is a no-op on plain <code>char*</code> literals) and <code>t</code> (via <code>string.seq_retain</code>). So:</p>
+<pre><code>shared = string.seq_cons(&quot;y&quot;, string.seq_cons(&quot;z&quot;, string.seq_empty()))
+
+a = string.seq_cons(&quot;a&quot;, string.seq_retain(shared))   // a = a -&gt; y -&gt; z
+b = string.seq_cons(&quot;b&quot;, string.seq_retain(shared))   // b = b -&gt; y -&gt; z
+                                                       // a and b share the [y, z] tail
+
+string.seq_free(shared)   // drop our local; a and b each still own one ref
+
+string.seq_free(a)        // a&#x27;s head frees; the [y, z] tail stays
+                          //   alive because b still owns it.
+string.seq_free(b)        // b&#x27;s head frees, then [y, z] drops to 0
+                          //   and the spine collapses.</code></pre>
+<p><code>string.seq_free</code> walks the spine iteratively (no stack growth on deep lists), decrementing each cell&#x27;s refcount. The walk stops at the first cell whose refcount stays &gt; 0 after decrement, the other owner finishes the walk later when its own free runs.</p>
+<p>Because cells are immutable (no <code>set_head</code> / <code>set_tail</code> mutator), <strong>cycles can&#x27;t form</strong>, and the iterative free can&#x27;t loop.</p>
+<h2>Edge cases</h2>
+<table><thead><tr><th>Situation</th><th>Behaviour</th></tr></thead><tbody><tr><td><code>string.seq_free(string.seq_empty())</code></td><td>No-op (NULL-safe)</td></tr><tr><td><code>string.seq_head(empty)</code></td><td>Returns <code>&quot;&quot;</code></td></tr><tr><td><code>string.seq_tail(empty)</code></td><td>Returns <code>NULL</code> (still an empty seq)</td></tr><tr><td><code>string.seq_length(empty)</code></td><td>Returns <code>0</code></td></tr><tr><td><code>string.split_to_seq(&quot;&quot;, delim)</code></td><td>Single-cell list with <code>&quot;&quot;</code> (matches <code>string.split</code>)</td></tr><tr><td><code>string.split_to_seq(&quot;ab&quot;, &quot;abcdef&quot;)</code></td><td>Single-cell list with <code>&quot;ab&quot;</code> (matches <code>string.split</code>)</td></tr><tr><td>Trailing delimiter <code>&quot;a,b,&quot;</code></td><td>Three cells: <code>&quot;a&quot;</code>, <code>&quot;b&quot;</code>, <code>&quot;&quot;</code></td></tr><tr><td>Leading delimiter <code>&quot;,a,b&quot;</code></td><td>Three cells: <code>&quot;&quot;</code>, <code>&quot;a&quot;</code>, <code>&quot;b&quot;</code></td></tr><tr><td>Deep list (10k+ cells)</td><td><code>free</code> runs in O(n) time, O(1) stack</td></tr><tr><td>Mixed-type literal <code>[1, &quot;a&quot;]</code> against <code>*StringSeq</code></td><td>Typechecker rejects (same rule as today&#x27;s array literal)</td></tr></tbody></table>
+<h2>C runtime layout</h2>
+<p>Authoritative definition lives in <code>std/collections/aether_stringseq.h</code>:</p>
+<pre><code>typedef struct StringSeq {
+    int   ref_count;
+    int   length;            /* length of THIS list (head + length(tail)) */
+    void* head;              /* AetherString* or const char* */
+    struct StringSeq* tail;
+} StringSeq;</code></pre>
+<p>24 bytes per cell on 64-bit. Empty list is <code>NULL</code>. The Aether codegen emits <code>#include &quot;aether_stringseq.h&quot;</code> near the prologue of every generated TU so <code>*StringSeq</code> resolves uniformly across the language surface.</p>
+      </article>
+    </main>
+  </div>
+</div>
+<footer class="site-foot">
+  <div class="wrap foot">
+    <span class="ae">ae</span>
+    <span class="m">MIT licensed · compiles to C · v0.454</span>
+    <nav><a href="/Docs/getting-started.html">Docs</a><a href="/repl.html">Playground</a><a href="https://github.com/aether-lang-org/aether">GitHub</a></nav>
+  </div>
+</footer>
+</body>
+</html>

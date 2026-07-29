@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Structured Concurrency for Aether, Design Direction · Aether</title>
+<meta name="description" content="Structured Concurrency for Aether, Design Direction — Aether language documentation.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/aether.css">
+</head>
+<body>
+<header class="site-head">
+  <div class="wrap bar">
+    <a class="brand" href="/" aria-label="Aether"><span class="ae">ae</span><span class="nm">aether</span></a>
+    <nav>
+      <a href="/repl.html">Playground</a>
+      <a href="/Docs/getting-started.html" class="on">Docs</a>
+      <a href="https://github.com/aether-lang-org/aether">Source</a>
+      <span class="vtag">v0.454</span>
+    </nav>
+  </div>
+</header>
+<div class="wrap">
+  <div class="doc-shell">
+    <nav class="doc-nav"><div class="grp">Start</div>
+<a href="/Docs/getting-started.html">Getting Started with Aether</a>
+<a href="/Docs/tutorial.html">Aether Language Tutorial</a>
+<a href="/Docs/next-steps.html">Next Steps</a>
+<div class="grp">Language</div>
+<a href="/Docs/language-reference.html">Aether Language Reference</a>
+<a href="/Docs/type-inference-guide.html">Aether Type Inference Guide</a>
+<a href="/Docs/type-annotation-style-guide.html">Aether Type Annotation Style Guide</a>
+<a href="/Docs/type-inference-multi-value-returns.html">Multi-Value Return Type Inference</a>
+<a href="/Docs/distinct-types.html">Distinct Types</a>
+<a href="/Docs/sequences.html">Sequences (`*StringSeq`)</a>
+<a href="/Docs/named-args-and-select.html">Named Arguments and select()</a>
+<a href="/Docs/closures-and-builder-dsl.html">Closures and Builder-Style DSL in Aether</a>
+<a href="/Docs/closures-and-lifetimes.html">Closures and Environment Lifetimes</a>
+<a href="/Docs/module-system-design.html">Aether Module System</a>
+<div class="grp">Runtime</div>
+<a href="/Docs/architecture.html">Aether Architecture</a>
+<a href="/Docs/actor-concurrency.html">Aether Runtime Guide</a>
+<a href="/Docs/structured-concurrency.html" class="on">Structured Concurrency for Aether, Design Direction</a>
+<a href="/Docs/scheduler-quick-reference.html">Aether Scheduler - Quick Reference</a>
+<a href="/Docs/memory-management.html">Aether Memory Management</a>
+<a href="/Docs/runtime-optimizations.html">Runtime Optimizations</a>
+<a href="/Docs/numa-support.html">NUMA Support in Aether</a>
+<div class="grp">Interop</div>
+<a href="/Docs/c-interop.html">C Interoperability</a>
+<a href="/Docs/c-embedding.html">Embedding Aether Actors in C Applications</a>
+<a href="/Docs/emit-lib.html">Embedding Aether as a Shared Library (`--emit=lib`)</a>
+<a href="/Docs/embedded-namespaces-and-host-bindings.html">Aether as a Configuration Language, v2: Namespaces and Generated Bindings</a>
+<a href="/Docs/aether-embedded-in-host-applications.html">Aether as a Configuration Language for Other Languages</a>
+<a href="/Docs/lib-caller-info.html">`--emit=lib` caller-info channel</a>
+<div class="grp">Stdlib</div>
+<a href="/Docs/stdlib-reference.html">Aether Standard Library Reference</a>
+<a href="/Docs/stdlib-api.html">Aether Standard Library Guide</a>
+<a href="/Docs/stdlib-module-pattern.html">Aether Stdlib Module Pattern</a>
+<a href="/Docs/stdlib-vs-contrib.html">`std/` vs `contrib/` placement decisions</a>
+<a href="/Docs/http-server.html">`std.http` HTTP Server</a>
+<a href="/Docs/http-reverse-proxy.html">`std.http.proxy` reverse proxy</a>
+<a href="/Docs/http-handler-context.html">HTTP handlers with per-server / per-route state</a>
+<a href="/Docs/http-vcr.html">HTTP Record/Replay (VCR), moved out of Aether</a>
+<a href="/Docs/json-parser-design.html">`std.json` Design Notes</a>
+<div class="grp">Safety</div>
+<a href="/Docs/containment-sandbox.html">Containment and Sandboxing in Aether</a>
+<a href="/Docs/hide-and-seal.html">`hide` and `seal except` scope-level capability denial</a>
+<a href="/Docs/compiler-trust-boundary.html">The Compiler Trust Boundary</a>
+<a href="/Docs/config-is-code.html">Config IS Code</a>
+<a href="/Docs/aether_compared_to_capsicum.html">Aether Sandbox Model vs. BSD Capsicum: Architecture, Parallels, and FreeBSD Integration</a>
+<div class="grp">Build</div>
+<a href="/Docs/build-system.html">Build System</a>
+<a href="/Docs/bootstrap-from-source.html">Bootstrapping Aether from source (HEAD)</a>
+<a href="/Docs/install-layout.html">Aether install layout</a>
+<a href="/Docs/runtime-config.html">Runtime Configuration - Quick Reference</a>
+<a href="/Docs/per-process-config.html">Per-process configuration in Aether</a>
+<a href="/Docs/cic-help.html">`ae help &lt;script&gt;` Offline diagnostics for config-IS-code</a>
+<div class="grp">More</div>
+<a href="/Docs/bindgen-consts.html">`ae bindgen consts`, importing C macro constants</a>
+<a href="/Docs/formatter.html">`ae fmt`, the source formatter</a>
+<a href="/Docs/isolated.html">`Isolated[T]`: move-only actor message payloads (#479)</a>
+<a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
+<a href="/Docs/profiling-guide.html">Aether Runtime Profiling Guide</a>
+<a href="/Docs/allocators.html">Allocators</a>
+<a href="/Docs/when-static-if.html">Compile-time `when` / static-if</a>
+<a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
+<a href="/Docs/contract-folding.html">Compile-time contract folding — costed design</a>
+<a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn&#x27;t need `macro_rules!`</a>
+<a href="/Docs/release-glibc-portability.html">Release binary portability across glibc versions</a>
+<a href="/Docs/error-unification.html">Unifying `T?` and `(value, err)` — costed design</a></nav>
+    <main class="doc-main">
+      <article class="doc-body">
+        <div class="bc">docs / runtime</div>
+<h1>Structured Concurrency for Aether, Design Direction</h1>
+<p>Status: <strong>proposal</strong>. Nothing shipped yet. This doc captures the design choices we&#x27;ve committed to before writing code, so the implementation PRs have a target to aim at.</p>
+<h2>What we&#x27;re trying to fix</h2>
+<p>Aether has actors. It does not have:</p>
+<ul><li><strong>A way for a parent to know when its children die.</strong> If an actor</li></ul>
+<p>handler panics or exits, no notification reaches the actor that spawned it. Long-running supervisor patterns (Erlang-style restart-on-crash, graceful shutdown of a subtree) can&#x27;t be written.</p>
+<ul><li><strong>Any containment on which actors a block can reach.</strong> A function body</li></ul>
+<p>can send a message to any actor reference it can name, and <code>hide</code> / <code>seal except</code> don&#x27;t extend that restriction to concurrency sites (spawn, <code>!</code>, <code>ask</code>). A sealed block can still talk to any actor whose handle happens to be in scope.</p>
+<p>Both are fixable without fundamentally changing the actor model.</p>
+<h2>The design space, and why we picked what we picked</h2>
+<p>Six families of structured concurrency exist. The summary table:</p>
+<table><thead><tr><th>Model</th><th>Fit for Aether</th><th>Verdict</th></tr></thead><tbody><tr><td>Nurseries / TaskGroups (Trio, Swift, Kotlin <code>coroutineScope</code>)</td><td>Needs a new &quot;task&quot; primitive distinct from actors</td><td>Possible, high cost</td></tr><tr><td>Supervision trees (Erlang/OTP, Akka)</td><td>Natural extension of existing actors</td><td><strong>Strong candidate</strong></td></tr><tr><td>Async/await (Rust, Kotlin, Swift)</td><td>Breaks run-to-completion, requires coloured functions</td><td>Ruled out</td></tr><tr><td>CSP / channels (Go, Clojure core.async)</td><td>Duplicates actor mailboxes</td><td>Ruled out</td></tr><tr><td>Fork-join (Cilk, Rayon, Java ForkJoinPool)</td><td>Complements actors for data parallelism</td><td>Nice-to-have, not core</td></tr><tr><td>Capability-scoped (E, Monte, Pony refcaps)</td><td>Builds on hide/seal, unique to Aether</td><td><strong>Strong candidate</strong></td></tr></tbody></table>
+<h3>The two rulings worth unpacking</h3>
+<p><strong>Async/await is ruled out</strong> because Aether&#x27;s handlers are run-to-completion. Introducing suspension points inside a handler would break the invariant that makes the shared-nothing actor model safe: a handler either finishes or panics, it doesn&#x27;t yield. Async/await would also force <strong>coloured functions</strong> (async vs sync), which splits the ecosystem, every stdlib function becomes two functions, every actor becomes two kinds. Aether&#x27;s cooperative scheduler gets its simplicity from the run-to-completion rule, and async/await would throw that away.</p>
+<p><strong>CSP channels are ruled out</strong> because Aether already has actor mailboxes. A channel is a point-to-point typed queue with a send and a receive end; an actor&#x27;s mailbox is exactly that with an identity attached. Adding channels on top would give users two ways to do the same thing and force stdlib authors to pick one, usually the wrong one for half their callers.</p>
+<h3>The two we&#x27;re building</h3>
+<p><strong>Supervision trees (#2)</strong> solve the &quot;who&#x27;s responsible when a child dies&quot; problem. They&#x27;re a library-level pattern on top of primitives the runtime <em>doesn&#x27;t yet expose but easily could</em>: actor failure notification. Parents register interest in a child; if the child dies, the parent gets a <code>Down { ref, reason }</code> message. Everything else, restart strategies, escalation, graceful shutdown, is ordinary actor code on top of that one primitive.</p>
+<p><strong>Capability-scoped concurrency (#6)</strong> solves the &quot;who can reach whom&quot; problem. Aether already has <code>hide</code> and <code>seal except</code> for compile-time capability denial on <em>variable</em> references. Extending that enforcement to <em>actor</em> references means a sealed block cannot <code>spawn</code> a type it can&#x27;t name, cannot <code>!</code> a reference it can&#x27;t see, and cannot <code>ask</code> an actor outside its whitelist. <strong>No new mechanism is needed</strong>, just the existing scope-denial check applied at two more compile-time sites (spawn, send).</p>
+<p>The two compose: a supervised subtree that is also sealed gives you both bounded lifetime and bounded blast radius.</p>
+<h2>Phase 1, supervision primitives</h2>
+<p>The runtime change needed is small: actor failure notification.</p>
+<h3>What the runtime must expose</h3>
+<ol><li>When an actor&#x27;s handler returns abnormally (an explicit <code>exit(reason)</code>,</li></ol>
+<p>or a panic caught by the scheduler), the scheduler delivers a <code>Down { ref, reason }</code> message to every actor that registered interest in the failed actor.</p>
+<ol><li>Registration is one of two kinds:</li><li><strong>Monitor</strong>, one-way. I get a <code>Down</code> if it dies; it doesn&#x27;t hear</li></ol>
+<p>about me dying.</p>
+<ul><li><strong>Link</strong>, two-way (Erlang semantics). If either of us dies, the</li></ul>
+<p>other gets a <code>Down</code>.</p>
+<ol><li>Delivery is best-effort at-most-once, routed through the normal</li></ol>
+<p>mailbox. No new transport.</p>
+<h3>Language / stdlib surface</h3>
+<pre><code>// Builtins
+monitor(actor_ref) -&gt; monitor_id   // one-way
+link(actor_ref)                     // two-way
+demonitor(monitor_id)               // cancel monitor
+unlink(actor_ref)                   // cancel link
+
+// System message
+message Down {
+    ref: actor_ref
+    reason: string    // &quot;normal&quot;, &quot;killed&quot;, or a user-supplied atom
+}</code></pre>
+<h3>Supervisor as a library actor</h3>
+<p>No language-level supervisor primitive. A <code>std.supervise</code> module provides an ordinary actor type:</p>
+<pre><code>import std.supervise
+
+main() {
+    sup = spawn(supervisor(strategy: &quot;one_for_one&quot;)) {
+        child(&quot;worker_a&quot;, || spawn(WorkerA()))
+        child(&quot;worker_b&quot;, || spawn(WorkerB()))
+        child(&quot;db_writer&quot;, || spawn(DbWriter()))
+    }
+}</code></pre>
+<p>The supervisor actor internally links each child, handles <code>Down</code> messages according to its strategy, and decides whether to restart, escalate, or shut the subtree down. Strategies mirror Erlang: <code>one_for_one</code> (restart just the dead one), <code>one_for_all</code> (restart all siblings on any death), <code>rest_for_one</code> (restart the dead one and everything started after it).</p>
+<p>Note the builder-DSL shape (<code>spawn(...) { child(...) child(...) }</code>) uses the trailing-block + closure pattern that shipped with the closures and embedded-namespaces features. The supervisor actor is the <code>_ctx</code> holder; <code>child()</code> registers into it.</p>
+<h2>Phase 2, capability-scoped concurrency</h2>
+<p>Once Phase 1 is in, this is a compile-time-only change. No new runtime mechanism.</p>
+<h3>What the compiler must enforce</h3>
+<p>In a block that contains <code>hide X</code> or <code>seal except Y, Z</code>, every concurrency site is checked against the same visibility rules already applied to ordinary reads:</p>
+<ul><li><code>spawn(X())</code> rejected if <code>X</code> is hidden or not on the seal whitelist.</li><li><code>ref ! Msg {}</code> rejected if <code>ref</code> is hidden or not whitelisted.</li><li><code>ref ? Request {}</code> (the <code>?</code> ask operator), same check on <code>ref</code>.</li></ul>
+<p>The error message reuses the existing <code>E0304</code> (hidden in this scope) diagnostic.</p>
+<h3>Worked example</h3>
+<pre><code>sandbox(&quot;payment-handler&quot;) {
+    grant_tcp(&quot;payments.example.com&quot;)
+    seal except req, res, payment_client, logger
+
+    // This block can only see the five whitelisted names.
+    // It cannot spawn any actor type not named here.
+    // It cannot send to any actor reference not named here.
+    // It cannot ask any outside service.
+
+    result = payment_client ? Charge { amount: req.amount }
+    if result != null {
+        logger ! Audit { who: req.user, what: &quot;charged&quot;, amount: req.amount }
+        res.status = 200
+    } else {
+        res.status = 502
+    }
+}</code></pre>
+<p>The subtree rooted at this block has both lifetime containment (the <code>sandbox</code> scope&#x27;s containment runtime) and capability containment (the <code>seal except</code> list). A malicious or buggy handler cannot spawn a crypto-miner actor because it cannot name one.</p>
+<h2>What&#x27;s not in scope</h2>
+<ul><li><strong>Fork-join / <code>parallel_for</code> (#5)</strong>, useful for data parallelism,</li></ul>
+<p>does not solve the lifecycle or reachability problem. Can be added later as a narrow stdlib feature layered on the existing work-stealing scheduler. Not part of this design.</p>
+<ul><li><strong>Nurseries (#1)</strong>, would require a second concurrency primitive</li></ul>
+<p>(lightweight tasks distinct from actors). High cost for small marginal benefit given the actor model already exists. Revisit only if users ask for it after Phases 1 and 2 ship.</p>
+<ul><li><strong>Channels (#4)</strong>, actors already cover this. No plan.</li></ul>
+<h2>Order of work</h2>
+<ol><li><strong>Runtime, <code>Down</code> message delivery.</strong> Scheduler catches handler</li></ol>
+<p>exits, iterates the monitor/link table, enqueues <code>Down</code> messages.</p>
+<ol><li><strong>Builtins, <code>monitor</code>, <code>link</code>, <code>demonitor</code>, <code>unlink</code>.</strong> Thin</li></ol>
+<p>wrappers over the runtime table.</p>
+<ol><li><strong><code>std.supervise</code> module.</strong> Supervisor actor type with the three</li></ol>
+<p>strategies. Builder DSL for child registration.</p>
+<ol><li><strong>Tests.</strong> Restart-on-crash, escalation, graceful shutdown, monitor</li></ol>
+<p>vs link asymmetry, double-death ordering.</p>
+<ol><li><strong>Compiler, capability-scoped spawn/send/ask.</strong> Extend existing</li></ol>
+<p><code>hide</code>/<code>seal except</code> denial to concurrency sites.</p>
+<ol><li><strong>Docs and worked example.</strong> Update <code>docs/actor-concurrency.md</code> with</li></ol>
+<p>the supervision section. One worked example in <code>examples/actors/</code> showing a supervised, sealed subtree.</p>
+<p>Phase 1 can ship without Phase 2. Phase 2 can ship independently once Phase 1 is in, they touch different compiler subsystems.</p>
+<h2>References</h2>
+<ul><li><a href="/Docs/actor-concurrency.html"><code>docs/actor-concurrency.md</code></a>, current actor</li></ul>
+<p>runtime.</p>
+<ul><li><a href="/Docs/hide-and-seal.html"><code>docs/hide-and-seal.md</code></a>, existing</li></ul>
+<p>capability-denial primitive that Phase 2 extends.</p>
+<ul><li><a href="/Docs/containment-sandbox.html"><code>docs/containment-sandbox.md</code></a>, filesystem /</li></ul>
+<p>network capability grants, natural pairing with Phase 2.</p>
+<ul><li><a href="https://www.erlang.org/doc/design_principles/des_princ.html">Erlang OTP design principles</a></li></ul>
+<p>the supervision-tree pattern we&#x27;re borrowing.</p>
+<ul><li><a href="https://vorpus.org/blog/notes-on-structured-concurrency-or-go-statement-considered-harmful/">Nathaniel Smith, <em>Notes on structured concurrency</em></a></li></ul>
+<p>the Trio post that named the pattern. Aether takes the &quot;structure&quot; part but not the nursery/task primitive.</p>
+      </article>
+    </main>
+  </div>
+</div>
+<footer class="site-foot">
+  <div class="wrap foot">
+    <span class="ae">ae</span>
+    <span class="m">MIT licensed · compiles to C · v0.454</span>
+    <nav><a href="/Docs/getting-started.html">Docs</a><a href="/repl.html">Playground</a><a href="https://github.com/aether-lang-org/aether">GitHub</a></nav>
+  </div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HTTP handlers with per-server / per-route state · Aether</title>
+<meta name="description" content="HTTP handlers with per-server / per-route state — Aether language documentation.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/aether.css">
+</head>
+<body>
+<header class="site-head">
+  <div class="wrap bar">
+    <a class="brand" href="/" aria-label="Aether"><span class="ae">ae</span><span class="nm">aether</span></a>
+    <nav>
+      <a href="/repl.html">Playground</a>
+      <a href="/Docs/getting-started.html" class="on">Docs</a>
+      <a href="https://github.com/aether-lang-org/aether">Source</a>
+      <span class="vtag">v0.454</span>
+    </nav>
+  </div>
+</header>
+<div class="wrap">
+  <div class="doc-shell">
+    <nav class="doc-nav"><div class="grp">Start</div>
+<a href="/Docs/getting-started.html">Getting Started with Aether</a>
+<a href="/Docs/tutorial.html">Aether Language Tutorial</a>
+<a href="/Docs/next-steps.html">Next Steps</a>
+<div class="grp">Language</div>
+<a href="/Docs/language-reference.html">Aether Language Reference</a>
+<a href="/Docs/type-inference-guide.html">Aether Type Inference Guide</a>
+<a href="/Docs/type-annotation-style-guide.html">Aether Type Annotation Style Guide</a>
+<a href="/Docs/type-inference-multi-value-returns.html">Multi-Value Return Type Inference</a>
+<a href="/Docs/distinct-types.html">Distinct Types</a>
+<a href="/Docs/sequences.html">Sequences (`*StringSeq`)</a>
+<a href="/Docs/named-args-and-select.html">Named Arguments and select()</a>
+<a href="/Docs/closures-and-builder-dsl.html">Closures and Builder-Style DSL in Aether</a>
+<a href="/Docs/closures-and-lifetimes.html">Closures and Environment Lifetimes</a>
+<a href="/Docs/module-system-design.html">Aether Module System</a>
+<div class="grp">Runtime</div>
+<a href="/Docs/architecture.html">Aether Architecture</a>
+<a href="/Docs/actor-concurrency.html">Aether Runtime Guide</a>
+<a href="/Docs/structured-concurrency.html">Structured Concurrency for Aether, Design Direction</a>
+<a href="/Docs/scheduler-quick-reference.html">Aether Scheduler - Quick Reference</a>
+<a href="/Docs/memory-management.html">Aether Memory Management</a>
+<a href="/Docs/runtime-optimizations.html">Runtime Optimizations</a>
+<a href="/Docs/numa-support.html">NUMA Support in Aether</a>
+<div class="grp">Interop</div>
+<a href="/Docs/c-interop.html">C Interoperability</a>
+<a href="/Docs/c-embedding.html">Embedding Aether Actors in C Applications</a>
+<a href="/Docs/emit-lib.html">Embedding Aether as a Shared Library (`--emit=lib`)</a>
+<a href="/Docs/embedded-namespaces-and-host-bindings.html">Aether as a Configuration Language, v2: Namespaces and Generated Bindings</a>
+<a href="/Docs/aether-embedded-in-host-applications.html">Aether as a Configuration Language for Other Languages</a>
+<a href="/Docs/lib-caller-info.html">`--emit=lib` caller-info channel</a>
+<div class="grp">Stdlib</div>
+<a href="/Docs/stdlib-reference.html">Aether Standard Library Reference</a>
+<a href="/Docs/stdlib-api.html">Aether Standard Library Guide</a>
+<a href="/Docs/stdlib-module-pattern.html">Aether Stdlib Module Pattern</a>
+<a href="/Docs/stdlib-vs-contrib.html">`std/` vs `contrib/` placement decisions</a>
+<a href="/Docs/http-server.html">`std.http` HTTP Server</a>
+<a href="/Docs/http-reverse-proxy.html">`std.http.proxy` reverse proxy</a>
+<a href="/Docs/http-handler-context.html" class="on">HTTP handlers with per-server / per-route state</a>
+<a href="/Docs/http-vcr.html">HTTP Record/Replay (VCR), moved out of Aether</a>
+<a href="/Docs/json-parser-design.html">`std.json` Design Notes</a>
+<div class="grp">Safety</div>
+<a href="/Docs/containment-sandbox.html">Containment and Sandboxing in Aether</a>
+<a href="/Docs/hide-and-seal.html">`hide` and `seal except` scope-level capability denial</a>
+<a href="/Docs/compiler-trust-boundary.html">The Compiler Trust Boundary</a>
+<a href="/Docs/config-is-code.html">Config IS Code</a>
+<a href="/Docs/aether_compared_to_capsicum.html">Aether Sandbox Model vs. BSD Capsicum: Architecture, Parallels, and FreeBSD Integration</a>
+<div class="grp">Build</div>
+<a href="/Docs/build-system.html">Build System</a>
+<a href="/Docs/bootstrap-from-source.html">Bootstrapping Aether from source (HEAD)</a>
+<a href="/Docs/install-layout.html">Aether install layout</a>
+<a href="/Docs/runtime-config.html">Runtime Configuration - Quick Reference</a>
+<a href="/Docs/per-process-config.html">Per-process configuration in Aether</a>
+<a href="/Docs/cic-help.html">`ae help &lt;script&gt;` Offline diagnostics for config-IS-code</a>
+<div class="grp">More</div>
+<a href="/Docs/bindgen-consts.html">`ae bindgen consts`, importing C macro constants</a>
+<a href="/Docs/formatter.html">`ae fmt`, the source formatter</a>
+<a href="/Docs/isolated.html">`Isolated[T]`: move-only actor message payloads (#479)</a>
+<a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
+<a href="/Docs/profiling-guide.html">Aether Runtime Profiling Guide</a>
+<a href="/Docs/allocators.html">Allocators</a>
+<a href="/Docs/when-static-if.html">Compile-time `when` / static-if</a>
+<a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
+<a href="/Docs/contract-folding.html">Compile-time contract folding — costed design</a>
+<a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn&#x27;t need `macro_rules!`</a>
+<a href="/Docs/release-glibc-portability.html">Release binary portability across glibc versions</a>
+<a href="/Docs/error-unification.html">Unifying `T?` and `(value, err)` — costed design</a></nav>
+    <main class="doc-main">
+      <article class="doc-body">
+        <div class="bc">docs / stdlib</div>
+<h1>HTTP handlers with per-server / per-route state</h1>
+<p>Server handlers registered via <code>http.server_get</code> (and friends: <code>server_post</code>, <code>server_put</code>, <code>server_delete</code>, <code>server_add_route</code>) receive three arguments:</p>
+<pre><code>handler(req: ptr, res: ptr, ud: ptr)</code></pre>
+<p><code>ud</code> is the <strong>user_data</strong> slot, a <code>ptr</code> that the route remembers and passes back to the handler on every invocation. The same slot exists on the C side (<code>HttpHandler</code>&#x27;s third arg) and is plumbed end-to-end: whatever you pass as <code>user_data</code> to <code>server_get</code> is what the handler receives as <code>ud</code>.</p>
+<p>This is the in-language way to give handlers access to per-server or per-route state, a database handle, a config struct, an auth scheme, a connection pool. No process-globals, no C shim.</p>
+<h2>The pattern</h2>
+<p>Declare a struct, <code>malloc</code>+init it, and pass the resulting <code>ptr</code> as the <code>user_data</code> argument. The handler casts back via <code>ud as *YourStruct</code>.</p>
+<pre><code>import std.http
+extern malloc(n: int) -&gt; ptr
+
+struct AppCtx {
+    db: ptr            // sqlite handle, redis client, etc.
+    data_dir: string
+    request_count: int
+}
+
+handle_get(req: ptr, res: ptr, ud: ptr) {
+    ctx = ud as *AppCtx
+    http.response_set_status(res, 200)
+    dir = ctx.data_dir
+    http.response_set_body(res, &quot;data_dir=${dir}&quot;)
+}
+
+main() {
+    ctx = malloc(64) as *AppCtx
+    ctx.db = open_database()
+    ctx.data_dir = &quot;/var/lib/myapp&quot;
+    ctx.request_count = 0
+
+    server = http.server_create(8080)
+    http.server_get(server, &quot;/info&quot;, handle_get, ctx)
+    // ...start server...
+}</code></pre>
+<h2>Per-route isolation</h2>
+<p>Each route has its own <code>user_data</code> slot. A server can host routes with distinct contexts without any coordination:</p>
+<pre><code>ctx_v1 = malloc(64) as *ApiCtx
+ctx_v1.version = 1
+
+ctx_v2 = malloc(64) as *ApiCtx
+ctx_v2.version = 2
+
+http.server_get(server, &quot;/v1/*&quot;, handle_v1, ctx_v1)
+http.server_get(server, &quot;/v2/*&quot;, handle_v2, ctx_v2)</code></pre>
+<p>The handler invoked for <code>/v1/...</code> sees <code>ctx_v1</code>; the handler invoked for <code>/v2/...</code> sees <code>ctx_v2</code>. Same handler function with different <code>ud</code> is allowed too, the slot is set per route, not per function.</p>
+<h2>Lifetime</h2>
+<p>The struct <code>ctx</code> must outlive every request the route serves. In practice that&#x27;s the lifetime of the server (the whole process), which is what the <code>malloc</code> above gives you, no GC, the bytes stay live until you <code>free</code> them. If you stop the server and start a new one mid-process, free the old context after <code>server_stop</code> returns.</p>
+<p>A common shortcut for app-wide state: allocate it once in <code>main()</code> and never free it. The OS reclaims the pages on process exit.</p>
+<h2>Mutating fields from the handler</h2>
+<p>Fields can be written too, <code>ctx.request_count = ctx.request_count + 1</code> inside a handler bumps a process-wide counter. The pointer is shared, so any handler with the same <code>ud</code> sees the same struct.</p>
+<p>This is <strong>not</strong> atomic, if multiple handlers on different actors (or multiple actors registered to the same <code>ud</code>) might race, funnel the writes through a single owning actor, or use a per-actor accumulator that you merge at shutdown.</p>
+<h2>Passing <code>0</code></h2>
+<p><code>http.server_get(server, &quot;/health&quot;, handle_health, 0)</code> continues to work, the handler receives <code>ud == null</code>. Opting into <code>user_data</code> is purely additive; existing code that threads <code>0</code> keeps working with no changes.</p>
+<h2>Why this matters</h2>
+<p>Before #633 was explicitly documented, port authors concluded the <code>user_data</code> slot was unusable from Aether and reached for a C shim of process statics to hold things like a DB handle. The slot was always wired, what was missing was the worked example. That&#x27;s what this doc and the test at <code>tests/integration/http_handler_user_data/</code> provide. (Module-level mutable <code>var</code> is now also available for app-wide state, per #701/#937, but the per-route <code>user_data</code> slot remains the right tool when state is scoped to a route rather than the whole process.)</p>
+<h2>See also</h2>
+<ul><li><code>tests/integration/http_handler_user_data/server.ae</code> the working</li></ul>
+<p>regression test for the per-route + null-ud cases.</p>
+<ul><li><code>std/mem/module.ae</code> <code>mem.ptr_to_long</code> / <code>mem.long_to_ptr</code> if you</li></ul>
+<p>need to round-trip a pointer through an Aether <code>long</code> (rare; the direct <code>ptr</code> shape used above is preferable when you can use it).</p>
+      </article>
+    </main>
+  </div>
+</div>
+<footer class="site-foot">
+  <div class="wrap foot">
+    <span class="ae">ae</span>
+    <span class="m">MIT licensed · compiles to C · v0.454</span>
+    <nav><a href="/Docs/getting-started.html">Docs</a><a href="/repl.html">Playground</a><a href="https://github.com/aether-lang-org/aether">GitHub</a></nav>
+  </div>
+</footer>
+</body>
+</html>

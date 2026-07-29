@@ -1,53 +1,42 @@
-// aesite, in Aether.
+// aesite server, in Aether.
 //
-// The Aether language website and its REPL API, served by Aether's own
-// std.http server. This replaces the original Go/Echo backend entirely.
+// Serves the Aether website, the docs, and the REPL API using the
+// standard library: std.http (server, routing, static files), std.io
+// (lesson files), std.json (responses), std.os (running submitted code).
 //
-//   std.http             server, routing, zero-copy static files
-//   std.http.middleware  gzip
-//   std.io               lesson content off disk
-//   std.json             escaped JSON responses
-//
-// Run:   ae run serve.ae
-// Build: ae build serve.ae -o aesite-serve   (run it from the repo root)
+// Run:   ae run serve.ae            (http://localhost:1323)
 // Test:  ./test.sh
 
 import std.http
 import std.http.middleware
 import std.io
 import std.json
+import std.os
 
 const PORT = 1323
 const STATIC_DIR = "static"
 const LESSON_DIR = "resources/lessons"
 
-// GET / -> the homepage.
 handle_index(req: ptr, res: ptr, ud: ptr) {
     http.serve_file(res, "${STATIC_DIR}/index.html")
 }
 
-// GET /* -> any other file under ./static (css, html, Docs, ...).
-// serve_static resolves the request path against the base directory with
-// path-traversal protection and serves via zero-copy sendfile.
 handle_static(req: ptr, res: ptr, ud: ptr) {
     http.serve_static(req, res, STATIC_DIR)
 }
 
-// GET /healthz -> 200 ok.
 handle_health(req: ptr, res: ptr, ud: ptr) {
     http.response_set_status(res, 200)
     http.response_set_header(res, "Content-Type", "text/plain")
     http.response_set_body(res, "ok\n")
 }
 
-// GET /api/lesson/:nbr -> { title, theory, starter_code }.
-// A lesson exists when it has both content.html and code.ea. title.txt
-// is an optional label defaulting to "Lesson N".
+// GET /api/lesson/:nbr -> { title, theory, starter_code }
 handle_lesson(req: ptr, res: ptr, ud: ptr) {
     nbr = http.http_get_path_param(req, "nbr")
 
     theory, terr = io.read_file("${LESSON_DIR}/${nbr}/content.html")
-    code, cerr = io.read_file("${LESSON_DIR}/${nbr}/code.ea")
+    code, cerr = io.read_file("${LESSON_DIR}/${nbr}/code.ae")
     if terr != "" || cerr != "" {
         http.response_set_status(res, 404)
         http.response_set_header(res, "Content-Type", "application/json")
@@ -66,25 +55,42 @@ handle_lesson(req: ptr, res: ptr, ud: ptr) {
     json.set(root, "starter_code", json.str(code))
     body, eerr = json.encode(root)
     json.free(root)
-    if eerr != "" {
-        http.response_set_status(res, 500)
-        http.response_set_header(res, "Content-Type", "application/json")
-        http.response_set_body(res, "{\"error\":\"encode failed\"}")
-        return
-    }
 
     http.response_set_status(res, 200)
     http.response_set_header(res, "Content-Type", "application/json")
     http.response_set_body(res, body)
 }
 
-// PUT /api/exec -> { stdout, stderr }.
-// Mocked until the Aether-executes-Aether backend lands. The frontend
-// contract is fixed so that work drops straight in.
+// PUT /api/exec -> { stdout, stderr }
+// The request body is raw Aether source. It is staged to a temp file and
+// executed with `ae run`, stderr merged so compile errors are visible.
+//
+// SECURITY: this runs arbitrary submitted code. It is safe only for a
+// local/trusted playground. A public deployment MUST run this inside an
+// aeo-contained sandbox (deny-default, resource-capped) before exposing it.
 handle_exec(req: ptr, res: ptr, ud: ptr) {
+    code = http.request_body(req)
+    if code == null {
+        code = ""
+    }
+
+    werr = io.write_file("/tmp/aesite_repl.ae", code)
+    if werr != "" {
+        http.response_set_status(res, 500)
+        http.response_set_header(res, "Content-Type", "application/json")
+        http.response_set_body(res, "{\"stdout\":\"\",\"stderr\":\"cannot stage code\"}")
+        return
+    }
+
+    _ = os.os_system("ae run /tmp/aesite_repl.ae 2>&1 | grep -v 'ld: warning' > /tmp/aesite_repl.out")
+    output, oerr = io.read_file("/tmp/aesite_repl.out")
+    if oerr != "" {
+        output = ""
+    }
+
     root = json.obj()
-    json.set(root, "stdout", json.str("Hello, Aether!\nProgram executed successfully."))
-    json.set(root, "stderr", json.str("warning: variable 'x' is unused"))
+    json.set(root, "stdout", json.str(output))
+    json.set(root, "stderr", json.str(""))
     body, eerr = json.encode(root)
     json.free(root)
 
@@ -100,8 +106,6 @@ main() {
         return
     }
 
-    // Keep-alive so a browser reuses one TCP connection across the page's
-    // asset and API requests. gzip compresses text responses >= 1 KiB.
     ka_err = http.server_set_keepalive(server, 1, 0, 30000ms)
     if ka_err != "" {
         println("keepalive: ${ka_err}")
@@ -110,9 +114,7 @@ main() {
     middleware.use_gzip(server, 1024, 6)
     http.server_set_access_log(server, "combined", "-")
 
-    // The router matches the most-recently-registered route first, so the
-    // "/*" static catch-all is registered before the specific routes and
-    // only handles what they do not claim.
+    // Routes are matched last-registered-first: catch-all first, specifics after.
     http.server_get(server, "/*", handle_static, 0)
     http.server_get(server, "/", handle_index, 0)
     http.server_get(server, "/healthz", handle_health, 0)

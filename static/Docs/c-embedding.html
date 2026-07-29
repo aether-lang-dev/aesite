@@ -1,56 +1,107 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>c-embedding</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/style.css" />
-  <link rel="stylesheet" href="/subpages.css" />
-  <link rel="stylesheet" href="/articles.css" />
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Embedding Aether Actors in C Applications · Aether</title>
+<meta name="description" content="Embedding Aether Actors in C Applications — Aether language documentation.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/aether.css">
 </head>
 <body>
-
-  <!-- NAV -->
-  <nav>
-    <a class="nav-logo" href="/index.html">Aether<span>.</span></a>
-    <ul class="nav-links">
-      <li><a href="/index.html#features">Features</a></li>
-      <li><a href="/index.html#syntax">Syntax</a></li>
-      <li><a href="/index.html#install">Install</a></li>
-      <li><a href="/faq.html">FAQ</a></li>
-    </ul>
-  </nav>
-
-  <!-- MAIN -->
-  <main class="section">
-    <div>
-      <p class="section-label">Learning Material</p>
-    </div>
-
-    <article class="article-content">
-<h1 id="embedding-aether-actors-in-c-applications">Embedding Aether
-Actors in C Applications</h1>
-<p>This guide explains how to embed Aether actors in your existing C
-applications. There are two approaches: compiling Aether code to C and
-linking it, or using the runtime API directly.</p>
-<h2 id="overview">Overview</h2>
-<p>Aether compiles to C, which means integration with C codebases is
-straightforward:</p>
-<ol type="1">
-<li><strong>Compile-and-Link</strong>: Write actors in Aether, compile
-to C with <code>aetherc</code>, include the generated code</li>
-<li><strong>Direct Runtime API</strong>: Use Aether's runtime API to
-create actors entirely in C</li>
-</ol>
-<h2 id="approach-1-compile-aether-to-c">Approach 1: Compile Aether to
-C</h2>
-<h3 id="step-1-write-your-aether-actor">Step 1: Write Your Aether
-Actor</h3>
+<header class="site-head">
+  <div class="wrap bar">
+    <a class="brand" href="/" aria-label="Aether"><span class="ae">ae</span><span class="nm">aether</span></a>
+    <nav>
+      <a href="/repl.html">Playground</a>
+      <a href="/Docs/getting-started.html" class="on">Docs</a>
+      <a href="https://github.com/aether-lang-org/aether">Source</a>
+      <span class="vtag">v0.454</span>
+    </nav>
+  </div>
+</header>
+<div class="wrap">
+  <div class="doc-shell">
+    <nav class="doc-nav"><div class="grp">Start</div>
+<a href="/Docs/getting-started.html">Getting Started with Aether</a>
+<a href="/Docs/tutorial.html">Aether Language Tutorial</a>
+<a href="/Docs/next-steps.html">Next Steps</a>
+<div class="grp">Language</div>
+<a href="/Docs/language-reference.html">Aether Language Reference</a>
+<a href="/Docs/type-inference-guide.html">Aether Type Inference Guide</a>
+<a href="/Docs/type-annotation-style-guide.html">Aether Type Annotation Style Guide</a>
+<a href="/Docs/type-inference-multi-value-returns.html">Multi-Value Return Type Inference</a>
+<a href="/Docs/distinct-types.html">Distinct Types</a>
+<a href="/Docs/sequences.html">Sequences (`*StringSeq`)</a>
+<a href="/Docs/named-args-and-select.html">Named Arguments and select()</a>
+<a href="/Docs/closures-and-builder-dsl.html">Closures and Builder-Style DSL in Aether</a>
+<a href="/Docs/closures-and-lifetimes.html">Closures and Environment Lifetimes</a>
+<a href="/Docs/module-system-design.html">Aether Module System</a>
+<div class="grp">Runtime</div>
+<a href="/Docs/architecture.html">Aether Architecture</a>
+<a href="/Docs/actor-concurrency.html">Aether Runtime Guide</a>
+<a href="/Docs/structured-concurrency.html">Structured Concurrency for Aether, Design Direction</a>
+<a href="/Docs/scheduler-quick-reference.html">Aether Scheduler - Quick Reference</a>
+<a href="/Docs/memory-management.html">Aether Memory Management</a>
+<a href="/Docs/runtime-optimizations.html">Runtime Optimizations</a>
+<a href="/Docs/numa-support.html">NUMA Support in Aether</a>
+<div class="grp">Interop</div>
+<a href="/Docs/c-interop.html">C Interoperability</a>
+<a href="/Docs/c-embedding.html" class="on">Embedding Aether Actors in C Applications</a>
+<a href="/Docs/emit-lib.html">Embedding Aether as a Shared Library (`--emit=lib`)</a>
+<a href="/Docs/embedded-namespaces-and-host-bindings.html">Aether as a Configuration Language, v2: Namespaces and Generated Bindings</a>
+<a href="/Docs/aether-embedded-in-host-applications.html">Aether as a Configuration Language for Other Languages</a>
+<a href="/Docs/lib-caller-info.html">`--emit=lib` caller-info channel</a>
+<div class="grp">Stdlib</div>
+<a href="/Docs/stdlib-reference.html">Aether Standard Library Reference</a>
+<a href="/Docs/stdlib-api.html">Aether Standard Library Guide</a>
+<a href="/Docs/stdlib-module-pattern.html">Aether Stdlib Module Pattern</a>
+<a href="/Docs/stdlib-vs-contrib.html">`std/` vs `contrib/` placement decisions</a>
+<a href="/Docs/http-server.html">`std.http` HTTP Server</a>
+<a href="/Docs/http-reverse-proxy.html">`std.http.proxy` reverse proxy</a>
+<a href="/Docs/http-handler-context.html">HTTP handlers with per-server / per-route state</a>
+<a href="/Docs/http-vcr.html">HTTP Record/Replay (VCR), moved out of Aether</a>
+<a href="/Docs/json-parser-design.html">`std.json` Design Notes</a>
+<div class="grp">Safety</div>
+<a href="/Docs/containment-sandbox.html">Containment and Sandboxing in Aether</a>
+<a href="/Docs/hide-and-seal.html">`hide` and `seal except` scope-level capability denial</a>
+<a href="/Docs/compiler-trust-boundary.html">The Compiler Trust Boundary</a>
+<a href="/Docs/config-is-code.html">Config IS Code</a>
+<a href="/Docs/aether_compared_to_capsicum.html">Aether Sandbox Model vs. BSD Capsicum: Architecture, Parallels, and FreeBSD Integration</a>
+<div class="grp">Build</div>
+<a href="/Docs/build-system.html">Build System</a>
+<a href="/Docs/bootstrap-from-source.html">Bootstrapping Aether from source (HEAD)</a>
+<a href="/Docs/install-layout.html">Aether install layout</a>
+<a href="/Docs/runtime-config.html">Runtime Configuration - Quick Reference</a>
+<a href="/Docs/per-process-config.html">Per-process configuration in Aether</a>
+<a href="/Docs/cic-help.html">`ae help &lt;script&gt;` Offline diagnostics for config-IS-code</a>
+<div class="grp">More</div>
+<a href="/Docs/bindgen-consts.html">`ae bindgen consts`, importing C macro constants</a>
+<a href="/Docs/formatter.html">`ae fmt`, the source formatter</a>
+<a href="/Docs/isolated.html">`Isolated[T]`: move-only actor message payloads (#479)</a>
+<a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
+<a href="/Docs/profiling-guide.html">Aether Runtime Profiling Guide</a>
+<a href="/Docs/allocators.html">Allocators</a>
+<a href="/Docs/when-static-if.html">Compile-time `when` / static-if</a>
+<a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
+<a href="/Docs/contract-folding.html">Compile-time contract folding — costed design</a>
+<a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn&#x27;t need `macro_rules!`</a>
+<a href="/Docs/release-glibc-portability.html">Release binary portability across glibc versions</a>
+<a href="/Docs/error-unification.html">Unifying `T?` and `(value, err)` — costed design</a></nav>
+    <main class="doc-main">
+      <article class="doc-body">
+        <div class="bc">docs / interop</div>
+<h1>Embedding Aether Actors in C Applications</h1>
+<p>This guide explains how to embed Aether actors in your existing C applications. There are two approaches: compiling Aether code to C and linking it, or using the runtime API directly.</p>
+<h2>Overview</h2>
+<p>Aether compiles to C, which means integration with C codebases is straightforward:</p>
+<ol><li><strong>Compile-and-Link</strong>: Write actors in Aether, compile to C with <code>aetherc</code>, include the generated code</li><li><strong>Direct Runtime API</strong>: Use Aether&#x27;s runtime API to create actors entirely in C</li></ol>
+<h2>Approach 1: Compile Aether to C</h2>
+<h3>Step 1: Write Your Aether Actor</h3>
 <p><strong>counter.ae:</strong></p>
-<pre class="aether"><code>message Increment {
+<pre><code>message Increment {
     amount: int
 }
 
@@ -79,365 +130,308 @@ main() {
     counter ! Increment { amount: 10 }
     counter ! GetValue {}
 }</code></pre>
-<h3 id="step-2-compile-to-c">Step 2: Compile to C</h3>
-<div class="sourceCode" id="cb2"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">aetherc</span> counter.ae counter.c</span></code></pre></div>
+<h3>Step 2: Compile to C</h3>
+<pre><code>aetherc counter.ae counter.c</code></pre>
 <p>This generates <code>counter.c</code> containing:</p>
-<ul>
-<li>Message struct definitions</li>
-<li>Actor struct with state</li>
-<li>Message handler dispatch table</li>
-<li><code>spawn_Counter()</code> function</li>
-</ul>
-<h3 id="step-3-include-in-your-c-project">Step 3: Include in Your C
-Project</h3>
+<ul><li>Message struct definitions</li><li>Actor struct with state</li><li>Message handler dispatch table</li><li><code>spawn_Counter()</code> function</li></ul>
+<h3>Step 3: Include in Your C Project</h3>
 <p><strong>main.c:</strong></p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&quot;runtime/aether_runtime.h&quot;</span></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&quot;runtime/scheduler/multicore_scheduler.h&quot;</span></span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="co">// Forward declarations from generated code</span></span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="kw">typedef</span> <span class="kw">struct</span> Counter Counter<span class="op">;</span></span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>Counter<span class="op">*</span> spawn_Counter<span class="op">(</span><span class="dt">void</span><span class="op">);</span></span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="co">// Message IDs (from generated code)</span></span>
-<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="pp">#define MSG_Increment </span><span class="dv">1</span></span>
-<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="pp">#define MSG_GetValue </span><span class="dv">2</span></span>
-<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a><span class="pp">#define MSG_Reset </span><span class="dv">3</span></span>
-<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> main<span class="op">(</span><span class="dt">int</span> argc<span class="op">,</span> <span class="dt">char</span><span class="op">**</span> argv<span class="op">)</span> <span class="op">{</span></span>
-<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Initialize Aether runtime</span></span>
-<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>    aether_runtime_init<span class="op">(</span><span class="dv">0</span><span class="op">,</span> AETHER_FLAG_AUTO_DETECT<span class="op">);</span></span>
-<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>    scheduler_init<span class="op">(</span><span class="dv">4</span><span class="op">);</span>  <span class="co">// 4 cores</span></span>
-<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>    scheduler_start<span class="op">();</span></span>
-<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Spawn the actor</span></span>
-<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>    Counter<span class="op">*</span> counter <span class="op">=</span> spawn_Counter<span class="op">();</span></span>
-<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Send messages using the Message struct</span></span>
-<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a>    Message msg <span class="op">=</span> <span class="op">{</span><span class="dv">0</span><span class="op">};</span></span>
-<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a>    msg<span class="op">.</span>type <span class="op">=</span> MSG_Increment<span class="op">;</span></span>
-<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a>    msg<span class="op">.</span>payload_int <span class="op">=</span> <span class="dv">10</span><span class="op">;</span>  <span class="co">// amount</span></span>
-<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a>    scheduler_send_remote<span class="op">((</span>ActorBase<span class="op">*)</span>counter<span class="op">,</span> msg<span class="op">,</span> <span class="op">-</span><span class="dv">1</span><span class="op">);</span></span>
-<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Allow time for processing</span></span>
-<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a>    <span class="co">// In real code, use proper synchronization</span></span>
-<span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a>    usleep<span class="op">(</span><span class="dv">100000</span><span class="op">);</span></span>
-<span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-33"><a href="#cb3-33" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Cleanup</span></span>
-<span id="cb3-34"><a href="#cb3-34" aria-hidden="true" tabindex="-1"></a>    scheduler_shutdown<span class="op">();</span>  <span class="co">// Waits for quiescence, stops and joins threads</span></span>
-<span id="cb3-35"><a href="#cb3-35" aria-hidden="true" tabindex="-1"></a>    scheduler_cleanup<span class="op">();</span></span>
-<span id="cb3-36"><a href="#cb3-36" aria-hidden="true" tabindex="-1"></a>    aether_runtime_shutdown<span class="op">();</span></span>
-<span id="cb3-37"><a href="#cb3-37" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-38"><a href="#cb3-38" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="dv">0</span><span class="op">;</span></span>
-<span id="cb3-39"><a href="#cb3-39" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
-<h3 id="step-4-build">Step 4: Build</h3>
-<div class="sourceCode" id="cb4"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Compile Aether code</span></span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="ex">aetherc</span> counter.ae counter.c</span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Build with runtime</span></span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="fu">gcc</span> <span class="at">-O2</span> main.c counter.c <span class="dt">\</span></span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">-I</span><span class="va">$HOME</span>/.aether/include/aether <span class="dt">\</span></span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">-L</span><span class="va">$HOME</span>/.aether/lib <span class="at">-laether</span> <span class="dt">\</span></span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">-lpthread</span> <span class="at">-o</span> myapp</span></code></pre></div>
-<h2 id="approach-2-direct-runtime-api">Approach 2: Direct Runtime
-API</h2>
-<p>For full control, create actors directly in C using the runtime
-API.</p>
-<h3 id="minimal-example">Minimal Example</h3>
-<div class="sourceCode" id="cb5"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&quot;runtime/aether_runtime.h&quot;</span></span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&quot;runtime/scheduler/multicore_scheduler.h&quot;</span></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="co">// Define your actor structure</span></span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="kw">typedef</span> <span class="kw">struct</span> <span class="op">{</span></span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    ActorBase base<span class="op">;</span>    <span class="co">// Must be first field</span></span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> counter<span class="op">;</span>       <span class="co">// Your state</span></span>
-<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="op">}</span> MyCounter<span class="op">;</span></span>
-<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="co">// Message handler</span></span>
-<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> my_counter_step<span class="op">(</span><span class="dt">void</span><span class="op">*</span> self<span class="op">)</span> <span class="op">{</span></span>
-<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>    MyCounter<span class="op">*</span> actor <span class="op">=</span> <span class="op">(</span>MyCounter<span class="op">*)</span>self<span class="op">;</span></span>
-<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>    Message msg<span class="op">;</span></span>
-<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Process messages from mailbox</span></span>
-<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>    <span class="cf">while</span> <span class="op">(</span>mailbox_receive<span class="op">(&amp;</span>actor<span class="op">-&gt;</span>base<span class="op">.</span>mailbox<span class="op">,</span> <span class="op">&amp;</span>msg<span class="op">))</span> <span class="op">{</span></span>
-<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>        <span class="cf">switch</span> <span class="op">(</span>msg<span class="op">.</span>type<span class="op">)</span> <span class="op">{</span></span>
-<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>            <span class="cf">case</span> <span class="dv">1</span><span class="op">:</span>  <span class="co">// Increment</span></span>
-<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>                actor<span class="op">-&gt;</span>counter <span class="op">+=</span> msg<span class="op">.</span>payload_int<span class="op">;</span></span>
-<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>                <span class="cf">break</span><span class="op">;</span></span>
-<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>            <span class="cf">case</span> <span class="dv">2</span><span class="op">:</span>  <span class="co">// Print</span></span>
-<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>                printf<span class="op">(</span><span class="st">&quot;Counter: </span><span class="sc">%d\n</span><span class="st">&quot;</span><span class="op">,</span> actor<span class="op">-&gt;</span>counter<span class="op">);</span></span>
-<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a>                <span class="cf">break</span><span class="op">;</span></span>
-<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span></span>
-<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
-<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
-<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> main<span class="op">()</span> <span class="op">{</span></span>
-<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Initialize runtime</span></span>
-<span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a>    aether_runtime_init<span class="op">(</span><span class="dv">0</span><span class="op">,</span> AETHER_FLAG_AUTO_DETECT<span class="op">);</span></span>
-<span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a>    scheduler_init<span class="op">(</span><span class="dv">4</span><span class="op">);</span></span>
-<span id="cb5-32"><a href="#cb5-32" aria-hidden="true" tabindex="-1"></a>    scheduler_start<span class="op">();</span></span>
-<span id="cb5-33"><a href="#cb5-33" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-34"><a href="#cb5-34" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Spawn actor using pool</span></span>
-<span id="cb5-35"><a href="#cb5-35" aria-hidden="true" tabindex="-1"></a>    MyCounter<span class="op">*</span> actor <span class="op">=</span> <span class="op">(</span>MyCounter<span class="op">*)</span>scheduler_spawn_pooled<span class="op">(</span></span>
-<span id="cb5-36"><a href="#cb5-36" aria-hidden="true" tabindex="-1"></a>        <span class="dv">0</span><span class="op">,</span>                    <span class="co">// Preferred core</span></span>
-<span id="cb5-37"><a href="#cb5-37" aria-hidden="true" tabindex="-1"></a>        my_counter_step<span class="op">,</span>      <span class="co">// Step function</span></span>
-<span id="cb5-38"><a href="#cb5-38" aria-hidden="true" tabindex="-1"></a>        <span class="kw">sizeof</span><span class="op">(</span>MyCounter<span class="op">)</span>     <span class="co">// Size</span></span>
-<span id="cb5-39"><a href="#cb5-39" aria-hidden="true" tabindex="-1"></a>    <span class="op">);</span></span>
-<span id="cb5-40"><a href="#cb5-40" aria-hidden="true" tabindex="-1"></a>    actor<span class="op">-&gt;</span>counter <span class="op">=</span> <span class="dv">0</span><span class="op">;</span>       <span class="co">// Initialize state</span></span>
-<span id="cb5-41"><a href="#cb5-41" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-42"><a href="#cb5-42" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Send messages</span></span>
-<span id="cb5-43"><a href="#cb5-43" aria-hidden="true" tabindex="-1"></a>    Message msg <span class="op">=</span> <span class="op">{</span><span class="dv">0</span><span class="op">};</span></span>
-<span id="cb5-44"><a href="#cb5-44" aria-hidden="true" tabindex="-1"></a>    msg<span class="op">.</span>type <span class="op">=</span> <span class="dv">1</span><span class="op">;</span>             <span class="co">// Increment</span></span>
-<span id="cb5-45"><a href="#cb5-45" aria-hidden="true" tabindex="-1"></a>    msg<span class="op">.</span>payload_int <span class="op">=</span> <span class="dv">42</span><span class="op">;</span></span>
-<span id="cb5-46"><a href="#cb5-46" aria-hidden="true" tabindex="-1"></a>    scheduler_send_remote<span class="op">((</span>ActorBase<span class="op">*)</span>actor<span class="op">,</span> msg<span class="op">,</span> <span class="op">-</span><span class="dv">1</span><span class="op">);</span></span>
-<span id="cb5-47"><a href="#cb5-47" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-48"><a href="#cb5-48" aria-hidden="true" tabindex="-1"></a>    msg<span class="op">.</span>type <span class="op">=</span> <span class="dv">2</span><span class="op">;</span>             <span class="co">// Print</span></span>
-<span id="cb5-49"><a href="#cb5-49" aria-hidden="true" tabindex="-1"></a>    scheduler_send_remote<span class="op">((</span>ActorBase<span class="op">*)</span>actor<span class="op">,</span> msg<span class="op">,</span> <span class="op">-</span><span class="dv">1</span><span class="op">);</span></span>
-<span id="cb5-50"><a href="#cb5-50" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-51"><a href="#cb5-51" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Wait for messages to be processed</span></span>
-<span id="cb5-52"><a href="#cb5-52" aria-hidden="true" tabindex="-1"></a>    scheduler_wait<span class="op">();</span>  <span class="co">// Non-destructive: can send more messages after this</span></span>
-<span id="cb5-53"><a href="#cb5-53" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-54"><a href="#cb5-54" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Cleanup</span></span>
-<span id="cb5-55"><a href="#cb5-55" aria-hidden="true" tabindex="-1"></a>    scheduler_shutdown<span class="op">();</span>  <span class="co">// Waits for quiescence, stops and joins threads</span></span>
-<span id="cb5-56"><a href="#cb5-56" aria-hidden="true" tabindex="-1"></a>    scheduler_cleanup<span class="op">();</span></span>
-<span id="cb5-57"><a href="#cb5-57" aria-hidden="true" tabindex="-1"></a>    aether_runtime_shutdown<span class="op">();</span></span>
-<span id="cb5-58"><a href="#cb5-58" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-59"><a href="#cb5-59" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="dv">0</span><span class="op">;</span></span>
-<span id="cb5-60"><a href="#cb5-60" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
-<h2 id="runtime-api-reference">Runtime API Reference</h2>
-<h3 id="lifecycle-functions">Lifecycle Functions</h3>
-<div class="sourceCode" id="cb6"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Initialize runtime with automatic CPU feature detection</span></span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="co">// num_cores: 0 = auto-detect, or specify explicitly</span></span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="co">// flags: AETHER_FLAG_AUTO_DETECT recommended</span></span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> aether_runtime_init<span class="op">(</span><span class="dt">int</span> num_cores<span class="op">,</span> <span class="dt">int</span> flags<span class="op">);</span></span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="co">// Shutdown runtime and free resources</span></span>
-<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> aether_runtime_shutdown<span class="op">(</span><span class="dt">void</span><span class="op">);</span></span>
-<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a><span class="co">// Initialize scheduler with core count</span></span>
-<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a><span class="co">// cores: 0 = auto-detect</span></span>
-<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> scheduler_init<span class="op">(</span><span class="dt">int</span> cores<span class="op">);</span></span>
-<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a><span class="co">// Start scheduler threads</span></span>
-<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> scheduler_start<span class="op">(</span><span class="dt">void</span><span class="op">);</span></span>
-<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a><span class="co">// Wait for quiescence (all pending messages processed)</span></span>
-<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a><span class="co">// Non-destructive: scheduler threads keep running. Safe to call multiple times.</span></span>
-<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> scheduler_wait<span class="op">(</span><span class="dt">void</span><span class="op">);</span></span>
-<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a><span class="co">// Wait for quiescence, then stop and join scheduler threads.</span></span>
-<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a><span class="co">// Call once at program exit.</span></span>
-<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> scheduler_shutdown<span class="op">(</span><span class="dt">void</span><span class="op">);</span></span>
-<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a><span class="co">// Free scheduler resources</span></span>
-<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> scheduler_cleanup<span class="op">(</span><span class="dt">void</span><span class="op">);</span></span></code></pre></div>
-<h3 id="actor-management">Actor Management</h3>
-<div class="sourceCode" id="cb7"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Spawn actor from pool (recommended)</span></span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="co">// Returns actor pointer, NULL on failure</span></span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>ActorBase<span class="op">*</span> scheduler_spawn_pooled<span class="op">(</span></span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> preferred_core<span class="op">,</span>      <span class="co">// Core hint, -1 for caller&#39;s core (main thread defaults to core 0)</span></span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">void</span> <span class="op">(*</span>step<span class="op">)(</span><span class="dt">void</span><span class="op">*),</span>     <span class="co">// Message handler function</span></span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">size_t</span> actor_size        <span class="co">// sizeof(YourActorType)</span></span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="op">);</span></span>
-<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a><span class="co">// Return actor to pool when done</span></span>
-<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> scheduler_release_pooled<span class="op">(</span>ActorBase<span class="op">*</span> actor<span class="op">);</span></span>
-<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a><span class="co">// Register existing actor (alternative to pooled)</span></span>
-<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> scheduler_register_actor<span class="op">(</span>ActorBase<span class="op">*</span> actor<span class="op">,</span> <span class="dt">int</span> preferred_core<span class="op">);</span></span></code></pre></div>
-<h3 id="message-passing">Message Passing</h3>
-<div class="sourceCode" id="cb8"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Message structure</span></span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="kw">typedef</span> <span class="kw">struct</span> <span class="op">{</span></span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> type<span class="op">;</span>           <span class="co">// Message ID</span></span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> sender_id<span class="op">;</span>      <span class="co">// Sender actor ID</span></span>
-<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">intptr_t</span> payload_int<span class="op">;</span> <span class="co">// For single-int messages (intptr_t to pass actor refs without truncation)</span></span>
-<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">void</span><span class="op">*</span> payload_ptr<span class="op">;</span>  <span class="co">// For complex payloads</span></span>
-<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="op">}</span> Message<span class="op">;</span></span>
-<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a><span class="co">// Send to actor on same core (fast path)</span></span>
-<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> scheduler_send_local<span class="op">(</span>ActorBase<span class="op">*</span> actor<span class="op">,</span> Message msg<span class="op">);</span></span>
-<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a><span class="co">// Send to actor on any core</span></span>
-<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a><span class="co">// from_core: sender&#39;s core ID, -1 if unknown</span></span>
-<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> scheduler_send_remote<span class="op">(</span>ActorBase<span class="op">*</span> actor<span class="op">,</span> Message msg<span class="op">,</span> <span class="dt">int</span> from_core<span class="op">);</span></span></code></pre></div>
-<h3 id="configuration-flags">Configuration Flags</h3>
-<div class="sourceCode" id="cb9"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#define AETHER_FLAG_AUTO_DETECT      </span><span class="op">(</span><span class="dv">1</span><span class="pp"> </span><span class="op">&lt;&lt;</span><span class="pp"> </span><span class="dv">0</span><span class="op">)</span><span class="pp">  </span><span class="co">// Detect CPU features</span></span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#define AETHER_FLAG_LOCKFREE_MAILBOX </span><span class="op">(</span><span class="dv">1</span><span class="pp"> </span><span class="op">&lt;&lt;</span><span class="pp"> </span><span class="dv">1</span><span class="op">)</span><span class="pp">  </span><span class="co">// Lock-free mailboxes</span></span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="pp">#define AETHER_FLAG_LOCKFREE_POOLS   </span><span class="op">(</span><span class="dv">1</span><span class="pp"> </span><span class="op">&lt;&lt;</span><span class="pp"> </span><span class="dv">2</span><span class="op">)</span><span class="pp">  </span><span class="co">// Lock-free pools</span></span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="pp">#define AETHER_FLAG_ENABLE_SIMD      </span><span class="op">(</span><span class="dv">1</span><span class="pp"> </span><span class="op">&lt;&lt;</span><span class="pp"> </span><span class="dv">3</span><span class="op">)</span><span class="pp">  </span><span class="co">// SIMD optimizations</span></span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="pp">#define AETHER_FLAG_ENABLE_MWAIT     </span><span class="op">(</span><span class="dv">1</span><span class="pp"> </span><span class="op">&lt;&lt;</span><span class="pp"> </span><span class="dv">4</span><span class="op">)</span><span class="pp">  </span><span class="co">// MWAIT for idle</span></span>
-<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a><span class="pp">#define AETHER_FLAG_VERBOSE          </span><span class="op">(</span><span class="dv">1</span><span class="pp"> </span><span class="op">&lt;&lt;</span><span class="pp"> </span><span class="dv">5</span><span class="op">)</span><span class="pp">  </span><span class="co">// Print config on init</span></span></code></pre></div>
-<h2 id="actor-structure-requirements">Actor Structure Requirements</h2>
-<p>When defining actors in C, follow these rules:</p>
-<div class="sourceCode" id="cb10"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="kw">typedef</span> <span class="kw">struct</span> <span class="op">{</span></span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>    ActorBase base<span class="op">;</span>     <span class="co">// MUST be first field</span></span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Your state fields here</span></span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> my_value<span class="op">;</span></span>
-<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">char</span><span class="op">*</span> my_string<span class="op">;</span></span>
-<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a><span class="op">}</span> MyActor<span class="op">;</span></span></code></pre></div>
-<p>The <code>ActorBase</code> contains:</p>
-<ul>
-<li><code>active</code>: Processing flag (<code>atomic_int</code>)</li>
-<li><code>id</code>: Unique actor ID</li>
-<li><code>mailbox</code>: Message queue (ring buffer)</li>
-<li><code>step</code>: Your message handler</li>
-<li><code>assigned_core</code>: Current core assignment
-(<code>atomic_int</code>, safe for cross-core reads)</li>
-<li><code>migrate_to</code>: Affinity hint for message-driven migration
-(<code>atomic_int</code>)</li>
-<li><code>main_thread_only</code>: If set, scheduler threads skip this
-actor (<code>atomic_int</code>)</li>
-<li><code>spsc_queue</code>: Lock-free same-core messaging (pointer,
-lazily allocated)</li>
-<li><code>reply_slot</code>: Non-NULL during ask/reply
-(<code>_Atomic</code> pointer)</li>
-<li><code>step_lock</code>: Prevents concurrent <code>step()</code>
-during work-steal handoff (<code>atomic_flag</code>)</li>
-</ul>
-<h2 id="message-handler-pattern">Message Handler Pattern</h2>
-<div class="sourceCode" id="cb11"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> my_actor_step<span class="op">(</span><span class="dt">void</span><span class="op">*</span> self<span class="op">)</span> <span class="op">{</span></span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>    MyActor<span class="op">*</span> actor <span class="op">=</span> <span class="op">(</span>MyActor<span class="op">*)</span>self<span class="op">;</span></span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>    Message msg<span class="op">;</span></span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Drain all pending messages</span></span>
-<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">while</span> <span class="op">(</span>mailbox_receive<span class="op">(&amp;</span>actor<span class="op">-&gt;</span>base<span class="op">.</span>mailbox<span class="op">,</span> <span class="op">&amp;</span>msg<span class="op">))</span> <span class="op">{</span></span>
-<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>        <span class="cf">switch</span> <span class="op">(</span>msg<span class="op">.</span>type<span class="op">)</span> <span class="op">{</span></span>
-<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>            <span class="cf">case</span> MSG_TYPE_1<span class="op">:</span></span>
-<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>                <span class="co">// Handle message type 1</span></span>
-<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>                handle_type_1<span class="op">(</span>actor<span class="op">,</span> msg<span class="op">.</span>payload_int<span class="op">);</span></span>
-<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>                <span class="cf">break</span><span class="op">;</span></span>
-<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>            <span class="cf">case</span> MSG_TYPE_2<span class="op">:</span></span>
-<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>                <span class="co">// Handle message type 2</span></span>
-<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a>                handle_type_2<span class="op">(</span>actor<span class="op">,</span> <span class="op">(</span>SomeStruct<span class="op">*)</span>msg<span class="op">.</span>payload_ptr<span class="op">);</span></span>
-<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a>                <span class="cf">break</span><span class="op">;</span></span>
-<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a>            <span class="cf">default</span><span class="op">:</span></span>
-<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a>                <span class="co">// Unknown message type</span></span>
-<span id="cb11-20"><a href="#cb11-20" aria-hidden="true" tabindex="-1"></a>                <span class="cf">break</span><span class="op">;</span></span>
-<span id="cb11-21"><a href="#cb11-21" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span></span>
-<span id="cb11-22"><a href="#cb11-22" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
-<span id="cb11-23"><a href="#cb11-23" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
-<h2 id="build-configuration">Build Configuration</h2>
-<h3 id="makefile-example">Makefile Example</h3>
-<div class="sourceCode" id="cb12"><pre
-class="sourceCode makefile"><code class="sourceCode makefile"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="dt">AETHER_HOME</span> <span class="ch">?=</span><span class="st"> </span><span class="ch">$(</span><span class="dt">HOME</span><span class="ch">)</span><span class="st">/.aether</span></span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="dt">CC</span> <span class="ch">=</span><span class="st"> gcc</span></span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="dt">CFLAGS</span> <span class="ch">=</span><span class="st"> -O2 -I</span><span class="ch">$(</span><span class="dt">AETHER_HOME</span><span class="ch">)</span><span class="st">/include/aether</span></span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="dt">LDFLAGS</span> <span class="ch">=</span><span class="st"> -L</span><span class="ch">$(</span><span class="dt">AETHER_HOME</span><span class="ch">)</span><span class="st">/lib -laether -lpthread</span></span>
-<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a><span class="co"># For Aether source files</span></span>
-<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a><span class="dv">%.c:</span><span class="dt"> %.ae</span></span>
-<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a><span class="er">    </span>aetherc <span class="ch">$&lt;</span> <span class="ch">$@</span></span>
-<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a><span class="dv">myapp:</span><span class="dt"> main.c counter.c</span></span>
-<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a><span class="er">    </span><span class="ch">$(</span><span class="dt">CC</span><span class="ch">)</span> <span class="ch">$(</span><span class="dt">CFLAGS</span><span class="ch">)</span> -o <span class="ch">$@</span> <span class="ch">$^</span> <span class="ch">$(</span><span class="dt">LDFLAGS</span><span class="ch">)</span></span></code></pre></div>
-<h3 id="cmake-example">CMake Example</h3>
-<div class="sourceCode" id="cb13"><pre
-class="sourceCode cmake"><code class="sourceCode cmake"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="kw">cmake_minimum_required</span>(<span class="ot">VERSION</span> <span class="dt">3.10</span>)</span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="kw">project</span>(MyAetherApp)</span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="kw">set</span>(AETHER_HOME <span class="st">&quot;</span><span class="fl">$ENV{HOME}</span><span class="st">/.aether&quot;</span>)</span>
-<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a><span class="kw">include_directories</span>(<span class="dv">${AETHER_HOME}</span>/include/aether)</span>
-<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a><span class="kw">link_directories</span>(<span class="dv">${AETHER_HOME}</span>/lib)</span>
-<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a><span class="kw">add_executable</span>(<span class="bn">myapp</span> main.c counter.c)</span>
-<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a><span class="kw">target_link_libraries</span>(<span class="bn">myapp</span> aether pthread)</span></code></pre></div>
-<h2 id="thread-safety">Thread Safety</h2>
-<ul>
-<li>Each actor runs on one core at a time</li>
-<li>Messages are delivered via thread-safe queues</li>
-<li>Actor state is only accessed by one thread</li>
-<li>Cross-core sends use lock-free queues</li>
-</ul>
-<h2 id="limitations">Limitations</h2>
-<p>Current limitations when embedding:</p>
-<ol type="1">
-<li><strong>No direct state access</strong>: Actor state should only be
-accessed through messages</li>
-<li><strong>No synchronous replies</strong>: Use callback patterns or
-shared atomic state</li>
-<li><strong>Manual lifetime management</strong>: Track actor references
-carefully</li>
-<li><strong>Single runtime instance</strong>: Only one
-<code>aether_runtime_init</code> per process</li>
-</ol>
-<h2 id="header-generation">Header Generation</h2>
-<p>Pass <code>--emit-header</code> to <code>aetherc</code> to generate a
-C header alongside the C output. The header contains message struct
-definitions, <code>MSG_*</code> constants, and actor spawn prototypes —
-everything needed to send messages to Aether actors from C without
-copying struct definitions by hand.</p>
-<div class="sourceCode" id="cb14"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="ex">aetherc</span> counter.ae counter.c <span class="at">--emit-header</span></span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Produces: counter.c  counter.h</span></span></code></pre></div>
-<p>Example generated header:</p>
-<div class="sourceCode" id="cb15"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co">// counter.h (auto-generated by aetherc --emit-header)</span></span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#ifndef COUNTER_H</span></span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="pp">#define COUNTER_H</span></span>
-<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&quot;aether_runtime.h&quot;</span></span>
-<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a><span class="co">// Message IDs</span></span>
-<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a><span class="pp">#define MSG_Increment </span><span class="dv">1</span></span>
-<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a><span class="pp">#define MSG_GetValue  </span><span class="dv">2</span></span>
-<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a><span class="pp">#define MSG_Reset     </span><span class="dv">3</span></span>
-<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a><span class="co">// Message structs</span></span>
-<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a><span class="kw">typedef</span> <span class="kw">struct</span> <span class="op">{</span> <span class="dt">int</span> amount<span class="op">;</span> <span class="op">}</span> Increment<span class="op">;</span></span>
-<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a><span class="co">// Spawn prototype</span></span>
-<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a>Counter<span class="op">*</span> spawn_Counter<span class="op">(</span><span class="dt">void</span><span class="op">);</span></span>
-<span id="cb15-17"><a href="#cb15-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-18"><a href="#cb15-18" aria-hidden="true" tabindex="-1"></a><span class="pp">#endif</span></span></code></pre></div>
-<p>Include the header in your C host application and use the constants
-with <code>scheduler_send_remote</code>.</p>
-<hr />
-<h2 id="polling-from-a-c-event-loop">Polling from a C Event Loop</h2>
-<p>When a C event loop (raylib, SDL, game loop, etc.) holds the main
-thread, Aether actors in main-thread mode cannot process messages — the
-scheduler has no opportunity to run.</p>
-<p>Use <code>aether_scheduler_poll()</code> to drain pending messages
-from C code between frames:</p>
-<div class="sourceCode" id="cb16"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&quot;runtime/scheduler/multicore_scheduler.h&quot;</span></span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a><span class="co">// In your render/game loop:</span></span>
-<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a><span class="cf">while</span> <span class="op">(!</span>window_should_close<span class="op">())</span> <span class="op">{</span></span>
-<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Drain actor messages — process up to 64 per actor per call.</span></span>
-<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Pass 0 for unlimited (processes all pending).</span></span>
-<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>    aether_scheduler_poll<span class="op">(</span><span class="dv">64</span><span class="op">);</span></span>
-<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>    begin_drawing<span class="op">();</span></span>
-<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a>    <span class="co">// ... render ...</span></span>
-<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a>    end_drawing<span class="op">();</span></span>
-<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
-<div class="sourceCode" id="cb17"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Signature</span></span>
-<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="co">//   max_per_actor: max messages to process per actor per call (0 = unlimited)</span></span>
-<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a><span class="co">//   returns: total messages processed across all actors</span></span>
-<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> aether_scheduler_poll<span class="op">(</span><span class="dt">int</span> max_per_actor<span class="op">);</span></span></code></pre></div>
-<p><code>aether_scheduler_poll</code> is safe to call from the main
-thread at any time. It only processes actors that are in main-thread
-mode; scheduler worker threads are not affected. It is a no-op if no
-actors are registered.</p>
-<h2 id="see-also">See Also</h2>
-<ul>
-<li><a href="c-interop.md">C Interoperability</a> - Calling C from
-Aether</li>
-<li><a href="runtime-config.md">Runtime Configuration</a> - Runtime
-flags and options</li>
-<li><a href="actor-concurrency.md">Actor Concurrency</a> - Actor model
-concepts</li>
-</ul>
-    </article>
-  </main>
+<pre><code>#include &lt;stdio.h&gt;
+#include &quot;runtime/aether_runtime.h&quot;
+#include &quot;runtime/scheduler/multicore_scheduler.h&quot;
 
-  <!-- FOOTER -->
-  <footer>
-    <p>&copy; 2026 Nicolas Maman</p>
-    <p><a href="#">Privacy</a> &middot; <a href="https://github.com/nicolasmd87/aether/blob/main/LICENSE">License</a> &middot; <a href="mailto:hello@aether.org">Contact</a></p>
-  </footer>
+// Forward declarations from generated code
+typedef struct Counter Counter;
+Counter* spawn_Counter(void);
+
+// Message IDs (from generated code, numbered from 0 in declaration order)
+#define MSG_Increment 0
+#define MSG_GetValue 1
+#define MSG_Reset 2
+
+int main(int argc, char** argv) {
+    // Initialize Aether runtime
+    aether_runtime_init(0, AETHER_FLAG_AUTO_DETECT);
+    scheduler_init(4);  // 4 cores
+    scheduler_start();
+
+    // Spawn the actor
+    Counter* counter = spawn_Counter();
+
+    // Send messages using the Message struct
+    Message msg = {0};
+    msg.type = MSG_Increment;
+    msg.payload_int = 10;  // amount
+    scheduler_send_remote((ActorBase*)counter, msg, -1);
+
+    // Allow time for processing
+    // In real code, use proper synchronization
+    usleep(100000);
+
+    // Cleanup
+    scheduler_shutdown();  // Waits for quiescence, stops and joins threads
+    scheduler_cleanup();
+    aether_runtime_shutdown();
+
+    return 0;
+}</code></pre>
+<h3>Step 4: Build</h3>
+<pre><code># Compile Aether code
+aetherc counter.ae counter.c
+
+# Build with runtime, `ae cflags` emits the right -I / -L / -l for
+# the install in effect. Don&#x27;t hand-craft the linker flags: the
+# install layout (`&lt;prefix&gt;/lib/aether/libaether.a`) requires an
+# explicit `-L&lt;prefix&gt;/lib/aether` that bare `-laether` won&#x27;t find.
+gcc -O2 main.c counter.c $(ae cflags) -o myapp</code></pre>
+<h2>Approach 2: Direct Runtime API</h2>
+<p>For full control, create actors directly in C using the runtime API.</p>
+<h3>Minimal Example</h3>
+<pre><code>#include &quot;runtime/aether_runtime.h&quot;
+#include &quot;runtime/scheduler/multicore_scheduler.h&quot;
+
+// Define your actor structure
+typedef struct {
+    ActorBase base;    // Must be first field
+    int counter;       // Your state
+} MyCounter;
+
+// Message handler
+void my_counter_step(void* self) {
+    MyCounter* actor = (MyCounter*)self;
+    Message msg;
+
+    // Process messages from mailbox
+    while (mailbox_receive(&amp;actor-&gt;base.mailbox, &amp;msg)) {
+        switch (msg.type) {
+            case 1:  // Increment
+                actor-&gt;counter += msg.payload_int;
+                break;
+            case 2:  // Print
+                printf(&quot;Counter: %d\n&quot;, actor-&gt;counter);
+                break;
+        }
+    }
+}
+
+int main() {
+    // Initialize runtime
+    aether_runtime_init(0, AETHER_FLAG_AUTO_DETECT);
+    scheduler_init(4);
+    scheduler_start();
+
+    // Spawn actor using pool
+    MyCounter* actor = (MyCounter*)scheduler_spawn_pooled(
+        0,                    // Preferred core
+        my_counter_step,      // Step function
+        sizeof(MyCounter)     // Size
+    );
+    actor-&gt;counter = 0;       // Initialize state
+
+    // Send messages
+    Message msg = {0};
+    msg.type = 1;             // Increment
+    msg.payload_int = 42;
+    scheduler_send_remote((ActorBase*)actor, msg, -1);
+
+    msg.type = 2;             // Print
+    scheduler_send_remote((ActorBase*)actor, msg, -1);
+
+    // Wait for messages to be processed
+    scheduler_wait();  // Non-destructive: can send more messages after this
+
+    // Cleanup
+    scheduler_shutdown();  // Waits for quiescence, stops and joins threads
+    scheduler_cleanup();
+    aether_runtime_shutdown();
+
+    return 0;
+}</code></pre>
+<h2>Runtime API Reference</h2>
+<h3>Lifecycle Functions</h3>
+<pre><code>// Initialize runtime with automatic CPU feature detection
+// num_cores: 0 = auto-detect, or specify explicitly
+// flags: AETHER_FLAG_AUTO_DETECT recommended
+void aether_runtime_init(int num_cores, int flags);
+
+// Shutdown runtime and free resources
+void aether_runtime_shutdown(void);
+
+// Initialize scheduler with core count
+// cores: 0 = auto-detect
+void scheduler_init(int cores);
+
+// Start scheduler threads
+void scheduler_start(void);
+
+// Wait for quiescence (all pending messages processed)
+// Non-destructive: scheduler threads keep running. Safe to call multiple times.
+void scheduler_wait(void);
+
+// Wait for quiescence, then stop and join scheduler threads.
+// Call once at program exit.
+void scheduler_shutdown(void);
+
+// Free scheduler resources
+void scheduler_cleanup(void);</code></pre>
+<h3>Actor Management</h3>
+<pre><code>// Spawn actor from pool (recommended)
+// Returns actor pointer, NULL on failure
+ActorBase* scheduler_spawn_pooled(
+    int preferred_core,      // Core hint, -1 for caller&#x27;s core (main thread defaults to core 0)
+    void (*step)(void*),     // Message handler function
+    size_t actor_size        // sizeof(YourActorType)
+);
+
+// Return actor to pool when done
+void scheduler_release_pooled(ActorBase* actor);
+
+// Register existing actor (alternative to pooled)
+int scheduler_register_actor(ActorBase* actor, int preferred_core);</code></pre>
+<h3>Message Passing</h3>
+<pre><code>// Message structure
+typedef struct {
+    int type;           // Message ID
+    int sender_id;      // Sender actor ID
+    intptr_t payload_int; // For single-int messages (intptr_t to pass actor refs without truncation)
+    void* payload_ptr;  // For complex payloads
+} Message;
+
+// Send to actor on same core (fast path)
+void scheduler_send_local(ActorBase* actor, Message msg);
+
+// Send to actor on any core
+// from_core: sender&#x27;s core ID, -1 if unknown
+void scheduler_send_remote(ActorBase* actor, Message msg, int from_core);</code></pre>
+<h3>Configuration Flags</h3>
+<pre><code>#define AETHER_FLAG_AUTO_DETECT      (1 &lt;&lt; 0)  // Detect CPU features
+#define AETHER_FLAG_LOCKFREE_MAILBOX (1 &lt;&lt; 1)  // Lock-free mailboxes
+#define AETHER_FLAG_LOCKFREE_POOLS   (1 &lt;&lt; 2)  // Lock-free pools
+#define AETHER_FLAG_ENABLE_SIMD      (1 &lt;&lt; 3)  // SIMD optimizations
+#define AETHER_FLAG_ENABLE_MWAIT     (1 &lt;&lt; 4)  // MWAIT for idle
+#define AETHER_FLAG_VERBOSE          (1 &lt;&lt; 5)  // Print config on init</code></pre>
+<h2>Actor Structure Requirements</h2>
+<p>When defining actors in C, follow these rules:</p>
+<pre><code>typedef struct {
+    ActorBase base;     // MUST be first field
+    // Your state fields here
+    int my_value;
+    char* my_string;
+} MyActor;</code></pre>
+<p>The <code>ActorBase</code> contains:</p>
+<ul><li><code>active</code>: Processing flag (<code>atomic_int</code>)</li><li><code>id</code>: Unique actor ID</li><li><code>mailbox</code>: Message queue (ring buffer)</li><li><code>step</code>: Your message handler</li><li><code>assigned_core</code>: Current core assignment (<code>atomic_int</code>, safe for cross-core reads)</li><li><code>migrate_to</code>: Affinity hint for message-driven migration (<code>atomic_int</code>)</li><li><code>main_thread_only</code>: If set, scheduler threads skip this actor (<code>atomic_int</code>)</li><li><code>spsc_queue</code>: Lock-free same-core messaging (pointer, lazily allocated)</li><li><code>reply_slot</code>: Non-NULL during ask/reply (<code>_Atomic</code> pointer)</li><li><code>step_lock</code>: Prevents concurrent <code>step()</code> during work-steal handoff (<code>atomic_flag</code>)</li></ul>
+<h2>Message Handler Pattern</h2>
+<pre><code>void my_actor_step(void* self) {
+    MyActor* actor = (MyActor*)self;
+    Message msg;
+
+    // Drain all pending messages
+    while (mailbox_receive(&amp;actor-&gt;base.mailbox, &amp;msg)) {
+        switch (msg.type) {
+            case MSG_TYPE_1:
+                // Handle message type 1
+                handle_type_1(actor, msg.payload_int);
+                break;
+
+            case MSG_TYPE_2:
+                // Handle message type 2
+                handle_type_2(actor, (SomeStruct*)msg.payload_ptr);
+                break;
+
+            default:
+                // Unknown message type
+                break;
+        }
+    }
+}</code></pre>
+<h2>Build Configuration</h2>
+<h3>Makefile Example</h3>
+<p><code>ae cflags</code> is the canonical way to obtain the include and link flags it covers in-tree dev builds, <code>~/.aether</code> user installs, and <code>/usr/local</code> system installs uniformly. Do not hand-craft <code>-I</code> / <code>-L</code> / <code>-l</code>: the install layout puts the archive at <code>&lt;prefix&gt;/lib/aether/</code> (not flat under <code>&lt;prefix&gt;/lib/</code>), so <code>-laether</code> alone wouldn&#x27;t find it without an explicit <code>-L</code>.</p>
+<pre><code>CC = gcc
+AE_CFLAGS := $(shell ae cflags)
+
+# For Aether source files
+%.c: %.ae
+	aetherc $&lt; $@
+
+myapp: main.c counter.c
+	$(CC) -O2 -o $@ $^ $(AE_CFLAGS)</code></pre>
+<h3>CMake Example</h3>
+<pre><code>cmake_minimum_required(VERSION 3.10)
+project(MyAetherApp)
+
+set(AETHER_HOME &quot;$ENV{HOME}/.aether&quot;)
+
+include_directories(${AETHER_HOME}/include/aether)
+link_directories(${AETHER_HOME}/lib)
+
+add_executable(myapp main.c counter.c)
+target_link_libraries(myapp aether pthread)</code></pre>
+<h2>Thread Safety</h2>
+<ul><li>Each actor runs on one core at a time</li><li>Messages are delivered via thread-safe queues</li><li>Actor state is only accessed by one thread</li><li>Cross-core sends use lock-free queues</li></ul>
+<h2>Host-process boundary</h2>
+<p>The C host and the Aether runtime share a process but have distinct ownership rules. Respect these at every integration point:</p>
+<ol><li><strong>State is message-only.</strong> Actor state is owned by the actor; the host reads and writes it exclusively through messages. Reach-in access bypasses message-ordering guarantees and races with the scheduler.</li><li><strong>Sends are fire-and-forget.</strong> There&#x27;s no synchronous reply from <code>aether_send_message()</code>. When you need a value back, either (a) have the actor send a response message to a host-registered event handler, or (b) have the actor write into shared atomic state the host polls.</li><li><strong>References are manually lifetime-managed.</strong> The host holds the raw <code>ActorBase*</code> (or the generated <code>Counter*</code>) returned by spawn; there&#x27;s no handle type or automatic refcount across the FFI boundary. Keep the pointer as long as you intend to send to the actor. If you spawned from the pool, return it with <code>scheduler_release_pooled()</code> when done.</li><li><strong>One runtime per process.</strong> <code>aether_runtime_init()</code> initializes process-global scheduler state. Calling it twice from the same process is not supported; use separate processes if you need isolated runtimes.</li></ol>
+<h2>Header Generation</h2>
+<p>Pass <code>--emit-header</code> to <code>aetherc</code> to generate a C header alongside the C output. The header contains message struct definitions, <code>MSG_*</code> constants, and actor spawn prototypes, everything needed to send messages to Aether actors from C without copying struct definitions by hand.</p>
+<pre><code>aetherc --emit-header counter.ae counter.c
+# Produces: counter.c  counter.h</code></pre>
+<p><code>--emit-header</code> must precede the input/output paths. Placed after the positional arguments it is ignored and only <code>counter.c</code> is written.</p>
+<p>Example generated header:</p>
+<pre><code>// counter.h (auto-generated by aetherc --emit-header)
+#ifndef COUNTER_H
+#define COUNTER_H
+
+#include &lt;stdint.h&gt;
+#include &quot;runtime/scheduler/multicore_scheduler.h&quot;
+
+// Message IDs (numbered from 0 in declaration order)
+#define MSG_Increment 0
+#define MSG_GetValue  1
+#define MSG_Reset     2
+
+// Message structs, first field is the message ID; single-int payloads
+// widen to intptr_t to match Message.payload_int.
+typedef struct { int _message_id; intptr_t amount; } Increment;
+
+// Spawn prototype
+Counter* spawn_Counter(void);
+
+#endif</code></pre>
+<p>Include the header in your C host application and use the constants with <code>scheduler_send_remote</code>.</p>
+<hr>
+<h2>Polling from a C Event Loop</h2>
+<p>When a C event loop (raylib, SDL, game loop, etc.) holds the main thread, Aether actors in main-thread mode cannot process messages, the scheduler has no opportunity to run.</p>
+<p>Use <code>aether_scheduler_poll()</code> to drain pending messages from C code between frames:</p>
+<pre><code>#include &quot;runtime/scheduler/multicore_scheduler.h&quot;
+
+// In your render/game loop:
+while (!window_should_close()) {
+    // Drain actor messages, process up to 64 per actor per call.
+    // Pass 0 for unlimited (processes all pending).
+    aether_scheduler_poll(64);
+
+    begin_drawing();
+    // ... render ...
+    end_drawing();
+}</code></pre>
+<pre><code>// Signature
+//   max_per_actor: max messages to process per actor per call (0 = unlimited)
+//   returns: total messages processed across all actors
+int aether_scheduler_poll(int max_per_actor);</code></pre>
+<p><code>aether_scheduler_poll</code> is safe to call from the main thread at any time. It only processes actors that are in main-thread mode; scheduler worker threads are not affected. It is a no-op if no actors are registered.</p>
+<h2>See Also</h2>
+<ul><li><a href="/Docs/c-interop.html">C Interoperability</a> - Calling C from Aether</li><li><a href="/Docs/runtime-config.html">Runtime Configuration</a> - Runtime flags and options</li><li><a href="/Docs/actor-concurrency.html">Actor Concurrency</a> - Actor model concepts</li></ul>
+      </article>
+    </main>
+  </div>
+</div>
+<footer class="site-foot">
+  <div class="wrap foot">
+    <span class="ae">ae</span>
+    <span class="m">MIT licensed · compiles to C · v0.454</span>
+    <nav><a href="/Docs/getting-started.html">Docs</a><a href="/repl.html">Playground</a><a href="https://github.com/aether-lang-org/aether">GitHub</a></nav>
+  </div>
+</footer>
 </body>
 </html>

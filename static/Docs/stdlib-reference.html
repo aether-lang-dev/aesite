@@ -1,48 +1,107 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>stdlib-reference</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/style.css" />
-  <link rel="stylesheet" href="/subpages.css" />
-  <link rel="stylesheet" href="/articles.css" />
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Aether Standard Library Reference · Aether</title>
+<meta name="description" content="Aether Standard Library Reference — Aether language documentation.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/aether.css">
 </head>
 <body>
-
-  <!-- NAV -->
-  <nav>
-    <a class="nav-logo" href="/index.html">Aether<span>.</span></a>
-    <ul class="nav-links">
-      <li><a href="/index.html#features">Features</a></li>
-      <li><a href="/index.html#syntax">Syntax</a></li>
-      <li><a href="/index.html#install">Install</a></li>
-      <li><a href="/faq.html">FAQ</a></li>
-    </ul>
-  </nav>
-
-  <!-- MAIN -->
-  <main class="section">
-    <div>
-      <p class="section-label">Learning Material</p>
-    </div>
-
-    <article class="article-content">
-<h1 id="aether-standard-library-reference">Aether Standard Library
-Reference</h1>
-<p>Complete reference for Aether's standard library modules.</p>
-<blockquote>
-<p><strong>Note:</strong> The standard library is under active
-development. The runtime provides C implementations in <code>std/</code>
-that are linked via the <code>ae</code> tool.</p>
-</blockquote>
-<h2 id="using-the-standard-library">Using the Standard Library</h2>
-<p>Import modules with the <code>import</code> statement and call
-functions with namespace syntax:</p>
-<pre class="aether"><code>import std.string
+<header class="site-head">
+  <div class="wrap bar">
+    <a class="brand" href="/" aria-label="Aether"><span class="ae">ae</span><span class="nm">aether</span></a>
+    <nav>
+      <a href="/repl.html">Playground</a>
+      <a href="/Docs/getting-started.html" class="on">Docs</a>
+      <a href="https://github.com/aether-lang-org/aether">Source</a>
+      <span class="vtag">v0.454</span>
+    </nav>
+  </div>
+</header>
+<div class="wrap">
+  <div class="doc-shell">
+    <nav class="doc-nav"><div class="grp">Start</div>
+<a href="/Docs/getting-started.html">Getting Started with Aether</a>
+<a href="/Docs/tutorial.html">Aether Language Tutorial</a>
+<a href="/Docs/next-steps.html">Next Steps</a>
+<div class="grp">Language</div>
+<a href="/Docs/language-reference.html">Aether Language Reference</a>
+<a href="/Docs/type-inference-guide.html">Aether Type Inference Guide</a>
+<a href="/Docs/type-annotation-style-guide.html">Aether Type Annotation Style Guide</a>
+<a href="/Docs/type-inference-multi-value-returns.html">Multi-Value Return Type Inference</a>
+<a href="/Docs/distinct-types.html">Distinct Types</a>
+<a href="/Docs/sequences.html">Sequences (`*StringSeq`)</a>
+<a href="/Docs/named-args-and-select.html">Named Arguments and select()</a>
+<a href="/Docs/closures-and-builder-dsl.html">Closures and Builder-Style DSL in Aether</a>
+<a href="/Docs/closures-and-lifetimes.html">Closures and Environment Lifetimes</a>
+<a href="/Docs/module-system-design.html">Aether Module System</a>
+<div class="grp">Runtime</div>
+<a href="/Docs/architecture.html">Aether Architecture</a>
+<a href="/Docs/actor-concurrency.html">Aether Runtime Guide</a>
+<a href="/Docs/structured-concurrency.html">Structured Concurrency for Aether, Design Direction</a>
+<a href="/Docs/scheduler-quick-reference.html">Aether Scheduler - Quick Reference</a>
+<a href="/Docs/memory-management.html">Aether Memory Management</a>
+<a href="/Docs/runtime-optimizations.html">Runtime Optimizations</a>
+<a href="/Docs/numa-support.html">NUMA Support in Aether</a>
+<div class="grp">Interop</div>
+<a href="/Docs/c-interop.html">C Interoperability</a>
+<a href="/Docs/c-embedding.html">Embedding Aether Actors in C Applications</a>
+<a href="/Docs/emit-lib.html">Embedding Aether as a Shared Library (`--emit=lib`)</a>
+<a href="/Docs/embedded-namespaces-and-host-bindings.html">Aether as a Configuration Language, v2: Namespaces and Generated Bindings</a>
+<a href="/Docs/aether-embedded-in-host-applications.html">Aether as a Configuration Language for Other Languages</a>
+<a href="/Docs/lib-caller-info.html">`--emit=lib` caller-info channel</a>
+<div class="grp">Stdlib</div>
+<a href="/Docs/stdlib-reference.html" class="on">Aether Standard Library Reference</a>
+<a href="/Docs/stdlib-api.html">Aether Standard Library Guide</a>
+<a href="/Docs/stdlib-module-pattern.html">Aether Stdlib Module Pattern</a>
+<a href="/Docs/stdlib-vs-contrib.html">`std/` vs `contrib/` placement decisions</a>
+<a href="/Docs/http-server.html">`std.http` HTTP Server</a>
+<a href="/Docs/http-reverse-proxy.html">`std.http.proxy` reverse proxy</a>
+<a href="/Docs/http-handler-context.html">HTTP handlers with per-server / per-route state</a>
+<a href="/Docs/http-vcr.html">HTTP Record/Replay (VCR), moved out of Aether</a>
+<a href="/Docs/json-parser-design.html">`std.json` Design Notes</a>
+<div class="grp">Safety</div>
+<a href="/Docs/containment-sandbox.html">Containment and Sandboxing in Aether</a>
+<a href="/Docs/hide-and-seal.html">`hide` and `seal except` scope-level capability denial</a>
+<a href="/Docs/compiler-trust-boundary.html">The Compiler Trust Boundary</a>
+<a href="/Docs/config-is-code.html">Config IS Code</a>
+<a href="/Docs/aether_compared_to_capsicum.html">Aether Sandbox Model vs. BSD Capsicum: Architecture, Parallels, and FreeBSD Integration</a>
+<div class="grp">Build</div>
+<a href="/Docs/build-system.html">Build System</a>
+<a href="/Docs/bootstrap-from-source.html">Bootstrapping Aether from source (HEAD)</a>
+<a href="/Docs/install-layout.html">Aether install layout</a>
+<a href="/Docs/runtime-config.html">Runtime Configuration - Quick Reference</a>
+<a href="/Docs/per-process-config.html">Per-process configuration in Aether</a>
+<a href="/Docs/cic-help.html">`ae help &lt;script&gt;` Offline diagnostics for config-IS-code</a>
+<div class="grp">More</div>
+<a href="/Docs/bindgen-consts.html">`ae bindgen consts`, importing C macro constants</a>
+<a href="/Docs/formatter.html">`ae fmt`, the source formatter</a>
+<a href="/Docs/isolated.html">`Isolated[T]`: move-only actor message payloads (#479)</a>
+<a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
+<a href="/Docs/profiling-guide.html">Aether Runtime Profiling Guide</a>
+<a href="/Docs/allocators.html">Allocators</a>
+<a href="/Docs/when-static-if.html">Compile-time `when` / static-if</a>
+<a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
+<a href="/Docs/contract-folding.html">Compile-time contract folding — costed design</a>
+<a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn&#x27;t need `macro_rules!`</a>
+<a href="/Docs/release-glibc-portability.html">Release binary portability across glibc versions</a>
+<a href="/Docs/error-unification.html">Unifying `T?` and `(value, err)` — costed design</a></nav>
+    <main class="doc-main">
+      <article class="doc-body">
+        <div class="bc">docs / stdlib</div>
+<h1>Aether Standard Library Reference</h1>
+<p>Complete reference for Aether&#x27;s standard library modules.</p>
+<blockquote><strong>Note:</strong> The standard library follows the canonical module pattern in <a href="/Docs/stdlib-module-pattern.html">stdlib-module-pattern.md</a>, fallible operations expose a <code>_raw</code> extern plus a Go-style <code>(value, err)</code> Aether wrapper; pure/infallible operations stay raw without a suffix. See the <a href="../examples/basics/error-handling.ae">error handling example</a> for how the pattern is used from user code, and <a href="../std/fs/module.ae">std/fs/module.ae</a> for the reference implementation.</blockquote>
+<h2>Platform support</h2>
+<table><thead><tr><th>Target</th><th>Filesystem</th><th>Networking</th><th>Threading</th><th>Notes</th></tr></thead><tbody><tr><td>Linux / macOS / BSD</td><td>full POSIX</td><td>full</td><td>full</td><td>Reference target.</td></tr><tr><td>Windows (MSYS2 / mingw-w64)</td><td>partial</td><td>full</td><td>full</td><td>Process exec uses POSIX fallbacks; <code>os.run</code> is POSIX-only until the <code>CreateProcessW</code> backend lands. Some fs operations (<code>symlink</code>, <code>readlink</code>) are stubs returning clean errors via the Go-style wrappers.</td></tr><tr><td>WASI (wasi-sdk)</td><td>per preopened paths</td><td>none</td><td>single-threaded</td><td>wasi-libc provides POSIX-compatible <code>fopen</code>/<code>fread</code>/<code>stat</code>/etc., so the normal fs code path compiles. Paths must be under a WASI preopen.</td></tr><tr><td>Emscripten (browser WASM)</td><td>off by default</td><td>off</td><td>cooperative</td><td>Builds pass <code>-DAETHER_NO_FILESYSTEM -DAETHER_NO_NETWORKING</code>. File ops return <code>(null, &quot;cannot open file&quot;)</code> via the Go-style wrappers, no silent failures. To enable, compile with <code>-sFORCE_FILESYSTEM=1</code> and drop the define; untested in CI.</td></tr><tr><td>Bare embedded</td><td>off</td><td>off</td><td>cooperative</td><td>Same as Emscripten, stubs route all failures through the Go-style error tuples.</td></tr></tbody></table>
+<p>When a target lacks a capability, the stub implementations in each stdlib module return <code>NULL</code> / <code>0</code> so the Go-style wrapper produces a descriptive error string rather than crashing. A call like <code>file.read(&quot;/etc/hosts&quot;)</code> on a no-fs target returns <code>(&quot;&quot;, &quot;cannot open file&quot;)</code>, which the caller handles the same way as any other I/O error.</p>
+<h2>Using the Standard Library</h2>
+<p>Import modules with the <code>import</code> statement and call functions with namespace syntax:</p>
+<pre><code>import std.string
 import std.file
 
 main() {
@@ -56,16 +115,18 @@ main() {
 
     string.release(s);
 }</code></pre>
-<hr />
-<h2 id="collections">Collections</h2>
-<h3 id="list-stdlist">List (<code>std.list</code>)</h3>
+<hr>
+<h2>Collections</h2>
+<h3>List (<code>std.list</code>)</h3>
 <p>Dynamic array (ArrayList) implementation.</p>
-<pre class="aether"><code>import std.list
+<pre><code>import std.list
 
 main() {
     mylist = list.new()
     defer list.free(mylist)
 
+    // list.add returns an error string. Empty = success; non-empty
+    // indicates a resize/OOM failure that was previously silent.
     list.add(mylist, 10)
     list.add(mylist, 20)
 
@@ -76,30 +137,54 @@ main() {
     list.clear(mylist)
 }</code></pre>
 <p><strong>Functions:</strong></p>
-<ul>
-<li><code>list.new()</code> - Create new list</li>
-<li><code>list.add(list, item)</code> - Append item</li>
-<li><code>list.get(list, index)</code> - Get item at index</li>
-<li><code>list.set(list, index, item)</code> - Set item at index</li>
-<li><code>list.remove(list, index)</code> - Remove item at index</li>
-<li><code>list.size(list)</code> - Get number of elements</li>
-<li><code>list.clear(list)</code> - Remove all elements</li>
-<li><code>list.free(list)</code> - Free list memory</li>
-</ul>
-<h3 id="map-stdmap">Map (<code>std.map</code>)</h3>
+<ul><li><code>list.new()</code> - Create new list</li><li><code>list.add(list, item)</code> → <code>string</code> - Append item, return error string</li><li><code>list.get(list, index)</code> - Get item at index</li><li><code>list.set(list, index, item)</code> - Set item at index</li><li><code>list.remove(list, index)</code> - Remove item at index</li><li><code>list.size(list)</code> - Get number of elements</li><li><code>list.clear(list)</code> - Remove all elements</li><li><code>list.free(list)</code> - Free list memory</li></ul>
+<p>Raw extern: <code>list_add_raw</code> (returns 1/0).</p>
+<h3>String list (<code>string_list_*</code>)</h3>
+<p>Refcount-aware list for <code>AetherString</code> values. Use this instead of plain <code>list_*</code> when the list is meant to hold strings, the plain list stores items as raw <code>void*</code> and doesn&#x27;t bump the refcount, so a string pushed and held while its original variable goes out of scope silently dangles.</p>
+<pre><code>import std.collections
+import std.string
+
+build() -&gt; ptr {
+    L = string_list_new()
+    s = string.copy(&quot;ephemeral&quot;)   // wrapped AetherString*
+    string_list_add(L, s)          // takes a strong reference
+    return L
+    // `s` goes out of scope; the list&#x27;s retain keeps the bytes alive.
+}
+
+main() {
+    L = build()
+    println(string_list_get(L, 0))  // &quot;ephemeral&quot;
+    string_list_free(L)             // releases every entry
+}</code></pre>
+<p>Plain string literals pass through unchanged, <code>string_retain</code> is a no-op on values that don&#x27;t bear the AetherString magic header.</p>
+<p><strong>Functions:</strong></p>
+<ul><li><code>string_list_new()</code> → <code>ptr</code> - Allocate an empty list</li><li><code>string_list_add(list, s)</code> → <code>int</code> - Append; takes a strong reference; returns 1 on success, 0 on OOM</li><li><code>string_list_get(list, index)</code> → <code>string</code> - Borrowed read; null on OOB</li><li><code>string_list_set(list, index, s)</code> - Replace at index; releases old + retains new</li><li><code>string_list_size(list)</code> → <code>int</code> - -1 on null</li><li><code>string_list_remove(list, index)</code> - Remove + release the entry</li><li><code>string_list_clear(list)</code> - Drop every entry, keep the backing alloc</li><li><code>string_list_free(list)</code> - Release every entry then free</li><li><code>string_list_sort_lex(list)</code> - Stable ascending lexicographic (byte-wise) sort, in place</li><li><code>string_list_sort(list, cmp)</code> - Stable in-place sort by a comparator closure <code>|a: string, b: string| { ... }</code> returning negative / 0 / positive (like <code>strcmp</code>)</li></ul>
+<p>Both sorts reorder the backing slots only, no element is copied or freed, so they sidestep the get/set aliasing trap of a hand-rolled swap (<code>string_list_get</code> returns the slot&#x27;s internal pointer; a naive adjacent swap would free a slot another borrowed pointer still aliases). Issue #967.</p>
+<pre><code>names = string_list_new()
+string_list_add(names, &quot;Charlie&quot;)
+string_list_add(names, &quot;alice&quot;)
+string_list_add(names, &quot;Bob&quot;)
+
+string_list_sort_lex(names)                 // &quot;Bob&quot;, &quot;Charlie&quot;, &quot;alice&quot; (ASCII order)
+
+string_list_sort(names, |a: string, b: string| {
+    return string.length(a) - string.length(b)   // shortest first, stable
+})</code></pre>
+<p>For a similar <code>string_map</code>, file an issue, same pattern would apply. Issue #274.</p>
+<h3>Map (<code>std.map</code>)</h3>
 <p>Hash map implementation.</p>
-<pre class="aether"><code>import std.map
+<pre><code>import std.map
 import std.string
 
 main() {
     mymap = map.new();
     defer map.free(mymap);
 
-    // Keys are raw string literals (const char*),
-    // values are pointers (AetherString* here)
     val = string.new(&quot;Aether&quot;);
     defer string.release(val);
 
+    // map.put returns an error string.
     map.put(mymap, &quot;name&quot;, val);
     result = map.get(mymap, &quot;name&quot;);
     exists = map.has(mymap, &quot;name&quot;);
@@ -110,77 +195,143 @@ main() {
     map.clear(mymap);
 }</code></pre>
 <p><strong>Functions:</strong></p>
-<ul>
-<li><code>map.new()</code> - Create new map</li>
-<li><code>map.put(map, key, value)</code> - Insert or update key-value
-pair</li>
-<li><code>map.get(map, key)</code> - Get value by key</li>
-<li><code>map.has(map, key)</code> - Check if key exists</li>
-<li><code>map.remove(map, key)</code> - Remove key-value pair</li>
-<li><code>map.size(map)</code> - Get number of entries</li>
-<li><code>map.clear(map)</code> - Remove all entries</li>
-<li><code>map.free(map)</code> - Free map memory</li>
-</ul>
-<hr />
-<h2 id="strings-stdstring">Strings (<code>std.string</code>)</h2>
+<ul><li><code>map.new()</code> - Create new map</li><li><code>map.put(map, key, value)</code> → <code>string</code> - Insert or update, return error string</li><li><code>map.get(map, key)</code> - Get value by key (null if missing)</li><li><code>map.has(map, key)</code> - Check if key exists</li><li><code>map.remove(map, key)</code> - Remove key-value pair</li><li><code>map.size(map)</code> - Get number of entries</li><li><code>map.clear(map)</code> - Remove all entries</li><li><code>map.free(map)</code> - Free map memory</li></ul>
+<p>Raw extern: <code>map_put_raw</code> (returns 1/0).</p>
+<h3>Set (<code>std.set</code>)</h3>
+<p>Unordered collection of unique strings, backed by the same hash table as <code>std.map</code>, so lookups are O(1) on average. Items are copied on insert, so the caller&#x27;s string lifetime does not matter.</p>
+<pre><code>import std.set
+
+main() {
+    visited = set.new()
+    defer set.free(visited)
+
+    set.add(visited, &quot;/index&quot;)          // true, newly added
+    set.add(visited, &quot;/index&quot;)          // false, already present
+    set.add(visited, &quot;/about&quot;)
+
+    if set.contains(visited, &quot;/about&quot;) {
+        println(&quot;pages: ${set.size(visited)}&quot;)
+    }
+
+    set.remove(visited, &quot;/about&quot;)
+}</code></pre>
+<p><strong>Functions:</strong></p>
+<ul><li><code>set.new()</code> → <code>ptr</code> - Create a new set (null on allocation failure)</li><li><code>set.add(set, item)</code> → <code>bool</code> - True if added, false if already present or the insert failed</li><li><code>set.contains(set, item)</code> → <code>bool</code> - Membership test</li><li><code>set.remove(set, item)</code> - Drop an item; absent items are ignored</li><li><code>set.size(set)</code> → <code>int</code> - Number of unique items</li><li><code>set.clear(set)</code> - Drop every item, keeping the set usable</li><li><code>set.free(set)</code> - Release the set (items were copied in, nothing else to free)</li><li><code>set.items(set)</code> → <code>(ptr, string)</code> - Snapshot of the items in unspecified order; release with <code>set.items_free</code></li><li><code>set.items_free(items)</code> - Release a snapshot from <code>set.items</code></li></ul>
+<p>Calls on a null set are safe: <code>size</code> reports 0, <code>contains</code> reports false.</p>
+<p>Raw externs are the <code>aether_set_*</code> entry points, which return C-style ints.</p>
+<h3>Priority queue (<code>std.pqueue</code>)</h3>
+<p>Binary heap over <code>(priority, item)</code> pairs. The lowest priority value comes out first; negate the priority for highest-first. Push and pop are O(log n); peek and size are O(1).</p>
+<p>The queue stores item pointers <strong>without taking ownership</strong>: it never frees them, so heap items you push remain yours to release.</p>
+<pre><code>import std.pqueue
+
+main() {
+    jobs = pqueue.new()
+    defer pqueue.free(jobs)
+
+    pqueue.push(jobs, 30, &quot;send newsletter&quot;)
+    pqueue.push(jobs, 5,  &quot;page on-call&quot;)
+    pqueue.push(jobs, 20, &quot;rebuild index&quot;)
+
+    while pqueue.size(jobs) &gt; 0 {
+        priority = pqueue.peek_priority(jobs)
+        job = pqueue.pop(jobs)
+        println(&quot;[${priority}] ${job}&quot;)     // 5, 20, 30
+    }
+}</code></pre>
+<p><strong>Functions:</strong></p>
+<ul><li><code>pqueue.new()</code> → <code>ptr</code> - Create a new queue (null on allocation failure)</li><li><code>pqueue.push(pq, priority, item)</code> → <code>bool</code> - Enqueue; false on a null queue or allocation failure</li><li><code>pqueue.pop(pq)</code> → <code>ptr</code> - Remove and return the lowest-priority item, null when empty</li><li><code>pqueue.peek(pq)</code> → <code>ptr</code> - Next item without removing it, null when empty</li><li><code>pqueue.peek_priority(pq)</code> → <code>long</code> - Priority of the item <code>peek</code> would return (0 when empty)</li><li><code>pqueue.size(pq)</code> → <code>int</code> - Number of queued entries</li><li><code>pqueue.is_empty(pq)</code> → <code>bool</code> - True when nothing is queued</li><li><code>pqueue.clear(pq)</code> - Drop every entry, keeping the queue usable (items are not freed)</li><li><code>pqueue.free(pq)</code> - Release the queue (items were never owned by it)</li></ul>
+<p>Calls on a null queue are safe: <code>size</code> reports 0, <code>pop</code> and <code>peek</code> return null.</p>
+<p>Raw externs are the <code>aether_pqueue_*</code> entry points, which return C-style ints.</p>
+<h3>Fixed-size int array (<code>std.intarr</code>)</h3>
+<p>Packed int buffer with O(1) random access. For DP tables, flat int-keyed lookup, and other hot paths where <code>std.list</code>&#x27;s <code>void*</code>-boxed items cost an allocation per entry. Size is fixed at allocation, callers that need growth use <code>std.list</code>.</p>
+<pre><code>import std.intarr
+
+main() {
+    // Blame LCS DP table: M rows * N cols, flat buffer.
+    rows = 100
+    cols = 50
+    dp, err = intarr.new(rows * cols)
+    if err != &quot;&quot; { return }
+
+    // Hot loop, _unchecked skips the bounds check (valid index required).
+    r = 0
+    while r &lt; rows {
+        c = 0
+        while c &lt; cols {
+            intarr_set_unchecked(dp, r * cols + c, r + c)
+            c = c + 1
+        }
+        r = r + 1
+    }
+
+    intarr_free(dp)
+}</code></pre>
+<p><strong>Functions:</strong></p>
+<ul><li><code>intarr.new(size)</code> → <code>(ptr, string)</code> - Allocate zero-initialised array</li><li><code>intarr.new_filled(size, init)</code> → <code>(ptr, string)</code> - Allocate with every slot set to <code>init</code></li><li><code>intarr.get(arr, i)</code> → <code>(int, string)</code> - Bounds-checked read</li><li><code>intarr.set(arr, i, value)</code> → <code>string</code> - Bounds-checked write</li><li><code>intarr_size(arr)</code> → <code>int</code> - Returns -1 for null</li><li><code>intarr_fill(arr, value)</code> - Reset every slot to <code>value</code></li><li><code>intarr_free(arr)</code> - Release</li></ul>
+<p><strong>Hot-path (caller-validated) variants, no bounds check:</strong></p>
+<ul><li><code>intarr_get_raw(arr, i)</code> / <code>intarr_set_raw(arr, i, v)</code> - Safe on OOB (returns 0 / no-op), no error report</li><li><code>intarr_get_unchecked(arr, i)</code> / <code>intarr_set_unchecked(arr, i, v)</code> - Undefined behaviour on OOB, for inner loops</li></ul>
+<h3>Fixed-size float array (<code>std.floatarr</code>)</h3>
+<p>Packed double buffer, the float twin of <code>std.intarr</code>. Aether&#x27;s <code>float</code> lowers to C <code>double</code>, so the element type is <code>double</code> end-to-end. Same fixed-size discipline, same bounds-check policy. Motivating use cases: SVG path-command argument storage, rasterizer edge tables, bbox accumulators, blur kernel coefficients, any <code>number[]</code>-shaped data where boxing each scalar into a <code>*Pt</code> struct would chase a pointer per element.</p>
+<pre><code>import std.floatarr
+
+main() {
+    // Gaussian kernel coefficients, length 2r+1 for radius r.
+    radius = 3
+    n = 2 * radius + 1
+    kernel, err = floatarr.new(n)
+    if err != &quot;&quot; { return }
+
+    // ... fill from sigma ...
+    floatarr_free(kernel)
+}</code></pre>
+<p><strong>Functions:</strong></p>
+<ul><li><code>floatarr.new(size)</code> → <code>(ptr, string)</code> - Allocate zero-initialised array</li><li><code>floatarr.new_filled(size, init)</code> → <code>(ptr, string)</code> - Allocate with every slot set to <code>init</code></li><li><code>floatarr.get(arr, i)</code> → <code>(float, string)</code> - Bounds-checked read</li><li><code>floatarr.set(arr, i, value)</code> → <code>string</code> - Bounds-checked write</li><li><code>floatarr_size(arr)</code> → <code>int</code> - Returns -1 for null</li><li><code>floatarr_fill(arr, value)</code> - Reset every slot to <code>value</code></li><li><code>floatarr_free(arr)</code> - Release</li></ul>
+<p><strong>Hot-path (caller-validated) variants, no bounds check:</strong></p>
+<ul><li><code>floatarr_get_raw(arr, i)</code> / <code>floatarr_set_raw(arr, i, v)</code> - Safe on OOB (returns 0.0 / no-op), no error report</li><li><code>floatarr_get_unchecked(arr, i)</code> / <code>floatarr_set_unchecked(arr, i, v)</code> - Undefined behaviour on OOB, for inner loops</li></ul>
+<h3>Mutable byte buffer (<code>std.bytes</code>)</h3>
+<p>Mutable random-access byte buffer with overlap-safe forward <code>copy_within</code>. Aether&#x27;s <code>string</code> is immutable; reach for <code>std.bytes</code> when you need to write bytes at arbitrary indices and read bytes the loop just wrote (binary codec output buffers, varint emit, frame layout, RLE-style overlap copy).</p>
+<pre><code>import std.bytes
+
+main() {
+    // Build &quot;[abc]&quot; by writing one byte at a time.
+    b = bytes.new(8)
+    bytes.set(b, 0, 91)                    // &#x27;[&#x27;
+    bytes.copy_from_string(b, 1, &quot;abc&quot;, 3)
+    bytes.set(b, 4, 93)                    // &#x27;]&#x27;
+
+    // Hand off to a refcounted AetherString, buffer is consumed.
+    s = bytes.finish(b, 5)                 // &quot;[abc]&quot;
+}</code></pre>
+<p>The headline use case is the RLE-overlap pattern that immutable concat can&#x27;t express:</p>
+<pre><code>// Pre-fill with [A, B], then expand to [A, B, A, B, A, B] in one call.
+b = bytes.new(8)
+bytes.set(b, 0, 65)
+bytes.set(b, 1, 66)
+bytes.copy_within(b, 2, 0, 4)             // dst=2, src=0, length=4
+out = bytes.finish(b, 6)                  // &quot;ABABAB&quot;</code></pre>
+<p><code>copy_within</code> is <strong>forward byte-by-byte</strong> (deliberately not <code>memmove</code>-style). When <code>dst &gt; src</code>, each iteration <code>i</code> reads <code>data[src + i]</code> which earlier iterations of the same call may have just written. That&#x27;s how runs of repeated bytes get encoded.</p>
+<p><strong>Functions:</strong></p>
+<ul><li><code>bytes.new(initial_capacity)</code> → <code>ptr</code> - Allocate empty buffer with reserved capacity</li><li><code>bytes.length(b)</code> → <code>int</code> - Logical byte count (-1 if null)</li><li><code>bytes.set(b, index, byte)</code> → <code>int</code> - Write byte at index; gaps zero-fill; returns 1 on success</li><li><code>bytes.get(b, index)</code> → <code>int</code> - Read byte at index as unsigned 0..255; -1 on OOB / NULL / negative</li><li><code>bytes.set_le16(b, index, value)</code> → <code>int</code> - Little-endian 16-bit write at index..index+1; grows; 1 on success</li><li><code>bytes.get_le16(b, index)</code> → <code>int</code> - Little-endian 16-bit read; -1 if range past current length</li><li><code>bytes.set_le32(b, index, value)</code> → <code>int</code> - Little-endian 32-bit write at index..index+3; grows; 1 on success</li><li><code>bytes.get_le32(b, index)</code> → <code>int</code> - Little-endian 32-bit read; -1 if range past current length</li><li><code>bytes.set_le64(b, index, value: long)</code> → <code>int</code> - Little-endian 64-bit write at index..index+7; grows; 1 on success</li><li><code>bytes.get_le64(b, index)</code> → <code>long</code> - Little-endian 64-bit read; -1 if range past current length; round-trips losslessly with set_le64</li><li><code>bytes.set_be16(b, index, value)</code> → <code>int</code> - Big-endian 16-bit write (MSB first); grows; 1 on success</li><li><code>bytes.get_be16(b, index)</code> → <code>int</code> - Big-endian 16-bit read; -1 if range past current length</li><li><code>bytes.set_be32(b, index, value)</code> → <code>int</code> - Big-endian 32-bit write (MSB first); grows; 1 on success</li><li><code>bytes.get_be32(b, index)</code> → <code>int</code> - Big-endian 32-bit read; -1 if range past current length</li><li><code>bytes.set_be64(b, index, value: long)</code> → <code>int</code> - Big-endian 64-bit write (MSB first); grows; 1 on success</li><li><code>bytes.get_be64(b, index)</code> → <code>long</code> - Big-endian 64-bit read; -1 if range past current length; round-trips losslessly with set_be64</li><li><code>bytes.copy_from_string(b, dst, src, src_len)</code> → <code>int</code> - Copy from a string into the buffer at offset</li><li><code>bytes.copy_from_bytes(dst, dst_off, src, src_off, length)</code> → <code>int</code> - Copy between distinct buffers (memmove semantics); grows <code>dst</code> if needed. Use for two-pass algorithms like separable Gaussian blur.</li><li><code>bytes.copy_within(b, dst, src, length)</code> → <code>int</code> - Self-copy, forward byte-by-byte (RLE-safe)</li><li><code>bytes.finish(b, length)</code> → <code>string</code> - Hand off to refcounted AetherString; buffer is consumed</li><li><code>bytes.free(b)</code> - Discard without finishing (idempotent on null)</li></ul>
+<p><strong>Streaming binary reads without a per-block copy (#1102).</strong> A fixed-size block reader (walking 512-byte sectors of a device, say) can read straight into a reused <code>std.bytes</code> buffer instead of allocating a fresh string per block: <code>fs.pread_into(file, buf, len, offset)</code> reads up to <code>len</code> bytes at <code>offset</code> directly into <code>buf</code> (clamped to its capacity), sets <code>buf</code>&#x27;s length to the count read, and returns <code>(n, err)</code> with the same EOF (<code>n == 0</code>) / short-read (<code>0 &lt; n &lt; len</code>) / I/O-error (<code>err != &quot;&quot;</code>) distinction as <code>fs.pread</code>. The packed integers are then read in place with <code>bytes.get_le64</code> etc., or walked with a cursor. <code>std.bytes.cursor</code> offers both byte orders, <code>read_be_u16/32/64</code> and <code>read_le_u16/32/64</code> (each returns <code>-1</code> and leaves the cursor unchanged at end-of-buffer), so little-endian on-disk formats stream as cleanly as big-endian wire formats.</p>
+<p>The build-then-walk pattern needed by binary-codec encoders (svndiff and similar) is what <code>bytes.get</code> / <code>bytes.{set,get}_le32</code> are for, accumulate packed-int ops into the same buffer via <code>set_le32</code> at known offsets, then walk and read each back at finish time:</p>
+<pre><code>b = bytes.new(0)
+bytes.set_le32(b, 0,  action)    // op0
+bytes.set_le32(b, 4,  length)
+bytes.set_le32(b, 8,  offset)
+// … later …
+op0_action = bytes.get_le32(b, 0)
+op0_length = bytes.get_le32(b, 4)</code></pre>
+<hr>
+<h2>Strings (<code>std.string</code>)</h2>
 <p>Reference-counted strings with comprehensive operations.</p>
-<h3 id="string-types-plain-strings-vs-managed-strings">String Types:
-Plain Strings vs Managed Strings</h3>
-<blockquote>
-<p><strong>Most users don't need managed strings.</strong> All
-<code>std.string</code> functions work on both plain strings and managed
-strings transparently. <code>string.length("hello")</code> just works —
-no conversion needed. Only create managed strings via
-<code>string.new()</code> when you need reference counting.</p>
-</blockquote>
+<h3>String Types: Plain Strings vs Managed Strings</h3>
+<blockquote><strong>Most users don&#x27;t need managed strings.</strong> All <code>std.string</code> functions work on both plain strings<br>and managed strings transparently. <code>string.length(&quot;hello&quot;)</code> just works, no conversion needed.<br>Only create managed strings via <code>string.new()</code> when you need reference counting.</blockquote>
 <p>Aether has two string representations:</p>
-<table>
-<thead>
-<tr>
-<th></th>
-<th><code>string</code> (plain)</th>
-<th>Managed (<code>ptr</code> via <code>string.new()</code>)</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>C type</strong></td>
-<td><code>const char*</code></td>
-<td><code>AetherString*</code></td>
-</tr>
-<tr>
-<td><strong>Allocation</strong></td>
-<td>Static (literals) or manual</td>
-<td>Heap (reference-counted)</td>
-</tr>
-<tr>
-<td><strong>Memory</strong></td>
-<td>None needed</td>
-<td><code>string.release()</code> or
-<code>defer string.free()</code></td>
-</tr>
-<tr>
-<td><strong>Knows length?</strong></td>
-<td>Computed via <code>strlen</code></td>
-<td>Stored in struct (<code>O(1)</code>)</td>
-</tr>
-<tr>
-<td><strong>std.string functions</strong></td>
-<td>All work</td>
-<td>All work</td>
-</tr>
-</tbody>
-</table>
-<p><strong><code>string</code></strong> — plain C string. String
-literals like <code>"hello"</code> are this type. All
-<code>std.string</code> functions accept these directly.</p>
-<p><strong>Managed strings</strong> — heap-allocated objects returned by
-<code>string.new()</code>. Typed as <code>ptr</code> in Aether code. Use
-when you need reference counting or the result of transformation
-functions like <code>string.trim()</code>,
-<code>string.to_upper()</code>.</p>
+<table><thead><tr><th></th><th><code>string</code> (plain)</th><th>Managed (<code>ptr</code> via <code>string.new()</code>)</th></tr></thead><tbody><tr><td><strong>C type</strong></td><td><code>const char*</code></td><td><code>AetherString*</code></td></tr><tr><td><strong>Allocation</strong></td><td>Static (literals) or manual</td><td>Heap (reference-counted)</td></tr><tr><td><strong>Memory</strong></td><td>None needed</td><td><code>string.release()</code> or <code>defer string.free()</code></td></tr><tr><td><strong>Knows length?</strong></td><td>Computed via <code>strlen</code></td><td>Stored in struct (<code>O(1)</code>)</td></tr><tr><td><strong>std.string functions</strong></td><td>All work</td><td>All work</td></tr></tbody></table>
+<p><strong><code>string</code></strong>, plain C string. String literals like <code>&quot;hello&quot;</code> are this type. All <code>std.string</code> functions accept these directly.</p>
+<p><strong>Managed strings</strong>, heap-allocated objects returned by <code>string.new()</code>. Typed as <code>ptr</code> in Aether code. Use when you need reference counting or the result of transformation functions like <code>string.trim()</code>, <code>string.to_upper()</code>.</p>
 <p><strong>Converting between them:</strong></p>
-<pre class="aether"><code>import std.string
+<pre><code>import std.string
 
 main() {
     // Raw literal → managed: use string.new()
@@ -195,18 +346,9 @@ main() {
     defer string.free(trimmed)
 }</code></pre>
 <p><strong>Best practices:</strong></p>
-<ul>
-<li>Use <code>string</code> for message fields — keeps payloads
-simple</li>
-<li>Use managed strings when you need to manipulate text (trim, split,
-concat)</li>
-<li>Always <code>defer string.free()</code> immediately after creating a
-managed string</li>
-<li>Use <code>string.to_cstr()</code> when passing managed strings to
-<code>print</code> or message fields</li>
-</ul>
-<h3 id="usage-examples">Usage Examples</h3>
-<pre class="aether"><code>import std.string
+<ul><li>Use <code>string</code> for message fields, keeps payloads simple</li><li>Use managed strings when you need to manipulate text (trim, split, concat)</li><li>Always <code>defer string.free()</code> immediately after creating a managed string</li><li>Use <code>string.to_cstr()</code> when passing managed strings to <code>print</code> or message fields</li></ul>
+<h3>Usage Examples</h3>
+<pre><code>import std.string
 
 main() {
     // Create strings
@@ -231,16 +373,28 @@ main() {
     // Substrings
     sub = string.substring(s, 0, 3);  // &quot;Hel&quot;
 
-    // Splitting
+    // Splitting, pick the shape that matches your access pattern.
     csv = string.new(&quot;a,b,c&quot;);
+
+    // (a) AetherStringArray, O(1) random access via integer index.
     parts = string.split(csv, &quot;,&quot;);
-    count = string.array_size(parts);  // 3
-    first = string.array_get(parts, 0); // &quot;a&quot;
+    count = string.array_size(parts);   // 3
+    first = string.array_get(parts, 0);  // &quot;a&quot;
     string.array_free(parts);
+
+    // (b) *StringSeq cons-cell, O(1) head/tail/cons/length, refcount-
+    //     aware, pattern-matches with [h | t]. Reach for this when the
+    //     result will be walked recursively or sent across an actor
+    //     boundary as a message field. See docs/sequences.md.
+    parts_seq = string.split_to_seq(csv, &quot;,&quot;);
+    n = string.seq_length(parts_seq);    // 3 (O(1) cached)
+    h = string.seq_head(parts_seq);       // &quot;a&quot;
+    string.seq_free(parts_seq);
+
     string.release(csv);
 
     // Conversion
-    n = string.from_int(42);       // &quot;42&quot;
+    numstr = string.from_int(42);  // &quot;42&quot;
     f = string.from_float(3.14);   // &quot;3.14&quot;
     cstr = string.to_cstr(s);     // raw C string pointer
 
@@ -249,171 +403,143 @@ main() {
     string.release(s2);
 }</code></pre>
 <p><strong>Creation:</strong></p>
-<ul>
-<li><code>string.new(cstr)</code> - Create from C string</li>
-<li><code>string.from_literal(cstr)</code> - Create from string literal
-(alias for <code>new</code>)</li>
-<li><code>string.from_cstr(cstr)</code> - Create from C string (alias
-for <code>new</code>)</li>
-<li><code>string.empty()</code> - Create empty string</li>
-</ul>
+<ul><li><code>string.new(cstr)</code> - Create from C string</li><li><code>string.from_literal(cstr)</code> - Create from string literal (alias for <code>new</code>)</li><li><code>string.from_cstr(cstr)</code> - Create from a C string (alias for <code>new</code>). Also accepts an <code>AetherString*</code> (e.g. a value read back from <code>list.add_string_owned</code> via <code>list.get</code>), copying its payload rather than its header bytes.</li><li><code>string.empty()</code> - Create empty string</li></ul>
 <p><strong>Operations:</strong></p>
-<ul>
-<li><code>string.length(str)</code> - Get length</li>
-<li><code>string.concat(a, b)</code> - Concatenate two strings (returns
-new string)</li>
-<li><code>string.char_at(str, index)</code> - Get character at
-index</li>
-<li><code>string.equals(a, b)</code> - Check equality (returns 1/0)</li>
-<li><code>string.compare(a, b)</code> - Lexicographic compare (returns
--1, 0, 1)</li>
-</ul>
+<ul><li><code>string.length(str)</code> - Get length</li><li><code>string.concat(a, b)</code> - Concatenate two strings (returns new string)</li><li><code>string.char_at(str, index)</code> - Get character at index</li><li><code>string.equals(a, b)</code> - Check equality (returns 1/0)</li><li><code>string.compare(a, b)</code> - Lexicographic compare (returns -1, 0, 1)</li></ul>
 <p><strong>Searching:</strong></p>
-<ul>
-<li><code>string.starts_with(str, prefix)</code> - Check prefix (returns
-1/0)</li>
-<li><code>string.ends_with(str, suffix)</code> - Check suffix (returns
-1/0)</li>
-<li><code>string.contains(str, sub)</code> - Check if substring exists
-(returns 1/0)</li>
-<li><code>string.index_of(str, sub)</code> - Find position of substring
-(returns -1 if not found)</li>
-</ul>
+<ul><li><code>string.starts_with(str, prefix)</code> - Check prefix (returns 1/0)</li><li><code>string.ends_with(str, suffix)</code> - Check suffix (returns 1/0)</li><li><code>string.contains(str, sub)</code> - Check if substring exists (returns 1/0)</li><li><code>string.index_of(str, sub)</code> - Find position of substring (returns -1 if not found)</li></ul>
 <p><strong>Transformation:</strong></p>
-<ul>
-<li><code>string.substring(str, start, end)</code> - Extract
-substring</li>
-<li><code>string.to_upper(str)</code> - Convert to uppercase (returns
-new string)</li>
-<li><code>string.to_lower(str)</code> - Convert to lowercase (returns
-new string)</li>
-<li><code>string.trim(str)</code> - Remove leading/trailing
-whitespace</li>
-</ul>
+<ul><li><code>string.substring(str, start, end)</code> - Extract substring</li><li><code>string.substring_n(str, str_len_bytes, start, end)</code> - Length-aware sibling. Caller threads the source length through; <code>str_len(s)</code> is not consulted internally. Reach for this when <code>str</code> arrived as a <code>string</code>-typed parameter at a function boundary AND the content may contain embedded NULs, see <a href="c-interop.md#passing-string-values-into-c-externs-auto-unwrap">c-interop.md § Passing string values into C externs (auto-unwrap)</a>. Without it, the auto-unwrap (#297) strips the AetherString header at the call site, <code>str_len</code> falls through to <code>strlen</code>, and binary content gets truncated at the first NUL.</li><li><code>string.length_n(str, known_length)</code> - Identity helper that documents intent. In code that receives a <code>string</code> parameter plus an explicit length, the explicit length IS the truth, don&#x27;t consult the AetherString header. <code>n = string.length_n(s, n)</code> reads as &quot;yes I know my length&quot; instead of looking like a forgotten <code>string.length(s)</code> that would have truncated at NUL.</li><li><code>string.to_upper(str)</code> - Convert to uppercase (returns new string)</li><li><code>string.to_lower(str)</code> - Convert to lowercase (returns new string)</li><li><code>string.trim(str)</code> - Remove leading/trailing whitespace</li></ul>
 <p><strong>Splitting:</strong></p>
-<ul>
-<li><code>string.split(str, delimiter)</code> - Split string by
-delimiter (returns array)</li>
-<li><code>string.array_size(arr)</code> - Get number of parts in split
-result</li>
-<li><code>string.array_get(arr, index)</code> - Get string at index from
-split result</li>
-<li><code>string.array_free(arr)</code> - Free split result array</li>
-</ul>
+<ul><li><code>string.split(str, delimiter)</code> - Split string by delimiter (returns array)</li><li><code>string.array_size(arr)</code> - Get number of parts in split result</li><li><code>string.array_get(arr, index)</code> - Get string at index from split result</li><li><code>string.array_free(arr)</code> - Free split result array</li><li><code>string.split_to_seq(str, delimiter)</code> - Split into a <code>*StringSeq</code> cons-cell list (Erlang/Elixir-shaped). Same split semantics as <code>string.split</code>, but returns the result as an O(1) head/tail/cons/length linked list with refcount-aware structural sharing. Use this when the result will be pattern-matched, walked recursively, or sent across an actor boundary as a message field. See <a href="/Docs/sequences.html">docs/sequences.md</a> for the full surface.</li><li><code>string.strip_prefix(s, prefix)</code> → <code>(rest, stripped)</code> - If <code>s</code> starts with <code>prefix</code>, returns the remainder and 1. Otherwise returns <code>s</code> and 0. Cleaner than manual <code>starts_with</code> + <code>substring</code> length arithmetic.</li></ul>
+<p><strong>Glob-pattern matching (string side, NOT filesystem):</strong></p>
+<ul><li><code>string.glob_match(pattern, s)</code> → <code>int</code> - Does <code>pattern</code> match <code>s</code>? POSIX fnmatch(3) syntax: <code>*</code> zero-or-more, <code>?</code> single-char, <code>[abc]</code> / <code>[a-z]</code> char classes, <code>[!abc]</code> negation, <code>\*</code> / <code>\?</code> literal escapes. Returns 1 on match, 0 on no-match, -1 on glob-syntax error. Distinct from <code>fs.glob</code> which enumerates matching files on disk, this is pure string matching (svn:ignore patterns, message routing, branch-spec matching).</li><li><code>string.glob_match_pathname(pattern, s)</code> → <code>int</code> - Same as <code>glob_match</code> but <code>*</code> and <code>?</code> do NOT cross a <code>/</code> separator. Use when matching path patterns: <code>src/*.c</code> matches <code>src/foo.c</code> but not <code>src/sub/foo.c</code>.</li></ul>
+<p><strong>Sequences (<code>*StringSeq</code> Erlang/Elixir-shaped cons-cell list):</strong></p>
+<ul><li><code>string.seq_empty()</code> → <code>*StringSeq</code> empty list (NULL pointer)</li><li><code>string.seq_cons(head, tail)</code> → <code>*StringSeq</code> prepend; retains both head and tail</li><li><code>string.seq_head(s)</code> → <code>string</code> <code>&quot;&quot;</code> on empty</li><li><code>string.seq_tail(s)</code> → <code>*StringSeq</code> empty seq on empty</li><li><code>string.seq_is_empty(s)</code> → <code>int</code> 1 if empty</li><li><code>string.seq_length(s)</code> → <code>int</code> O(1) cached</li><li><code>string.seq_retain(s)</code> → <code>*StringSeq</code> bump refcount; pair with <code>seq_free</code></li><li><code>string.seq_free(s)</code> iterative spine walk; stops at shared cells</li><li><code>string.seq_from_array(arr, count)</code> → <code>*StringSeq</code> build from an <code>AetherStringArray*</code> (the shape <code>string.split</code> returns)</li><li><code>string.seq_to_array(s)</code> → <code>ptr</code> materialise as <code>AetherStringArray*</code> for legacy callers; free with <code>string.array_free</code></li><li><code>string.seq_reverse(s)</code> → <code>*StringSeq</code> O(n), fresh independent spine</li><li><code>string.seq_concat(a, b)</code> → <code>*StringSeq</code> O(|a|), <code>a</code> copied, <code>b</code> shared via refcount bump</li><li><code>string.seq_take(s, n)</code> → <code>*StringSeq</code> first <code>n</code> elements (clamped to length, negative yields empty); fresh independent spine</li><li><code>string.seq_drop(s, n)</code> → <code>*StringSeq</code> n-th tail retained (clamped to length, negative yields <code>s</code> retained); pointer walk only, no allocations</li></ul>
+<p>Pattern-match <code>[]</code> and <code>[h|t]</code> arms work directly against <code>*StringSeq</code> matched expressions:</p>
+<pre><code>match s {
+    []      -&gt; { /* end of list */ }
+    [h | t] -&gt; { println(h); walk(t) }   // h: string, t: *StringSeq
+}</code></pre>
+<p>Array literal <code>[a, b, c]</code> builds a cons chain when the target type is <code>*StringSeq</code> (in message-field initializers); see <a href="/Docs/sequences.html">docs/sequences.md</a> for the disambiguation rule and worked examples.</p>
+<ul><li><code>string.copy(s)</code> - Return an independently-owned copy of <code>s</code>. Equivalent to <code>string.concat(s, &quot;&quot;)</code> but with a discoverable name; callers use it to snapshot a borrowed TLS buffer before the next C call overwrites it.</li><li><code>string.format(fmt, args)</code> - Format a string by substituting <code>{}</code> placeholders with entries from an <code>std.list</code> of strings. <code>{{</code> and <code>}}</code> are literal braces. Use this for runtime-built strings of N parts where literal <code>${...}</code> interpolation isn&#x27;t an option (e.g. when the format string itself comes from a config file or message-template lookup). Non-string values must be converted via <code>string.from_int(...)</code> etc. before being added to the list.</li></ul>
+<p>For a <code>split_once</code>-style operation (find the first <code>sep</code> in <code>s</code>, return the halves), use <code>string.index_of(s, sep)</code> + two <code>string.substring</code> calls, two lines of code that avoid a tuple-unification foot-gun the typechecker currently has around three-string tuples.</p>
+<blockquote><strong>Note: <code>string + string</code> is not defined.</strong> Use <code>&quot;${a}${b}&quot;</code> interpolation for literals or <code>string.concat(a, b)</code> for runtime-built strings; <code>string.format(fmt, args)</code> handles the N-part case. The typechecker rejects <code>+</code> between two string operands at compile time (E0200) with a hint naming <code>&quot;${a}${b}&quot;</code> interpolation and <code>string.concat(a, b)</code> it does NOT silently emit broken pointer arithmetic.</blockquote>
 <p><strong>Conversion:</strong></p>
-<ul>
-<li><code>string.to_cstr(str)</code> - Get raw C string pointer</li>
-<li><code>string.from_int(value)</code> - Create string from
-integer</li>
-<li><code>string.from_float(value)</code> - Create string from
-float</li>
-</ul>
-<p><strong>Parsing:</strong></p>
-<ul>
-<li><code>string.to_int(str, out_ptr)</code> - Parse integer (returns 1
-on success, 0 on failure)</li>
-<li><code>string.to_long(str, out_ptr)</code> - Parse 64-bit integer
-(returns 1 on success, 0 on failure)</li>
-<li><code>string.to_float(str, out_ptr)</code> - Parse float (returns 1
-on success, 0 on failure)</li>
-<li><code>string.to_double(str, out_ptr)</code> - Parse double (returns
-1 on success, 0 on failure)</li>
-</ul>
+<ul><li><code>string.to_cstr(str)</code> - Get raw C string pointer</li><li><code>string.from_int(value)</code> - Create string from integer</li><li><code>string.from_float(value)</code> - Create string from float</li></ul>
+<p><strong>Parsing (Go-style):</strong></p>
+<ul><li><code>string.to_int(s)</code> → <code>(int, string)</code> - Parse base-10 integer</li><li><code>string.to_long(s)</code> → <code>(long, string)</code> - Parse 64-bit integer</li><li><code>string.to_int_radix(s, radix)</code> → <code>(long, string)</code> - Parse base-N integer; <code>radix</code> in <code>[2, 36]</code>. No <code>&quot;0x&quot;</code>/<code>&quot;0b&quot;</code> prefix recognition. Returns <code>long</code> so 32-bit-wide hex (ARGB colors, file offsets) survives. Errors on invalid radix, invalid digit, empty input, overflow, or trailing garbage.</li><li><code>string.from_int_radix(value, radix)</code> → <code>string</code> - Inverse of <code>to_int_radix</code>. Render <code>value</code> in base <code>radix</code> (<code>[2, 36]</code>); empty string on invalid radix; <code>&#x27;-&#x27;</code> prefix for negatives. Pair with <code>pad_start</code> for fixed-width hex bytes.</li><li><code>string.pad_start(s, total_width, pad_char)</code> → <code>string</code> - Prepend <code>pad_char</code> (single-byte char code, e.g. <code>48</code> for <code>&#x27;0&#x27;</code>, <code>32</code> for <code>&#x27; &#x27;</code>) until <code>s</code> reaches <code>total_width</code>. Returns a fresh copy if <code>s</code> is already long enough (no truncation).</li><li><code>string.pad_end(s, total_width, pad_char)</code> → <code>string</code> - Append-side variant of <code>pad_start</code>. Useful for columnar text output.</li><li><code>string.to_float(s)</code> → <code>(float, string)</code> - Parse float</li><li><code>string.to_double(s)</code> → <code>(float, string)</code> - Parse double</li></ul>
+<p>Each returns <code>(value, &quot;&quot;)</code> on success or <code>(0, &quot;invalid ...&quot;)</code> on parse failure. Handles leading whitespace, sign, trailing whitespace; rejects trailing non-whitespace.</p>
+<p>Raw out-parameter externs are preserved as <code>string_to_int_raw</code>, <code>string_to_long_raw</code>, <code>string_to_float_raw</code>, <code>string_to_double_raw</code> for callers who need to distinguish zero from parse failure without a tuple destructure.</p>
 <p><strong>Memory:</strong></p>
-<ul>
-<li><code>string.retain(str)</code> - Increment reference count</li>
-<li><code>string.release(str)</code> - Decrement reference count (frees
-when zero)</li>
-<li><code>string.free(str)</code> - Alias for <code>release</code></li>
-</ul>
-<hr />
-<h2 id="file-system">File System</h2>
-<h3 id="files-stdfile">Files (<code>std.file</code>)</h3>
-<pre class="aether"><code>import std.file
+<ul><li><code>string.retain(str)</code> - Increment reference count</li><li><code>string.release(str)</code> - Decrement reference count (frees when zero)</li><li><code>string.free(str)</code> - Alias for <code>release</code></li></ul>
+<h3>String ownership and the heap-string tracker (issue #405)</h3>
+<p>Strings reassigned to a variable are reclaimed automatically by a compiler-emitted wrapper, you do <strong>not</strong> write <code>defer string.free(s)</code> for in-Aether assignments. For every string variable in a function, the compiler emits a companion <code>_heap_&lt;name&gt;</code> tracker at function-entry scope that flips between 0 (current value is a literal) and 1 (current value is heap-allocated) as you reassign. On every reassignment, the wrapper <code>if (_heap_&lt;name&gt;) free(&lt;old&gt;)</code> decides whether to release the previous buffer.</p>
+<p>Both the <strong>stdlib</strong> functions in the table above (<code>string.concat</code>, <code>string.substring</code>, <code>string.to_upper</code>, <code>string.to_lower</code>, <code>string.trim</code>) and <strong>string interpolation</strong> (<code>&quot;foo ${x}&quot;</code>) are recognised as heap-allocated.</p>
+<p>A <strong>user-defined <code>-&gt; string</code> function</strong> is recognised as heap-allocated iff every return statement in its body yields a heap-string-expression (recursive structural check with cycle detection):</p>
+<pre><code>my_concat(a: string, b: string) -&gt; string {
+    return string.concat(a, b)        // RHS is heap → my_concat is heap-returning
+}
+
+s = &quot;&quot;
+i = 0
+while i &lt; 1000000 {
+    s = my_concat(s, &quot;x&quot;)              // O(1) memory, old s is freed automatically
+    i = i + 1
+}</code></pre>
+<p>A function returning a string literal, or a function whose returns mix heap and literal sources, is NOT recognised, and the wrapper won&#x27;t try to free its result. This is the structural escape analysis added to close issue #405.</p>
+<p>The function-entry hoist closes the cross-block visibility gap that previously kept the simpler <code>node_type == TYPE_STRING</code> recognition unsafe: the tracker is now visible at every nesting depth, so a variable first-assigned in an if-then and reassigned in an else-if (or in a deeply nested loop) sees the same <code>_heap_&lt;name&gt;</code> cell and follows the same free/no-free rules.</p>
+<p>For the full memory-management background, see <a href="memory-management.md#string-memory-model-heap-string-tracker">Memory Management</a>.</p>
+<hr>
+<h2>File System</h2>
+<h3>Files (<code>std.file</code>)</h3>
+<p>Go-style tuple returns. Check the error string first, then use the value.</p>
+<pre><code>import std.file
 
 main() {
     // Check existence
-    if (file.exists(&quot;data.txt&quot;) == 1) {
-        size = file.size(&quot;data.txt&quot;);
-        print(&quot;Size: &quot;);
-        print(size);
-        print(&quot; bytes\n&quot;);
+    if file.exists(&quot;data.txt&quot;) == 1 {
+        size, err = file.size(&quot;data.txt&quot;)
+        if err == &quot;&quot; { println(&quot;Size: ${size} bytes&quot;) }
     }
 
-    // Open and read
-    f = file.open(&quot;data.txt&quot;, &quot;r&quot;);
-    if (f != 0) {
-        content = file.read_all(f);
-        file.close(f);
-        println(content)              // prints file contents directly
-        println(&quot;Read: ${content}&quot;)   // works in interpolation too
+    // Read entire file (opens, reads, closes in one call)
+    content, rerr = file.read(&quot;data.txt&quot;)
+    if rerr != &quot;&quot; {
+        println(&quot;read failed: ${rerr}&quot;)
+        return
     }
+    println(content)
 
     // Write
-    f = file.open(&quot;output.txt&quot;, &quot;w&quot;);
-    file.write(f, &quot;Hello&quot;, 5);
-    file.close(f);
+    werr = file.write(&quot;output.txt&quot;, &quot;Hello&quot;)
+    if werr != &quot;&quot; {
+        println(&quot;write failed: ${werr}&quot;)
+        return
+    }
 
     // Delete
-    file.delete(&quot;temp.txt&quot;);
+    derr = file.delete(&quot;temp.txt&quot;)
+    _ = derr  // ignore if missing
 }</code></pre>
 <p><strong>Functions:</strong></p>
-<ul>
-<li><code>file.open(path, mode)</code> - Open file (returns handle, or 0
-on failure)</li>
-<li><code>file.close(file)</code> - Close file (returns 1 on success, 0
-on failure)</li>
-<li><code>file.read_all(file)</code> - Read entire contents as
-string</li>
-<li><code>file.write(file, data, len)</code> - Write data (returns 1 on
-success, 0 on failure)</li>
-<li><code>file.exists(path)</code> - Check if file exists (returns
-1/0)</li>
-<li><code>file.size(path)</code> - Get file size in bytes</li>
-<li><code>file.delete(path)</code> - Delete file (returns 1 on success,
-0 on failure)</li>
-</ul>
-<blockquote>
-<p><strong>Note:</strong> <code>file.read_all()</code> returns a plain
-string (<code>char*</code>). You can print it directly with
-<code>print(content)</code> or use it in interpolation:
-<code>println("Got: ${content}")</code>. The memory is heap-allocated —
-use <code>defer free(content)</code> if you want explicit cleanup, but
-for short-lived programs it's fine to skip.</p>
-</blockquote>
-<h3 id="directories-stddir">Directories (<code>std.dir</code>)</h3>
-<pre class="aether"><code>import std.dir
+<ul><li><code>file.read(path)</code> → <code>(string, string)</code> - Read entire file (opens, reads, closes)</li><li><code>file.write(path, content)</code> → <code>string</code> - Overwrite file, return error string</li><li><code>file.open(path, mode)</code> → <code>(ptr, string)</code> - Low-level open (caller must <code>file.close</code>)</li><li><code>file.close(handle)</code> - Close file</li><li><code>file.size(path)</code> → <code>(int, string)</code> - Get size in bytes</li><li><code>file.delete(path)</code> → <code>string</code> - Delete file</li><li><code>file.exists(path)</code> - 1 if a <strong>regular file</strong> is at <code>path</code>, 0 otherwise. Returns 0 for directories, even if they exist, see <code>fs.exists</code> for the path-agnostic check.</li></ul>
+<p>Raw externs: <code>file_open_raw</code>, <code>file_read_all_raw</code>, <code>file_write_raw</code>, <code>file_delete_raw</code>, <code>file_size_raw</code>.</p>
+<h3>Directories (<code>std.dir</code>)</h3>
+<pre><code>import std.dir
 
 main() {
     // Check and create
     if dir.exists(&quot;output&quot;) == 0 {
-        dir.create(&quot;output&quot;)
+        err = dir.create(&quot;output&quot;)
+        if err != &quot;&quot; { println(&quot;mkdir failed: ${err}&quot;) }
     }
 
-    // List contents
-    list = dir.list(&quot;.&quot;)
-    // Process list...
-    dir.list_free(list)
+    // List contents, with each entry&#x27;s kind straight from readdir&#x27;s d_type
+    // (no per-entry stat needed).
+    list, lerr = dir.list(&quot;.&quot;)
+    if lerr == &quot;&quot; {
+        n = dir.list_count(list)
+        i = 0
+        while i &lt; n {
+            name = dir.list_get(list, i)
+            kind = dir.list_kind(list, i)      // 1 file / 2 dir / 3 symlink / 4 other / 0 unknown
+            if kind == 2 { println(&quot;[dir]  ${name}&quot;) }
+            i = i + 1
+        }
+        dir.list_free(list)
+    }
 
     // Delete
     dir.delete(&quot;temp_dir&quot;)
 }</code></pre>
 <p><strong>Functions:</strong></p>
-<ul>
-<li><code>dir.exists(path)</code> - Check if directory exists (returns
-1/0)</li>
-<li><code>dir.create(path)</code> - Create directory (returns 1 on
-success, 0 on failure)</li>
-<li><code>dir.delete(path)</code> - Delete empty directory (returns 1 on
-success, 0 on failure)</li>
-<li><code>dir.list(path)</code> - List directory contents</li>
-<li><code>dir.list_free(list)</code> - Free directory listing</li>
-</ul>
-<h3 id="paths-stdpath">Paths (<code>std.path</code>)</h3>
-<p>Path functions return heap-allocated plain strings
-(<code>char*</code>). Use <code>defer free(result)</code> if you want
-explicit cleanup.</p>
-<pre class="aether"><code>import std.path
+<ul><li><code>dir.create(path)</code> → <code>string</code> - Create directory, return error string</li><li><code>dir.delete(path)</code> → <code>string</code> - Delete empty directory, return error string</li><li><code>dir.list(path)</code> → <code>(ptr, string)</code> - List contents (caller must <code>dir.list_free</code>)</li><li><code>dir.list_count(list)</code> → <code>int</code> - Number of entries</li><li><code>dir.list_get(list, index)</code> → <code>string</code> - Entry name at <code>index</code></li><li><code>dir.list_kind(list, index)</code> → <code>int</code> - Entry&#x27;s file kind from readdir&#x27;s <code>d_type</code>, avoiding a <code>stat(2)</code> per entry: 1 = file, 2 = directory, 3 = symlink (target not followed), 4 = other; 0 = unknown (the filesystem didn&#x27;t report a type, stat that entry to resolve it). Same encoding as <code>file_stat</code>&#x27;s kind. Issue #966.</li><li><code>dir.exists(path)</code> - 1 if a <strong>directory</strong> is at <code>path</code>, 0 otherwise. Returns 0 for regular files, even if they exist, see <code>fs.exists</code> for the path-agnostic check.</li><li><code>dir.list_free(list)</code> - Free directory listing</li></ul>
+<p>Raw externs: <code>dir_create_raw</code>, <code>dir_delete_raw</code>, <code>dir_list_raw</code>, <code>dir_list_count</code>, <code>dir_list_get</code>, <code>dir_list_kind</code>, <code>dir_list_free</code>.</p>
+<h3>Recursive walk and change notification (<code>fs.walk</code>, <code>fs.watch_*</code>)</h3>
+<p>The building blocks beyond one-level listing (issue #977): visit a whole tree, and learn when a directory changes underneath you.</p>
+<pre><code>import std.fs
+
+// Walk: the callback sees every entry with its kind and depth.
+n, err = fs.walk(root, |path: string, kind: int, depth: int| {
+    // kind: 1 file / 2 dir / 3 symlink / 4 other (same as file_stat)
+    if kind == 2 &amp;&amp; string.ends_with(path, &quot;/node_modules&quot;) == 1 {
+        return 1                 // skip this subtree
+    }
+    println(&quot;${depth} ${path}&quot;)
+    return 0                     // 0 continue · 1 skip subtree · 2 stop walk
+})
+
+// Watch: coarse change ping, re-list to see what changed.
+w, werr = fs.watch_open(dir)
+changed = fs.watch_wait(w, 1000)   // 1 changed / 0 timeout / -1 error
+fs.watch_close(w)</code></pre>
+<p><strong>Functions:</strong></p>
+<ul><li><code>fs.walk(path, cb)</code> → <code>(int, string)</code> - Visit <code>path</code> (depth 0) and every entry beneath it. Entry kinds come from readdir&#x27;s <code>d_type</code> (#966), one sweep per directory, no per-entry <code>stat(2)</code>. Symlinks are reported (kind 3) but never followed, so cycles are impossible. <code>path</code> inside the callback is borrowed, copy it to keep it. Traversal order within a directory is the platform&#x27;s readdir order (unspecified). Returns (entries visited, <code>&quot;&quot;</code>), or (0, error) when <code>path</code> can&#x27;t be read.</li><li><code>fs.watch_open(path)</code> → <code>(ptr, string)</code> - Watch one directory (or file), non-recursive, over the platform primitive: kqueue <code>EVFILT_VNODE</code> (macOS/BSD), inotify (Linux), <code>FindFirstChangeNotification</code> (Windows). The handle is single-threaded.</li><li><code>fs.watch_wait(watch, timeout_ms)</code> → <code>int</code> - Block up to <code>timeout_ms</code> (negative = forever): 1 = something changed (create/delete/modify/rename inside the watched directory), 0 = timeout, -1 = error. Changes made <strong>between</strong> <code>watch_open</code> and <code>watch_wait</code> are queued, not lost, and a burst of changes reports once (pending events are drained).</li><li><code>fs.watch_close(watch)</code> - Release the handle. Safe on null.</li></ul>
+<p>The watch event is deliberately coarse, a &quot;something changed here&quot; ping without the file name (that is the only semantics all three platform primitives share; kqueue in particular reports no names). The idiomatic pattern is: wake on the ping, re-list with <code>dir.list</code> + <code>dir.list_kind</code>, diff against what you rendered. An actor can own the watch and poll with a short timeout in a self-send loop for live refresh.</p>
+<h3>Paths (<code>std.path</code>)</h3>
+<p>Path functions return heap-allocated plain strings (<code>char*</code>). Use <code>defer free(result)</code> if you want explicit cleanup.</p>
+<pre><code>import std.path
 
 main() {
     joined = path.join(&quot;dir&quot;, &quot;file.txt&quot;)
@@ -427,25 +553,104 @@ main() {
     println(&quot;${dirname}/${basename}&quot;)
 }</code></pre>
 <p><strong>Functions:</strong></p>
-<ul>
-<li><code>path.join(a, b)</code> - Join path components</li>
-<li><code>path.dirname(path)</code> - Get directory name</li>
-<li><code>path.basename(path)</code> - Get file name</li>
-<li><code>path.extension(path)</code> - Get file extension including
-dot</li>
-<li><code>path.is_absolute(path)</code> - Check if absolute path
-(returns 1/0)</li>
-</ul>
-<hr />
-<h2 id="json-stdjson">JSON (<code>std.json</code>)</h2>
-<p>JSON parsing, creation, and serialization.</p>
-<pre class="aether"><code>import std.json
+<ul><li><code>path.join(a, b)</code> - Join path components</li><li><code>path.dirname(path)</code> - Get directory name</li><li><code>path.basename(path)</code> - Get file name</li><li><code>path.extension(path)</code> - Get file extension including dot</li><li><code>path.is_absolute(path)</code> - Check if absolute path (returns 1/0)</li></ul>
+<h3>Full-fat filesystem (<code>std.fs</code>)</h3>
+<p><code>std.file</code> / <code>std.dir</code> / <code>std.path</code> cover most calls; <code>std.fs</code> re-exports them and adds the accessors that need a bit more plumbing, durable writes, atomic rename, one-shot stat, binary-safe read.</p>
+<pre><code>import std.fs
 
 main() {
-    // Parse JSON string
-    data = json.parse(&quot;{\&quot;name\&quot;: \&quot;Aether\&quot;, \&quot;version\&quot;: 1}&quot;)
-    name = json.object_get(data, &quot;name&quot;)
-    println(json.get_string(name))  // &quot;Aether&quot;
+    // Durable write: staging + fsync + rename.
+    err = fs.write_atomic(&quot;config.json&quot;, body, string.length(body))
+
+    // Rename composes with write_atomic for stage-then-publish.
+    err = fs.rename(&quot;config.json.new&quot;, &quot;config.json&quot;)
+
+    // One stat, four fields.
+    kind, size, mtime, err = fs.file_stat(&quot;config.json&quot;)
+    //   kind: 1=file, 2=dir, 3=symlink, 4=other
+
+    // Binary-safe read with explicit length.
+    data, n, err = fs.read_binary(&quot;payload.bin&quot;)
+}</code></pre>
+<p><strong>Functions (beyond those re-exported from <code>std.file</code>/<code>std.dir</code>/<code>std.path</code>):</strong></p>
+<ul><li><code>fs.exists(path)</code> → <code>int</code> - <strong>Path-agnostic</strong> existence check: 1 if anything is at <code>path</code> (regular file, directory, symlink, fifo, ...), 0 otherwise. Distinct from <code>file.exists</code> (regular-file-only) and <code>dir.exists</code> (directory-only), those filter by type, this one doesn&#x27;t. Uses <code>lstat(2)</code> so a dangling symlink counts as existing, matches POSIX <code>test -e</code>. Reach for this in tooling that probes whether a path is bound without caring what&#x27;s there (build-system runtime-path discovery, &quot;did the user pass a real path?&quot; CLI validation).</li><li><code>fs.write_atomic(path, data, length)</code> → <code>string</code> - Stage to <code>&lt;path&gt;.tmp.&lt;pid&gt;.&lt;n&gt;</code>, fsync, rename over destination. Binary-safe via explicit length. The tmp file is created with <code>O_CREAT|O_EXCL|O_NOFOLLOW</code> so an attacker who pre-plants a symlink at the predictable tmp path can&#x27;t trick the write into following it; permissions track the process umask exactly as the previous <code>fopen(&quot;wb&quot;)</code> would have.</li><li><code>fs.write_binary(path, data, length)</code> → <code>string</code> - Non-atomic <code>fopen(&quot;wb&quot;)</code> + <code>fwrite</code> + <code>fclose</code>. Binary-safe via explicit length. Cheaper than <code>write_atomic</code> when a partial file on crash is acceptable (scratch writes, caches).</li><li><code>fs.rename(from, to)</code> → <code>string</code> - POSIX <code>rename(2)</code> wrapper. Atomic when source and target are on the same filesystem.</li><li><code>fs.create_dir_with_mode(path, mode)</code> → <code>string</code> - Like <code>fs.create_dir</code> but takes an explicit POSIX mode (0777-masked). Use this for private dirs (e.g. <code>0o700</code> for keys), sets the bits at creation time, closing the <code>mkdir</code> → <code>chmod</code> race window. Windows ignores the mode at the directory layer; the parameter is accepted for portability.</li><li><code>fs.mtime(path)</code> → <code>(int, string)</code> - File&#x27;s mtime as Unix epoch seconds, in the standard <code>(value, err)</code> shape. Distinguishes &quot;stat failed&quot; from &quot;file&#x27;s mtime is 0 (1970 epoch)&quot;, the older <code>file_mtime</code> extern collapsed both into a single 0 sentinel and is kept only for back-compat.</li><li><code>fs.file_stat(path)</code> → <code>(kind, size, mtime, err)</code> - One <code>lstat(2)</code>; symlinks report kind 3, target is not followed.</li><li><code>fs.read_binary(path)</code> → <code>(content, length, err)</code> - Length-aware read preserving embedded NULs.</li></ul>
+<h3>Structured-error pilot (issue #392)</h3>
+<p>The four wrappers below return a three-element tuple <code>(value, kind: int, message: string)</code> instead of the usual <code>(value, err)</code> shape. <code>kind</code> is one of the <code>KIND_*</code> constants exported from <code>std.fs</code>; switch on it to discriminate failure modes programmatically without parsing English. <code>kind == fs.KIND_OK</code> (the integer <code>0</code>) means success; the message stays empty.</p>
+<pre><code>import std.fs
+
+bytes, kind, msg = fs.copy(&quot;a.bin&quot;, &quot;b.bin&quot;)
+if kind == fs.KIND_OK {
+    println(&quot;copied ${bytes} bytes&quot;)
+} else if kind == fs.KIND_NOT_FOUND {
+    println(&quot;source missing&quot;)
+} else if kind == fs.KIND_PERMISSION_DENIED {
+    println(&quot;permission denied (${msg})&quot;)
+} else {
+    println(&quot;copy failed: ${msg}&quot;)
+}</code></pre>
+<p><code>fs.copy</code>, <code>fs.move</code>, <code>fs.realpath</code>, and <code>fs.chmod</code> all ship with this structured-error shape. Existing wrappers keep their <code>(value, err)</code> shape unchanged, the structured-error shape sits next to it, not in place of it.</p>
+<p><strong>Constants</strong> (exported from <code>std.fs</code>):</p>
+<table><thead><tr><th>Constant</th><th>Value</th><th>Errno</th></tr></thead><tbody><tr><td><code>KIND_OK</code></td><td>0</td><td>(none, success)</td></tr><tr><td><code>KIND_NOT_FOUND</code></td><td>1</td><td><code>ENOENT</code></td></tr><tr><td><code>KIND_PERMISSION_DENIED</code></td><td>2</td><td><code>EACCES</code> / <code>EPERM</code></td></tr><tr><td><code>KIND_EXISTS</code></td><td>3</td><td><code>EEXIST</code></td></tr><tr><td><code>KIND_CROSS_DEVICE</code></td><td>4</td><td><code>EXDEV</code></td></tr><tr><td><code>KIND_IO</code></td><td>5</td><td><code>EIO</code> and unspecified I/O errors</td></tr><tr><td><code>KIND_INVALID</code></td><td>6</td><td><code>EINVAL</code> (illegal argument; e.g. <code>src == dst</code>)</td></tr><tr><td><code>KIND_LOOP</code></td><td>7</td><td><code>ELOOP</code> (symlink cycle)</td></tr><tr><td><code>KIND_NAME_TOO_LONG</code></td><td>8</td><td><code>ENAMETOOLONG</code></td></tr><tr><td><code>KIND_NO_SPACE</code></td><td>9</td><td><code>ENOSPC</code></td></tr><tr><td><code>KIND_IS_DIR</code></td><td>10</td><td><code>EISDIR</code></td></tr><tr><td><code>KIND_NOT_DIR</code></td><td>11</td><td><code>ENOTDIR</code></td></tr><tr><td><code>KIND_UNAVAILABLE</code></td><td>99</td><td>platform feature compiled out</td></tr></tbody></table>
+<p><strong>Functions:</strong></p>
+<ul><li><code>fs.copy(src, dst)</code> → <code>(int, int, string)</code> Copy file contents; preserves source mode bits. Symlinks in <code>src</code> are followed (matches POSIX <code>cp</code> without <code>-P</code>); <code>dst</code> is overwritten if it exists; <code>dst</code> cannot be an existing directory (returns <code>KIND_IS_DIR</code>). On partial failure, the bytes count reflects how far the copy got.</li></ul>
+<p>Performance: zero-copy via the platform&#x27;s best primitive, Linux <code>copy_file_range(2)</code> (reflinks on btrfs/XFS) → <code>sendfile(2)</code>; macOS <code>fcopyfile(COPYFILE_DATA)</code> (APFS clone on same-volume); Windows <code>CopyFileExW</code> (kernel block copy). An 8 MiB read/write loop is the portable fallback for filesystems that reject the kernel primitives. The byte count saturates at <code>INT_MAX</code> for files larger than 2³¹ bytes, the data is still copied correctly; only the reported count is truncated.</p>
+<ul><li><code>fs.move(src, dst)</code> → <code>(int, int, string)</code> Move file from <code>src</code> to <code>dst</code>. Atomic when source and destination are on the same filesystem (POSIX <code>rename(2)</code>). On <code>EXDEV</code> (cross-device) the call transparently falls back to <code>fs.copy</code> + <code>unlink</code> correct, but no longer atomic. Cross-device directory moves surface as <code>KIND_IS_DIR</code> (the underlying copy refuses to recurse). Windows uses <code>MoveFileExW</code> with <code>MOVEFILE_REPLACE_EXISTING | MOVEFILE_COPY_ALLOWED</code> so the cross-fs case is handled internally.</li></ul>
+<ul><li><code>fs.realpath(path)</code> → <code>(string, int, string)</code> OS-canonicalise the path: every symlink is followed; <code>.</code> and <code>..</code> components are folded out. POSIX <code>realpath(3)</code>; on Windows <code>CreateFileW(FILE_FLAG_BACKUP_SEMANTICS)</code> + <code>GetFinalPathNameByHandleW(FILE_NAME_NORMALIZED)</code>, with the <code>\\?\</code> prefix stripped before returning. Common kinds: <code>KIND_NOT_FOUND</code> for a missing component, <code>KIND_LOOP</code> for symlink cycles, <code>KIND_NAME_TOO_LONG</code> if the resolved form exceeds the OS limit.</li></ul>
+<ul><li><code>fs.chmod(path, mode)</code> → <code>(int, int, string)</code> Change permission bits. POSIX <code>chmod(2)</code> follows symlinks (matches what shell <code>chmod</code> does); <code>mode</code> is masked with <code>07777</code> internally so set-uid/sgid/sticky high-bits are honoured. On Windows only the user-write bit (<code>0o200</code>) is meaningful, read-only is toggled via <code>SetFileAttributesW(FILE_ATTRIBUTE_READONLY)</code>; every other bit is silently ignored, matching Python&#x27;s <code>os.chmod</code> documented behaviour.</li></ul>
+<hr>
+<h2>In-process script gateway (<code>std.http.script_gateway</code>)</h2>
+<p>CGI-style ergonomics, one <code>.ae</code> script file per route, without paying the per-request fork/exec cost. The script is pre-compiled with <code>aetherc --emit=lib --with=net script.ae -o script.so</code> to a shared library; the host server <code>dlopen()</code>s it once at mount time and dispatches matched requests via a direct indirect call. Empirically ~50× faster than the equivalent subprocess-spawn dispatch (issue #384).</p>
+<h3>Script shape</h3>
+<p>The script must export an <code>aether_script_handle</code> symbol with the canonical <code>HttpHandler</code> signature, marked <code>@c_callback</code> so the emitted C uses the unmangled name:</p>
+<pre><code>// greeting.ae
+import std.http
+
+@c_callback aether_script_handle(req: ptr, res: ptr, ud: ptr) {
+    http.response_set_status(res, 200)
+    http.response_set_header(res, &quot;Content-Type&quot;, &quot;text/plain&quot;)
+    http.response_set_body(res, &quot;hello from greeting.ae\n&quot;)
+}</code></pre>
+<p>Build it as a shared library, <code>--with=net</code> is required because <code>std.http</code> is the <code>net</code> capability and <code>--emit=lib</code> is capability-empty by default:</p>
+<pre><code>aetherc --emit=lib --with=net greeting.ae -o /var/aether/scripts/greeting.so</code></pre>
+<h3>Mount in the host</h3>
+<pre><code>import std.http
+import std.http.script_gateway
+
+main() {
+    s = http.server_create(8080)
+    ok, kind, msg = script_gateway.mount(
+        s, &quot;/greet&quot;, &quot;/var/aether/scripts/greeting.so&quot;)
+    if kind != script_gateway.KIND_OK {
+        println(&quot;mount failed: ${msg}&quot;); exit(1)
+    }
+    http.server_listen(s)
+}</code></pre>
+<p>Now <code>GET /greet/anything</code> runs <code>aether_script_handle</code> from <code>greeting.so</code> directly on the connection thread.</p>
+<h3>API</h3>
+<ul><li><code>script_gateway.mount(server, path_prefix, so_path)</code> → <code>(int, int, string)</code> Mount the shared library at <code>so_path</code> as the request handler for every URL whose path starts with <code>path_prefix</code>. Returns <code>(1, KIND_OK, &quot;&quot;)</code> on successful mount; <code>(0, KIND_*, msg)</code> on failure. The dlopen handle is intentionally long-lived (process-lifetime); hot-reload is a separate feature.</li></ul>
+<p><strong>Constants</strong> (subset of std.fs&#x27;s KIND_*, values match so callers can mix the two surfaces):</p>
+<table><thead><tr><th>Constant</th><th>Value</th><th>Meaning</th></tr></thead><tbody><tr><td><code>KIND_OK</code></td><td>0</td><td>mount succeeded</td></tr><tr><td><code>KIND_NOT_FOUND</code></td><td>1</td><td><code>so_path</code> is missing or unreadable</td></tr><tr><td><code>KIND_INVALID</code></td><td>6</td><td>null arg, or <code>.so</code> missing the <code>aether_script_handle</code> entrypoint</td></tr><tr><td><code>KIND_IO</code></td><td>5</td><td><code>dlopen</code> failure (incompatible ABI, etc.)</td></tr><tr><td><code>KIND_UNAVAILABLE</code></td><td>99</td><td>platform stub (Windows DLL hosting is a follow-up)</td></tr></tbody></table>
+<h3>Sandbox</h3>
+<p><code>mount()</code> calls <code>aether_sandbox_check(&quot;fs_read&quot;, so_path)</code> before dlopen, so a sandboxed host cannot bring in arbitrary native code via untrusted <code>.so</code> paths. The script itself runs subject to whatever caps the host has armed via <code>libaether.h</code> (<code>aether_set_memory_cap</code>, <code>aether_set_call_deadline</code>).</p>
+<h3>Performance characteristic</h3>
+<p>Per-request hot path is one <code>strncmp(path, prefix, prefix_len)</code> plus one indirect call. On Linux/glibc the indirect call goes through the dlopened SO&#x27;s PLT once and is then jit-bound; subsequent calls are direct. On macOS (lazy bind disabled by RTLD_NOW) the binding happens at mount time so per-request cost is one direct indirect call.</p>
+<hr>
+<h2>JSON (<code>std.json</code>)</h2>
+<p>JSON parsing, creation, and serialization. RFC 8259 conformant (318/318 JSONTestSuite cases, all mandatory <code>y_*</code> and <code>n_*</code> pass).</p>
+<p><strong>Implementation.</strong> Arena-allocated parser: every parsed value, string, and container backing array comes from a single per-document bump-pointer arena that <code>json.free</code> releases in one step. Character-class lookup tables drive the hot-path dispatch (whitespace, digit, structural, string-safe). UTF-8 validation uses Hoehrmann&#x27;s public-domain DFA. Numbers follow a three-path design: pure integers go through an int64 accumulator; fractional/exponential values within double&#x27;s exact range (≤15 significant digits, |exponent| ≤ 22) take a <code>POW10</code> fast-double path with one multiply and one cast; anything past those bounds falls back to <code>strtod</code> for correct IEEE-754 rounding. Strings are decoded in two phases, a pre-scan locates the closing quote so the decode buffer is sized exactly once, and the inner fast-loop over safe printable-ASCII bytes dispatches to SSE2 on <code>__SSE2__</code>, NEON on <code>__ARM_NEON &amp;&amp; __aarch64__</code>, or a scalar LUT fallback compiled in for WASM / embedded / anywhere else. The SIMD kernels are gated at compile time, not run-time detected, so there&#x27;s no branch cost on the happy path and the scalar fallback is always linked. Compiles clean under <code>-Wall -Wextra -Werror -pedantic</code> on every target in the CI matrix. Design rationale in <a href="/Docs/json-parser-design.html">json-parser-design.md</a>; measured throughput in <a href="/Docs/baseline.html">benchmarks/json/baseline.md</a>.</p>
+<p><strong>Security.</strong> ASan+UBSan clean on the full bench corpus including a 10 MB synthesized document. JSONTestSuite conformance: every <code>y_*</code> case accepted, every <code>n_*</code> case rejected, <code>i_*</code> outcomes recorded. Fixed nesting depth limit of 256 prevents stack-overflow DoS. First-error-wins diagnostics include <code>&lt;reason&gt; at &lt;line&gt;:&lt;col&gt;</code>.</p>
+<pre><code>import std.json
+
+main() {
+    // Parse JSON string, Go-style tuple return
+    data, err = json.parse(&quot;{\&quot;name\&quot;: \&quot;Aether\&quot;, \&quot;version\&quot;: 1}&quot;)
+    if err != &quot;&quot; {
+        println(&quot;parse failed: ${err}&quot;)
+        return
+    }
+    name, _ = json.object_get(data, &quot;name&quot;)
+    text, _ = json.get_string(name)
+    println(text)  // &quot;Aether&quot;
 
     // Create values
     obj = json.create_object()
@@ -458,9 +663,8 @@ main() {
     json.array_add(arr, json.create_number(2.0))
     size = json.array_size(arr)
 
-    // Serialize to string — returns plain char*, print directly
-    output = json.stringify(obj)
-    println(output)
+    // Serialize to string, Go-style (output, err) tuple
+    output, _ = json.stringify(obj)
     println(&quot;JSON: ${output}&quot;)
 
     // Type checking
@@ -472,166 +676,411 @@ main() {
     json.free(arr)
 }</code></pre>
 <p><strong>JSON Type Constants:</strong></p>
-<ul>
-<li><code>0</code> = NULL, <code>1</code> = BOOL, <code>2</code> =
-NUMBER, <code>3</code> = STRING, <code>4</code> = ARRAY, <code>5</code>
-= OBJECT</li>
-</ul>
+<ul><li><code>0</code> = NULL, <code>1</code> = BOOL, <code>2</code> = NUMBER, <code>3</code> = STRING, <code>4</code> = ARRAY, <code>5</code> = OBJECT</li></ul>
 <p><strong>Parsing / Serialization:</strong></p>
-<ul>
-<li><code>json.parse(json_str)</code> - Parse JSON string into value
-tree</li>
-<li><code>json.stringify(value)</code> - Serialize to JSON string
-(returns plain <code>char*</code>)</li>
-<li><code>json.free(value)</code> - Free a JSON value tree</li>
-</ul>
-<p><strong>Type Checking:</strong></p>
-<ul>
-<li><code>json.type(value)</code> - Get type constant (0-5)</li>
-<li><code>json.is_null(value)</code> - Check if null (returns 1/0)</li>
-</ul>
-<p><strong>Value Getters:</strong></p>
-<ul>
-<li><code>json.get_number(value)</code> - Get float value</li>
-<li><code>json.get_int(value)</code> - Get integer value</li>
-<li><code>json.get_bool(value)</code> - Get boolean (1/0)</li>
-<li><code>json.get_string(value)</code> - Get string value (returns
-plain <code>char*</code>)</li>
-</ul>
-<p><strong>Object Operations:</strong></p>
-<ul>
-<li><code>json.object_get(obj, key)</code> - Get value by key (key is a
-raw string)</li>
-<li><code>json.object_set(obj, key, value)</code> - Set key-value
-pair</li>
-<li><code>json.object_has(obj, key)</code> - Check if key exists
-(returns 1/0)</li>
-</ul>
-<p><strong>Array Operations:</strong></p>
-<ul>
-<li><code>json.array_get(arr, index)</code> - Get value at index</li>
-<li><code>json.array_add(arr, value)</code> - Append value</li>
-<li><code>json.array_size(arr)</code> - Get array length</li>
-</ul>
-<p><strong>Value Creation:</strong></p>
-<ul>
-<li><code>json.create_null()</code>,
-<code>json.create_bool(value)</code>,
-<code>json.create_number(value)</code></li>
-<li><code>json.create_string(value)</code>,
-<code>json.create_array()</code>, <code>json.create_object()</code></li>
-</ul>
-<hr />
-<h2 id="networking">Networking</h2>
-<h3 id="http-stdhttp">HTTP (<code>std.http</code>)</h3>
-<blockquote>
-<p><strong>Note:</strong> Use <code>import std.http</code> for the
-<code>http.*</code> prefix shown below. You can also
-<code>import std.net</code> which includes both HTTP and TCP functions,
-but the namespace prefix becomes <code>net</code> (e.g.,
-<code>net.http_get(url)</code>).</p>
-</blockquote>
-<pre class="aether"><code>import std.http
+<ul><li><code>json.parse(json_str)</code> → <code>(ptr, string)</code> - Parse JSON, returns <code>(value, err)</code> tuple</li><li><code>json.parse_strict(json_str)</code> → <code>(ptr, int, string)</code> - Structured-error variant of <code>parse</code> (issue #392): returns <code>(value, KIND_OK, &quot;&quot;)</code> on success or <code>(null, KIND_*, &quot;&lt;reason&gt; at &lt;line&gt;:&lt;col&gt;&quot;)</code> on failure. <code>kind</code> discriminates between syntax errors (<code>KIND_PARSE_ERROR</code>), out-of-memory (<code>KIND_OUT_OF_MEMORY</code>), and invalid input (<code>KIND_INVALID_INPUT</code>) without parsing the human message. KIND values match <code>std.fs</code>&#x27;s pilot so callers can mix the two surfaces in a single switch.</li><li><code>json.last_error_kind()</code> / <code>last_error_line()</code> / <code>last_error_col()</code> → <code>int</code> - Programmatic accessors for the most recent parse failure on this thread. Read AFTER a <code>parse</code> / <code>parse_strict</code> returned a failure; undefined after a successful parse. Line/column are 1-based and match the values embedded in the error message.</li><li><code>json.stringify(value)</code> → <code>(string, string)</code> - Serialize to JSON string; <code>(output, err)</code> tuple (<code>(&quot;&quot;, &quot;stringify failed&quot;)</code> on failure)</li><li><code>json.free(value)</code> - Free a JSON value tree</li></ul>
+<p>Raw extern: <code>json_parse_raw</code>.</p>
+<p><strong>Structured-error kinds</strong> (exported from <code>std.json</code>):</p>
+<table><thead><tr><th>Constant</th><th>Value</th><th>Meaning</th></tr></thead><tbody><tr><td><code>KIND_OK</code></td><td>0</td><td>parse succeeded</td></tr><tr><td><code>KIND_PARSE_ERROR</code></td><td>1</td><td>malformed JSON (the message carries <code>... at line:col</code>)</td></tr><tr><td><code>KIND_OUT_OF_MEMORY</code></td><td>2</td><td>arena allocation failed during parse</td></tr><tr><td><code>KIND_INVALID_INPUT</code></td><td>3</td><td>NULL / empty input handed to <code>parse_strict</code></td></tr></tbody></table>
+<pre><code>import std.json
 
 main() {
-    // HTTP Client
-    response = http.get(&quot;http://example.com&quot;)
-    if response != 0 {
-        http.response_free(response)
+    v, kind, msg = json.parse_strict(input)
+    if kind == json.KIND_OK {
+        // use v ...
+        json.free(v)
+    } else if kind == json.KIND_PARSE_ERROR {
+        line = json.last_error_line()
+        col  = json.last_error_col()
+        println(&quot;syntax error at ${line}:${col}: ${msg}&quot;)
+    } else if kind == json.KIND_OUT_OF_MEMORY {
+        println(&quot;OOM during parse&quot;)
+    } else {
+        println(&quot;invalid input: ${msg}&quot;)
     }
+}</code></pre>
+<p>The <code>parse_strict</code> shape is the std.fs pilot from issue #392 extended to a second module, same tuple, same KIND_* convention.</p>
+<p><strong>Type Checking:</strong></p>
+<ul><li><code>json.type(value)</code> - Get type constant (0-5)</li><li><code>json.is_null(value)</code> - Check if null (returns 1/0)</li></ul>
+<p><strong>Value Getters:</strong></p>
+<ul><li><code>json.get_number(value)</code> - Get float value (lossy past 2^53)</li><li><code>json.get_int(value)</code> - Get 32-bit integer (clamps to +/-2147483647 on overflow)</li><li><code>json.get_long(value)</code> - Get the full int64 value exactly (IDs, byte-counts)</li><li><code>json.get_bool(value)</code> - Get boolean (1/0)</li><li><code>json.get_string(value)</code> → <code>(string, string)</code> - Get string value; <code>(text, err)</code> tuple, errors with <code>&quot;not a string&quot;</code> if <code>value</code> is not a <code>JSON_STRING</code></li></ul>
+<p><strong>Object Operations:</strong></p>
+<ul><li><code>json.object_get(obj, key)</code> → <code>(ptr, string)</code> - Get value by key; <code>(child, err)</code> tuple. Absent key returns <code>(null, &quot;&quot;)</code>, distinct from the error case <code>(null, &quot;not an object&quot;)</code></li><li><code>json.object_set(obj, key, value)</code> - Set key-value pair</li><li><code>json.object_has(obj, key)</code> - Check if key exists (returns 1/0)</li><li><code>json.object_size(obj)</code> - Number of entries (<code>0</code> for empty, <code>-1</code> if not an object)</li><li><code>json.object_entry(obj, i)</code> - <code>(key, value, err)</code> for the i-th entry; keys</li></ul>
+<p>are yielded in insertion order (same as parsed input; same as the order <code>object_set</code> was called). Mutating <code>obj</code> during iteration is not supported.</p>
+<p><strong>Array Operations:</strong></p>
+<ul><li><code>json.array_get(arr, index)</code> → <code>(ptr, string)</code> - Get value at index; <code>(value, err)</code> tuple. Out-of-range returns <code>(null, &quot;&quot;)</code>, distinct from <code>(null, &quot;not an array&quot;)</code></li><li><code>json.array_add(arr, value)</code> - Append value</li><li><code>json.array_size(arr)</code> - Get array length</li></ul>
+<p><strong>Value Creation:</strong></p>
+<ul><li><code>json.create_null()</code>, <code>json.create_bool(value)</code>, <code>json.create_number(value)</code></li><li><code>json.create_string(value)</code>, <code>json.create_array()</code>, <code>json.create_object()</code></li></ul>
+<p><strong>Terse builder / encoder</strong> (issue #628), thin aliases over the above for assembling a value tree and serializing it without hand-concatenating strings (escaping is handled by the encoder):</p>
+<ul><li><code>json.obj()</code> / <code>json.arr()</code> new empty object / array</li><li><code>json.str(s)</code> / <code>json.num(f)</code> / <code>json.boolean(0|1)</code> / <code>json.null_value()</code> scalars</li><li><code>json.set(obj, key, value)</code> / <code>json.push(arr, value)</code> <code>&quot;&quot;</code> on success, error</li></ul>
+<p>string on wrong-kind target (the orphaned value is reclaimed); the parent takes ownership of <code>value</code></p>
+<ul><li><code>json.encode(value)</code> → <code>(string, string)</code> <code>(json, &quot;&quot;)</code> on success</li></ul>
+<pre><code>import std.json
+
+main() {
+    root = json.obj()
+    json.set(root, &quot;name&quot;, json.str(&quot;aether&quot;))
+    json.set(root, &quot;ok&quot;, json.boolean(1))
+    tags = json.arr()
+    json.push(tags, json.str(&quot;lang&quot;))
+    json.set(root, &quot;tags&quot;, tags)
+
+    out, err = json.encode(root)   // {&quot;name&quot;:&quot;aether&quot;,&quot;ok&quot;:true,&quot;tags&quot;:[&quot;lang&quot;]}
+    println(out)
+    json.free(root)                // frees the whole tree
+}</code></pre>
+<h3>What <code>std.json</code> doesn&#x27;t do</h3>
+<p>Coming from Go&#x27;s <code>json.Unmarshal</code>, Java&#x27;s Jackson, Python&#x27;s <code>json.load</code> + dataclasses, or C#&#x27;s <code>JsonSerializer</code>, expect to do more by hand:</p>
+<ul><li><strong>No struct ↔ JSON mapping.</strong> Aether has no runtime reflection, no <code>instanceof</code>, no <code>T.GetType()</code>, no <code>reflect.TypeOf</code> so a library function that takes a struct type and a JSON tree and populates the struct fields can&#x27;t exist as a stdlib API. Callers walk the tree by hand: <code>json.object_get(v, &quot;name&quot;)</code> then <code>json.get_string(...)</code>, repeated per field. For tree-shaped or dynamically-shaped JSON the Aether code looks similar to other languages; for struct-shaped JSON it&#x27;s more verbose. A future codegen step (a <code>--derive-json</code> flag on struct definitions, or a build-step macro) could close this gap without runtime reflection, but isn&#x27;t shipped today.</li><li><strong>No annotations / struct tags.</strong> <code>@JsonProperty(&quot;user_name&quot;)</code>, Go struct tags <code>json:&quot;user_name,omitempty&quot;</code>, etc. don&#x27;t apply, there&#x27;s nothing for them to attach to without struct-mapping in the first place.</li><li><strong>No streaming parse.</strong> The whole document is buffered into the arena before the tree is walkable. For multi-gigabyte JSON, use a different tool. Documents into the tens of MB are fine.</li><li><strong>No JSON5 / comments / trailing commas.</strong> Strict RFC 8259 only.</li><li><strong>No pretty-print on stringify.</strong> Compact output only. Wrap with a separate prettier if you need one.</li><li><strong>No JSON Schema validation.</strong> Validate by hand or build it on top.</li><li><strong>No arbitrary-precision numbers.</strong> Numbers are <code>int</code> or <code>double</code>; the parser falls through to <code>strtod</code> for correctly-rounded IEEE-754 on edge cases but there&#x27;s no <code>BigDecimal</code> / <code>decimal.Decimal</code> equivalent for financial precision.</li></ul>
+<h3>Other structured-data formats</h3>
+<p>Beyond JSON, the stdlib has <strong>no built-in support</strong> for:</p>
+<ul><li><strong>YAML</strong>, no parser. Configuration files for Aether projects use TOML (read by the build tool internally, not a user-facing stdlib module) or hand-rolled formats.</li><li><strong>XML</strong>, <code>std.xml</code> provides a pull/SAX reader and an escaping builder (see the XML section above). It deliberately omits XSD, XPath, namespaces, and DTD validation; for those a host-language tool is still the answer.</li><li><strong>TOML</strong>, there&#x27;s a parser at <code>tools/apkg/toml_parser.c</code> used internally by the <code>ae</code> CLI to read <code>aether.toml</code> project files. It&#x27;s not exposed as <code>std.toml</code>. If a project needs TOML, copying that parser or shelling out to a host-language tool are the options today.</li><li><strong>INI</strong>, no parser. Trivial to implement on top of <code>string.split</code> if needed.</li><li><strong>Java-style <code>.properties</code></strong>, no parser. Same shape as INI without sections; same advice.</li><li><strong>CSV</strong>, no parser. <code>string.split(line, &quot;,&quot;)</code> covers the no-quoting / no-embedded-commas case; anything more needs a real CSV parser, which isn&#x27;t shipped.</li><li><strong>Protocol Buffers / MessagePack / CBOR / Avro / Thrift</strong>, no codecs. Same reflection-gap reasoning as struct ↔ JSON: without struct introspection there&#x27;s no automatic encode/decode.</li></ul>
+<p>This isn&#x27;t a hidden roadmap, these are absent because no downstream user has driven the need yet. If you&#x27;re starting a project that needs YAML config, expect to write a parser, ship a contrib module, or shell out. Structured-data thinking in the stdlib is currently JSON-shaped and HTTP-adjacent; broader format coverage is open territory.</p>
+<hr>
+<h2>XML (<code>std.xml</code>)</h2>
+<p>A deliberately small XML surface (issue #627): a <strong>pull/SAX reader</strong> and an <strong>escaping builder</strong>. Enough for S3 / SOAP-ish / config XML. <strong>Not</strong> in scope: XSD, XPath, namespaces, DTD validation, or custom entity definitions, the five predefined entities (<code>&amp;amp; &amp;lt; &amp;gt; &amp;quot; &amp;apos;</code>) and numeric character references (<code>&amp;#NN;</code> / <code>&amp;#xHH;</code>) are decoded; CDATA is passed through raw; the prolog, comments, and processing instructions are skipped.</p>
+<pre><code>import std.xml
+
+main() {
+    // ---- Reader: pull one event at a time ----
+    p = xml.parser(&quot;&lt;Result&gt;&lt;Key&gt;a &amp;lt;b&amp;gt;.txt&lt;/Key&gt;&lt;Empty/&gt;&lt;/Result&gt;&quot;)
+    done = 0
+    while done == 0 {
+        ev = xml.next(p)
+        if ev == xml.EVENT_EOF { done = 1 }
+        else if ev == xml.EVENT_ERROR { println(xml.error(p))  done = 1 }
+        else if ev == xml.EVENT_START { println(&quot;start ${xml.name(p)}&quot;) }
+        else if ev == xml.EVENT_TEXT  { println(&quot;text  ${xml.text(p)}&quot;) }  // entity-decoded
+        else if ev == xml.EVENT_END   { println(&quot;end   ${xml.name(p)}&quot;) }
+    }
+    xml.free(p)
+
+    // ---- Builder: escaping handled for you ----
+    b = xml.writer()
+    xml.declaration(b)
+    xml.start(b, &quot;Error&quot;)
+    xml.attribute(b, &quot;code&quot;, &quot;NoSuchKey&quot;)
+    xml.element(b, &quot;Message&quot;, &quot;the key \&quot;x\&quot; &amp; &lt;y&gt; are gone&quot;)
+    xml.end(b, &quot;Error&quot;)
+    out = xml.finish(b)        // &lt;?xml ...?&gt;&lt;Error code=&quot;NoSuchKey&quot;&gt;&lt;Message&gt;...escaped...&lt;/Message&gt;&lt;/Error&gt;
+    xml.free_builder(b)
+    println(out)
+}</code></pre>
+<p><strong>Event kinds</strong> (returned by <code>xml.next</code>): <code>EVENT_START</code>, <code>EVENT_END</code>, <code>EVENT_TEXT</code>, <code>EVENT_EOF</code>, <code>EVENT_ERROR</code>.</p>
+<p><strong>Reader:</strong></p>
+<ul><li><code>xml.parser(data)</code> → <code>ptr</code> new pull reader (free with <code>xml.free</code>)</li><li><code>xml.next(p)</code> → <code>int</code> advance; returns an <code>EVENT_*</code></li><li><code>xml.name(p)</code> → <code>string</code> element name for the current START/END</li><li><code>xml.text(p)</code> → <code>string</code> entity-decoded character data for the current TEXT</li><li><code>xml.attr(p, key)</code> → <code>string</code> attribute value on the current START (<code>&quot;&quot;</code> if absent)</li><li><code>xml.attr_count(p)</code> / <code>xml.attr_name(p, i)</code> / <code>xml.attr_value(p, i)</code> iterate attributes</li><li><code>xml.error(p)</code> → <code>string</code> message after an <code>EVENT_ERROR</code></li><li><code>xml.free(p)</code> release the reader</li></ul>
+<p>A self-closing <code>&lt;tag/&gt;</code> yields a START immediately followed by an END. The name/text/attr values are owned copies, safe to hold across <code>next</code>.</p>
+<p><strong>Builder:</strong></p>
+<ul><li><code>xml.writer()</code> → <code>ptr</code> new builder (named <code>writer</code> because <code>builder</code> is a keyword; free with <code>xml.free_builder</code>)</li><li><code>xml.declaration(b)</code> emit <code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</code></li><li><code>xml.start(b, name)</code> / <code>xml.attribute(b, name, value)</code> / <code>xml.end(b, name)</code></li><li><code>xml.text_node(b, content)</code> append escaped character data</li><li><code>xml.element(b, name, content)</code> <code>&lt;name&gt;escaped&lt;/name&gt;</code> in one call</li><li><code>xml.finish(b)</code> → <code>string</code> the document (escaping already applied)</li><li><code>xml.escape(s)</code> → <code>string</code> escape the five predefined entities (rarely needed directly)</li></ul>
+<hr>
+<h2>Cryptography (<code>std.cryptography</code>)</h2>
+<p>Hash digests + Base64 codec. Pure functions, bytes in, hex digest or Base64 string out, binary-safe via an explicit byte length (embedded NULs are fine; pass 0 to hash or encode an empty buffer).</p>
+<p>Built on OpenSSL&#x27;s EVP API, which is already linked for <code>std.net</code>&#x27;s TLS support. When the Aether toolchain was built without OpenSSL, the wrappers return <code>(&quot;&quot;, &quot;openssl unavailable&quot;)</code> rather than crashing, callers should always check the error slot.</p>
+<pre><code>import std.cryptography
+import std.fs
+
+main() {
+    // Text payload, length is explicit.
+    digest, err = cryptography.sha256_hex(&quot;abc&quot;, 3)
+    // digest == &quot;ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad&quot;
+
+    // Algorithm chosen at runtime (e.g. read from a config file).
+    algo = &quot;sha256&quot;
+    if cryptography.hash_supported(algo) == 1 {
+        d, _ = cryptography.hash_hex(algo, &quot;abc&quot;, 3)
+    }
+
+    // Base64, round-trip a binary payload through JSON.
+    b64, _   = cryptography.base64_encode(&quot;\x01\x02\x03&quot;, 3)   // &quot;AQID&quot;
+    raw, n, _ = cryptography.base64_decode(b64)                // 3 bytes
+}</code></pre>
+<p><strong>Hash functions:</strong></p>
+<ul><li><code>cryptography.sha1_hex(data, length)</code> → <code>(string, string)</code> - 40-char lowercase hex digest. Included for interop with legacy formats (Git, Subversion, HMAC-SHA1). Prefer SHA-256 for new work.</li><li><code>cryptography.sha256_hex(data, length)</code> → <code>(string, string)</code> - 64-char lowercase hex digest.</li><li><code>cryptography.hash_hex(algo, data, length)</code> → <code>(string, string)</code> - Algorithm-by-name dispatcher. <code>algo</code> is <code>&quot;sha1&quot;</code>, <code>&quot;sha256&quot;</code>, or any other name OpenSSL&#x27;s <code>EVP_get_digestbyname()</code> recognizes (<code>&quot;sha384&quot;</code>, <code>&quot;sha512&quot;</code>, <code>&quot;sha3-256&quot;</code>, ...). Returns <code>(&quot;&quot;, &quot;unknown algorithm&quot;)</code> for unrecognized names. Useful when the algorithm is config-driven rather than compile-time.</li><li><code>cryptography.hash_supported(algo)</code> → <code>int</code> - <code>1</code> if this build can compute <code>algo</code>, <code>0</code> otherwise. Always succeeds; never errors. Use at config time to validate user-supplied algorithm names before they hit <code>hash_hex</code>.</li><li><code>cryptography.md4_hex(data, length)</code> / <code>md5_hex(data, length)</code> → <code>(string, string)</code> - 32-char lowercase hex digest. Legacy interop only (Content-MD5, ETag, zsync, pre-SHA1 fixtures), NOT collision-resistant, do not use for security. <code>(&quot;&quot;, error)</code> on failure.</li></ul>
+<p><strong>Raw-bytes digests</strong> (same <code>(bytes, length, error)</code> tuple as <code>base64_decode</code>; <code>bytes</code> is an owned AetherString preserving embedded NULs, use when the wire format wants a fixed-width binary digest rather than hex):</p>
+<ul><li><code>cryptography.sha1_bytes(data, length)</code> / <code>sha256_bytes(data, length)</code> → <code>(string, int, string)</code>.</li><li><code>cryptography.md4_bytes(data, length)</code> / <code>md5_bytes(data, length)</code> → <code>(string, int, string)</code>.</li><li><code>cryptography.hash_bytes(algo, data, length)</code> → <code>(string, int, string)</code> - Algorithm-by-name binary digest. <code>(&quot;&quot;, 0, &quot;unknown algorithm&quot;)</code> for unrecognized names.</li></ul>
+<p><strong>HMAC-SHA256</strong> (RFC 2104 / FIPS 198-1; RFC 4231 test vectors):</p>
+<ul><li><code>cryptography.hmac_sha256_hex(key, key_len, msg, msg_len)</code> → <code>(string, string)</code> - Hex digest. Natural shape for opaque-token signing and bearer-token derivation.</li><li><code>cryptography.hmac_sha256_bytes(key, key_len, msg, msg_len)</code> → <code>(string, int, string)</code> - Raw 32-byte digest. Use for chained key derivation (SigV4 / HKDF-shaped flows) where each round&#x27;s output keys the next.</li></ul>
+<p><strong>Cryptographically-secure random</strong> (OS CSPRNG, <code>getrandom(2)</code> / <code>/dev/urandom</code> on Linux, <code>arc4random_buf(3)</code> on macOS/BSD):</p>
+<ul><li><code>cryptography.random_bytes(n)</code> → <code>(string, int, string)</code> - <code>n</code> random bytes as <code>(bytes, length, error)</code>; <code>bytes</code> preserves embedded NULs.</li><li><code>cryptography.random_hex(n)</code> → <code>(string, string)</code> - <code>n</code> random bytes as a <code>2*n</code>-char lowercase-hex string. For opaque bearer-token / API-key minting.</li><li><code>cryptography.random_base64(n)</code> → <code>(string, string)</code> - <code>n</code> random bytes as RFC 4648 §4 unpadded Base64 (~33% denser than hex).</li></ul>
+<p><strong>Streaming (incremental) digest</strong> - Hash data that arrives in pieces without ever holding it whole (streaming an upload to disk in fixed windows, S3-style multipart ETags). The two <code>final</code> variants free the context; call <code>digest_free</code> only when bailing out before finalizing.</p>
+<ul><li><code>cryptography.digest_new(algo)</code> → <code>(ptr, string)</code> - Open a context for <code>algo</code> (<code>&quot;md5&quot;</code>, <code>&quot;sha256&quot;</code>, <code>&quot;sha1&quot;</code>, <code>&quot;md4&quot;</code>, or any name OpenSSL recognizes). <code>(null, &quot;unknown algorithm&quot;)</code> / <code>(null, &quot;openssl unavailable&quot;)</code> on failure.</li><li><code>cryptography.digest_update(ctx, data, length)</code> → <code>(int, string)</code> - Feed <code>length</code> bytes; <code>(1, &quot;&quot;)</code> on success, <code>(0, error)</code> on failure. Binary-safe. Does NOT free the context.</li><li><code>cryptography.digest_final_hex(ctx)</code> → <code>(string, string)</code> - Finalize to lowercase hex. FREES <code>ctx</code>.</li><li><code>cryptography.digest_final_bytes(ctx)</code> → <code>(string, int, string)</code> - Finalize to raw digest bytes. FREES <code>ctx</code>.</li><li><code>cryptography.digest_free(ctx)</code> - Abandon a context without finalizing (NULL-safe). Only for the bail-out-before-final case.</li></ul>
+<p><strong>Base64 (RFC 4648 §4 standard alphabet):</strong></p>
+<ul><li><code>cryptography.base64_encode(data, length)</code> → <code>(string, string)</code> - Encode <code>length</code> bytes, <strong>unpadded</strong> output.</li><li><code>cryptography.base64_encode_padded(data, length)</code> → <code>(string, string)</code> - Encode <code>length</code> bytes, <strong>with <code>=</code> padding</strong> to a multiple of 4. Reach for this when the wire format on the other end expects padded base64, most non-strict decoders accept either, but some auth headers and JSON-encoded blob formats explicitly require padding.</li><li><code>cryptography.base64_decode(b64)</code> → <code>(string, int, string)</code> - Decode a Base64 string. Returns <code>(bytes, byte_count, &quot;&quot;)</code> on success, <code>(&quot;&quot;, 0, error)</code> on malformed input. Accepts both padded and unpadded input; <code>bytes</code> is an AetherString preserving embedded NULs.</li></ul>
+<p><strong>What <code>std.cryptography</code> doesn&#x27;t do:</strong></p>
+<p>Coming from Java&#x27;s <code>java.security</code>, Python&#x27;s <code>cryptography</code>, or Go&#x27;s <code>crypto/*</code>, expect to reach for an external library if you need:</p>
+<ul><li><strong>Public-key crypto (RSA, ECDSA, Ed25519, X25519), symmetric ciphers (AES, ChaCha20-Poly1305), and key derivation (KDFs).</strong> These live under <a href="../std/cryptography/"><code>std.cryptography</code></a> (<code>rsa</code>, <code>aes</code>, <code>chacha20poly1305</code>, <code>ed25519</code>, <code>x25519</code>, <code>p256</code>, <code>secp256k1</code>, <code>pem</code>, <code>asn1</code>, ...) — pure-Aether ports with no OpenSSL dependency. Each family is a separate sub-module you import explicitly.</li><li><strong>URL-safe Base64 (RFC 4648 §5).</strong> Standard alphabet only; URL-safe (<code>-</code> / <code>_</code> instead of <code>+</code> / <code>/</code>) is a separate variant the wrappers don&#x27;t expose.</li><li><strong>Constant-time comparison.</strong> Equality checks via <code>string.equals</code> are not constant-time; callers comparing hashes for security-sensitive cases need their own constant-time helper.</li></ul>
+<p>Raw externs: <code>cryptography_sha1_hex_raw</code>, <code>cryptography_sha256_hex_raw</code> return allocated <code>char*</code> or NULL on failure. The Go-style wrappers translate the NULL into <code>(&quot;&quot;, &quot;openssl unavailable&quot;)</code>.</p>
+<p>Public-key crypto, symmetric ciphers, and key derivation live under <code>std.cryptography</code> as explicitly-imported sub-modules (e.g. <code>std.cryptography.rsa</code>, <code>std.cryptography.x25519</code>, <code>std.cryptography.aes</code>) — pure-Aether ports, no OpenSSL. The top-level <code>std.cryptography</code> module stays focused on the hash/HMAC/Base64/CSPRNG primitives with a single obvious shape.</p>
+<hr>
+<h2>Compression (<code>std.zlib</code>)</h2>
+<p>One-shot zlib deflate/inflate for in-memory byte buffers. Output is a length-aware AetherString plus explicit byte count (matching <code>fs.read_binary</code>&#x27;s shape), so binary payloads with embedded NULs round-trip intact.</p>
+<p>Under the hood <code>deflate</code> uses <code>compress2</code> with <code>compressBound</code> sizing; <code>inflate</code> uses streaming <code>inflate()</code> with a geometric-grow output buffer so callers don&#x27;t need to know the decompressed size in advance.</p>
+<p>Auto-detects zlib via pkg-config (same pattern as OpenSSL). When absent, the wrappers return <code>(&quot;&quot;, 0, &quot;zlib unavailable&quot;)</code> rather than crashing.</p>
+<pre><code>import std.zlib
+import std.fs
+import std.string
+
+main() {
+    // Compress a text payload at the default level (-1).
+    msg = &quot;Hello, zlib. Repetition repetition repetition.&quot;
+    n_in = string.length(msg)
+    compressed, nc, cerr = zlib.deflate(msg, n_in, -1)
+
+    // Round-trip back to the original bytes. `inflate` doesn&#x27;t need
+    // to be told the decompressed size, it grows as needed.
+    out, nu, uerr = zlib.inflate(compressed, nc)
+
+    // Binary payloads work the same way: fs.read_binary gives a
+    // length-aware AetherString; the extern unwraps it before
+    // feeding the bytes to zlib.
+    data, nd, _ = fs.read_binary(&quot;payload.bin&quot;)
+    blob, nb, _ = zlib.deflate(data, nd, 9)  // level 9 = best
+}</code></pre>
+<p><strong>Functions:</strong></p>
+<ul><li><code>zlib.deflate(data, length, level)</code> → <code>(string, int, string)</code> - Compress the first <code>length</code> bytes of <code>data</code> at <code>level</code> (0..9, or -1 for default). Out-of-range levels are clamped to default. Returns <code>(bytes, byte_count, &quot;&quot;)</code> on success, <code>(&quot;&quot;, 0, error)</code> on failure.</li><li><code>zlib.inflate(data, length)</code> → <code>(string, int, string)</code> - Decompress a zlib stream (RFC 1950). Returns <code>(bytes, byte_count, &quot;&quot;)</code> on success, <code>(&quot;&quot;, 0, error)</code> on corruption, truncation, or empty input.</li></ul>
+<p>Gzip-framed helpers for HTTP <code>Content-Encoding: gzip</code> are also available: <code>zlib.gzip_deflate(data, length, level)</code> and <code>zlib.gzip_inflate(data, length)</code>. Streaming APIs remain out of scope for v1, additive future work under the same module. See <a href="/Docs/stdlib-vs-contrib.html">stdlib-vs-contrib.md</a> for the &quot;one obvious shape&quot; criterion.</p>
+<hr>
+<h2>Networking</h2>
+<h3>HTTP (<code>std.http</code>)</h3>
+<blockquote><strong>Note:</strong> Use <code>import std.http</code> for the <code>http.*</code> prefix shown below. You can also <code>import std.net</code> which includes both HTTP and TCP functions, but the namespace prefix becomes <code>net</code> e.g. the raw client extern is reached as <code>net.http_get_raw(url)</code>, and the Go-style wrapper as <code>net.get(url)</code>.</blockquote>
+<pre><code>import std.http
+
+main() {
+    // HTTP Client, Go-style
+    body, err = http.get(&quot;http://example.com&quot;)
+    if err != &quot;&quot; {
+        println(&quot;failed: ${err}&quot;)
+        return
+    }
+    println(&quot;got: ${body}&quot;)
 
     // HTTP Server
     server = http.server_create(8080)
-    http.server_bind(server, &quot;127.0.0.1&quot;, 8080)
-    http.server_start(server)
+    berr = http.server_bind(server, &quot;127.0.0.1&quot;, 8080)
+    if berr != &quot;&quot; {
+        println(&quot;bind failed: ${berr}&quot;)
+        return
+    }
+    serr = http.server_start(server)
+    if serr != &quot;&quot; { println(&quot;start failed: ${serr}&quot;) }
     http.server_free(server)
 }</code></pre>
-<p><strong>Client:</strong></p>
-<ul>
-<li><code>http.get(url)</code> - HTTP GET request</li>
-<li><code>http.post(url, body, content_type)</code> - HTTP POST</li>
-<li><code>http.put(url, body, content_type)</code> - HTTP PUT</li>
-<li><code>http.delete(url)</code> - HTTP DELETE</li>
-<li><code>http.response_free(response)</code> - Free response</li>
-</ul>
+<p><strong>Client (Go-style):</strong></p>
+<ul><li><code>http.get(url)</code> → <code>(string, string)</code> - HTTP GET, returns <code>(body, err)</code></li><li><code>http.get_with_timeout(url, timeout)</code> → <code>(string, string)</code> - HTTP GET with a <code>Duration</code> per-call timeout. <code>0ns</code> keeps <code>get</code>&#x27;s &quot;block forever&quot; default; positive values are rounded up to whole seconds internally today. For any third-party URL, without a timeout, a hung site stalls the calling actor&#x27;s whole message handler.</li><li><code>http.post(url, body, content_type)</code> → <code>(string, string)</code> - HTTP POST</li><li><code>http.put(url, body, content_type)</code> → <code>(string, string)</code> - HTTP PUT</li><li><code>http.delete(url)</code> → <code>(string, string)</code> - HTTP DELETE</li></ul>
+<p>All wrappers auto-free the underlying response and return an error string for transport failures or non-2xx status codes. Raw externs: <code>http_get_raw</code>, <code>http_get_with_timeout_raw</code>, <code>http_post_raw</code>, <code>http_put_raw</code>, <code>http_delete_raw</code>.</p>
+<p><strong>Response accessors (used with raw externs):</strong></p>
+<ul><li><code>http.response_status(response)</code> - Read HTTP status code (0 on transport failure)</li><li><code>http.response_body(response)</code> - Read body as string</li><li><code>http.response_headers(response)</code> - Read headers as string</li><li><code>http.response_error(response)</code> - Read transport error, empty string on success</li><li><code>http.response_ok(response)</code> - 1 if request succeeded (no transport error, 2xx status), else 0</li><li><code>http.response_free(response)</code> - Free response</li></ul>
 <p><strong>Server Lifecycle:</strong></p>
-<ul>
-<li><code>http.server_create(port)</code> - Create server</li>
-<li><code>http.server_bind(server, host, port)</code> - Bind to
-address</li>
-<li><code>http.server_start(server)</code> - Start serving
-(blocking)</li>
-<li><code>http.server_stop(server)</code> - Stop server</li>
-<li><code>http.server_free(server)</code> - Free server</li>
-</ul>
+<ul><li><code>http.server_create(port)</code> - Create server (never fails)</li><li><code>http.server_set_host(server, host)</code> - Set bind address before <code>server_start</code>. Default is <code>&quot;0.0.0.0&quot;</code>. Pass <code>&quot;127.0.0.1&quot;</code> to bind loopback only, useful in tests because macOS / Windows firewalls don&#x27;t prompt on loopback binds.</li><li><code>http.server_bind(server, host, port)</code> → <code>string</code> - Bind to address, return error string</li><li><code>http.server_start(server)</code> → <code>string</code> - Start serving (blocking), return error string</li><li><code>http.server_stop(server)</code> - Stop server</li><li><code>http.server_free(server)</code> - Free server</li></ul>
+<p>Raw externs: <code>http_server_bind_raw</code>, <code>http_server_start_raw</code>, <code>http_server_set_host</code>.</p>
+<p><strong>Static file serving:</strong></p>
+<ul><li><code>http.serve_file(res, filepath)</code> - Serve a single file. Issue #383 zero-copy: under HTTP/1.1 cleartext on Linux/macOS, takes the <code>sendfile(2)</code> fast path (zero heap allocation for the body); falls back to a buffered read for TLS / HTTP/2 / Range requests / Windows. <code>Content-Type</code> resolved via <code>http.mime_type(filepath)</code>.</li><li><code>http.serve_static(req, res, base_dir)</code> - Wildcard-route static-file dispatcher. Path traversal (<code>..</code>, <code>%2e</code>, etc.) is rejected with 403; missing files return 404.</li></ul>
 <p><strong>Server Routing:</strong></p>
-<ul>
-<li><code>http.server_get(server, path, handler, user_data)</code> -
-Register GET route</li>
-<li><code>http.server_post(server, path, handler, user_data)</code> -
-Register POST route</li>
-<li><code>http.server_put(server, path, handler, user_data)</code> -
-Register PUT route</li>
-<li><code>http.server_delete(server, path, handler, user_data)</code> -
-Register DELETE route</li>
-<li><code>http.server_use_middleware(server, middleware, user_data)</code>
-- Add middleware</li>
-</ul>
+<ul><li><code>http.server_get(server, path, handler, user_data)</code> - Register GET route</li><li><code>http.server_post(server, path, handler, user_data)</code> - Register POST route</li><li><code>http.server_put(server, path, handler, user_data)</code> - Register PUT route</li><li><code>http.server_delete(server, path, handler, user_data)</code> - Register DELETE route</li><li><code>http.server_use_middleware(server, middleware, user_data)</code> - Add middleware</li></ul>
+<p><strong>Server Configuration:</strong></p>
+<ul><li><code>http.server_set_tls(server, cert_path, key_path)</code> → <code>string</code> - Enable HTTPS with PEM cert + key.</li><li><code>http.server_set_keepalive(server, enable, max_requests, idle_timeout)</code> → <code>string</code> - HTTP/1.1 keep-alive with a <code>Duration</code> idle timeout (<code>max_requests=0</code> is unlimited per connection).</li><li><code>http.server_set_h2(server, max_concurrent_streams)</code> → <code>string</code> - Enable HTTP/2 (h2 + h2c + ALPN). <code>max_concurrent_streams=0</code> uses libnghttp2&#x27;s default (100). Returns error string when the build is missing libnghttp2.</li><li><code>http.server_set_h2_concurrent_dispatch(server, worker_count)</code> → <code>string</code> - Routes h2 stream handlers onto the shared <code>std.worker</code> thread pool, sized to <code>worker_count</code>. <code>worker_count &gt; 0</code> lets streams across all h2 connections execute their handlers in parallel; <code>worker_count == 0</code> (default) keeps dispatch sequential on each connection thread. POSIX-only; on Windows the call is a silent no-op. See <code>docs/http-server.md</code> for the architecture rationale (pool threads vs actors, one shared pool vs per-connection).</li><li><code>http.server_shutdown_graceful(server, timeout)</code> → <code>string</code> - Stop accepting new connections, drain in-flight requests for up to a <code>Duration</code>, exit. h2 sessions emit a <code>GOAWAY</code> frame so peers know not to start new streams while existing ones complete.</li><li><code>http.server_set_health_probes(server, live_path, ready_path, ready_check, ud)</code> → <code>string</code> - Built-in <code>/healthz</code> (always 200) + <code>/readyz</code> (200 only when the readiness check returns 1).</li><li><code>http.server_set_access_log(server, format, output_path)</code> → <code>string</code> - Built-in access logger. <code>format</code> is <code>&quot;combined&quot;</code> or <code>&quot;json&quot;</code>; <code>output_path</code> is a file path, <code>&quot;-&quot;</code> for stderr, or <code>&quot;&quot;</code> to disable.</li><li><code>http.server_set_metrics(server, endpoint)</code> → <code>string</code> - Prometheus-compatible counters/histograms at the configured endpoint (default <code>&quot;/metrics&quot;</code>).</li></ul>
 <p><strong>Request Accessors:</strong></p>
-<ul>
-<li><code>http.get_header(req, name)</code> - Get request header</li>
-<li><code>http.get_query_param(req, name)</code> - Get query
-parameter</li>
-<li><code>http.get_path_param(req, name)</code> - Get URL path
-parameter</li>
-<li><code>http.request_free(req)</code> - Free request</li>
-</ul>
+<ul><li><code>http.request_method(req)</code> → <code>string</code> - HTTP method (<code>GET</code>, <code>POST</code>, <code>PUT</code>, …); empty if <code>req</code> is null.</li><li><code>http.request_path(req)</code> → <code>string</code> - URL path (no query string); empty if <code>req</code> is null.</li><li><code>http.request_body(req)</code> → <code>string</code> - Request body as a C-string. <strong>Truncates at the first embedded NUL</strong> when read via <code>string.length(...)</code>; pair with <code>http.request_body_length</code> for binary-safe access. On a large (streaming) request the first call materializes the body, it drains the remaining wire bytes into one buffer, preserving the v1 whole-body contract at the O(Content-Length) cost the caller asked for. Don&#x27;t mix it with <code>request_body_read</code> on the same request (the consumed prefix is gone; the mixed call returns <code>&quot;&quot;</code>). Issue #644.</li><li><code>http.request_body_length(req)</code> → <code>int</code> - Byte count of the request body. Returns 0 if <code>req</code> is null or has no body. Reach for this whenever the body may contain NUL bytes (svn PUT, image uploads, gzipped JSON), the length-aware companion to <code>http.request_body</code>. On a streaming request this is the declared <code>Content-Length</code> until the body is materialized, then the actual received count.</li><li><code>http.request_body_read(req, offset, max)</code> → <code>(bytes, n, err)</code> - Chunked body read. Bodies ≤ 16 KiB are pre-buffered (random-access offsets); larger bodies are <strong>streamed</strong>, the handler is dispatched at headers-complete and each read pulls the next window straight off the socket (sequential offsets only), so peak server RAM per upload is one window, not the object. Backpressure is TCP flow control itself: the server doesn&#x27;t <code>recv</code> until the handler asks. Issues #626/#644.</li><li><code>http.request_body_complete(req)</code> → <code>int</code> - 1 once every declared body byte has arrived (streaming: pulled off the wire; buffered: always 1). The natural chunked-loop terminator. <code>Transfer-Encoding: chunked</code> request bodies remain unsupported (no <code>Content-Length</code> → length 0, no body), the deliberate v1 semantics decision of #644.</li><li><code>http.request_query(req)</code> → <code>string</code> - Raw query string; empty if absent.</li><li><code>http.get_header(req, name)</code> - Get request header</li><li><code>http.get_query_param(req, name)</code> - Get query parameter</li><li><code>http.get_path_param(req, name)</code> - Get URL path parameter</li><li><code>http.request_free(req)</code> - Free request</li></ul>
 <p><strong>Response Building:</strong></p>
-<ul>
-<li><code>http.response_create()</code> - Create response</li>
-<li><code>http.response_set_status(res, code)</code> - Set HTTP status
-code</li>
-<li><code>http.response_set_header(res, name, value)</code> - Set
-response header</li>
-<li><code>http.response_set_body(res, body)</code> - Set response
-body</li>
-<li><code>http.response_json(res, json)</code> - Set JSON response</li>
-<li><code>http.server_response_free(res)</code> - Free response</li>
-</ul>
-<h3 id="tcp-stdtcp">TCP (<code>std.tcp</code>)</h3>
-<pre class="aether"><code>import std.tcp
+<ul><li><code>http.response_create()</code> - Create response</li><li><code>http.response_set_status(res, code)</code> - Set HTTP status code</li><li><code>http.response_set_header(res, name, value)</code> - Set response header</li><li><code>http.response_set_body(res, body)</code> - Set response body. Uses <code>strdup</code> + <code>strlen</code> internally, <strong>truncates at the first embedded NUL</strong>. Fine for text bodies; use <code>response_set_body_n</code> for anything that may contain binary.</li><li><code>http.response_set_body_n(res, body, length)</code> - Length-aware sibling of <code>response_set_body</code>. Treats <code>body</code> as <code>length</code> bytes verbatim, no NUL searching. Reach for this when the body is binary content (gzip / image / packed binary) or may contain NUL bytes mid-payload. <code>length == 0</code> clears the body; negative length is a no-op.</li><li><code>http.response_json(res, json)</code> - Set JSON response</li><li><code>http.server_response_free(res)</code> - Free response</li></ul>
+<h3>HTTP Middleware (<code>std.http.middleware</code>)</h3>
+<p>Composable pre-handler middleware + response transformers. Each middleware is a C function pointer registered on the server&#x27;s function-pointer chain, no Aether-side dispatch overhead in the hot path. Aether-side factory wrappers allocate the per-middleware config struct and register it.</p>
+<pre><code>import std.http
+import std.http.middleware
 
 main() {
-    // Client
-    sock = tcp.connect(&quot;localhost&quot;, 8080);
-    tcp.send(sock, &quot;Hello&quot;);
-    data = tcp.receive(sock, 1024);
-    tcp.close(sock);
+    server = http.server_create(8080)
+
+    // Order matters: real_ip first so downstream sees the client IP
+    middleware.use_real_ip(server, &quot;&quot;)                // default X-Forwarded-For
+
+    middleware.use_cors(server, &quot;*&quot;, &quot;GET, POST&quot;, &quot;Content-Type&quot;, 0, 600)
+
+    middleware.use_rate_limit(server, 100, 60000)     // 100 req / 60s per IP
+
+    middleware.use_bearer_auth(server, &quot;api&quot;, verify_token, null)
+
+    middleware.use_gzip(server, 256, 6)               // response transformer
+
+    http.server_get(server, &quot;/&quot;, handle_root, 0)
+    http.server_start(server)
+}</code></pre>
+<p><strong>Pre-handler middleware (run before route dispatch; can short-circuit):</strong></p>
+<ul><li><code>middleware.use_cors(server, allow_origin, allow_methods, allow_headers, allow_credentials, max_age_seconds)</code> → <code>string</code> - CORS headers + preflight OPTIONS short-circuit.</li><li><code>middleware.use_basic_auth(server, realm, verify_cb, ud)</code> → <code>string</code> - HTTP Basic auth (RFC 7617). Verifier receives decoded <code>(username, password)</code>.</li><li><code>middleware.use_bearer_auth(server, realm, verify_cb, ud)</code> → <code>string</code> - Bearer token auth (RFC 6750). Verifier receives the raw token; on failure emits <code>WWW-Authenticate: Bearer realm=&quot;…&quot;</code> with <code>error=&quot;invalid_token&quot;</code> for malformed credentials.</li><li><code>middleware.use_session_auth(server, cookie_name, redirect_url, verify_cb, ud)</code> → <code>string</code> - Session-cookie auth. Reads a named cookie, hands the value to the verifier; on failure either 401s (when <code>redirect_url</code> is empty) or 302s to the configured login URL.</li><li><code>middleware.use_rate_limit(server, max_requests, window_ms)</code> → <code>string</code> - Token-bucket per-client-IP rate limit. Client IP comes from <code>X-Forwarded-For</code> → <code>X-Real-IP</code> → <code>&quot;anonymous&quot;</code> resolution chain.</li><li><code>middleware.use_vhost(server, hosts_csv)</code> → <code>string</code> - Host-header gate. Comma-separated allowed hosts; unknown hosts get 404.</li><li><code>middleware.use_real_ip(server, header_name)</code> → <code>string</code> - Proxy-aware client IP detection. Reads the configured header (default <code>X-Forwarded-For</code>), takes the leftmost non-empty IP, adds <code>X-Real-IP</code> to the request. Idempotent. <strong>Trust model: only safe behind a proxy that strips client-supplied X-Forwarded-For.</strong></li><li><code>middleware.use_static_files(server, url_prefix, root)</code> → <code>string</code> - Mount a directory under a URL prefix; <code>..</code> traversal blocked.</li><li><code>middleware.use_rewrite(server, opts)</code> → <code>string</code> - Prefix-rewrite rules; build via <code>middleware.rewrite_add_rule(opts, from, to)</code>.</li></ul>
+<p><strong>Response transformers (run after the route handler emits the response):</strong></p>
+<ul><li><code>middleware.use_gzip(server, min_size, level)</code> → <code>string</code> - Gzip the response body when the client sends <code>Accept-Encoding: gzip</code> and the body is at least <code>min_size</code> bytes; level 1 (fastest) – 9 (best), 0 = default 6.</li><li><code>middleware.use_error_pages(server, opts)</code> → <code>string</code> - Replace error-status response bodies with operator-supplied content; build via <code>middleware.error_pages_register(opts, status_code, body, content_type)</code>.</li></ul>
+<h3>HTTP Reverse Proxy (<code>std.http.proxy</code>)</h3>
+<p>nginx-class outbound HTTP forwarding. Forwards inbound requests to a pool of upstream HTTP servers with five load-balancing algorithms, active health checks, in-memory LRU response cache, per-upstream circuit breaker, idempotent retry with <code>proxy_next_upstream</code> semantics, per-upstream token-bucket rate limit, active drain, W3C Trace-Context propagation, Prometheus 0.0.4 metrics, and Hop-by-Hop header handling per RFC 7230.</p>
+<pre><code>import std.http
+import std.http.proxy
+
+// Convenience: single upstream, RR, default opts.
+proxy.mount_simple(server, &quot;/&quot;, &quot;http://localhost:9000&quot;, 30)
+
+// Production: pool + LB + health + cache + breaker + retry + rate-limit + metrics.
+pool = proxy.upstream_pool_new(&quot;weighted_rr&quot;, 30, 0, 100)
+proxy.upstream_add(pool, &quot;http://10.0.0.1:8080&quot;, 3)
+proxy.upstream_add(pool, &quot;http://10.0.0.2:8080&quot;, 1)
+proxy.health_checks_enable(pool, &quot;/health&quot;, 200, 5000, 1000, 2, 3)
+proxy.breaker_configure(pool, 5, 30000, 1)
+proxy.rate_limit_set(pool, 200, 50)
+cache = proxy.cache_new(1000, 65536, 60, &quot;method_url_vary&quot;)
+opts  = proxy.opts_new()
+proxy.opts_bind_cache(opts, cache)
+proxy.opts_set_retry_policy(opts, 3, 100)
+proxy.opts_set_trace_inject(opts, 1)
+proxy.mount(server, &quot;/api&quot;, pool, opts)</code></pre>
+<p><strong>Pool + LB:</strong></p>
+<ul><li><code>proxy.upstream_pool_new(lb_algo, request_timeout_sec, dial_timeout_ms, max_inflight_per_up)</code> → <code>ptr</code> - LB algos: <code>&quot;round_robin&quot;</code>, <code>&quot;least_conn&quot;</code>, <code>&quot;ip_hash&quot;</code>, <code>&quot;weighted_rr&quot;</code>, <code>&quot;cookie_hash&quot;</code>.</li><li><code>proxy.upstream_pool_free(pool)</code> - Decrements refcount; joins health-check thread on zero.</li><li><code>proxy.upstream_add(pool, base_url, weight)</code> → <code>string</code></li><li><code>proxy.upstream_remove(pool, base_url)</code> → <code>string</code></li><li><code>proxy.upstream_drain(pool, base_url)</code> → <code>string</code> - skip in LB; in-flight finish.</li><li><code>proxy.upstream_undrain(pool, base_url)</code> → <code>string</code> - re-admit to LB.</li><li><code>proxy.pool_set_cookie_name(pool, name)</code> → <code>string</code> - cookie key for <code>cookie_hash</code> algo.</li><li><code>proxy.rate_limit_set(pool, max_rps, burst)</code> → <code>string</code> - per-upstream token-bucket rate limit. <code>max_rps = 0</code> disables.</li></ul>
+<p><strong>Health checks (one pthread per pool):</strong></p>
+<ul><li><code>proxy.health_checks_enable(pool, probe_path, expect_status, interval_ms, timeout_ms, healthy_threshold, unhealthy_threshold)</code> → <code>string</code></li></ul>
+<p><strong>Circuit breaker (per-upstream state, per-pool config):</strong></p>
+<ul><li><code>proxy.breaker_configure(pool, failure_threshold, open_duration_ms, half_open_max)</code> → <code>string</code> - <code>failure_threshold = 0</code> disables.</li></ul>
+<p><strong>Cache (in-memory LRU + TTL):</strong></p>
+<ul><li><code>proxy.cache_new(max_entries, max_body_bytes, default_ttl_sec, key_strategy)</code> → <code>ptr</code> - Key strategy: <code>&quot;url&quot;</code>, <code>&quot;method_url&quot;</code>, <code>&quot;method_url_vary&quot;</code>. RFC 7234 cacheability gates with Vary-aware lookup.</li><li><code>proxy.cache_free(cache)</code></li></ul>
+<p><strong>Per-mount options:</strong></p>
+<ul><li><code>proxy.opts_new()</code> → <code>ptr</code></li><li><code>proxy.opts_set_strip_prefix(opts, prefix)</code> → <code>string</code> - chops a path prefix before forwarding (e.g. <code>/api/users</code> → <code>/users</code> upstream).</li><li><code>proxy.opts_set_preserve_host(opts, on)</code> → <code>string</code> - 0 (default) rewrites Host: to upstream; 1 forwards client Host: verbatim.</li><li><code>proxy.opts_set_xforwarded(opts, xff, xfp, xfh)</code> → <code>string</code> - toggles X-Forwarded-{For, Proto, Host} injection (defaults all on).</li><li><code>proxy.opts_bind_cache(opts, cache)</code> → <code>string</code></li><li><code>proxy.opts_set_body_cap(opts, max_body_bytes)</code> → <code>string</code> - default 8 MiB.</li><li><code>proxy.opts_set_retry_policy(opts, max_retries, backoff_base_ms)</code> → <code>string</code> - retry idempotent methods on 5xx + transport with exponential backoff + full jitter; re-picks per attempt.</li><li><code>proxy.opts_set_trace_inject(opts, on)</code> → <code>string</code> - 0 (default) passthrough W3C traceparent; 1 generates a fresh trace when missing.</li><li><code>proxy.opts_free(opts)</code></li></ul>
+<p><strong>Install:</strong></p>
+<ul><li><code>proxy.mount(server, path_prefix, pool, opts)</code> → <code>string</code> - mount the proxy under <code>path_prefix</code>. <code>&quot;/&quot;</code> forwards everything; <code>&quot;/api&quot;</code> forwards just the <code>/api</code> subtree.</li><li><code>proxy.mount_simple(server, path_prefix, upstream_url, request_timeout_sec)</code> → <code>string</code> - one-upstream convenience.</li></ul>
+<p><strong>Observability:</strong></p>
+<ul><li><code>proxy.pool_metrics_text(pool)</code> → <code>string</code> - Prometheus 0.0.4 exposition (per-upstream + per-pool counters / gauges).</li></ul>
+<p>See <a href="/Docs/http-reverse-proxy.html"><code>docs/http-reverse-proxy.md</code></a> for the full reference (LB algorithms, retry semantics, error responses, performance budget, limitations).</p>
+<h3>HTTP Client Builder (<code>std.http.client</code>)</h3>
+<p>The <code>http.get</code> / <code>http.post</code> / <code>http.put</code> / <code>http.delete</code> one-liners above are good for &quot;no auth, JSON in, 200 means good&quot; calls. Reach for <code>std.http.client</code> when you need custom request headers, response-header capture, status discrimination, per-request timeouts, or methods other than the four common verbs (PROPFIND, PATCH, custom RPC verbs all work).</p>
+<p>Non-2xx is <strong>not</strong> an error from <code>send_request</code>&#x27;s perspective, the caller branches on <code>response_status</code>. Transport-level failures (DNS, connect, TLS handshake, timeout) populate the <code>err</code> slot.</p>
+<pre><code>import std.http
+import std.http.client
+
+main() {
+    req = client.request(&quot;GET&quot;, &quot;https://api.example.com/users/42&quot;)
+    client.set_header(req, &quot;Authorization&quot;, &quot;Bearer abc123&quot;)
+    client.set_header(req, &quot;Accept&quot;,        &quot;application/json&quot;)
+    client.set_timeout(req, 30s)
+
+    resp, err = client.send_request(req)
+    client.request_free(req)
+    if err != &quot;&quot; {
+        println(&quot;transport: ${err}&quot;)
+        return
+    }
+
+    status = client.response_status(resp)        // 200, 404, ...
+    body   = client.response_body(resp)          // binary-safe AetherString
+    etag   = client.response_header(resp, &quot;ETag&quot;) // case-insensitive lookup
+    client.response_free(resp)
+}</code></pre>
+<p><strong>Builder + send:</strong></p>
+<ul><li><code>client.request(method, url)</code> → <code>ptr</code> - Build a request handle (method as arbitrary string)</li><li><code>client.set_header(req, name, value)</code> → <code>string</code> - Append <code>Name: value</code> to outgoing headers</li><li><code>client.set_body(req, body, length, content_type)</code> → <code>string</code> - Set request body (length explicit so binary payloads with embedded NULs survive)</li><li><code>client.set_timeout(req, timeout)</code> → <code>string</code> - <code>Duration</code> per-request timeout (<code>0ns</code> = block forever)</li><li><code>client.set_follow_redirects(req, max_hops)</code> → <code>string</code> - Follow up to <code>max_hops</code> redirects (<code>0</code> = don&#x27;t follow, the default)</li><li><code>client.send_request(req)</code> → <code>(ptr, string)</code> - Fire the request; returns <code>(resp, &quot;&quot;)</code> on transport success or <code>(null, err)</code> on failure</li><li><code>client.set_stream(req, on)</code> → <code>string</code> - Enable streaming of the response body for this request (#1004); <code>send_stream</code> is the convenience form</li><li><code>client.send_stream(req)</code> → <code>(ptr, string)</code> - Like <code>send_request</code>, but the response body is streamed rather than buffered (see below)</li><li><code>client.request_free(req)</code> - Free the request handle</li></ul>
+<p><strong>TLS + forward proxy (per request):</strong> the client is hardened by default — TLS peer verification is <strong>on</strong> and env proxies are <strong>not</strong> followed unless you opt in. These knobs relax that per request; precedence for proxy is <code>ignore &gt; explicit &gt; env &gt; direct</code>.</p>
+<ul><li><code>client.set_insecure(req, on)</code> → <code>string</code> - <code>1</code> skips TLS peer + hostname verification for this request only (<code>curl -k</code> / <code>wget --no-check-certificate</code>). Relaxed per-connection, never on the shared process-wide <code>SSL_CTX</code>, so other requests keep verifying. Default <code>0</code>. Use only against hosts trusted out-of-band (self-signed dev/staging/appliance certs) — it removes MITM protection for that request.</li><li><code>client.set_cafile(req, path)</code> → <code>string</code> - pin a custom CA for this request: verify the peer against the PEM bundle at <code>path</code> instead of the system trust store, while <strong>keeping peer and hostname verification on</strong>. This is the &quot;verify, but against THIS cert&quot; knob — strictly stronger than <code>set_insecure</code>, for machine-to-machine calls to a host with a private/self-signed CA couriered out-of-band (courier the CA once over SSH, then pin it instead of blind-trusting). Per-connection via a per-<code>SSL</code> <code>X509_STORE</code>; never touches the shared <code>SSL_CTX</code>. <code>&quot;&quot;</code> clears the pin (revert to the system store). A certificate the pinned CA doesn&#x27;t cover fails the handshake — fails closed, never open.</li><li><code>client.use_env_proxy(req, on)</code> → <code>string</code> - <code>1</code> follows <code>$HTTP_PROXY</code>/<code>$HTTPS_PROXY</code>/<code>$NO_PROXY</code> (Go-compatible). <strong>Off by default</strong> — the deliberate inverse of the default-follow that caused the httpoxy vulnerability class (CVE-2016-5385). It is a code-visible opt-in, never ambient, and carries two guards: the CGI-injectable uppercase <code>HTTP_PROXY</code> is refused when <code>$REQUEST_METHOD</code>/<code>$GATEWAY_INTERFACE</code> is set (lowercase <code>http_proxy</code> stays honoured), and a proxy resolving to a loopback/link-local IP literal (127/8, 169.254/16 IMDS, <code>::1</code>, <code>fc00::/7</code>, <code>fe80::/10</code>) is rejected (SSRF).</li><li><code>client.use_http_proxy(req, &quot;http://host:port&quot;)</code> → <code>string</code> - Pin an explicit forward proxy; env is ignored entirely (empty url reverts to direct). A team-controlled proxy (recorder / toxiproxy) is thus immune to whatever the shell or CI has set. HTTP goes through the proxy with an absolute-form request line; HTTPS establishes a <code>CONNECT</code> tunnel with TLS end-to-end to the origin.</li><li><code>client.ignore_http_proxy(req)</code> → <code>string</code> - Force a direct connection regardless of env or any proxy a higher layer set (the determinism escape hatch — e.g. a VCR that must record the origin, not a proxy&#x27;s view).</li></ul>
+<p><strong>Response accessors:</strong></p>
+<ul><li><code>client.response_status(resp)</code> → <code>int</code> - HTTP status code</li><li><code>client.response_body(resp)</code> → <code>string</code> - Response body, binary-safe (buffered responses)</li><li><code>client.response_is_stream(resp)</code> → <code>int</code> - 1 if the body is streamed (from <code>send_stream</code>), 0 if buffered</li><li><code>client.response_read(resp, max)</code> → <code>string</code> - Pull the next decoded body window (up to <code>max</code> bytes) from a streaming response; empty result = end-of-body (streaming)</li><li><code>client.response_header(resp, name)</code> → <code>string</code> - Case-insensitive single-header lookup, <code>&quot;&quot;</code> if absent</li><li><code>client.response_headers(resp)</code> → <code>string</code> - Raw header block</li><li><code>client.response_error(resp)</code> → <code>string</code> - Transport error string</li><li><code>client.response_free(resp)</code> - Free the response (closes the connection for a streaming response)</li></ul>
+<p><strong>Sugar wrappers</strong> (pure Aether on top of the builder, no new C externs):</p>
+<ul><li><code>client.get_with_headers(url, header_pairs)</code> → <code>(string, int, string)</code> - GET with auth/whatever headers; returns <code>(body, status, err)</code></li><li><code>client.post_with_status(url, body, content_type)</code> → <code>(string, int, string)</code> - POST and inspect status</li><li><code>client.post_json(url, value)</code> → <code>(ptr, string)</code> - Marshal a JSON value (<code>std.json</code>), set <code>Content-Type</code> + <code>Accept</code> to <code>application/json</code>, send</li><li><code>client.response_body_json(resp)</code> → <code>(ptr, string)</code> - Wrap <code>response_body</code> + <code>json.parse</code>; returns <code>(value, &quot;&quot;)</code> on success or <code>(null, parse_error)</code> on malformed JSON</li></ul>
+<p><strong>Streaming large response bodies (#1004):</strong> <code>send_request</code> materialises the whole body into one <code>AetherString</code>, fine for JSON APIs, but for a multi-megabyte download that is O(Content-Length) memory. <code>send_stream</code> instead reads only the header block, keeps the connection open, and hands back a response you drain window-by-window with <code>response_read</code>, so peak memory is one window regardless of body size. <code>Content-Length</code> and <code>Transfer-Encoding: chunked</code> bodies are both decoded transparently (you always see payload bytes, never chunk framing). Redirects are still followed if enabled; only the final hop streams. Always <code>response_free</code> the response when done (it closes the connection), even if you stop reading early.</p>
+<pre><code>import std.http
+import std.http.client
+
+main() {
+    req = client.request(&quot;GET&quot;, &quot;https://example.com/big.iso&quot;)
+    client.set_timeout(req, 60s)
+    resp, err = client.send_stream(req)     // reads headers only; body stays on the wire
+    client.request_free(req)
+    if err != &quot;&quot; { println(&quot;transport: ${err}&quot;); return }
+
+    // Drive the body in windows; peak memory is one chunk, not the whole file.
+    done = 0
+    while done == 0 {
+        chunk = client.response_read(resp, 65536)   // up to 64 KiB of decoded body
+        if string.length(chunk) == 0 {
+            done = 1                                 // end-of-body (or error, see below)
+        } else {
+            // ... write chunk to disk, hash it, forward it, ...
+        }
+    }
+    // An empty chunk means EOF *or* a mid-stream failure; disambiguate here.
+    serr = client.response_error(resp)
+    client.response_free(resp)                       // closes the connection
+    if serr != &quot;&quot; { println(&quot;stream error: ${serr}&quot;) }
+}</code></pre>
+<p>Design choices: <code>method</code> is an arbitrary string, not a <code>{GET,POST,PUT,DELETE}</code> enum, so WebDAV / DeltaV / PATCH / project-specific verbs ride through without a stdlib release (the native client sends the method verbatim on the request line). A non-2xx status is not an error: <code>send_request</code> returns the response cleanly and the caller drives status interpretation, so 404/403/401 are distinguishable rather than collapsed to <code>&quot;http error&quot;</code>. The builder is named <code>send_request</code> rather than <code>send</code> because <code>send</code> is reserved for actor messaging (tracked by #233). <code>tests/integration/test_http_client_v2.ae</code> is the runnable example for the buffered API; <code>tests/integration/http_client_stream/</code> and <code>http_client_stream_chunked/</code> cover streaming.</p>
+<h3>HTTP record/replay (VCR), moved out of the stdlib</h3>
+<p>The Servirtium record/replay engine that used to ship as <code>std.http.server.vcr</code> has been lifted into its own repository, <a href="https://github.com/aether-lang-org/servirtium-vcr"><code>servirtium-vcr</code></a>, now its authoritative home, alongside its language bindings. It is no longer part of the Aether stdlib (it had served its purpose: shaping Aether&#x27;s HTTP server). See <a href="/Docs/http-vcr.html"><code>docs/http-vcr.md</code></a> for the pointer and history.</p>
+<h3>TCP (<code>std.tcp</code>)</h3>
+<blockquote><strong>Note:</strong> <code>send</code> and <code>receive</code> are reserved actor keywords in Aether, so<br>the TCP byte-transfer wrappers are named <code>write</code>/<code>read</code>. The raw externs<br>retain their <code>send_raw</code>/<code>receive_raw</code> names.</blockquote>
+<pre><code>import std.tcp
+
+main() {
+    // Client, Go-style
+    sock, cerr = tcp.connect(&quot;localhost&quot;, 8080)
+    if cerr != &quot;&quot; { println(&quot;connect failed: ${cerr}&quot;); return }
+
+    _, werr = tcp.write(sock, &quot;Hello&quot;)
+    if werr != &quot;&quot; { println(&quot;write failed: ${werr}&quot;) }
+
+    data, rerr = tcp.read(sock, 1024)
+    if rerr == &quot;&quot; { println(&quot;got: ${data}&quot;) }
+    tcp.close(sock)
 
     // Server
-    server = tcp.listen(8080);
-    client = tcp.accept(server);
-    tcp.send(client, &quot;Welcome&quot;);
-    tcp.close(client);
-    tcp.server_close(server);
+    server, lerr = tcp.listen(8080)
+    if lerr != &quot;&quot; { return }
+    client, aerr = tcp.accept(server)
+    if aerr == &quot;&quot; {
+        tcp.write(client, &quot;Welcome&quot;)
+        tcp.close(client)
+    }
+    tcp.server_close(server)
 }</code></pre>
-<p><strong>Functions:</strong></p>
-<ul>
-<li><code>tcp.connect(host, port)</code> - Connect to server</li>
-<li><code>tcp.send(sock, data)</code> - Send data</li>
-<li><code>tcp.receive(sock, max)</code> - Receive data</li>
-<li><code>tcp.close(sock)</code> - Close socket</li>
-<li><code>tcp.listen(port)</code> - Create server socket</li>
-<li><code>tcp.accept(server)</code> - Accept connection</li>
-<li><code>tcp.server_close(server)</code> - Close server</li>
-</ul>
-<hr />
-<h2 id="logging-stdlog">Logging (<code>std.log</code>)</h2>
+<p><strong>Functions (Go-style):</strong></p>
+<ul><li><code>tcp.connect(host, port)</code> → <code>(ptr, string)</code> - Connect, return <code>(socket, err)</code></li><li><code>tcp.write(sock, data)</code> → <code>(int, string)</code> - Write text-shaped data, return <code>(bytes_sent, err)</code>. Uses the legacy strlen-shaped raw send; use <code>tcp.write_n</code> for binary payloads.</li><li><code>tcp.write_n(sock, data, length)</code> → <code>(int, string)</code> - Length-aware write, return <code>(bytes_sent, err)</code>. Sends exactly the caller-supplied byte prefix, preserving embedded NUL bytes.</li><li><code>tcp.read(sock, max)</code> → <code>(string, string)</code> - Read text-shaped data, return <code>(data, err)</code>. Use <code>tcp.read_n</code> for binary payloads.</li><li><code>tcp.read_n(sock, max)</code> → <code>(string, int, string)</code> - Binary-safe read, return <code>(bytes, length, err)</code>. The returned length is authoritative for payloads with embedded NUL bytes.</li><li><code>tcp.listen(port)</code> → <code>(ptr, string)</code> - Create server socket</li><li><code>tcp.accept(server)</code> → <code>(ptr, string)</code> - Accept connection</li><li><code>tcp.close(sock)</code> - Close socket (infallible)</li><li><code>tcp.server_close(server)</code> - Close server socket</li></ul>
+<p>Raw externs: <code>tcp_connect_raw</code>, <code>tcp_send_raw</code>, <code>tcp_send_n_raw</code>, <code>tcp_receive_raw</code>, <code>tcp_receive_n_raw</code>, <code>tcp_listen_raw</code>, <code>tcp_accept_raw</code>.</p>
+<h3>Reactor-pattern async I/O (<code>await_io</code>)</h3>
+<p>Aether&#x27;s runtime already owns a per-core I/O reactor (epoll on Linux, kqueue on macOS/BSD, poll() elsewhere). <code>net.await_io</code> exposes that reactor to Aether code so an actor can suspend on a file descriptor <em>without blocking any scheduler thread</em>. When the fd becomes ready, the scheduler delivers an <code>IoReady { fd, events }</code> message to the actor&#x27;s mailbox and resumes it on any available core.</p>
+<pre><code>import std.net
+
+message IoReady { fd: int, events: int }
+message Begin { fd: int }
+
+actor Echo {
+    state my_fd = 0
+    receive {
+        Begin(fd) -&gt; {
+            my_fd = fd
+            err = net.await_io(fd)
+            if err != &quot;&quot; {
+                println(&quot;await_io failed: ${err}&quot;)
+                exit(1)
+            }
+        }
+        IoReady(fd, events) -&gt; {
+            // Resumed here, no OS thread was blocked while we waited.
+            data, rerr = tcp.read(/*...*/)
+            // ... process, then re-arm ...
+            net.await_io(fd)
+        }
+    }
+}</code></pre>
+<p><strong>The <code>IoReady</code> message name is reserved.</strong> The runtime scheduler delivers I/O-readiness notifications under a fixed message ID; the Aether message registry assigns that same ID to any user message named <code>IoReady</code> so your handler sees the event as a normal receive arm.</p>
+<table><thead><tr><th>Function</th><th>Returns</th><th>Description</th></tr></thead><tbody><tr><td><code>net.await_io(fd)</code></td><td><code>string</code></td><td>Register <code>fd</code> with the current core&#x27;s I/O poller and suspend the calling actor. Returns <code>&quot;&quot;</code> on success, error string on failure. One-shot: the fd is automatically unregistered after the next <code>IoReady</code> delivery.</td></tr><tr><td><code>net.ae_io_cancel(fd)</code></td><td>—</td><td>Abandon a pending <code>await_io</code> without waiting for the message. Rarely needed due to one-shot policy.</td></tr></tbody></table>
+<p><strong>Constraints:</strong></p>
+<ul><li><code>await_io</code> must be called from inside an actor&#x27;s <code>receive</code> handler</li></ul>
+<p>(not from <code>main()</code>). The bridge reads the current actor from a TLS set at the top of every generated <code>_step()</code> function.</p>
+<ul><li>Single-actor programs run in main-thread mode which bypasses the</li></ul>
+<p>scheduler loop, and therefore the I/O reactor. Spawn at least two actors to force multi-threaded scheduler mode if you want <code>await_io</code> to function.</p>
+<ul><li>The fd must outlive the <code>await_io</code> registration. If you close the</li></ul>
+<p>fd before the <code>IoReady</code> fires, behavior depends on the backend (epoll reports EPOLLHUP; kqueue silently drops the one-shot).</p>
+<p><strong>Performance:</strong> PR #140 (C-level benchmark) demonstrated the raw reactor pattern delivering substantially higher HTTP throughput than the blocking keep-alive worker it replaced. <code>await_io</code> is the Aether-language surface over the same runtime machinery, rerun the HTTP benchmark on your own target host before relying on historical numbers.</p>
+<hr>
+<h2>Logging (<code>std.log</code>)</h2>
 <p>Structured logging with levels.</p>
-<pre class="aether"><code>import std.log
+<pre><code>import std.log
 
 main() {
-    log.init(&quot;app.log&quot;, 0)  // 0 = LOG_DEBUG
+    err = log.init(&quot;app.log&quot;, 0)  // 0 = LOG_DEBUG
+    if err != &quot;&quot; {
+        println(&quot;log file unavailable, falling back to stderr: ${err}&quot;)
+    }
 
     log.write(0, &quot;Debug message&quot;)
     log.write(1, &quot;Info message&quot;)
@@ -642,40 +1091,26 @@ main() {
     log.shutdown()
 }</code></pre>
 <p><strong>Log Levels:</strong></p>
-<ul>
-<li><code>0</code> = DEBUG</li>
-<li><code>1</code> = INFO</li>
-<li><code>2</code> = WARN</li>
-<li><code>3</code> = ERROR</li>
-<li><code>4</code> = FATAL</li>
-</ul>
+<ul><li><code>0</code> = DEBUG</li><li><code>1</code> = INFO</li><li><code>2</code> = WARN</li><li><code>3</code> = ERROR</li><li><code>4</code> = FATAL</li></ul>
 <p><strong>Functions:</strong></p>
-<ul>
-<li><code>log.init(filename, level)</code> - Initialize logging to file
-with minimum level</li>
-<li><code>log.shutdown()</code> - Shutdown logging</li>
-<li><code>log.write(level, message)</code> - Write a log message at the
-given level</li>
-<li><code>log.set_level(level)</code> - Set minimum level</li>
-<li><code>log.set_colors(enabled)</code> - Enable/disable colored output
-(1/0)</li>
-<li><code>log.set_timestamps(enabled)</code> - Enable/disable timestamps
-(1/0)</li>
-<li><code>log.print_stats()</code> - Print logging statistics</li>
-</ul>
-<hr />
-<h2 id="os-stdos">OS (<code>std.os</code>)</h2>
-<p>Shell execution, command output capture, and environment
-variables.</p>
-<pre class="aether"><code>import std.os
+<ul><li><code>log.init(filename, level)</code> → <code>string</code> - Initialize logging, return error string if the log file could not be opened (logging still works via stderr as a fallback)</li><li><code>log.shutdown()</code> - Shutdown logging</li><li><code>log.write(level, message)</code> - Write a log message at the given level</li><li><code>log.set_level(level)</code> - Set minimum level</li><li><code>log.set_colors(enabled)</code> - Enable/disable colored output (1/0)</li><li><code>log.set_timestamps(enabled)</code> - Enable/disable timestamps (1/0)</li><li><code>log.print_stats()</code> - Print logging statistics</li></ul>
+<p>Raw extern: <code>log_init_raw</code> (returns 1/0).</p>
+<hr>
+<h2>OS (<code>std.os</code>)</h2>
+<p>Shell execution, command output capture, and environment variables.</p>
+<pre><code>import std.os
 
 main() {
     // Run a shell command, get exit code
     code = os.system(&quot;echo hello&quot;)
     println(&quot;Exit: ${code}&quot;)
 
-    // Capture command output as string
-    output = os.exec(&quot;date&quot;)
+    // Capture command output, Go-style tuple return
+    output, err = os.exec(&quot;date&quot;)
+    if err != &quot;&quot; {
+        println(&quot;exec failed: ${err}&quot;)
+        return
+    }
     println(&quot;Date: ${output}&quot;)
 
     // Get environment variable
@@ -685,20 +1120,26 @@ main() {
     }
 }</code></pre>
 <p><strong>Functions:</strong></p>
-<ul>
-<li><code>os.system(cmd)</code> - Run shell command, returns exit code
-(0 = success)</li>
-<li><code>os.exec(cmd)</code> - Run command and capture stdout as string
-(returns NULL on failure)</li>
-<li><code>os.getenv(name)</code> - Get environment variable (returns
-string, or NULL if not set)</li>
-</ul>
-<hr />
-<h2 id="math-stdmath">Math (<code>std.math</code>)</h2>
-<p>Mathematical functions. Note: <code>abs</code>, <code>min</code>,
-<code>max</code>, and <code>clamp</code> have separate int/float
-variants.</p>
-<pre class="aether"><code>import std.math
+<ul><li><code>os.system(cmd)</code> - Run shell command, returns exit code (0 = success, POSIX convention)</li><li><code>os.exec(cmd)</code> → <code>(string, string)</code> - Run command and capture stdout, return <code>(output, err)</code></li><li><code>os.getenv(name)</code> - Get environment variable (returns string, or null if not set, infallible)</li><li><code>os.setenv(name, value)</code> → <code>string</code> - Set environment variable, returns &quot;&quot; on success or an error string. Same C-side function as <code>io.setenv</code> use <code>os.setenv</code> when you&#x27;ve already imported <code>std.os</code> for <code>os.getenv</code>.</li><li><code>os.unsetenv(name)</code> → <code>string</code> - Unset environment variable, returns &quot;&quot; on success or an error string. Same C-side function as <code>io.unsetenv</code>.</li><li><code>os.getpid()</code> → <code>int</code> - Process identifier of the current process. POSIX <code>getpid(2)</code>; Windows <code>_getpid()</code>. Useful for tmpfile names (<code>/tmp/myprog.${os.getpid()}.tmp</code>), per-process locks, log prefixes, and stable tagging across forked children. Returns 0 on platforms compiled without filesystem support.</li><li><code>os.now_utc_iso8601()</code> → <code>string</code> - Current UTC time as ISO-8601 (<code>YYYY-MM-DDThh:mm:ssZ</code>). Returns <code>&quot;&quot;</code> (never null) on clock/format failure. Thread-safe.</li><li><code>os.wall_seconds()</code> → <code>long</code> - Whole seconds since the Unix epoch (POSIX <code>gettimeofday</code>; Windows <code>GetSystemTimeAsFileTime</code>). NTP-jumpable, pair with <code>wall_micros</code> for sub-second precision, or use the monotonic accessors below for elapsed-time measurements.</li><li><code>os.wall_micros()</code> → <code>int</code> - Sub-second microsecond fraction (0..999999) from the same <code>struct timeval</code> as <code>wall_seconds</code>.</li><li><code>os.now_monotonic_ms()</code> → <code>long</code> - Monotonic clock, milliseconds since boot / process-start / arbitrary epoch. Value-domain is opaque; only <em>deltas</em> are meaningful. POSIX <code>clock_gettime(CLOCK_MONOTONIC)</code>; Windows <code>QueryPerformanceCounter</code>. Use for animation tick loops, frame-time budgets, microbenchmarks, anything that must survive a wall-clock jump.</li><li><code>os.now_monotonic_ns()</code> → <code>long</code> - Same source as <code>now_monotonic_ms</code>, nanosecond precision. Useful for sub-millisecond timing.</li><li><code>aether_args_count()</code> → <code>int</code> - Number of command-line arguments</li><li><code>aether_args_get(index)</code> → <code>string</code> - Get the i-th argument; null if out of range</li><li><code>aether_argv0()</code> → <code>string</code> - Path the OS launched the current process with (argv[0]); null before <code>aether_args_init</code> runs</li><li><code>os.argv0()</code> → <code>string</code> - Convenience wrapper around <code>aether_argv0()</code> that returns <code>&quot;&quot;</code> instead of null and hands back a fresh copy</li><li><code>os.args_seal()</code> - <strong>One-shot runtime seal</strong> of the argv accessors. After this returns, <code>aether_args_count()</code> reports <code>0</code>, <code>aether_args_get(i)</code> returns null, <code>os.argv0()</code> returns <code>&quot;&quot;</code>, and <code>aether_argv_raw()</code> returns null, as if argv had never been initialised. Idempotent (calling twice is a no-op); there is no unseal. Intended use: once <code>main()</code> has parsed its CLI flags into config state, call <code>os.args_seal()</code> to prevent any later code (imported libraries, plugin callbacks, untrusted Aether modules) from reading the original argv. Complements the compile-time <code>hide</code> / <code>seal except</code> scope directives, those deny <em>lexical</em> access, this denies <em>runtime</em> access. Caveat: this is a co-operative Aether-side gate, not a kernel boundary; the OS still has the original argv in process memory (Linux <code>/proc/self/cmdline</code>, macOS sysctl) and code that goes around the Aether accessors can still read it. Pair with the LD_PRELOAD libc sandbox if the threat model demands true inaccessibility.</li><li><code>os.args_sealed()</code> → <code>int</code> - Returns <code>1</code> if <code>args_seal()</code> has been called in this process, <code>0</code> otherwise. Cheap; useful for cooperative callers that want to check before they call.</li><li><code>os_execv(prog, argv_list)</code> → <code>int</code> - Replace the current process image with <code>prog</code>, passing an explicit <code>list&lt;ptr&gt;</code> argv. Uses POSIX <code>execvp(3)</code> so <code>prog</code> is looked up on <code>PATH</code> when it does not contain a slash. Flushes stdio before the exec so pre-exec output is not lost. On success this call <strong>never returns</strong>; on failure returns <code>-1</code> and the current process continues. Not available on Windows, use <code>os_run</code> + <code>exit(rc)</code> instead.</li></ul>
+<p>Raw extern: <code>os_exec_raw</code>.</p>
+<p><strong>Process replacement example:</strong></p>
+<pre><code>import std.os
+import std.list
+
+main() {
+    argv = list.new()
+    _e1 = list.add(argv, &quot;echo&quot;)
+    _e2 = list.add(argv, &quot;hello from&quot;)
+    _e3 = list.add(argv, os.argv0())
+    rc = os_execv(&quot;/bin/echo&quot;, argv)
+    // Only reached if exec failed.
+    println(&quot;exec failed: ${rc}&quot;)
+    exit(rc)
+}</code></pre>
+<hr>
+<h2>Math (<code>std.math</code>)</h2>
+<p>Mathematical functions. Note: <code>abs</code>, <code>min</code>, <code>max</code>, and <code>clamp</code> have separate int/float variants.</p>
+<pre><code>import std.math
 
 main() {
     // Basic operations (type-specific variants)
@@ -714,7 +1155,7 @@ main() {
     t = math.tan(0.5)
 
     // Inverse trig
-    as = math.asin(0.5)
+    asn = math.asin(0.5)
     ac = math.acos(0.5)
     at = math.atan2(1.0, 1.0)
 
@@ -735,48 +1176,19 @@ main() {
     f = math.random_float()
 }</code></pre>
 <p><strong>Basic (int/float variants):</strong></p>
-<ul>
-<li><code>math.abs_int(x)</code> / <code>math.abs_float(x)</code> -
-Absolute value</li>
-<li><code>math.min_int(a, b)</code> / <code>math.min_float(a, b)</code>
-- Minimum</li>
-<li><code>math.max_int(a, b)</code> / <code>math.max_float(a, b)</code>
-- Maximum</li>
-<li><code>math.clamp_int(x, min, max)</code> /
-<code>math.clamp_float(x, min, max)</code> - Clamp to range</li>
-</ul>
+<ul><li><code>math.abs_int(x)</code> / <code>math.abs_float(x)</code> - Absolute value</li><li><code>math.min_int(a, b)</code> / <code>math.min_float(a, b)</code> - Minimum</li><li><code>math.max_int(a, b)</code> / <code>math.max_float(a, b)</code> - Maximum</li><li><code>math.clamp_int(x, min, max)</code> / <code>math.clamp_float(x, min, max)</code> - Clamp to range</li></ul>
 <p><strong>Trigonometry:</strong></p>
-<ul>
-<li><code>math.sin(x)</code>, <code>math.cos(x)</code>,
-<code>math.tan(x)</code> - Trig functions</li>
-<li><code>math.asin(x)</code>, <code>math.acos(x)</code>,
-<code>math.atan(x)</code> - Inverse trig</li>
-<li><code>math.atan2(y, x)</code> - Two-argument arctangent</li>
-</ul>
+<ul><li><code>math.sin(x)</code>, <code>math.cos(x)</code>, <code>math.tan(x)</code> - Trig functions</li><li><code>math.asin(x)</code>, <code>math.acos(x)</code>, <code>math.atan(x)</code> - Inverse trig</li><li><code>math.atan2(y, x)</code> - Two-argument arctangent</li></ul>
 <p><strong>Power / Logarithms:</strong></p>
-<ul>
-<li><code>math.sqrt(x)</code> - Square root</li>
-<li><code>math.pow(base, exp)</code> - Power</li>
-<li><code>math.log(x)</code> - Natural logarithm</li>
-<li><code>math.log10(x)</code> - Base-10 logarithm</li>
-<li><code>math.exp(x)</code> - Exponential (e^x)</li>
-</ul>
+<ul><li><code>math.sqrt(x)</code> - Square root</li><li><code>math.pow(base, exp)</code> - Power</li><li><code>math.log(x)</code> - Natural logarithm</li><li><code>math.log10(x)</code> - Base-10 logarithm</li><li><code>math.exp(x)</code> - Exponential (e^x)</li></ul>
 <p><strong>Rounding:</strong></p>
-<ul>
-<li><code>math.floor(x)</code>, <code>math.ceil(x)</code>,
-<code>math.round(x)</code></li>
-</ul>
+<ul><li><code>math.floor(x)</code>, <code>math.ceil(x)</code>, <code>math.round(x)</code></li></ul>
 <p><strong>Random:</strong></p>
-<ul>
-<li><code>math.random_seed(seed)</code> - Seed RNG</li>
-<li><code>math.random_int(min, max)</code> - Random integer in
-range</li>
-<li><code>math.random_float()</code> - Random float 0.0-1.0</li>
-</ul>
-<hr />
-<h2 id="io-stdio">I/O (<code>std.io</code>)</h2>
+<ul><li><code>math.random_seed(seed)</code> - Seed RNG</li><li><code>math.random_int(min, max)</code> - Random integer in range</li><li><code>math.random_float()</code> - Random float 0.0-1.0</li></ul>
+<hr>
+<h2>I/O (<code>std.io</code>)</h2>
 <p>Console output, file operations, and environment variable access.</p>
-<pre class="aether"><code>import std.io
+<pre><code>import std.io
 
 main() {
     io.print(&quot;Hello &quot;)
@@ -784,77 +1196,128 @@ main() {
     io.print_int(42)
     io.print_line(&quot;&quot;)
 
-    // io.getenv() and io.read_file() return strings directly.
+    // getenv is infallible, returns the value or null if unset
     home = io.getenv(&quot;HOME&quot;)
-    if (home != 0) {
+    if home != 0 {
         io.print_line(home)
     }
 
-    content = io.read_file(&quot;myfile.txt&quot;)
-    if (content != 0) {
+    // read_file is Go-style
+    content, err = io.read_file(&quot;myfile.txt&quot;)
+    if err != &quot;&quot; {
+        println(&quot;read failed: ${err}&quot;)
+    } else {
         io.print_line(content)
     }
 }</code></pre>
-<p><strong>Console Output:</strong></p>
-<ul>
-<li><code>io.print(str)</code> - Print string (takes raw
-<code>const char*</code>)</li>
-<li><code>io.print_line(str)</code> - Print string with newline (takes
-raw <code>const char*</code>)</li>
-<li><code>io.print_int(value)</code> - Print integer</li>
-<li><code>io.print_float(value)</code> - Print float</li>
-</ul>
-<p><strong>File Operations:</strong></p>
-<ul>
-<li><code>io.read_file(path)</code> - Read entire file contents as a
-string</li>
-<li><code>io.write_file(path, content)</code> - Write content to file
-(returns 1 on success, 0 on failure)</li>
-<li><code>io.append_file(path, content)</code> - Append content to file
-(returns 1 on success, 0 on failure)</li>
-<li><code>io.file_exists(path)</code> - Check if file exists (returns
-1/0)</li>
-<li><code>io.delete_file(path)</code> - Delete file (returns 1 on
-success, 0 on failure)</li>
-</ul>
-<p><strong>File Info:</strong></p>
-<ul>
-<li><code>io.file_info(path)</code> - Get file metadata (returns
-ptr)</li>
-<li><code>io.file_info_free(info)</code> - Free file info</li>
-</ul>
+<p><strong>Console Output (infallible):</strong></p>
+<ul><li><code>io.print(str)</code> - Print string</li><li><code>io.print_line(str)</code> - Print string with newline</li><li><code>io.print_int(value)</code> - Print integer</li><li><code>io.print_float(value)</code> - Print float</li></ul>
+<p><strong>Unbuffered fd writes (crash-trace use case):</strong></p>
+<ul><li><code>io.stderr_write(data)</code> → <code>int</code> - Write <code>data</code> to fd 2 directly (length computed internally with <code>string.length</code>), bypassing stdio buffering. Returns the byte count actually written, or -1 on error. Loops on partial writes; retries <code>EINTR</code> on POSIX. Reach for this when output must reach the terminal / pipe before the process aborts, <code>println</code> and <code>io.print</code> are line-buffered on tty and block-buffered when piped, so the last few lines reliably get lost during a crash.</li><li><code>io.stdout_write(data)</code> → <code>int</code> - Same shape as <code>stderr_write</code> but writes to fd 1. Useful for shell-pipe-friendly tools that need each record flushed before the next stage reads.</li></ul>
+<p><strong>File-descriptor lifecycle and bulk fd I/O:</strong></p>
+<ul><li><code>io.fd_open_read(path)</code> → <code>(int, string)</code> - Open <code>path</code> for reading (POSIX <code>O_RDONLY</code> / Win <code>_O_RDONLY | _O_BINARY</code>). Returns <code>(fd, &quot;&quot;)</code> on success, <code>(-1, error)</code> on failure.</li><li><code>io.fd_open_write(path)</code> → <code>(int, string)</code> - Open <code>path</code> for writing, implicit <code>O_CREAT | O_TRUNC</code> (mode 0644 on POSIX, <code>_O_BINARY</code> on Windows). Returns <code>(fd, &quot;&quot;)</code> / <code>(-1, error)</code>. Pair with <code>fd_close</code>. For O_APPEND or non-truncating opens, file an issue.</li><li><code>io.fd_close(fd)</code> → <code>string</code> - <code>&quot;&quot;</code> on success, error string on failure. Single attempt, does not retry on EINTR (Linux requires not retrying; the descriptor is already gone).</li><li><code>io.fd_write_n(fd, data, length)</code> → <code>int</code> - Write exactly <code>length</code> bytes to <code>fd</code>. Loops on partial writes; retries EINTR on POSIX. Returns 0 on success, -1 on error. Note: when <code>data</code> is an Aether <code>string</code> parameter that crossed an extern boundary, the auto-unwrap may have stripped the AetherString header and the C side sees a plain <code>const char*</code> strlen-truncation applies for embedded NULs. For binary writes from Aether-side, marshal through <code>std.bytes</code> first.</li><li><code>io.fd_read_n(fd, n)</code> → <code>(ptr, int, string)</code> - Read up to <code>n</code> bytes from <code>fd</code>. Returns <code>(bytes, count, err)</code>: <code>bytes</code> is a refcounted AetherString carrying the explicit byte count (binary-safe, embedded NULs survive), <code>count</code> is the number actually read (1..n on success, 0 on clean EOF or error), <code>err</code> is <code>&quot;&quot;</code> on success or clean EOF, otherwise an error message.</li><li><code>io.fd_read_line(fd)</code> → <code>(ptr, string)</code> - Read one <code>\n</code>-delimited line from <code>fd</code>. Trailing <code>\n</code> is stripped (a preceding <code>\r</code> is also stripped, so CRLF input yields content with neither). Returns <code>(line, &quot;&quot;)</code> on a normal line, <code>(&quot;&quot;, &quot;&quot;)</code> on clean EOF before any byte, <code>(partial, &quot;&quot;)</code> on EOF mid-line (server-side dump streams sometimes omit a trailing newline), <code>(&quot;&quot;, error)</code> on read error.</li></ul>
+<p><strong>File Operations (Go-style):</strong></p>
+<ul><li><code>io.read_file(path)</code> → <code>(string, string)</code> - Read entire file</li><li><code>io.write_file(path, content)</code> → <code>string</code> - Write (overwrites), return error string</li><li><code>io.append_file(path, content)</code> → <code>string</code> - Append to file</li><li><code>io.delete_file(path)</code> → <code>string</code> - Delete file</li><li><code>io.file_info(path)</code> → <code>(ptr, string)</code> - Get file metadata</li><li><code>io.file_info_free(info)</code> - Free file info</li><li><code>io.file_exists(path)</code> - 1 if exists, 0 otherwise (infallible)</li></ul>
 <p><strong>Environment:</strong></p>
-<ul>
-<li><code>io.getenv(name)</code> - Get environment variable value as a
-string</li>
-<li><code>io.setenv(name, value)</code> - Set environment variable
-(returns 1 on success)</li>
-<li><code>io.unsetenv(name)</code> - Unset environment variable (returns
-1 on success)</li>
-</ul>
-<hr />
-<h2 id="concurrency">Concurrency</h2>
-<h3 id="built-in-functions">Built-in Functions</h3>
-<ul>
-<li><code>spawn(ActorName())</code> - Create actor instance</li>
-<li><code>wait_for_idle()</code> - Block until all actors finish</li>
-<li><code>sleep(milliseconds)</code> - Pause execution</li>
-</ul>
-<hr />
-<h2 id="see-also">See Also</h2>
-<ul>
-<li><a href="getting-started.md">Getting Started</a></li>
-<li><a href="tutorial.md">Tutorial</a></li>
-<li><a href="module-system-design.md">Module System Design</a></li>
-<li><a href="stdlib-api.md">Standard Library API</a></li>
-</ul>
-    </article>
-  </main>
+<ul><li><code>io.getenv(name)</code> - Get environment variable (returns string or null, infallible)</li><li><code>io.setenv(name, value)</code> → <code>string</code> - Set env var, return error string</li><li><code>io.unsetenv(name)</code> → <code>string</code> - Unset env var, return error string</li></ul>
+<p>Raw externs: <code>io_read_file_raw</code>, <code>io_write_file_raw</code>, <code>io_append_file_raw</code>, <code>io_delete_file_raw</code>, <code>io_file_info_raw</code>, <code>io_setenv_raw</code>, <code>io_unsetenv_raw</code>.</p>
+<hr>
+<h2>Concurrency</h2>
+<h3>Built-in Functions</h3>
+<ul><li><code>spawn(ActorName())</code> - Create actor instance</li><li><code>wait_for_idle()</code> - Block until all actors finish</li><li><code>sleep(milliseconds)</code> - Pause execution</li><li><code>release(s)</code> - Decrement an AetherString&#x27;s refcount and free if it reaches zero. Sugar for <code>string.release(s)</code> argument must be <code>string</code>-typed (other heap types call their typed release, e.g. <code>string.string_seq_free</code>). Pair with <code>defer</code> to undo allocations made by stdlib functions returning ownership: <code>body, err = http.get(url); defer release(body)</code>.</li></ul>
+<hr>
+<h2>Memory</h2>
+<h3>Arena allocator (<code>std.arena</code>)</h3>
+<p>A bulk allocator for short-lived raw buffers. The arena hands out memory via <code>arena.alloc()</code> but cannot free individual allocations, call <code>arena.reset()</code> to drop everything in one shot, or <code>arena.destroy()</code> to return the underlying memory to the OS.</p>
+<p>The headline use case is a polling loop or parsing pass that allocates many scratch buffers per iteration:</p>
+<pre><code>import std.arena
 
-  <!-- FOOTER -->
-  <footer>
-    <p>&copy; 2026 Nicolas Maman</p>
-    <p><a href="#">Privacy</a> &middot; <a href="https://github.com/nicolasmd87/aether/blob/main/LICENSE">License</a> &middot; <a href="mailto:hello@aether.org">Contact</a></p>
-  </footer>
+main() {
+    a = arena.create(0)              // 0 = default 1 MiB block
+    defer arena.destroy(a)
+
+    iter = 0
+    while iter &lt; 1000 {
+        arena.reset(a)               // O(1) bulk free of last iter
+        scratch = arena.alloc(a, 4096)
+        // ... use scratch for parsing, formatting, IO buffer, etc.
+        iter = iter + 1
+    }
+}</code></pre>
+<p><strong>Functions:</strong></p>
+<ul><li><code>arena.create(size)</code> → <code>ptr</code> - Allocate an arena with the given block size in bytes (<code>0</code> = default 1 MiB). Overflow blocks chain on demand. NULL on OOM.</li><li><code>arena.alloc(arena, bytes)</code> → <code>ptr</code> - Allocate <code>bytes</code> (8-byte aligned). Memory is uninitialized. NULL on OOM or null arena.</li><li><code>arena.alloc_aligned(arena, bytes, alignment)</code> → <code>ptr</code> - Same as <code>alloc</code> with explicit alignment (must be a power of 2).</li><li><code>arena.reset(arena)</code> - Free every allocation in one shot. Pointers become invalid.</li><li><code>arena.destroy(arena)</code> - Free the arena and its memory.</li><li><code>arena.used(arena)</code> → <code>int</code> - Bytes currently allocated (sum across overflow blocks).</li><li><code>arena.size(arena)</code> → <code>int</code> - Total capacity (sum across overflow blocks).</li></ul>
+<p>Arenas don&#x27;t track AetherString refcounts, strings allocated through the regular stdlib still need <code>release()</code> (or <code>defer release(...)</code>); the arena is for bulk raw allocations that the user controls themselves. Avoid handing arena-allocated pointers to functions that retain them past the next <code>arena.reset()</code> or <code>arena.destroy()</code>.</p>
+<h3>Content-addressed store (<code>std.cas</code>)</h3>
+<p>A small content-addressed store keyed by the hex sha256 of file contents. Useful for sharing built artifacts (<code>.so</code> files from <code>--emit=lib</code>, signed configs, anything content-addressable) between machines and runs. Puts go through write-tmp + atomic rename so partial writes never appear under the final name; gets re-hash before delivering so a corrupted store entry can&#x27;t quietly hand back wrong bytes.</p>
+<pre><code>import std.cas
+
+main() {
+    digest, err = cas.put(&quot;./build/myplugin.so&quot;)
+    if err != &quot;&quot; { return }
+    println(&quot;published: ${digest}&quot;)           // hex sha256
+
+    if cas.has(digest) {
+        gerr = cas.get(digest, &quot;./fetched.so&quot;)
+        // fetched.so&#x27;s bytes hash to `digest`, verified on the way out.
+    }
+}</code></pre>
+<p><strong>Functions:</strong></p>
+<ul><li><code>cas.put(file_path)</code> → <code>(string, string)</code> - Insert a file into the store. Returns <code>(digest, &quot;&quot;)</code> on success or <code>(&quot;&quot;, err)</code> on failure (file missing, OOM, mkdir failure, write failure). Idempotent: re-putting the same content returns the same digest without breaking the store.</li><li><code>cas.get(digest, dest_path)</code> → <code>string</code> - Copy an entry out of the store, verifying its sha256 hashes back to <code>digest</code>. Returns <code>&quot;&quot;</code> on success or an error string on missing digest, read failure, dest write failure, or digest mismatch (corrupted entry).</li><li><code>cas.has(digest)</code> → <code>int</code> - Existence check. NULL/empty-safe.</li><li><code>cas.path(digest)</code> → <code>string</code> - Composes <code>&lt;root&gt;/&lt;digest&gt;</code> without touching the filesystem.</li><li><code>cas.root()</code> → <code>string</code> - The CAS root: <code>$AETHER_CAS</code> if set, else <code>$HOME/.aether/cas</code>, else <code>/tmp/aether-cas</code>.</li></ul>
+<p>The store layout is intentionally flat (one file per digest). Grow to two-level fan-out (<code>&lt;digest[0:2]&gt;/&lt;digest[2:]&gt;</code>) only if entry counts ever push filesystem dirent limits in practice.</p>
+<hr>
+<h2>Process state</h2>
+<p>Aether deliberately rejects mutable assignment to module-level identifiers, the design philosophy is &quot;if state is mutable, it lives inside an actor or a runtime registry.&quot; Two stdlib modules give you the <strong>set-during-init, read-everywhere</strong> shape that BEAM achieves with <code>persistent_term</code> and <code>register/whereis</code>, without spawning a long-lived actor or paying message round-trip on the read path.</p>
+<p>These are the right tool when:</p>
+<ul><li>A handler is entered from a C-callback and can&#x27;t take an Aether-typed parameter (the <code>void* user_data</code> slot doesn&#x27;t carry typed values).</li><li>The state is genuinely process-wide (CLI flags, current-user identity, the long-lived registry of named actors).</li><li>You&#x27;d otherwise reach for a <code>static</code> C global.</li></ul>
+<p><strong>Don&#x27;t</strong> use these for per-request / per-tenant state, that should live in the actor or function that owns the work, plumbed through call parameters or actor messages.</p>
+<h3><code>std.config</code> string→string KV</h3>
+<pre><code>import std.config
+
+main() {
+    config.put(&quot;user&quot;, &quot;alice&quot;)
+    config.put(&quot;token&quot;, &quot;xyz&quot;)
+}
+
+handle_request(req: ptr, res: ptr, ud: ptr) {
+    user  = config.get(&quot;user&quot;)            // &quot;alice&quot;
+    level = config.get_or(&quot;level&quot;, &quot;info&quot;) // fallback default
+}</code></pre>
+<ul><li><code>config.put(key, value)</code> - Insert / overwrite. Both <code>key</code> and <code>value</code> are duplicated internally; caller&#x27;s string lifetimes don&#x27;t matter.</li><li><code>config.get(key)</code> → <code>string</code> - Returns <code>&quot;&quot;</code> if the key isn&#x27;t set (matches Aether&#x27;s Go-style &quot;&quot; = absent convention). Reads are concurrent (no lock contention with each other).</li><li><code>config.get_or(key, default_value)</code> → <code>string</code> - Returns the registered value if set, otherwise <code>default_value</code>.</li><li><code>config.has(key)</code> → <code>int</code> - 1 if <code>key</code> has been put, 0 otherwise.</li><li><code>config.size()</code> → <code>int</code> - Number of keys currently registered.</li><li><code>config.clear()</code> - Wipe all keys. Tests use this for isolation; production code rarely needs it.</li></ul>
+<p>Storage: a single process-global hashmap protected by a reader/writer lock. Implementation models BEAM&#x27;s <code>persistent_term</code>. Returned <code>get</code> strings are borrowed, they remain valid until the next <code>put</code> / <code>clear</code> that touches the same key, which is fine for the &quot;set once at startup&quot; pattern and lets reads avoid an allocation. Copy via <code>string.copy(value)</code> if you need a value that survives a later <code>put</code>.</p>
+<h3><code>std.actors</code> name → actor_ref registry</h3>
+<pre><code>import std.actors
+
+actor Auditor {
+    receive {
+        Analyze(payload) -&gt; { /* ... */ }
+    }
+}
+
+main() {
+    a = spawn(Auditor())
+    actors.register(&quot;auditor&quot;, a)
+}
+
+handle_request(req: ptr, res: ptr, ud: ptr) {
+    a = actors.whereis(&quot;auditor&quot;)
+    a ! Analyze { payload: ud }
+}</code></pre>
+<ul><li><code>actors.register(name, ref)</code> - Bind <code>name</code> → <code>ref</code>. Overwrites any prior binding (no error). The name is duplicated; the actor_ref is stored as-is.</li><li><code>actors.whereis(name)</code> → <code>actor_ref</code> - Look up by name. Returns the registered ref, or null if unregistered.</li><li><code>actors.unregister(name)</code> → <code>int</code> - 1 if a binding was removed, 0 if <code>name</code> wasn&#x27;t registered.</li><li><code>actors.is_registered(name)</code> → <code>int</code> - 1 if bound, 0 otherwise.</li><li><code>actors.registry_size()</code> → <code>int</code> - Number of currently-registered names.</li><li><code>actors.registry_clear()</code> - Wipe all bindings.</li></ul>
+<p>Models BEAM&#x27;s <code>erlang:register</code> / <code>whereis</code>. The registry doesn&#x27;t track actor liveness, if the actor exits, <code>whereis</code> keeps returning the stale ref until something explicitly calls <code>unregister</code>. Match BEAM&#x27;s behaviour for non-link&#x27;d registrations.</p>
+<p><strong>Why the module name is plural</strong>: <code>actor</code> (singular) is a reserved keyword in Aether and can&#x27;t appear as a namespace prefix. <code>actors.register(...)</code> parses; <code>actor.register(...)</code> does not. The plural also reads correctly, &quot;the actors registry.&quot;</p>
+<hr>
+<h2>See Also</h2>
+<ul><li><a href="/Docs/getting-started.html">Getting Started</a></li><li><a href="/Docs/tutorial.html">Tutorial</a></li><li><a href="/Docs/module-system-design.html">Module System Design</a></li><li><a href="/Docs/stdlib-api.html">Standard Library API</a></li></ul>
+      </article>
+    </main>
+  </div>
+</div>
+<footer class="site-foot">
+  <div class="wrap foot">
+    <span class="ae">ae</span>
+    <span class="m">MIT licensed · compiles to C · v0.454</span>
+    <nav><a href="/Docs/getting-started.html">Docs</a><a href="/repl.html">Playground</a><a href="https://github.com/aether-lang-org/aether">GitHub</a></nav>
+  </div>
+</footer>
 </body>
 </html>
