@@ -38,7 +38,7 @@
       <div class="hero-copy">
         <p class="eyebrow">The Aether programming language</p>
         <h1>A compiled systems language built on <span class="hl">actors</span>.</h1>
-        <p class="lede">Message-passing concurrency with type inference and pattern matching, compiled to native binaries. No VM, no garbage collector, nothing between your code and the machine.</p>
+        <p class="lede">Message-passing concurrency with type inference and pattern matching, compiled to native binaries. No VM, no garbage collector.</p>
         <div class="install">
           <div class="install-row">
             <span class="dollar">$</span>
@@ -78,11 +78,6 @@ count = 42</div>
     </div>
   </section>
 
-  <section class="strip">
-    <div class="wrap">
-      <p>Message-passing actors on a work-stealing, NUMA-aware scheduler across every core. Explicit <code>(value, err)</code> error handling. Compile-time contracts. Capability discipline in the language. A production HTTP stack in the standard library. All of it lowered to C you can read.</p>
-    </div>
-  </section>
 
   <section class="pipe-section">
     <div class="wrap">
@@ -100,7 +95,7 @@ count = 42</div>
     <div class="wrap feature-grid">
       <div class="feature-text">
         <h2>Readable C, not a black box.</h2>
-        <p>Aether lowers to C a normal compiler builds, then GCC or Clang produces the native binary. No bytecode, no opaque runtime, and the same source always compiles to byte-identical C.</p>
+        <p>Aether lowers to C, which GCC or Clang compiles to a native binary. The same source always produces byte-identical C, so builds are reproducible.</p>
         <p class="muted-p">Every abstraction, enums, optionals, distinct types, contracts, is zero-cost: it disappears into plain C with no vtables and no virtual dispatch.</p>
       </div>
       <div class="cc">
@@ -191,7 +186,7 @@ q = <span class="fn">safe_divide</span>(<span class="num">10</span>, <span class
         <div class="row"><div class="row-k">C interop</div><div class="row-v">Call any C library by declaring an <code>extern</code>. Tuple returns bind struct-returning C APIs with zero glue. Or embed Aether in Python, Java, and Ruby with <code>--emit=lib</code>.</div></div>
         <div class="row"><div class="row-k">Cross-compile</div><div class="row-v">One flag: <code>ae build --target=aarch64-linux</code>, via a bundled cross toolchain. No cross-gcc, no sysroot. Or target WebAssembly and run the same actor code on a cooperative scheduler.</div></div>
         <div class="row"><div class="row-k">Capabilities</div><div class="row-v">What a program may touch, the filesystem, the network, other processes, is a language concern here, not a deployment afterthought. <code>hide</code>, <code>seal</code>, and effect tags give an auditable, compiler-enforced surface: defense-in-depth for trusted plugins, config, and hosted scripts.</div></div>
-        <div class="row"><div class="row-k">Memory</div><div class="row-v">No garbage collector. Deterministic scope-exit cleanup with <code>defer</code>, compiler-managed string ownership, so memory is freed at predictable points, not by a collector.</div></div>
+        <div class="row"><div class="row-k">Memory</div><div class="row-v">No garbage collector. <code>defer</code> frees memory at scope exit, and the compiler tracks string ownership so heap strings are reclaimed automatically.</div></div>
       </div>
     </div>
   </section>
