@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Compile-time constant evaluation (phase-1) · Aether</title>
+<meta name="description" content="Aether's const is substitution-at-each-use: the compiler inlines the">
+<link rel="canonical" href="https://aether-lang.dev/Docs/compile-time-eval.html">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Compile-time constant evaluation (phase-1) · Aether">
+<meta property="og:description" content="Aether's const is substitution-at-each-use: the compiler inlines the">
+<meta property="og:url" content="https://aether-lang.dev/Docs/compile-time-eval.html">
+<meta property="og:image" content="https://aether-lang.dev/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/aether.css">
+</head>
+<body>
+<a class="skip" href="#doc">Skip to content</a>
+<header class="site-head">
+  <div class="wrap bar">
+    <a class="brand" href="/" aria-label="Aether"><span class="ae">ae</span><span class="nm">aether</span></a>
+    <nav>
+      <a href="/repl.html">Playground</a>
+      <a href="/Docs/getting-started.html" class="on">Docs</a>
+      <a class="src" href="https://github.com/aether-lang-org/aether">Source</a>
+      <span class="vtag">v0.462</span>
+    </nav>
+  </div>
+</header>
+<div class="wrap">
+  <div class="doc-shell">
+    <nav class="doc-nav" aria-label="Documentation">
+      <div class="docsearch"><input id="ds" type="search" placeholder="Search the docs" aria-label="Search documentation" autocomplete="off" spellcheck="false"><kbd>/</kbd><div class="ds-res" id="dsres" role="listbox"></div></div>
+<div class="grp">Start</div>
+<a href="/Docs/getting-started.html">Getting Started with Aether</a>
+<a href="/Docs/tutorial.html">Aether Language Tutorial</a>
+<a href="/Docs/next-steps.html">Next Steps</a>
+<div class="grp">Language</div>
+<a href="/Docs/language-reference.html">Aether Language Reference</a>
+<a href="/Docs/type-inference-guide.html">Aether Type Inference Guide</a>
+<a href="/Docs/type-annotation-style-guide.html">Aether Type Annotation Style Guide</a>
+<a href="/Docs/type-inference-multi-value-returns.html">Multi-Value Return Type Inference</a>
+<a href="/Docs/distinct-types.html">Distinct Types</a>
+<a href="/Docs/sequences.html">Sequences (*StringSeq)</a>
+<a href="/Docs/named-args-and-select.html">Named Arguments and select()</a>
+<a href="/Docs/closures-and-builder-dsl.html">Closures and Builder-Style DSL in Aether</a>
+<a href="/Docs/closures-and-lifetimes.html">Closures and Environment Lifetimes</a>
+<a href="/Docs/module-system-design.html">Aether Module System</a>
+<div class="grp">Runtime</div>
+<a href="/Docs/architecture.html">Aether Architecture</a>
+<a href="/Docs/actor-concurrency.html">Aether Runtime Guide</a>
+<a href="/Docs/structured-concurrency.html">Structured Concurrency for Aether, Design Direction</a>
+<a href="/Docs/scheduler-quick-reference.html">Aether Scheduler - Quick Reference</a>
+<a href="/Docs/memory-management.html">Aether Memory Management</a>
+<a href="/Docs/runtime-optimizations.html">Runtime Optimizations</a>
+<a href="/Docs/numa-support.html">NUMA Support in Aether</a>
+<div class="grp">Interop</div>
+<a href="/Docs/c-interop.html">C Interoperability</a>
+<a href="/Docs/c-embedding.html">Embedding Aether Actors in C Applications</a>
+<a href="/Docs/emit-lib.html">Embedding Aether as a Shared Library (--emit=lib)</a>
+<a href="/Docs/embedded-namespaces-and-host-bindings.html">Aether as a Configuration Language, v2: Namespaces and Generated Bindings</a>
+<a href="/Docs/aether-embedded-in-host-applications.html">Aether as a Configuration Language for Other Languages</a>
+<a href="/Docs/lib-caller-info.html">--emit=lib caller-info channel</a>
+<div class="grp">Stdlib</div>
+<a href="/Docs/stdlib-reference.html">Aether Standard Library Reference</a>
+<a href="/Docs/stdlib-api.html">Aether Standard Library Guide</a>
+<a href="/Docs/stdlib-module-pattern.html">Aether Stdlib Module Pattern</a>
+<a href="/Docs/stdlib-vs-contrib.html">std/ vs contrib/ placement decisions</a>
+<a href="/Docs/http-server.html">std.http HTTP Server</a>
+<a href="/Docs/http-reverse-proxy.html">std.http.proxy reverse proxy</a>
+<a href="/Docs/http-handler-context.html">HTTP handlers with per-server / per-route state</a>
+<a href="/Docs/http-vcr.html">HTTP Record/Replay (VCR), moved out of Aether</a>
+<a href="/Docs/json-parser-design.html">std.json Design Notes</a>
+<div class="grp">Safety</div>
+<a href="/Docs/containment-sandbox.html">Containment and Sandboxing in Aether</a>
+<a href="/Docs/hide-and-seal.html">hide and seal except scope-level capability denial</a>
+<a href="/Docs/compiler-trust-boundary.html">The Compiler Trust Boundary</a>
+<a href="/Docs/config-is-code.html">Config IS Code</a>
+<a href="/Docs/aether_compared_to_capsicum.html">Aether Sandbox Model vs. BSD Capsicum: Architecture, Parallels, and FreeBSD Integration</a>
+<div class="grp">Build</div>
+<a href="/Docs/build-system.html">Build System</a>
+<a href="/Docs/bootstrap-from-source.html">Bootstrapping Aether from source (HEAD)</a>
+<a href="/Docs/install-layout.html">Aether install layout</a>
+<a href="/Docs/runtime-config.html">Runtime Configuration - Quick Reference</a>
+<a href="/Docs/per-process-config.html">Per-process configuration in Aether</a>
+<a href="/Docs/cic-help.html">ae help &lt;script&gt; Offline diagnostics for config-IS-code</a>
+<div class="grp">More</div>
+<a href="/Docs/allocators.html">Allocators</a>
+<a href="/Docs/bindgen-consts.html">ae bindgen consts, importing C macro constants</a>
+<a href="/Docs/compile-time-eval.html" class="on">Compile-time constant evaluation (phase-1)</a>
+<a href="/Docs/contract-folding.html">Compile-time contract folding — costed design</a>
+<a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn't need macro_rules!</a>
+<a href="/Docs/error-unification.html">Unifying T? and (value, err) — costed design</a>
+<a href="/Docs/formatter.html">ae fmt, the source formatter</a>
+<a href="/Docs/isolated.html">Isolated[T]: move-only actor message payloads (#479)</a>
+<a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
+<a href="/Docs/profiling-guide.html">Aether Runtime Profiling Guide</a>
+<a href="/Docs/release-glibc-portability.html">Release binary portability across glibc versions</a>
+<a href="/Docs/when-static-if.html">Compile-time when / static-if</a></nav>
+    <main class="doc-main">
+      <article class="doc-body" id="doc">
+        <div class="bc"><span class="prompt">$</span>docs / more</div>
+<h1 id="compile-time-constant-evaluation-phase-1">Compile-time constant evaluation (phase-1)</h1>
+<p>Aether's <code>const</code> is <em>substitution-at-each-use</em>: the compiler inlines the RHS expression at every reference rather than allocating storage. For a literal (<code>const PI = 3.14</code>) that is exactly right. For an arbitrary call (<code>const G = make_thing()</code>) it is silently wrong, every reference would re-run the call, re-allocating / re-side-effecting. The typechecker therefore rejects non-constant const initializers.</p>
+<p>Phase-1 (issue #482) extends the set of initializers the compiler can evaluate <em>at compile time</em>, folding them to a plain literal before codegen so they inline correctly and run once, not per use. It is a <strong>hard-whitelisted folder, not an interpreter</strong>.</p>
+<h2 id="what-folds">What folds</h2>
+<div class="tw"><table><thead><tr><th>Initializer</th><th>Folds to</th><th>Notes</th></tr></thead><tbody><tr><td><code>2 + 3 * 4</code> (arithmetic on numeric literals: <code>+ - * / %</code>)</td><td><code>14</code></td><td>Predates phase-1; in the correct width (int = 32-bit, float = double). Division/modulo by zero is <em>not</em> folded.</td></tr><tr><td><code>string.from_int(&lt;int const&gt;)</code></td><td><code>"42"</code></td><td>Folded in 32-bit width.</td></tr><tr><td><code>string.from_long(&lt;int const&gt;)</code></td><td><code>"9999999999"</code></td><td>Folded in 64-bit width.</td></tr><tr><td><code>string.from_float(&lt;num const&gt;)</code></td><td><code>"3.14"</code></td><td><code>%g</code> formatting.</td></tr><tr><td><code>string.concat(&lt;str const&gt;, &lt;str const&gt;)</code></td><td><code>"ab"</code></td><td>Both operands must be string literals (or fold to them).</td></tr><tr><td><code>const A: int[3] = [1, 2, 3]</code> / <code>const A[] = [...]</code></td><td><code>static const int A[] = {1, 2, 3}</code></td><td>Const array literal. Every element must itself be a compile-time constant.</td></tr></tbody></table></div>
+<p>Folds compose: <code>string.concat(string.from_int(1), "x")</code> folds to <code>"1x"</code> because the optimizer recurses into arguments before folding the enclosing call.</p>
+<p>These also work inside another const: <code>const HALF = MAX / 2</code> where <code>MAX</code> is itself a const.</p>
+<h2 id="what-does-not-fold-and-why">What does NOT fold (and why)</h2>
+<ul><li><strong>Any function call outside the whitelist</strong>, e.g. <code>string.upper(...)</code>, <code>string.trim(...)</code>, a user function, an <code>extern</code>, <code>malloc</code>. Even though some of these are pure, they are rejected in a const initializer with:</li></ul>
+<blockquote><code>const initializer must be a compile-time constant expression — …</code></blockquote>
+<p>This is deliberate. A <em>general</em> compile-time evaluator would be able to synthesize <code>std.fs</code> / <code>std.net</code> calls and evaluate them at build time, which would run filesystem / network code <strong>past the <code>--emit=lib</code> capability gate</strong>, the gate that decides which side effects a compiled artifact is allowed to perform. By folding <em>only</em> an explicit, audited whitelist of pure value conversions, the build step performs no I/O and grants no capability it would not otherwise grant.</p>
+<ul><li><strong><code>string + string</code></strong>, the <code>+</code> operator is not defined for strings anywhere in Aether (it is rejected at typecheck with <code>'+' is not defined for strings</code>). Build a constant string with <code>string.concat(...)</code> instead. <code>const G = "a" + "b"</code> does <strong>not</strong> work by design; <code>const G = string.concat("a", "b")</code> does.</li><li><strong>Struct literals</strong>, <strong>member access</strong>, and <strong>non-constant array elements</strong>, rejected; each would either allocate fresh per use or is not a value the substitution model can inline.</li><li><strong>Out-of-range / undefined folds</strong>, a <code>string.from_int</code> argument that does not fit in 32 bits, or a division by zero, is <strong>not</strong> folded. The expression is left as-is rather than producing a silently-wrong literal. (For <code>from_int</code> the result would have been the runtime 32-bit-truncated call, so leaving it untouched preserves existing behaviour exactly.)</li></ul>
+<h2 id="where-it-lives">Where it lives</h2>
+<ul><li><strong>Whitelist gate (accept/reject):</strong> <code>is_const_expression</code> / <code>is_const_expr_call</code> in <code>compiler/analysis/typechecker.c</code>. Runs during typecheck; admits exactly the whitelist, rejects everything else with a source-mapped diagnostic.</li><li><strong>Folder (call → literal):</strong> <code>fold_const_string_call</code> and the <code>AST_FUNCTION_CALL</code> / <code>AST_CONST_DECLARATION</code> arms of <code>optimize_constant_folding</code> in <code>compiler/codegen/optimizer.c</code>. Runs after typecheck, before codegen. The two lists are kept byte-for-byte in sync (<code>is_whitelisted_string_call</code> ↔ the typechecker whitelist).</li><li><strong>Lowering:</strong> a folded scalar const lowers to <code>#define NAME (value)</code>; a const array lowers to <code>static const T NAME[] = {…}</code> (<code>compiler/codegen/codegen_stmt.c</code> for locals, <code>compiler/codegen/codegen.c</code> for module-level).</li></ul>
+<h2 id="phase-1-scope">Phase-1 scope</h2>
+<p>Phase-1 is intentionally narrow: arithmetic on numeric literals, the four whitelisted <code>string.*</code> conversions, and constant array literals. There is no general const evaluator, no compile-time loop unrolling beyond the existing closed-form loop passes, and no evaluation of user functions. Any broadening of the whitelist must preserve the capability-gate invariant above: only pure, I/O-free value conversions are ever eligible.</p>
+<h2 id="purity-introspection-__purefn-522">Purity introspection: <code>__pure(fn)</code> (#522)</h2>
+<p>A separate whole-program analysis assigns every function a <strong>purity</strong> bit, and the compile-time builtin <code>__pure(funcName)</code> folds to a <code>true</code>/<code>false</code> constant reflecting it:</p>
+<pre><code><span class="kw">let</span> safe = __pure(transform)           <span class="com">// bool constant, no runtime cost</span>
+<span class="kw">if</span> __pure(parse_config) { ... }        <span class="com">// branch on purity; folded to a literal</span></code></pre>
+<p><code>__pure</code> folds during typecheck, so it is usable anywhere an expression is (a <code>let</code> initializer, an <code>if</code> condition, a comparison). It is <em>not</em> a valid <code>when</code> condition: <code>when</code> is resolved before typecheck (<code>resolve_when_statements</code>, <code>compiler/codegen/optimizer.c</code>), so it never sees the folded bool and rejects <code>when __pure(fn)</code> with "<code>when</code> condition is not a compile-time constant". <code>when</code> conditions are limited to <code>target.os</code>/<code>target.arch</code> comparisons, bool literals, and <code>&amp;&amp;</code>/<code>||</code>/<code>!</code> combinations of those.</p>
+<p>A function is <strong>pure</strong> when, transitively, it:</p>
+<ul><li>reaches no fs/net/os capability call (<code>file.*</code>/<code>dir.*</code>/<code>path.*</code>, <code>tcp.*</code>/ <code>http.*</code>, <code>os.*</code> time/exec live under <code>os</code>), and</li><li>mutates no caller-visible state, neither a parameter's pointee (<code>p.field = …</code>, <code>p[i] = …</code>) nor a module-level global.</li></ul>
+<p>The analysis is <strong>conservative</strong>: a function whose body it cannot see (an <code>extern</code>, or an unresolved name) is treated as impure, and a raw <code>extern</code> call inside a body is opaque and left unjudged (the same boundary the <code>--with=</code> gate and effect tags have). This is the determinism axis that complements the capability (access-control) axis, a function can be capability-empty yet impure (reads a clock handed to it), or hold <code>fs</code> yet be pure for fixed input. <code>__pure</code> resolves at compile time, so it gates optimizations and library features with zero runtime cost.</p>
+      </article>
+    </main>
+    <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#what-folds" class="l2" data-id="what-folds">What folds</a><a href="#what-does-not-fold-and-why" class="l2" data-id="what-does-not-fold-and-why">What does NOT fold (and why)</a><a href="#where-it-lives" class="l2" data-id="where-it-lives">Where it lives</a><a href="#phase-1-scope" class="l2" data-id="phase-1-scope">Phase-1 scope</a><a href="#purity-introspection-__purefn-522" class="l2" data-id="purity-introspection-__purefn-522">Purity introspection: __pure(fn) (#522)</a></nav>
+  </div>
+</div>
+<script src="/docs.js" defer></script>
+<footer class="site-foot">
+  <div class="wrap foot">
+    <span class="ae">ae</span>
+    <span class="m">MIT licensed · compiles to C · v0.462</span>
+    <nav><a href="/Docs/getting-started.html">Docs</a><a href="/repl.html">Playground</a><a href="https://github.com/aether-lang-org/aether">GitHub</a></nav>
+  </div>
+</footer>
+</body>
+</html>

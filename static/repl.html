@@ -1,577 +1,174 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Interactive REPL — Aether Language</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/static/style.css">
-  <style>
-    /* Override body to be full-height with no global scroll */
-    html, body {
-      height: 100%;
-      overflow: hidden;
-    }
-
-    body {
-      display: flex;
-      flex-direction: column;
-    }
-
-    .lesson-nav {
-      display: flex;
-      align-items: center;
-      gap: 0.6rem;
-    }
-
-    .lesson-page {
-      font-family: 'DM Mono', monospace;
-      font-size: 0.72rem;
-      font-weight: 400;
-      color: var(--muted);
-      letter-spacing: 0.06em;
-      min-width: 3.2rem;
-      text-align: center;
-    }
-
-    .lesson-nav-btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 30px;
-      height: 30px;
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      background: transparent;
-      color: var(--text);
-      font-size: 0.8rem;
-      cursor: pointer;
-      transition: background 0.18s, border-color 0.18s, color 0.18s;
-    }
-
-    .lesson-nav-btn:hover {
-      background: var(--text);
-      border-color: var(--text);
-      color: var(--bg);
-    }
-
-    .lesson-nav-btn:disabled {
-      opacity: 0.3;
-      cursor: default;
-    }
-
-    .lesson-nav-btn:disabled:hover {
-      background: transparent;
-      border-color: var(--border);
-      color: var(--text);
-    }
-
-    /* ─── SPLIT LAYOUT ──────────────────────────────────────────── */
-    .repl-layout {
-      margin-top: 64px; /* below fixed nav */
-      flex: 1;
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      overflow: hidden;
-      min-height: 0;
-    }
-
-    /* ─── THEORY PANE ───────────────────────────────────────────── */
-    .theory-pane {
-      overflow-y: auto;
-      padding: 2.5rem 2.5rem 2.5rem 2rem;
-      border-right: 1px solid var(--border);
-      background: var(--bg);
-    }
-
-    /* Custom scrollbar in theory pane */
-    .theory-pane::-webkit-scrollbar {
-      width: 5px;
-    }
-    .theory-pane::-webkit-scrollbar-track {
-      background: transparent;
-    }
-    .theory-pane::-webkit-scrollbar-thumb {
-      background: var(--border);
-      border-radius: 99px;
-    }
-    .theory-pane::-webkit-scrollbar-thumb:hover {
-      background: var(--muted);
-    }
-
-    .theory-section-label {
-      font-family: 'DM Mono', monospace;
-      font-size: 0.65rem;
-      font-weight: 400;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      color: var(--accent);
-      margin-bottom: 0.75rem;
-    }
-
-    h2 {
-      font-family: 'DM Serif Display', serif;
-      font-size: 1.55rem;
-      letter-spacing: -0.02em;
-      line-height: 1.2;
-      color: var(--text);
-      margin-bottom: 1.4rem;
-    }
-
-    h2::after {
-      content: '';
-      display: block;
-      width: 1.5rem;
-      height: 2px;
-      background: var(--accent);
-      margin-top: 0.7rem;
-      border-radius: 1px;
-    }
-
-    .theory-body {
-      font-size: 0.9rem;
-      color: var(--muted);
-      line-height: 1.8;
-    }
-
-    .theory-body p {
-      margin-bottom: 1.1rem;
-    }
-
-    .theory-body p:last-child {
-      margin-bottom: 0;
-    }
-
-    .theory-body strong {
-      color: var(--text);
-      font-weight: 500;
-    }
-
-    .theory-body em {
-      font-style: italic;
-      color: var(--text);
-    }
-
-    h3 {
-      font-family: 'DM Serif Display', serif;
-      font-size: 1.05rem;
-      letter-spacing: -0.01em;
-      color: var(--text);
-      margin-top: 1.8rem;
-      margin-bottom: 0.6rem;
-    }
-
-    code {
-      display: block;
-      background: #ffffff;
-      border: 1px solid var(--border);
-      color: #24292e;
-      font-family: 'DM Mono', monospace;
-      font-size: 0.875rem;
-      font-weight: 500;
-      line-height: 1.75;
-      padding: 1rem 1.25rem;
-      border-radius: 6px;
-      margin: 1rem 0 1.4rem;
-      overflow-x: auto;
-      white-space: pre;
-    }
-
-    code .kw  { color: #c0292b; }
-    code .fn  { color: #6a35b8; }
-    code .str { color: #1a7a3c; }
-    code .num { color: #0070a8; }
-    code .cm  { color: #7a8390; }
-
-    .theory-note {
-      display: flex;
-      gap: 0.75rem;
-      align-items: flex-start;
-      background: var(--accent-soft);
-      border-left: 3px solid var(--accent);
-      border-radius: 0 4px 4px 0;
-      padding: 0.85rem 1rem;
-      margin: 1.4rem 0;
-      font-size: 0.83rem;
-      color: var(--text);
-      line-height: 1.65;
-    }
-
-    .theory-note-icon {
-      font-size: 0.8rem;
-      color: var(--accent);
-      flex-shrink: 0;
-      margin-top: 0.1rem;
-    }
-
-    /* ─── REPL PANE ─────────────────────────────────────────────── */
-    .repl-pane {
-      display: flex;
-      flex-direction: column;
-      background: #ffffff;
-      overflow: hidden;
-    }
-
-    .repl-toolbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 1.25rem;
-      height: 44px;
-      background: var(--bg);
-      border-bottom: 1px solid var(--border);
-      flex-shrink: 0;
-    }
-
-    .repl-toolbar-left {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .repl-dot {
-      width: 11px;
-      height: 11px;
-      border-radius: 50%;
-    }
-
-    .repl-dot-red    { background: #d9534f; }
-    .repl-dot-yellow { background: #e8a838; }
-    .repl-dot-green  { background: #5cb85c; }
-
-    .repl-toolbar-title {
-      font-family: 'DM Mono', monospace;
-      font-size: 0.7rem;
-      font-weight: 400;
-      color: var(--muted);
-      letter-spacing: 0.05em;
-      margin-left: 0.6rem;
-    }
-
-    .repl-run-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.45rem;
-      padding: 0.35rem 0.9rem;
-      background: var(--accent);
-      color: #fff;
-      font-family: 'DM Mono', monospace;
-      font-size: 0.7rem;
-      font-weight: 400;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      opacity: 1;
-    }
-
-    .repl-run-icon {
-      font-size: 0.6rem;
-    }
-
-    .repl-editor {
-      flex: 1;
-      padding: 1.5rem 1.25rem;
-      font-family: 'DM Mono', monospace;
-      font-size: 0.875rem;
-      font-weight: 500;
-      line-height: 1.75;
-      color: #24292e;
-      background: #ffffff;
-      overflow-y: auto;
-      resize: none;
-      border: none;
-      outline: none;
-      box-sizing: border-box;
-      width: 100%;
-    }
-
-    .repl-placeholder-label {
-      font-family: 'DM Mono', monospace;
-      font-size: 0.7rem;
-      font-weight: 400;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: var(--muted);
-      opacity: 0.6;
-      margin-bottom: 1.2rem;
-    }
-
-    .repl-placeholder-line {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      margin-bottom: 0.35rem;
-    }
-
-    .repl-line-num {
-      font-size: 0.75rem;
-      color: #c0c8d0;
-      min-width: 1.5rem;
-      text-align: right;
-      user-select: none;
-    }
-
-    .repl-line-text {
-      color: #24292e;
-      font-size: 0.875rem;
-    }
-
-    .repl-line-text .kw  { color: #c0292b; }
-    .repl-line-text .fn  { color: #6a35b8; }
-    .repl-line-text .str { color: #1a7a3c; }
-    .repl-line-text .num { color: #0070a8; }
-    .repl-line-text .cm  { color: #7a8390; }
-
-    .repl-cursor {
-      display: inline-block;
-      width: 2px;
-      height: 0.95em;
-      background: #c8522a;
-      opacity: 0;
-      vertical-align: text-bottom;
-      margin-left: 1px;
-      border-radius: 1px;
-    }
-
-    .repl-output {
-      flex-shrink: 0;
-      height: 120px;
-      min-height: 48px;
-      border-top: 1px solid var(--border);
-      background: var(--bg);
-      padding: 0 1.25rem 0.75rem;
-      overflow-y: auto;
-    }
-
-    .repl-resize-handle {
-      height: 10px;
-      cursor: ns-resize;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 0 -1.25rem 0.5rem;
-      flex-shrink: 0;
-    }
-
-    .repl-resize-handle::after {
-      content: '';
-      width: 2.5rem;
-      height: 3px;
-      background: var(--border);
-      border-radius: 2px;
-      transition: background 0.15s;
-    }
-
-    .repl-resize-handle:hover::after {
-      background: var(--muted);
-    }
-
-    .repl-output-label {
-      font-family: 'DM Mono', monospace;
-      font-size: 0.65rem;
-      font-weight: 400;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: var(--muted);
-      opacity: 0.6;
-      margin-bottom: 0.5rem;
-    }
-
-    .repl-output-text {
-      font-family: 'DM Mono', monospace;
-      font-size: 0.78rem;
-      font-weight: 400;
-      color: var(--muted);
-      line-height: 1.7;
-    }
-
-    .repl-output-prompt {
-      color: var(--border);
-      margin-right: 0.4rem;
-    }
-
-    /* ─── RESPONSIVE ────────────────────────────────────────────── */
-    @media (max-width: 840px) {
-      .repl-layout {
-        grid-template-columns: 1fr;
-        grid-template-rows: 1fr 1fr;
-      }
-      .theory-pane {
-        border-right: none;
-        border-bottom: 1px solid var(--border);
-      }
-    }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Playground · Aether</title>
+<meta name="description" content="Write Aether in the browser. Short lessons with real sample output, live execution when an Aether backend is connected.">
+<meta name="aesite-exec" content="">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Playground · Aether">
+<meta property="og:description" content="Write Aether in the browser. Short lessons with real sample output, live execution when an Aether backend is connected.">
+<meta property="og:url" content="https://aether-lang.dev/repl.html">
+<meta property="og:image" content="https://aether-lang.dev/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="canonical" href="https://aether-lang.dev/repl.html">
+<link rel="icon" href="/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/aether.css">
 </head>
 <body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-head">
+  <div class="wrap bar">
+    <a class="brand" href="/" aria-label="Aether"><span class="ae">ae</span><span class="nm">aether</span></a>
+    <nav>
+      <a href="/repl.html" class="on">Playground</a>
+      <a href="/Docs/getting-started.html">Docs</a>
+      <a class="src" href="https://github.com/aether-lang-org/aether">Source</a>
+      <span class="vtag">v0.462</span>
+    </nav>
+  </div>
+</header>
 
-  <!-- NAV -->
-  <nav>
-    <a class="nav-logo" href="index.html">Aether<span>.</span></a>
-    <div class="lesson-nav" style="margin-left: auto;">
-      <button class="lesson-nav-btn" id="btn-prev" title="Previous lesson">&#8592;</button>
-      <span class="lesson-page" id="page-indicator">12 / 25</span>
-      <button class="lesson-nav-btn" id="btn-next" title="Next lesson">&#8594;</button>
-    </div>
-  </nav>
-
-  <!-- SPLIT LAYOUT -->
-  <div class="repl-layout">
-
-    <!-- LEFT: THEORY PANE -->
-    <div class="theory-pane">
-      <p class="theory-section-label">Theory</p>
-      <h2 id="lesson-title">Variables &amp; <em>Type Inference</em></h2>
-
-      <div class="theory-body">
-
+<main class="wrap" id="main">
+  <div class="sec-head" style="padding-top:44px"><h2>Playground</h2><span class="rule"></span></div>
+  <div class="repl">
+    <div class="lessons" id="lessons"><div class="lh">Lessons</div></div>
+    <div class="stage">
+      <div class="theory"><h3 id="ttl">&mdash;</h3><div id="thy"></div></div>
+      <div class="editwrap">
+        <pre id="hl" aria-hidden="true"></pre>
+        <textarea id="ed" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" aria-label="Aether code editor"></textarea>
       </div>
-    </div>
-
-    <!-- RIGHT: REPL PANE -->
-    <div class="repl-pane">
-
-      <!-- Toolbar -->
-      <div class="repl-toolbar">
-        <div class="repl-toolbar-left">
-          <span class="repl-dot repl-dot-red"></span>
-          <span class="repl-dot repl-dot-yellow"></span>
-          <span class="repl-dot repl-dot-green"></span>
-          <span class="repl-toolbar-title">main.aether — REPL</span>
-        </div>
-        <button class="repl-run-btn" id="btn-run" title="Run code">
-          <span class="repl-run-icon">&#9654;</span> Run
-        </button>
+      <div class="runbar">
+        <button class="run" id="run">Run &rsaquo;</button>
+        <button class="ghostbtn" id="copy" title="Copy code to clipboard">Copy</button>
+        <span class="hint" id="mode">connecting&hellip;</span>
+        <span class="lnav"><button id="prev">&larr; prev</button><button id="next">next &rarr;</button></span>
       </div>
-
-      <!-- Editor area -->
-      <textarea class="repl-editor" id="repl-editor-input" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off" placeholder="// Kirjoita koodia tähän"></textarea>
-
-      <!-- Output area -->
-      <div class="repl-output" id="repl-output">
-        <div class="repl-resize-handle" id="repl-resize-handle"></div>
-        <div class="repl-output-label">Output</div>
-        <div class="repl-output-text" id="repl-output-text">
-          <span class="repl-output-prompt">&gt;</span> Paina Run ajaaksesi koodin.
-        </div>
-      </div>
-
+      <div class="output" id="out"><span class="op">&gt;</span> <span class="muted">press Run</span></div>
     </div>
-  </div><!-- /.repl-layout -->
+  </div>
+</main>
 
-  <script>
-    /* ── Resize output pane ───────────────────────────────────── */
-    const replOutput    = document.getElementById('repl-output');
-    const resizeHandle  = document.getElementById('repl-resize-handle');
+<footer class="site-foot">
+  <div class="wrap foot">
+    <span class="ae">ae</span>
+    <span class="m">MIT licensed · compiles to C · v0.462</span>
+    <nav><a href="/Docs/getting-started.html">Docs</a><a href="/">Home</a><a href="https://github.com/aether-lang-org/aether">GitHub</a></nav>
+  </div>
+</footer>
 
-    resizeHandle.addEventListener('mousedown', (e) => {
-      e.preventDefault();
-      const startY      = e.clientY;
-      const startHeight = replOutput.offsetHeight;
-      const maxHeight   = replOutput.parentElement.offsetHeight - 44 - 48;
+<script>
+(function(){
+  "use strict";
+  var KW=/\b(actor|struct|message|state|extern|func|let|var|const|builder|callback|union|import|exports|export|module|as|hide|seal|except|if|else|for|in|while|switch|case|default|break|continue|return|match|receive|reply|send|spawn_actor|spawn|make|defer|panic|try|catch|after|when|requires|ensures|true|false|null|self)\b/;
+  var TY=/\b(int|int64|int32|uint64|uint32|uint16|uint8|longdouble|long|short|float|double|bool|byte|string|cstring_const|cstring|void|ptr|actor_ref)\b/;
+  function esc(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+  function hi(src){
+    var out="",i=0,n=src.length;
+    while(i<n){
+      var c=src[i];
+      if(c==="/"&&src[i+1]==="/"){var j=src.indexOf("\n",i);if(j<0)j=n;out+='<span class="com">'+esc(src.slice(i,j))+'</span>';i=j;continue;}
+      if(c==='"'){var j=i+1;while(j<n&&src[j]!=='"'){if(src[j]==="\\")j++;j++;}j++;out+='<span class="str">'+esc(src.slice(i,j))+'</span>';i=j;continue;}
+      if(/[0-9]/.test(c)&&!/[A-Za-z_]/.test(src[i-1]||"")){var j=i;while(j<n&&/[0-9._]/.test(src[j]))j++;out+='<span class="num">'+esc(src.slice(i,j))+'</span>';i=j;continue;}
+      if(/[A-Za-z_]/.test(c)){var j=i;while(j<n&&/[A-Za-z0-9_]/.test(src[j]))j++;var w=src.slice(i,j);
+        if(KW.test(w))out+='<span class="kw">'+w+'</span>';
+        else if(TY.test(w))out+='<span class="fn">'+w+'</span>';
+        else if(src[j]==="(")out+='<span class="fn">'+w+'</span>';
+        else out+=esc(w); i=j;continue;}
+      if(c==="!"||c==="?"){out+='<span class="kw">'+c+'</span>';i++;continue;}
+      if("{}()[]".indexOf(c)>=0){out+='<span class="pn">'+c+'</span>';i++;continue;}
+      out+=esc(c);i++;
+    }
+    return out;
+  }
+  var ORIGIN=((document.querySelector('meta[name=aesite-exec]')||{}).content||"").replace(/\/$/,"");
+  var ed=document.getElementById("ed"),hlEl=document.getElementById("hl"),out=document.getElementById("out"),
+      ttl=document.getElementById("ttl"),thy=document.getElementById("thy"),lessonsEl=document.getElementById("lessons"),
+      runBtn=document.getElementById("run"),copyBtn=document.getElementById("copy"),modeEl=document.getElementById("mode");
+  var lessons=[],cur=1,LIVE=false;
 
-      function onMove(e) {
-        const newHeight = Math.min(maxHeight, Math.max(48, startHeight + (startY - e.clientY)));
-        replOutput.style.height = newHeight + 'px';
-      }
-      function onUp() {
-        document.removeEventListener('mousemove', onMove);
-        document.removeEventListener('mouseup', onUp);
-      }
-      document.addEventListener('mousemove', onMove);
-      document.addEventListener('mouseup', onUp);
+  function paint(){hlEl.innerHTML=hi(ed.value)+"\n";hlEl.scrollTop=ed.scrollTop;hlEl.scrollLeft=ed.scrollLeft;}
+  function setActive(n){[].forEach.call(lessonsEl.querySelectorAll("button"),function(b){b.classList.toggle("on",+b.dataset.n===n);});}
+  function starter(n){return ((lessons[n-1]||{}).starter_code||"").replace(/\s+$/,"");}
+  function edited(){return ed.value.replace(/\s+$/,"")!==starter(cur);}
+  function lines(t,cls){return t.split("\n").map(function(l){return '<span class="op">&gt;</span> '+(cls?'<span class="'+cls+'">'+esc(l)+'</span>':esc(l));}).join("\n");}
+  function resetOut(){out.innerHTML='<span class="op">&gt;</span> <span class="muted">press Run</span>';}
+
+  function load(n){
+    cur=n;setActive(n);
+    var L=lessons[n-1]||{};
+    ttl.textContent=L.title||("Lesson "+n);
+    thy.innerHTML=L.theory||"";
+    ed.value=(L.starter_code||"").replace(/\s+$/,"")+"\n";
+    paint();resetOut();
+  }
+
+  function liveRun(){
+    runBtn.disabled=true;
+    out.innerHTML='<span class="op">&gt;</span> <span class="muted">running&hellip;</span>';
+    fetch(ORIGIN+"/api/exec",{method:"PUT",headers:{"Content-Type":"text/plain"},body:ed.value})
+      .then(function(r){if(!r.ok)throw 0;return r.json();})
+      .then(function(d){
+        var t=((d.stdout||"")+(d.stderr||"")).replace(/\s+$/,"");
+        out.innerHTML=t?lines(t):'<span class="op">&gt;</span> <span class="muted">(no output)</span>';
+      })
+      .catch(function(){out.innerHTML='<span class="op">&gt;</span> <span class="err">could not reach the Aether backend</span>';})
+      .finally(function(){runBtn.disabled=false;});
+  }
+
+  function staticRun(){
+    var L=lessons[cur-1]||{};
+    if(!edited()&&L.expected_output!=null){
+      out.innerHTML=lines(L.expected_output)+'\n<span class="op">&gt;</span> <span class="muted">precomputed with ae 0.461 &middot; edit and run locally for live output</span>';
+    }else{
+      out.innerHTML='<span class="op">&gt;</span> <span class="muted">This static playground shows sample output. To run your edits, copy the code and:</span>\n'
+        +'<span class="op">&gt;</span> ae run main.ae\n'
+        +'<span class="op">&gt;</span> <span class="muted">or connect a live Aether backend (see the repo README).</span>';
+    }
+  }
+
+  function run(){ if(LIVE) liveRun(); else staticRun(); }
+
+  function copy(){
+    var t=ed.value;
+    function done(){copyBtn.textContent="Copied";setTimeout(function(){copyBtn.textContent="Copy";},1200);}
+    if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(done,done);}
+    else{ed.select();try{document.execCommand("copy");}catch(e){}done();}
+  }
+
+  function buildButtons(){
+    lessons.forEach(function(L,i){
+      var b=document.createElement("button");b.dataset.n=i+1;
+      b.innerHTML='<span class="idx">'+String(i+1).padStart(2,"0")+'</span>'+esc(L.title||("Lesson "+(i+1)));
+      b.onclick=function(){load(i+1);};lessonsEl.appendChild(b);
     });
+  }
 
-    /* ── Lesson loader ─────────────────────────────────────────── */
-    const TOTAL_PAGES = 25;
-    let currentPage = 1;
+  function setMode(){
+    modeEl.innerHTML=LIVE
+      ? 'live &middot; runs on the Aether server via <code style="color:var(--dim)">ae run</code>'
+      : 'static preview &middot; edit and run locally with <code style="color:var(--dim)">ae run</code>';
+  }
 
-    const indicator  = document.getElementById('page-indicator');
-    const btnPrev    = document.getElementById('btn-prev');
-    const btnNext    = document.getElementById('btn-next');
-    const theoryBody   = document.querySelector('.theory-body');
-    const lessonTitle  = document.getElementById('lesson-title');
-    const replEditor   = document.getElementById('repl-editor-input');
-    const btnRun       = document.getElementById('btn-run');
-    const outputText   = document.getElementById('repl-output-text');
+  ed.addEventListener("input",paint);
+  ed.addEventListener("scroll",function(){hlEl.scrollTop=ed.scrollTop;hlEl.scrollLeft=ed.scrollLeft;});
+  runBtn.onclick=run;copyBtn.onclick=copy;
+  document.getElementById("prev").onclick=function(){load(cur>1?cur-1:lessons.length);};
+  document.getElementById("next").onclick=function(){load(cur<lessons.length?cur+1:1);};
 
-    function getEditorCode() {
-      return replEditor.value;
-    }
-
-    function showOutput(stdout, stderr) {
-      let html = '';
-      if (stdout && stdout.trim()) {
-        stdout.split('\n').forEach(line => {
-          html += `<div><span class="repl-output-prompt">&gt;</span> ${line}</div>`;
-        });
-      }
-      if (stderr && stderr.trim()) {
-        stderr.split('\n').forEach(line => {
-          html += `<div style="color:#c0292b"><span class="repl-output-prompt">&gt;</span> ${line}</div>`;
-        });
-      }
-      outputText.innerHTML = html || '<span class="repl-output-prompt">&gt;</span> (no output)';
-    }
-
-    btnRun.addEventListener('click', async () => {
-      btnRun.disabled = true;
-      outputText.innerHTML = '<span class="repl-output-prompt">&gt;</span> Running…';
-      try {
-        const res = await fetch('/api/exec', {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ user_code: getEditorCode() }),
-        });
-        if (!res.ok) throw new Error('HTTP ' + res.status);
-        const data = await res.json();
-        showOutput(data.stdout, data.stderr);
-      } catch (err) {
-        outputText.innerHTML = `<span style="color:#c0292b">&gt; Virhe: ${err.message}</span>`;
-      } finally {
-        btnRun.disabled = false;
-      }
-    });
-
-    function renderCode(code) {
-      replEditor.value = code;
-    }
-
-    async function loadLesson(nbr) {
-      try {
-        const res = await fetch('/api/lesson/' + nbr);
-        if (!res.ok) throw new Error('HTTP ' + res.status);
-        const data = await res.json();
-        theoryBody.innerHTML = data.theory;
-        lessonTitle.textContent = data.title;
-        renderCode(data.starter_code);
-      } catch (err) {
-        theoryBody.innerHTML = '<p style="color:var(--accent)">Lessonin lataus epäonnistui: ' + err.message + '</p>';
-      }
-    }
-
-    function updateNav() {
-      indicator.textContent = currentPage + ' / ' + TOTAL_PAGES;
-      btnPrev.disabled = currentPage <= 1;
-      btnNext.disabled = currentPage >= TOTAL_PAGES;
-    }
-
-    btnPrev.addEventListener('click', () => {
-      if (currentPage > 1) { currentPage--; updateNav(); loadLesson(currentPage); }
-    });
-
-    btnNext.addEventListener('click', () => {
-      if (currentPage < TOTAL_PAGES) { currentPage++; updateNav(); loadLesson(currentPage); }
-    });
-
-    updateNav();
-    loadLesson(currentPage);
-
-
-  </script>
+  // Load lessons (static, works with no server), then probe for a live backend.
+  fetch("lessons.json").then(function(r){return r.json();}).then(function(d){
+    lessons=d;buildButtons();load(1);
+  }).catch(function(){
+    lessonsEl.innerHTML+='<div class="lh" style="color:var(--c-kw)">lessons unavailable</div>';
+  });
+  fetch(ORIGIN+"/healthz").then(function(r){LIVE=r.ok;}).catch(function(){LIVE=false;}).finally(setMode);
+})();
+</script>
 </body>
 </html>

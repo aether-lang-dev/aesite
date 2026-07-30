@@ -1,163 +1,231 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>getting-started</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/style.css" />
-  <link rel="stylesheet" href="/subpages.css" />
-  <link rel="stylesheet" href="/articles.css" />
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Getting Started with Aether · Aether</title>
+<meta name="description" content="This guide covers installation and basic usage of the Aether programming language.">
+<link rel="canonical" href="https://aether-lang.dev/Docs/getting-started.html">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Getting Started with Aether · Aether">
+<meta property="og:description" content="This guide covers installation and basic usage of the Aether programming language.">
+<meta property="og:url" content="https://aether-lang.dev/Docs/getting-started.html">
+<meta property="og:image" content="https://aether-lang.dev/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/aether.css">
 </head>
 <body>
-
-  <!-- NAV -->
-  <nav>
-    <a class="nav-logo" href="/index.html">Aether<span>.</span></a>
-    <ul class="nav-links">
-      <li><a href="/index.html#features">Features</a></li>
-      <li><a href="/index.html#syntax">Syntax</a></li>
-      <li><a href="/index.html#install">Install</a></li>
-      <li><a href="/faq.html">FAQ</a></li>
-    </ul>
-  </nav>
-
-  <!-- MAIN -->
-  <main class="section">
-    <div>
-      <p class="section-label">Learning Material</p>
-    </div>
-
-    <article class="article-content">
+<a class="skip" href="#doc">Skip to content</a>
+<header class="site-head">
+  <div class="wrap bar">
+    <a class="brand" href="/" aria-label="Aether"><span class="ae">ae</span><span class="nm">aether</span></a>
+    <nav>
+      <a href="/repl.html">Playground</a>
+      <a href="/Docs/getting-started.html" class="on">Docs</a>
+      <a class="src" href="https://github.com/aether-lang-org/aether">Source</a>
+      <span class="vtag">v0.462</span>
+    </nav>
+  </div>
+</header>
+<div class="wrap">
+  <div class="doc-shell">
+    <nav class="doc-nav" aria-label="Documentation">
+      <div class="docsearch"><input id="ds" type="search" placeholder="Search the docs" aria-label="Search documentation" autocomplete="off" spellcheck="false"><kbd>/</kbd><div class="ds-res" id="dsres" role="listbox"></div></div>
+<div class="grp">Start</div>
+<a href="/Docs/getting-started.html" class="on">Getting Started with Aether</a>
+<a href="/Docs/tutorial.html">Aether Language Tutorial</a>
+<a href="/Docs/next-steps.html">Next Steps</a>
+<div class="grp">Language</div>
+<a href="/Docs/language-reference.html">Aether Language Reference</a>
+<a href="/Docs/type-inference-guide.html">Aether Type Inference Guide</a>
+<a href="/Docs/type-annotation-style-guide.html">Aether Type Annotation Style Guide</a>
+<a href="/Docs/type-inference-multi-value-returns.html">Multi-Value Return Type Inference</a>
+<a href="/Docs/distinct-types.html">Distinct Types</a>
+<a href="/Docs/sequences.html">Sequences (*StringSeq)</a>
+<a href="/Docs/named-args-and-select.html">Named Arguments and select()</a>
+<a href="/Docs/closures-and-builder-dsl.html">Closures and Builder-Style DSL in Aether</a>
+<a href="/Docs/closures-and-lifetimes.html">Closures and Environment Lifetimes</a>
+<a href="/Docs/module-system-design.html">Aether Module System</a>
+<div class="grp">Runtime</div>
+<a href="/Docs/architecture.html">Aether Architecture</a>
+<a href="/Docs/actor-concurrency.html">Aether Runtime Guide</a>
+<a href="/Docs/structured-concurrency.html">Structured Concurrency for Aether, Design Direction</a>
+<a href="/Docs/scheduler-quick-reference.html">Aether Scheduler - Quick Reference</a>
+<a href="/Docs/memory-management.html">Aether Memory Management</a>
+<a href="/Docs/runtime-optimizations.html">Runtime Optimizations</a>
+<a href="/Docs/numa-support.html">NUMA Support in Aether</a>
+<div class="grp">Interop</div>
+<a href="/Docs/c-interop.html">C Interoperability</a>
+<a href="/Docs/c-embedding.html">Embedding Aether Actors in C Applications</a>
+<a href="/Docs/emit-lib.html">Embedding Aether as a Shared Library (--emit=lib)</a>
+<a href="/Docs/embedded-namespaces-and-host-bindings.html">Aether as a Configuration Language, v2: Namespaces and Generated Bindings</a>
+<a href="/Docs/aether-embedded-in-host-applications.html">Aether as a Configuration Language for Other Languages</a>
+<a href="/Docs/lib-caller-info.html">--emit=lib caller-info channel</a>
+<div class="grp">Stdlib</div>
+<a href="/Docs/stdlib-reference.html">Aether Standard Library Reference</a>
+<a href="/Docs/stdlib-api.html">Aether Standard Library Guide</a>
+<a href="/Docs/stdlib-module-pattern.html">Aether Stdlib Module Pattern</a>
+<a href="/Docs/stdlib-vs-contrib.html">std/ vs contrib/ placement decisions</a>
+<a href="/Docs/http-server.html">std.http HTTP Server</a>
+<a href="/Docs/http-reverse-proxy.html">std.http.proxy reverse proxy</a>
+<a href="/Docs/http-handler-context.html">HTTP handlers with per-server / per-route state</a>
+<a href="/Docs/http-vcr.html">HTTP Record/Replay (VCR), moved out of Aether</a>
+<a href="/Docs/json-parser-design.html">std.json Design Notes</a>
+<div class="grp">Safety</div>
+<a href="/Docs/containment-sandbox.html">Containment and Sandboxing in Aether</a>
+<a href="/Docs/hide-and-seal.html">hide and seal except scope-level capability denial</a>
+<a href="/Docs/compiler-trust-boundary.html">The Compiler Trust Boundary</a>
+<a href="/Docs/config-is-code.html">Config IS Code</a>
+<a href="/Docs/aether_compared_to_capsicum.html">Aether Sandbox Model vs. BSD Capsicum: Architecture, Parallels, and FreeBSD Integration</a>
+<div class="grp">Build</div>
+<a href="/Docs/build-system.html">Build System</a>
+<a href="/Docs/bootstrap-from-source.html">Bootstrapping Aether from source (HEAD)</a>
+<a href="/Docs/install-layout.html">Aether install layout</a>
+<a href="/Docs/runtime-config.html">Runtime Configuration - Quick Reference</a>
+<a href="/Docs/per-process-config.html">Per-process configuration in Aether</a>
+<a href="/Docs/cic-help.html">ae help &lt;script&gt; Offline diagnostics for config-IS-code</a>
+<div class="grp">More</div>
+<a href="/Docs/allocators.html">Allocators</a>
+<a href="/Docs/bindgen-consts.html">ae bindgen consts, importing C macro constants</a>
+<a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
+<a href="/Docs/contract-folding.html">Compile-time contract folding — costed design</a>
+<a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn't need macro_rules!</a>
+<a href="/Docs/error-unification.html">Unifying T? and (value, err) — costed design</a>
+<a href="/Docs/formatter.html">ae fmt, the source formatter</a>
+<a href="/Docs/isolated.html">Isolated[T]: move-only actor message payloads (#479)</a>
+<a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
+<a href="/Docs/profiling-guide.html">Aether Runtime Profiling Guide</a>
+<a href="/Docs/release-glibc-portability.html">Release binary portability across glibc versions</a>
+<a href="/Docs/when-static-if.html">Compile-time when / static-if</a></nav>
+    <main class="doc-main">
+      <article class="doc-body" id="doc">
+        <div class="bc"><span class="prompt">$</span>docs / start</div>
 <h1 id="getting-started-with-aether">Getting Started with Aether</h1>
-<p>This guide covers installation and basic usage of the Aether
-programming language.</p>
+<p>This guide covers installation and basic usage of the Aether programming language.</p>
 <h2 id="installation">Installation</h2>
 <h3 id="quick-install-recommended">Quick Install (recommended)</h3>
-<div class="sourceCode" id="cb1"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> clone https://github.com/nicolasmd87/aether.git</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> aether</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="ex">./install.sh</span></span></code></pre></div>
-<p>This builds the compiler, CLI tool, and standard library, then
-installs everything to <code>~/.aether</code>. After restarting your
-terminal (or running <code>source ~/.bashrc</code>,
-<code>~/.zshrc</code>, or <code>~/.bash_profile</code>), the
-<code>ae</code> command is available globally.</p>
+<pre><code>git clone https://github.com/nicolasmd87/aether.git
+cd aether
+./install.sh</code></pre>
+<p>This builds the compiler, CLI tool, and standard library, then installs everything to <code>~/.aether</code>. After restarting your terminal (or running <code>source ~/.bashrc</code>, <code>~/.zshrc</code>, or <code>~/.bash_profile</code>), the <code>ae</code> command is available globally.</p>
 <p>To install to a custom location:</p>
-<div class="sourceCode" id="cb2"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">./install.sh</span> /usr/local    <span class="co"># System-wide install (needs sudo)</span></span></code></pre></div>
+<pre><code>./install.sh /usr/local    <span class="com"># System-wide install (needs sudo)</span></code></pre>
 <h3 id="prerequisites">Prerequisites</h3>
-<p>The installer checks for these automatically and provides
-platform-specific install commands if something is missing. Here's what
-you need:</p>
+<p>The installer checks for these automatically and provides platform-specific install commands if something is missing. Here's what you need:</p>
 <p><strong>macOS:</strong></p>
-<div class="sourceCode" id="cb3"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">xcode-select</span> <span class="at">--install</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Or with Homebrew: brew install gcc make</span></span></code></pre></div>
+<pre><code>xcode-select --install
+<span class="com"># Or with Homebrew: brew install gcc make</span></code></pre>
 <p><strong>Linux (Debian/Ubuntu/Pop!_OS/Mint):</strong></p>
-<div class="sourceCode" id="cb4"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> apt-get install build-essential</span></code></pre></div>
+<pre><code>sudo apt-get install build-essential</code></pre>
 <p><strong>Linux (Fedora):</strong></p>
-<div class="sourceCode" id="cb5"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> dnf install gcc make</span></code></pre></div>
+<pre><code>sudo dnf install gcc make</code></pre>
 <p><strong>Linux (RHEL/CentOS/Rocky/AlmaLinux):</strong></p>
-<div class="sourceCode" id="cb6"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> yum install gcc make</span></code></pre></div>
+<pre><code>sudo yum install gcc make</code></pre>
 <p><strong>Linux (Arch/Manjaro):</strong></p>
-<div class="sourceCode" id="cb7"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> pacman <span class="at">-S</span> base-devel</span></code></pre></div>
+<pre><code>sudo pacman -S base-devel</code></pre>
 <p><strong>Linux (openSUSE):</strong></p>
-<div class="sourceCode" id="cb8"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> zypper install gcc make</span></code></pre></div>
+<pre><code>sudo zypper install gcc make</code></pre>
 <p><strong>Linux (Alpine):</strong></p>
-<div class="sourceCode" id="cb9"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ex">apk</span> add build-base</span></code></pre></div>
+<pre><code>apk add build-base</code></pre>
 <p><strong>Windows:</strong></p>
-<p>The easiest way is to download the pre-built release binary — no
-MSYS2, no manual toolchain required:</p>
-<ol type="1">
-<li>Download <code>aether-*-windows-x86_64.zip</code> from <a
-href="https://github.com/nicolasmd87/aether/releases">GitHub
-Releases</a></li>
-<li>Extract to any folder — e.g. <code>C:\aether</code></li>
-<li>Add <code>C:\aether\bin</code> to your PATH (System Settings →
-Environment Variables → Path)</li>
-<li><strong>Restart your terminal</strong> (so PATH takes effect)</li>
-<li>Open any terminal (PowerShell or CMD):</li>
-</ol>
-<div class="sourceCode" id="cb10"><pre
-class="sourceCode powershell"><code class="sourceCode powershell"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>ae version</span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>ae init hello</span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="fu">cd</span> hello</span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>ae run</span></code></pre></div>
-<p><strong>GCC is downloaded automatically on the first
-<code>ae run</code></strong> (~80 MB, one-time). No MSYS2, no separate
-installer needed.</p>
-<blockquote>
-<p><strong>Windows Defender tip:</strong> The first build may trigger a
-scan. Adding <code>C:\aether</code> to Windows Security exclusions
-speeds things up.</p>
-</blockquote>
-<blockquote>
-<p><strong>Building from source / contributors:</strong> Install <a
-href="https://www.msys2.org/">MSYS2</a>, open "MSYS2 MinGW 64-bit", then
-<code>pacman -S mingw-w64-x86_64-gcc make git</code> and
-<code>make ae</code>.</p>
-</blockquote>
-<h3 id="development-build-without-installing">Development Build (without
-installing)</h3>
+<p>The easiest way is to download the pre-built release binary, no MSYS2, no manual toolchain required:</p>
+<ol><li>Download <code>aether-*-windows-x86_64.zip</code> from <a href="https://github.com/nicolasmd87/aether/releases">GitHub Releases</a></li><li>Extract to any folder, e.g. <code>C:\aether</code></li><li>Add <code>C:\aether\bin</code> to your PATH (System Settings → Environment Variables → Path)</li><li><strong>Restart your terminal</strong> (so PATH takes effect)</li><li>Open any terminal (PowerShell or CMD):</li></ol>
+<pre><code>ae version
+ae init hello
+cd hello
+ae run</code></pre>
+<p><strong>GCC is downloaded automatically on the first <code>ae run</code></strong> (~80 MB, one-time). No MSYS2, no separate installer needed.</p>
+<blockquote><strong>Windows Defender tip:</strong> The first build may trigger a scan. Adding <code>C:\aether</code> to Windows Security exclusions speeds things up.</blockquote>
+<blockquote><strong>Building from source / contributors:</strong> Install <a href="https://www.msys2.org/">MSYS2</a>, open "MSYS2 MinGW 64-bit", then <code>pacman -S mingw-w64-x86_64-gcc make git</code> and <code>make ae</code>.</blockquote>
+<h3 id="development-build-without-installing">Development Build (without installing)</h3>
 <p>If you prefer to build without installing to your system:</p>
-<div class="sourceCode" id="cb11"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> ae</span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="ex">./build/ae</span> version</span></code></pre></div>
-<p>This builds the <code>ae</code> CLI tool in the <code>build/</code>
-directory. You'll need to use <code>./build/ae</code> instead of just
-<code>ae</code>.</p>
+<pre><code>make ae
+./build/ae version</code></pre>
+<p>This builds the <code>ae</code> CLI tool in the <code>build/</code> directory. You'll need to use <code>./build/ae</code> instead of just <code>ae</code>.</p>
 <h3 id="editor-setup">Editor Setup</h3>
 <p>For syntax highlighting and a better development experience:</p>
 <p><strong>VS Code / Cursor:</strong></p>
-<div class="sourceCode" id="cb12"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> editor/vscode</span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="ex">./install.sh</span></span></code></pre></div>
+<pre><code>cd editor/vscode
+./install.sh</code></pre>
 <p>Features included:</p>
-<ul>
-<li>Syntax highlighting with TextMate grammar</li>
-<li>Custom "Aether Erlang" dark theme optimized for Aether code</li>
-<li><code>.ae</code> file icons</li>
-<li>Basic language configuration (comments, brackets, etc.)</li>
-</ul>
-<p>After installation, open any <code>.ae</code> file and VS Code will
-automatically apply syntax highlighting. Select the "Aether Erlang"
-theme via <code>Preferences &gt; Color Theme</code> for the best
-experience.</p>
+<ul><li>Syntax highlighting with TextMate grammar</li><li>Custom "Aether Erlang" dark theme optimized for Aether code</li><li><code>.ae</code> file icons</li><li>Basic language configuration (comments, brackets, etc.)</li></ul>
+<p>After installation, open any <code>.ae</code> file and VS Code will automatically apply syntax highlighting. Select the "Aether Erlang" theme via <code>Preferences &gt; Color Theme</code> for the best experience.</p>
 <h2 id="your-first-aether-program">Your First Aether Program</h2>
 <p><strong>Option A: Create a project (recommended)</strong></p>
-<div class="sourceCode" id="cb13"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="ex">ae</span> init myproject</span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> myproject</span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="ex">ae</span> run</span></code></pre></div>
-<p>This creates a project with <code>aether.toml</code>,
-<code>src/main.ae</code>, and <code>tests/</code>.</p>
+<pre><code>ae init myproject
+cd myproject
+ae run</code></pre>
+<p>This creates a project with <code>aether.toml</code>, <code>src/main.ae</code>, and <code>tests/</code>.</p>
 <p><strong>Option B: Run a single file</strong></p>
 <p>Create <code>hello.ae</code>:</p>
-<pre class="aether"><code>main() {
-    println(&quot;Hello, Aether!&quot;)
+<pre><code>main() {
+    println(<span class="str">"Hello, Aether!"</span>)
 }</code></pre>
-<div class="sourceCode" id="cb15"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="ex">ae</span> run hello.ae</span></code></pre></div>
+<pre><code>ae run hello.ae</code></pre>
 <p><strong>Build an executable:</strong></p>
-<div class="sourceCode" id="cb16"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="ex">ae</span> build hello.ae <span class="at">-o</span> hello</span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="ex">./hello</span></span></code></pre></div>
+<pre><code>ae build hello.ae -o hello
+./hello</code></pre>
+<p><strong>Build for WebAssembly:</strong></p>
+<pre><code>ae build --target wasm hello.ae
+node hello.js</code></pre>
+<p>Requires <a href="https://emscripten.org/">Emscripten</a> (<code>emcc</code> on PATH).</p>
+<p><strong>Type-check without compiling:</strong></p>
+<pre><code>ae check hello.ae</code></pre>
+<p><strong>Add a package (any git host):</strong></p>
+<pre><code>ae add github.com/user/repo          <span class="com"># latest from GitHub</span>
+ae add github.com/user/repo@v1.<span class="num">0.0</span>   <span class="com"># specific version</span>
+ae add gitlab.com/user/repo           <span class="com"># GitLab</span>
+ae add codeberg.org/user/repo         <span class="com"># Codeberg</span></code></pre>
+<h2 id="error-handling">Error Handling</h2>
+<p>Functions that can fail return <code>(value, error)</code> tuples. Check the error first, handle it, then continue, no <code>else</code> needed:</p>
+<pre><code>safe_divide(a: <span class="fn">int</span>, b: <span class="fn">int</span>) -&gt; {
+    <span class="kw">if</span> b == <span class="num">0</span> {
+        <span class="kw">return</span> <span class="num">0</span>, <span class="str">"division by zero"</span>
+    }
+    <span class="kw">return</span> a / b, <span class="str">""</span>
+}
+
+main() {
+    result, err = safe_divide(<span class="num">10</span>, <span class="num">3</span>)
+    <span class="kw">if</span> err != <span class="str">""</span> {
+        println(<span class="str">"Error: ${err}"</span>)
+        exit(<span class="num">1</span>)
+    }
+    println(<span class="str">"Result: ${result}"</span>)
+
+    <span class="com">// Discard error with _</span>
+    val, _ = safe_divide(<span class="num">42</span>, <span class="num">7</span>)
+    println(val)
+}</code></pre>
+<h2 id="function-contracts-requires--ensures">Function Contracts (<code>requires</code> / <code>ensures</code>)</h2>
+<p>Aether supports Eiffel-style runtime contracts, pre/postconditions you attach directly to a function declaration. They document intent at the boundary, fire as <code>aether_panic</code> on violation (which prints the failed predicate by name), and elide entirely when the predicate is provably constant-true at compile time.</p>
+<pre><code>add(a: <span class="fn">int</span>, b: <span class="fn">int</span>) -&gt; <span class="fn">int</span>
+    <span class="kw">requires</span> a &gt;= <span class="num">0</span>
+    <span class="kw">requires</span> b &gt;= <span class="num">0</span>
+    <span class="kw">ensures</span> result &gt;= a
+    <span class="kw">ensures</span> result &gt;= b
+{
+    <span class="kw">return</span> a + b
+}
+
+safe_div(a: <span class="fn">int</span>, b: <span class="fn">int</span>) -&gt; <span class="fn">int</span>
+    <span class="kw">requires</span> b != <span class="num">0</span>
+{
+    <span class="kw">return</span> a / b
+}</code></pre>
+<ul><li><code>requires &lt;expr&gt;</code> runs at function entry, with parameters in scope.</li><li><code>ensures &lt;expr&gt;</code> runs before each <code>return</code>, with <code>result</code> bound to the value about to be returned.</li><li>Multiple clauses, freely interleaved, each is checked independently so the panic message names the specific failed predicate.</li><li><code>aetherc --no-contracts</code> (analog of <code>-DNDEBUG</code>) drops every check at codegen for release builds.</li></ul>
+<p>See <a href="/Docs/language-reference.html#function-contracts-requires--ensures-issue-348">Function contracts</a> for the full semantics, the const-fold elision rules, and v1 limitations.</p>
 <h2 id="interactive-repl">Interactive REPL</h2>
 <p>Experiment with Aether interactively:</p>
-<div class="sourceCode" id="cb17"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="ex">ae</span> repl</span></code></pre></div>
-<pre><code>Aether 0.27.0 REPL
-Type expressions to evaluate. Enter on empty line to run.
-Commands: :help :reset :show :quit
+<pre><code>ae repl</code></pre>
+<pre><code>  ┌───────────────────────────┐
+  │   Aether &lt;version&gt; REPL   │
+  │   :help for commands      │
+  └───────────────────────────┘
 
 ae&gt; x = 5
 
@@ -170,454 +238,270 @@ ae&gt; :show
   x = 5
   y = 3
 ae&gt; :quit</code></pre>
-<p>Assignments and constants persist across evaluations. Multi-line
-blocks (if/while/for) auto-continue until braces close. Use
-<code>:reset</code> to clear the session, <code>:show</code> to see
-accumulated code.</p>
+<p>Assignments and constants persist across evaluations. Multi-line blocks (if/while/for) auto-continue until braces close. Use <code>:reset</code> to clear the session, <code>:show</code> to see accumulated code.</p>
 <h2 id="actor-based-programming">Actor-Based Programming</h2>
-<p>Aether is built around the actor model. Here is a simple counter
-example:</p>
-<pre class="aether"><code>message Ping {}
+<p>Aether is built around the actor model. Here is a simple counter example:</p>
+<pre><code><span class="kw">message</span> Ping {}
 
-actor Counter {
-    state count = 0
+<span class="kw">actor</span> Counter {
+    <span class="kw">state</span> count = <span class="num">0</span>
 
-    receive {
+    <span class="kw">receive</span> {
         Ping() -&gt; {
-            count = count + 1
+            count = count + <span class="num">1</span>
         }
     }
 }
 
 main() {
-    c = spawn(Counter())
+    c = <span class="kw">spawn</span>(Counter())
     c ! Ping {}
     c ! Ping {}
     c ! Ping {}
 
-    // Wait for all messages to be processed
+    <span class="com">// Wait for all messages to be processed</span>
     wait_for_idle()
 
-    println(&quot;Count: ${c.count}&quot;)
+    println(<span class="str">"Count: ${c.count}"</span>)
 }</code></pre>
-<p>Actors are lightweight concurrent entities that communicate through
-asynchronous messages. Each actor has private state and a mailbox for
-incoming messages. Messages are defined with the <code>message</code>
-keyword and sent with the <code>!</code> operator. The runtime
-distributes actors across available CPU cores automatically.</p>
-<p>Use <code>wait_for_idle()</code> to block until all actors have
-finished processing their messages. This is essential when you need to
-read actor state or coordinate completion.</p>
+<p>Actors are lightweight concurrent entities that communicate through asynchronous messages. Each actor has private state and a mailbox for incoming messages. Messages are defined with the <code>message</code> keyword and sent with the <code>!</code> operator. The runtime distributes actors across available CPU cores automatically.</p>
+<p>Use <code>wait_for_idle()</code> to block until all actors have finished processing their messages. This is essential when you need to read actor state or coordinate completion.</p>
 <h2 id="module-system">Module System</h2>
 <p>Import modules using the <code>import</code> statement:</p>
-<pre class="aether"><code>import std.map
+<pre><code><span class="kw">import</span> std.map
 
 main() {
     mymap = map.new()
-    defer map.free(mymap)
+    <span class="kw">defer</span> map.free(mymap)
 
-    map.put(mymap, &quot;greeting&quot;, &quot;hello&quot;)
+    map.put(mymap, <span class="str">"greeting"</span>, <span class="str">"hello"</span>)
 
-    println(&quot;Map created&quot;)
+    println(<span class="str">"Map created"</span>)
 }</code></pre>
-<p>Functions are called using <strong>namespace-style syntax</strong>:
-<code>namespace.function()</code>.</p>
-<table>
-<thead>
-<tr>
-<th>Import</th>
-<th>Namespace</th>
-<th>Example</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>import std.string</code></td>
-<td><code>string</code></td>
-<td><code>string.new("hello")</code>, <code>string.length(s)</code></td>
-</tr>
-<tr>
-<td><code>import std.file</code></td>
-<td><code>file</code></td>
-<td><code>file.open("f", "r")</code>, <code>file.exists("f")</code></td>
-</tr>
-<tr>
-<td><code>import std.dir</code></td>
-<td><code>dir</code></td>
-<td><code>dir.create("d")</code>, <code>dir.exists("d")</code></td>
-</tr>
-<tr>
-<td><code>import std.path</code></td>
-<td><code>path</code></td>
-<td><code>path.join("a", "b")</code>,
-<code>path.basename("a/b")</code></td>
-</tr>
-<tr>
-<td><code>import std.list</code></td>
-<td><code>list</code></td>
-<td><code>list.new()</code>, <code>list.add()</code>,
-<code>list.get()</code></td>
-</tr>
-<tr>
-<td><code>import std.map</code></td>
-<td><code>map</code></td>
-<td><code>map.new()</code>, <code>map.put()</code>,
-<code>map.get()</code></td>
-</tr>
-<tr>
-<td><code>import std.json</code></td>
-<td><code>json</code></td>
-<td><code>json.parse(str)</code>, <code>json.create_object()</code></td>
-</tr>
-<tr>
-<td><code>import std.math</code></td>
-<td><code>math</code></td>
-<td><code>math.abs_int(x)</code>, <code>math.sqrt(x)</code></td>
-</tr>
-<tr>
-<td><code>import std.http</code></td>
-<td><code>http</code></td>
-<td><code>http.get(url)</code>,
-<code>http.server_create(port)</code></td>
-</tr>
-<tr>
-<td><code>import std.tcp</code></td>
-<td><code>tcp</code></td>
-<td><code>tcp.connect(host, port)</code>, <code>tcp.send()</code></td>
-</tr>
-<tr>
-<td><code>import std.log</code></td>
-<td><code>log</code></td>
-<td><code>log.init("app")</code>, <code>log.write()</code></td>
-</tr>
-<tr>
-<td><code>import std.io</code></td>
-<td><code>io</code></td>
-<td><code>io.read_file("f")</code>, <code>io.getenv("HOME")</code></td>
-</tr>
-<tr>
-<td><code>import std.os</code></td>
-<td><code>os</code></td>
-<td><code>os.exec("ls")</code>, <code>os.system("cmd")</code></td>
-</tr>
-</tbody>
-</table>
+<p>Functions are called using <strong>namespace-style syntax</strong>: <code>namespace.function()</code>. Stdlib functions that can fail return Go-style <code>(value, err)</code> tuples, check <code>err</code> first, then use <code>value</code>:</p>
+<pre><code>body, err = http.get(<span class="str">"http://example.com"</span>)
+<span class="kw">if</span> err != <span class="str">""</span> { println(<span class="str">"failed: ${err}"</span>); <span class="kw">return</span> }
+println(body)</code></pre>
+<div class="tw"><table><thead><tr><th>Import</th><th>Namespace</th><th>Example</th></tr></thead><tbody><tr><td><code>import std.string</code></td><td><code>string</code></td><td><code>string.new("hello")</code>, <code>n, err = string.to_int("42")</code></td></tr><tr><td><code>import std.file</code></td><td><code>file</code></td><td><code>content, err = file.read("f")</code>, <code>file.exists("f")</code></td></tr><tr><td><code>import std.dir</code></td><td><code>dir</code></td><td><code>err = dir.create("d")</code>, <code>dir.exists("d")</code></td></tr><tr><td><code>import std.path</code></td><td><code>path</code></td><td><code>path.join("a", "b")</code>, <code>path.basename("a/b")</code></td></tr><tr><td><code>import std.list</code></td><td><code>list</code></td><td><code>list.new()</code>, <code>err = list.add(l, item)</code></td></tr><tr><td><code>import std.map</code></td><td><code>map</code></td><td><code>map.new()</code>, <code>err = map.put(m, k, v)</code></td></tr><tr><td><code>import std.json</code></td><td><code>json</code></td><td><code>v, err = json.parse(str)</code>, <code>json.create_object()</code></td></tr><tr><td><code>import std.math</code></td><td><code>math</code></td><td><code>math.abs_int(x)</code>, <code>math.sqrt(x)</code></td></tr><tr><td><code>import std.http</code></td><td><code>http</code></td><td><code>body, err = http.get(url)</code>, <code>http.server_create(port)</code></td></tr><tr><td><code>import std.tcp</code></td><td><code>tcp</code></td><td><code>sock, err = tcp.connect(host, port)</code>, <code>tcp.write(sock, data)</code></td></tr><tr><td><code>import std.log</code></td><td><code>log</code></td><td><code>err = log.init("app.log", 0)</code>, <code>log.write(0, msg)</code></td></tr><tr><td><code>import std.io</code></td><td><code>io</code></td><td><code>content, err = io.read_file("f")</code>, <code>io.getenv("HOME")</code></td></tr><tr><td><code>import std.os</code></td><td><code>os</code></td><td><code>out, err = os.exec("ls")</code>, <code>os.system("cmd")</code></td></tr></tbody></table></div>
+<p>Raw externs are preserved under a <code>_raw</code> suffix (e.g. <code>http.get_raw</code>) for advanced callers who need direct access to the underlying ptr or status code.</p>
 <h3 id="creating-your-own-modules">Creating Your Own Modules</h3>
-<p>You can write reusable modules in pure Aether — no C required. Place
-your module in <code>lib/&lt;name&gt;/module.ae</code>:</p>
+<p>You can write reusable modules in pure Aether, no C required. Place your module in <code>lib/&lt;name&gt;/module.ae</code>:</p>
 <p><strong>lib/mymath/module.ae:</strong></p>
-<pre class="aether"><code>export const PI = 3
+<pre><code><span class="kw">export</span> <span class="kw">const</span> PI = <span class="num">3</span>
 
-export double_it(x) {
-    return multiply(x, 2)
+<span class="kw">export</span> double_it(x) {
+    <span class="kw">return</span> multiply(x, <span class="num">2</span>)
 }
 
-export add(a, b) {
-    return a + b
+<span class="kw">export</span> add(a, b) {
+    <span class="kw">return</span> a + b
 }
 
-// Private helper — not accessible from outside
+<span class="com">// Private helper, not accessible from outside</span>
 multiply(a, b) {
-    return a * b
+    <span class="kw">return</span> a * b
 }</code></pre>
 <p><strong>src/main.ae:</strong></p>
-<pre class="aether"><code>import mymath
+<pre><code><span class="kw">import</span> mymath
 
 main() {
-    println(mymath.double_it(5))    // 10
-    println(mymath.add(3, 4))       // 7
-    println(mymath.PI)              // 3
-    // mymath.multiply(2, 3)        // Error: not exported
+    println(mymath.double_it(<span class="num">5</span>))    <span class="com">// 10</span>
+    println(mymath.add(<span class="num">3</span>, <span class="num">4</span>))       <span class="com">// 7</span>
+    println(mymath.PI)              <span class="com">// 3</span>
+    <span class="com">// mymath.multiply(2, 3)        // Error: not exported</span>
 }</code></pre>
-<p>Use <code>export</code> to control which functions and constants are
-part of your module's public API. Non-exported symbols are private —
-they can be used internally by exported functions but are not accessible
-to importers. If a module has no <code>export</code> declarations, all
-symbols are public (backwards compatible).</p>
-<p>Modules support functions, constants, intra-module calls (functions
-calling other functions in the same module), and export visibility. See
-<a href="module-system-design.md#pure-aether-modules">Module System
-Design</a> for full details.</p>
+<p>Use <code>export</code> to control which functions and constants are part of your module's public API. Non-exported symbols are private, they can be used internally by exported functions but are not accessible to importers. If a module has no <code>export</code> declarations, all symbols are public (backwards compatible).</p>
+<p>Modules support functions, constants, intra-module calls (functions calling other functions in the same module), and export visibility. See <a href="/Docs/module-system-design.html#pure-aether-modules">Module System Design</a> for full details.</p>
 <h2 id="standard-library">Standard Library</h2>
 <p>Aether includes a standard library with the following modules:</p>
-<table>
-<thead>
-<tr>
-<th>Module</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>std.string</code></td>
-<td>String operations</td>
-</tr>
-<tr>
-<td><code>std.file</code></td>
-<td>File operations</td>
-</tr>
-<tr>
-<td><code>std.dir</code></td>
-<td>Directory operations</td>
-</tr>
-<tr>
-<td><code>std.path</code></td>
-<td>Path utilities</td>
-</tr>
-<tr>
-<td><code>std.list</code></td>
-<td>Dynamic array (ArrayList)</td>
-</tr>
-<tr>
-<td><code>std.map</code></td>
-<td>Hash map (HashMap)</td>
-</tr>
-<tr>
-<td><code>std.json</code></td>
-<td>JSON parsing and creation</td>
-</tr>
-<tr>
-<td><code>std.http</code></td>
-<td>HTTP client and server</td>
-</tr>
-<tr>
-<td><code>std.tcp</code></td>
-<td>TCP sockets</td>
-</tr>
-<tr>
-<td><code>std.log</code></td>
-<td>Structured logging</td>
-</tr>
-<tr>
-<td><code>std.math</code></td>
-<td>Math functions</td>
-</tr>
-<tr>
-<td><code>std.io</code></td>
-<td>Console I/O, environment variables</td>
-</tr>
-<tr>
-<td><code>std.os</code></td>
-<td>Shell execution, command output capture</td>
-</tr>
-</tbody>
-</table>
-<p>See <a href="stdlib-api.md">stdlib-api.md</a> for the full API
-reference.</p>
-<blockquote>
-<p><strong>Strings just work.</strong> When you read a file or get data
-from stdlib functions, the result is a regular string — you can
-<code>print()</code> it, use it in <code>"${interpolation}"</code>, or
-pass it in messages directly. No conversion needed.</p>
-</blockquote>
+<div class="tw"><table><thead><tr><th>Module</th><th>Description</th></tr></thead><tbody><tr><td><code>std.string</code></td><td>String operations</td></tr><tr><td><code>std.file</code></td><td>File operations</td></tr><tr><td><code>std.dir</code></td><td>Directory operations</td></tr><tr><td><code>std.path</code></td><td>Path utilities</td></tr><tr><td><code>std.list</code></td><td>Dynamic array (ArrayList)</td></tr><tr><td><code>std.map</code></td><td>Hash map (HashMap)</td></tr><tr><td><code>std.json</code></td><td>JSON parsing and creation</td></tr><tr><td><code>std.http</code></td><td>HTTP client and server</td></tr><tr><td><code>std.tcp</code></td><td>TCP sockets</td></tr><tr><td><code>std.log</code></td><td>Structured logging</td></tr><tr><td><code>std.math</code></td><td>Math functions</td></tr><tr><td><code>std.io</code></td><td>Console I/O, environment variables</td></tr><tr><td><code>std.os</code></td><td>Shell execution, command output capture</td></tr></tbody></table></div>
+<p>See <a href="/Docs/stdlib-api.html">stdlib-api.md</a> for the full API reference.</p>
+<blockquote>When you read a file or get data from stdlib functions, the result is a regular string, you can <code>print()</code> it, use it in <code>"${interpolation}"</code>, or pass it in messages directly. No conversion needed.</blockquote>
+<h3 id="error-handling-and-memory">Error Handling and Memory</h3>
+<p>Stdlib functions that can fail return a Go-style <code>(value, err)</code> tuple. Check the error string first, then use the value. The wrappers auto-free any heap allocations, so you don't need <code>defer free()</code> for stdlib returns:</p>
+<pre><code><span class="kw">import</span> std.io
+
+main() {
+    <span class="com">// io.getenv is infallible; returns null if unset</span>
+    home = io.getenv(<span class="str">"HOME"</span>)
+    <span class="kw">if</span> home != <span class="num">0</span> {
+        println(home)
+    }
+
+    <span class="com">// io.read_file is Go-style</span>
+    content, err = io.read_file(<span class="str">"data.txt"</span>)
+    <span class="kw">if</span> err != <span class="str">""</span> {
+        println(<span class="str">"cannot read: ${err}"</span>)
+        <span class="kw">return</span>
+    }
+    println(content)
+}</code></pre>
+<p><code>free()</code> is still a language builtin for manually-allocated memory (e.g. <code>make</code>, <code>list.new</code>, <code>map.new</code>). <code>defer free(...)</code> or <code>defer list.free(...)</code> ensure cleanup on scope exit.</p>
+<p>For <code>std.string</code> managed strings (<code>string.new()</code>, <code>string.to_upper()</code>, etc.), use <code>defer string.release(s)</code> for reference counting.</p>
 <h2 id="pattern-matching">Pattern Matching</h2>
-<p>Aether features Erlang-inspired pattern matching, one of its most
-powerful features.</p>
+<p>Aether has Erlang-inspired pattern matching.</p>
 <h3 id="function-pattern-matching">Function Pattern Matching</h3>
-<p>Define functions with multiple clauses that match on argument
-values:</p>
-<pre class="aether"><code>// Match on literal values
-factorial(0) -&gt; 1;
-factorial(n) when n &gt; 0 -&gt; n * factorial(n - 1);
+<p>Define functions with multiple clauses that match on argument values:</p>
+<pre><code><span class="com">// Match on literal values</span>
+factorial(<span class="num">0</span>) -&gt; <span class="num">1</span>
+factorial(n) <span class="kw">when</span> n &gt; <span class="num">0</span> -&gt; n * factorial(n - <span class="num">1</span>)
 
-// Fibonacci with multiple base cases
-fib(0) -&gt; 0;
-fib(1) -&gt; 1;
-fib(n) when n &gt; 1 -&gt; fib(n - 1) + fib(n - 2);
+<span class="com">// Fibonacci with multiple base cases</span>
+fib(<span class="num">0</span>) -&gt; <span class="num">0</span>
+fib(<span class="num">1</span>) -&gt; <span class="num">1</span>
+fib(n) <span class="kw">when</span> n &gt; <span class="num">1</span> -&gt; fib(n - <span class="num">1</span>) + fib(n - <span class="num">2</span>)
 
-// Guards for conditional matching
-classify(x) when x &lt; 0 -&gt; &quot;negative&quot;;
-classify(x) when x == 0 -&gt; &quot;zero&quot;;
-classify(x) when x &gt; 0 -&gt; &quot;positive&quot;;
+<span class="com">// Guards for conditional matching</span>
+classify(x) <span class="kw">when</span> x &lt; <span class="num">0</span> -&gt; <span class="str">"negative"</span>
+classify(x) <span class="kw">when</span> x == <span class="num">0</span> -&gt; <span class="str">"zero"</span>
+classify(x) <span class="kw">when</span> x &gt; <span class="num">0</span> -&gt; <span class="str">"positive"</span>
 
-// Multi-parameter pattern matching
-gcd(a, 0) -&gt; a;
-gcd(a, b) when b &gt; 0 -&gt; gcd(b, a - (a / b) * b);</code></pre>
-<p>This style replaces verbose if/else chains with declarative, readable
-code.</p>
+<span class="com">// Multi-parameter pattern matching</span>
+gcd(a, <span class="num">0</span>) -&gt; a
+gcd(a, b) <span class="kw">when</span> b &gt; <span class="num">0</span> -&gt; gcd(b, a - (a / b) * b)</code></pre>
+<p>This style replaces verbose if/else chains with declarative, readable code.</p>
 <h3 id="match-statements">Match Statements</h3>
 <p>Use <code>match</code> for value dispatch:</p>
-<pre class="aether"><code>match (value) {
-    0 -&gt; { println(&quot;Zero&quot;) }
-    1 -&gt; { println(&quot;One&quot;) }
-    _ -&gt; { println(&quot;Other&quot;) }
+<pre><code><span class="kw">match</span> (value) {
+    <span class="num">0</span> -&gt; { println(<span class="str">"Zero"</span>) }
+    <span class="num">1</span> -&gt; { println(<span class="str">"One"</span>) }
+    _ -&gt; { println(<span class="str">"Other"</span>) }
 }</code></pre>
 <h3 id="list-patterns">List Patterns</h3>
-<p>Match on arrays (requires corresponding <code>_len</code>
-variable):</p>
-<pre class="aether"><code>nums = [1, 2, 3]
-nums_len = 3
+<p>Match on arrays (requires corresponding <code>_len</code> variable):</p>
+<pre><code>nums = [<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>]
+nums_len = <span class="num">3</span>
 
-match (nums) {
-    [] -&gt; { println(&quot;empty&quot;) }
-    [x] -&gt; { println(&quot;one element&quot;) }
+<span class="kw">match</span> (nums) {
+    [] -&gt; { println(<span class="str">"empty"</span>) }
+    [x] -&gt; { println(<span class="str">"one element"</span>) }
     [h|t] -&gt; {
-        println(&quot;head: ${h}&quot;)
+        println(<span class="str">"head: ${h}"</span>)
     }
 }</code></pre>
 <h2 id="project-configuration">Project Configuration</h2>
-<p>Projects use <code>aether.toml</code> for configuration. Created
-automatically by <code>ae init</code>:</p>
-<div class="sourceCode" id="cb26"><pre
-class="sourceCode toml"><code class="sourceCode toml"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="kw">[package]</span></span>
-<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a><span class="dt">name</span> <span class="op">=</span> <span class="st">&quot;myproject&quot;</span></span>
-<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a><span class="dt">version</span> <span class="op">=</span> <span class="st">&quot;0.1.0&quot;</span></span>
-<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a><span class="kw">[[bin]]</span></span>
-<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a><span class="dt">name</span> <span class="op">=</span> <span class="st">&quot;myproject&quot;</span></span>
-<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a><span class="dt">path</span> <span class="op">=</span> <span class="st">&quot;src/main.ae&quot;</span></span>
-<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb26-9"><a href="#cb26-9" aria-hidden="true" tabindex="-1"></a><span class="kw">[dependencies]</span></span>
-<span id="cb26-10"><a href="#cb26-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb26-11"><a href="#cb26-11" aria-hidden="true" tabindex="-1"></a><span class="kw">[build]</span></span>
-<span id="cb26-12"><a href="#cb26-12" aria-hidden="true" tabindex="-1"></a><span class="dt">target</span> <span class="op">=</span> <span class="st">&quot;native&quot;</span></span>
-<span id="cb26-13"><a href="#cb26-13" aria-hidden="true" tabindex="-1"></a><span class="co"># link_flags = &quot;-lsqlite3 -lcurl&quot;  # Link external C libraries</span></span></code></pre></div>
+<p>Projects use <code>aether.toml</code> for configuration. Created automatically by <code>ae init</code>:</p>
+<pre><code>[package]
+name = <span class="str">"myproject"</span>
+version = <span class="str">"0.1.0"</span>
+
+[[bin]]
+name = <span class="str">"myproject"</span>
+path = <span class="str">"src/main.ae"</span>
+
+[dependencies]
+
+[build]
+target = <span class="str">"native"</span>
+<span class="com"># link_flags = "-lsqlite3 -lcurl"  # Link external C libraries</span></code></pre>
 <h3 id="linking-c-libraries">Linking C Libraries</h3>
-<p>To link external C libraries, add <code>link_flags</code> to the
-<code>[build]</code> section:</p>
-<div class="sourceCode" id="cb27"><pre
-class="sourceCode toml"><code class="sourceCode toml"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="kw">[build]</span></span>
-<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a><span class="dt">link_flags</span> <span class="op">=</span> <span class="st">&quot;-lsqlite3 -lcurl -lssl&quot;</span></span></code></pre></div>
-<p>This allows Aether programs to use libraries like SQLite, libcurl,
-OpenSSL, etc.</p>
+<p>To link external C libraries, add <code>link_flags</code> to the <code>[build]</code> section:</p>
+<pre><code>[build]
+link_flags = <span class="str">"-lsqlite3 -lcurl -lssl"</span></code></pre>
+<p>This allows Aether programs to use libraries like SQLite, libcurl, OpenSSL, etc.</p>
 <h3 id="command-line-arguments">Command-Line Arguments</h3>
-<p>Access command-line arguments using the runtime's argument
-functions:</p>
-<pre class="aether"><code>extern aether_args_count() -&gt; int
-extern aether_args_get(index: int) -&gt; string
+<p>Access command-line arguments using the runtime's argument functions:</p>
+<pre><code><span class="kw">extern</span> aether_args_count() -&gt; <span class="fn">int</span>
+<span class="kw">extern</span> aether_args_get(index: <span class="fn">int</span>) -&gt; <span class="fn">string</span>
 
 main() {
     count = aether_args_count()
-    for (i = 0; i &lt; count; i = i + 1) {
+    <span class="kw">for</span> (i = <span class="num">0</span>; i &lt; count; i = i + <span class="num">1</span>) {
         println(aether_args_get(i))
     }
 }</code></pre>
 <p>To pass arguments, build and run the binary directly:</p>
-<div class="sourceCode" id="cb29"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="ex">ae</span> build myprogram.ae <span class="at">-o</span> myprogram</span>
-<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a><span class="ex">./myprogram</span> arg1 arg2</span></code></pre></div>
+<pre><code>ae build myprogram.ae -o myprogram
+./myprogram arg1 arg2</code></pre>
 <h3 id="environment-variables">Environment Variables</h3>
-<p>Read configuration from environment variables using
-<code>std.os</code>:</p>
-<pre class="aether"><code>import std.os
+<p>Read configuration from environment variables using <code>std.os</code>:</p>
+<pre><code><span class="kw">import</span> std.os
 
 main() {
-    home = os.getenv(&quot;HOME&quot;)
-    if home != 0 {
-        println(&quot;Home directory: ${home}&quot;)
+    home = os.getenv(<span class="str">"HOME"</span>)
+    <span class="kw">defer</span> free(home)
+    <span class="kw">if</span> home != <span class="num">0</span> {
+        println(<span class="str">"Home directory: ${home}"</span>)
     }
 }</code></pre>
-<p>The builtin <code>getenv()</code> also works without an import for
-quick scripts.</p>
+<p>The builtin <code>getenv()</code> also works without an import for quick scripts (returns a malloc'd string, use <code>defer free()</code>).</p>
+<h2 id="when-something-doesnt-compile">When something doesn't compile</h2>
+<p>Aether's typer is precise, <code>error[E0301]: Undefined function 'super_token'</code> is the right output for a build pipeline but not always for an operator authoring a config script. <code>ae help &lt;script.ae&gt;</code> translates the typer's terse output into actionable, on-machine suggestions:</p>
+<pre><code>ae help my_script.ae              <span class="com"># Human-readable findings</span>
+ae help my_script.ae --json       <span class="com"># Machine-readable (CI integration)</span>
+ae help my_script.ae --fix        <span class="com"># Apply safe rewrites after diff confirmation</span></code></pre>
+<p>Heuristics cover Levenshtein-matched name suggestions, YAML/HCL-shape detection inside closure-DSL blocks (<code>port: 9990</code> → <code>port(9990)</code>), missing-import detection against the stdlib catalog, type-mismatch English ("Drop the quotes"), and library-author-shipped <code>*.help.md</code> hints. Hard privacy contract: no network calls, no file reads outside the script + its imports + co-located hints, no execution of the script. See <a href="/Docs/cic-help.html">Config-IS-Code Diagnostics</a> and <a href="https://github.com/aether-lang-org/aether/tree/main/examples/ae-help-demo/"><code>examples/ae-help-demo/</code></a> for a worked example.</p>
+<h2 id="layering-modules-across-multiple-directories">Layering modules across multiple directories</h2>
+<p>PATH-style <code>--lib</code> chains let you layer project-local module overrides on top of vendored or shared roots:</p>
+<pre><code><span class="com"># Try a local patch in lib/foo/ first, fall back to vendor/foo/:</span>
+ae run main.ae --lib lib --lib vendor
+
+<span class="com"># Same as a separator-string (':' POSIX, ';' Windows):</span>
+ae run main.ae --lib <span class="str">"lib:vendor"</span>
+
+<span class="com"># Or via env var:</span>
+AETHER_LIB_DIR=<span class="str">"lib:vendor"</span> ae run main.ae
+
+<span class="com"># See what the toolchain will actually search, in order:</span>
+ae lib-path --lib <span class="str">"lib:vendor"</span></code></pre>
+<p>Left-most entry wins on a name collision; each <code>import</code> walks the chain independently. See <a href="https://github.com/aether-lang-org/aether/tree/main/examples/packages/lib-path-layering/"><code>examples/packages/lib-path-layering/</code></a> for a runnable demo and <a href="/Docs/module-system-design.html#lib-search-path-413">Module System</a> for the design.</p>
 <h2 id="next-steps">Next Steps</h2>
-<ul>
-<li>Read the <a href="tutorial.md">Tutorial</a> for a guided
-introduction</li>
-<li>Learn about <a href="c-interop.md">C Interoperability</a> to use C
-libraries</li>
-<li>See <a href="c-embedding.md">C Embedding Guide</a> to embed Aether
-actors in C applications</li>
-<li>Explore <a href="stdlib-reference.md">Standard Library
-Documentation</a></li>
-<li>See <a href="architecture.md">Architecture</a> for compiler and
-runtime internals</li>
-<li>See <a href="runtime-optimizations.md">Runtime Optimizations</a> for
-performance details</li>
-<li>Use <code>ae version list</code> to see available releases and
-<code>ae version install &lt;v&gt;</code> to switch versions</li>
-</ul>
+<ul><li>Read the <a href="/Docs/tutorial.html">Tutorial</a> for a guided introduction</li><li>Learn about <a href="/Docs/c-interop.html">C Interoperability</a> to use C libraries</li><li>See <a href="/Docs/c-embedding.html">C Embedding Guide</a> to embed Aether actors in C applications</li><li>Explore <a href="/Docs/stdlib-reference.html">Standard Library Documentation</a></li><li>See <a href="/Docs/architecture.html">Architecture</a> for compiler and runtime internals</li><li>See <a href="/Docs/runtime-optimizations.html">Runtime Optimizations</a> for performance details</li><li>Use <code>ae upgrade</code> to get the latest release, or <code>ae version list</code> to see and switch between releases</li></ul>
 <h2 id="version-management">Version Management</h2>
-<p>Switch between Aether releases without reinstalling:</p>
-<div class="sourceCode" id="cb31"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="ex">ae</span> version              <span class="co"># Show current version</span></span>
-<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a><span class="ex">ae</span> version list         <span class="co"># List all available releases (marks installed/active)</span></span>
-<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a><span class="ex">ae</span> version install v0.25.0  <span class="co"># Download and install a specific version</span></span>
-<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a><span class="ex">ae</span> version use v0.25.0      <span class="co"># Switch to an installed version</span></span></code></pre></div>
-<p>Versions are stored in <code>~/.aether/versions/</code>. The active
-version is symlinked to <code>~/.aether/current</code> (Linux/macOS) or
-copied to <code>~/.aether/bin/</code> (Windows).</p>
+<p>Install, upgrade, and switch between Aether releases without reinstalling:</p>
+<pre><code>ae upgrade              <span class="com"># Install the latest release and switch to it</span>
+ae install v0.<span class="num">25.0</span>      <span class="com"># Install a specific release (latest if omitted)</span>
+ae use v0.<span class="num">25.0</span>          <span class="com"># Switch to an installed version</span>
+ae version              <span class="com"># Show current version</span>
+ae version list         <span class="com"># List all available releases (marks installed/active)</span></code></pre>
+<p><code>ae install</code> / <code>ae use</code> are the short forms of <code>ae version install</code> / <code>ae version use</code>, which still work. <code>ae upgrade</code> (alias <code>ae update</code>) is a no-op when you are already on the latest release.</p>
+<p>Versions are stored in <code>~/.aether/versions/</code>. The active version is symlinked to <code>~/.aether/current</code> (Linux/macOS) or copied to <code>~/.aether/bin/</code> (Windows).</p>
 <h2 id="troubleshooting">Troubleshooting</h2>
 <h3 id="build-failures">Build Failures</h3>
 <p><strong>"Aether compiler not found" (Windows)</strong></p>
-<ul>
-<li>Make sure you <strong>restarted your terminal</strong> after adding
-<code>C:\aether\bin</code> to PATH</li>
-<li>Verify: <code>where ae</code> should show
-<code>C:\aether\bin\ae.exe</code></li>
-<li>Verify: <code>where aetherc</code> should show
-<code>C:\aether\bin\aetherc.exe</code></li>
-<li>If both exist but it still fails, set <code>AETHER_HOME</code>:
-<code>set AETHER_HOME=C:\aether</code></li>
-</ul>
+<ul><li>Make sure you <strong>restarted your terminal</strong> after adding <code>C:\aether\bin</code> to PATH</li><li>Verify: <code>where ae</code> should show <code>C:\aether\bin\ae.exe</code></li><li>Verify: <code>where aetherc</code> should show <code>C:\aether\bin\aetherc.exe</code></li><li>If both exist but it still fails, set <code>AETHER_HOME</code>: <code>set AETHER_HOME=C:\aether</code></li></ul>
 <p><strong>"gcc: command not found" (Windows)</strong></p>
-<ul>
-<li>This should not happen with the pre-built binary — <code>ae</code>
-auto-downloads GCC (~80 MB) on first run</li>
-<li>If you built from source via MSYS2, open the "MSYS2 MinGW 64-bit"
-shell, not plain PowerShell</li>
-<li>Verify: <code>gcc --version</code> — should show MinGW-w64 GCC</li>
-</ul>
+<ul><li>This should not happen with the pre-built binary, <code>ae</code> auto-downloads GCC (~80 MB) on first run</li><li>If you built from source via MSYS2, open the "MSYS2 MinGW 64-bit" shell, not plain PowerShell</li><li>Verify: <code>gcc --version</code> should show MinGW-w64 GCC</li></ul>
 <p><strong>"pthread.h: No such file or directory"</strong></p>
-<ul>
-<li>Linux: <code>sudo apt-get install libpthread-stubs0-dev</code></li>
-<li>Windows: The Aether runtime uses Win32 threads natively — no pthread
-library needed</li>
-</ul>
+<ul><li>Linux: <code>sudo apt-get install libpthread-stubs0-dev</code></li><li>Windows: The Aether runtime uses Win32 threads natively, no pthread library needed</li></ul>
 <p><strong>Test failures</strong></p>
-<ul>
-<li>Run specific test category:
-<code>./build/test_runner --category=compiler</code></li>
-<li>Check for port conflicts if network tests fail (port 8080)</li>
-</ul>
-<h3 id="common-pitfalls">Common Pitfalls</h3>
-<ol type="1">
-<li>Forgetting to rebuild after changes: run
-<code>make clean &amp;&amp; make</code></li>
-<li>On Windows, running <code>ae</code> from a directory without write
-permission (GCC download needs <code>~\.aether\</code>)</li>
-<li>Using <code>state</code> as a variable name inside an actor body
-(it's reserved there — use it freely elsewhere)</li>
-</ol>
+<ul><li>Run <code>make test</code> for unit tests, <code>make test-ae</code> for integration tests</li><li>Check for port conflicts if network tests fail (port 8080)</li></ul>
+<h3 id="quick-tips-when-you-hit-trouble">Quick tips when you hit trouble</h3>
+<ol><li>Rebuild from scratch if anything looks stale: <code>make clean &amp;&amp; make</code>.</li><li>On Windows, launch <code>ae</code> from a directory where your user can write (the first run downloads GCC into <code>~\.aether\</code>).</li><li>Inside an actor body, <code>state</code> is a reserved keyword, pick a different local-variable name; outside actor bodies it has no special meaning.</li></ol>
+<h3 id="webassembly-and-embedded-targets">WebAssembly and Embedded Targets</h3>
+<p>Aether supports cross-compilation to platforms without pthreads or POSIX APIs via the <code>PLATFORM</code> Makefile variable:</p>
+<pre><code><span class="com"># Build for WebAssembly (requires Emscripten SDK)</span>
+make stdlib PLATFORM=wasm
+<span class="com"># Or force cooperative mode on native for testing:</span>
+make stdlib EXTRA_CFLAGS=<span class="str">"-DAETHER_NO_THREADING"</span>
+
+<span class="com"># Build for embedded ARM (syntax-check only, requires arm-none-eabi-gcc)</span>
+make ci-embedded
+
+<span class="com"># Docker-based cross-compilation (no local toolchain needed):</span>
+make docker-ci-wasm        <span class="com"># Emscripten + Node.js execution</span>
+make docker-ci-embedded    <span class="com"># ARM Cortex-M4 syntax-check</span></code></pre>
+<p>On threadless platforms, the cooperative scheduler (<code>aether_scheduler_coop.c</code>) replaces the multi-core scheduler. All actors run on a single thread via <code>aether_scheduler_poll()</code>. Multi-actor programs work correctly, messages are processed cooperatively during <code>wait_for_idle()</code>.</p>
+<p>Stdlib modules that depend on filesystem or networking return errors gracefully (NULL, 0, -1). Console I/O (<code>print</code>, <code>println</code>) always works.</p>
 <h3 id="platform-specific-notes">Platform-Specific Notes</h3>
 <p><strong>macOS:</strong></p>
-<ul>
-<li>May need <code>xcode-select --install</code> for command line
-tools</li>
-<li>Homebrew GCC recommended: <code>brew install gcc</code></li>
-<li>Apple Silicon (M1/M2/M3): Runtime auto-detects P-cores for
-consistent performance</li>
-<li>Thread affinity is advisory on macOS; occasional benchmark variance
-is normal</li>
-</ul>
+<ul><li>May need <code>xcode-select --install</code> for command line tools</li><li>Homebrew GCC recommended: <code>brew install gcc</code></li><li>Apple Silicon (M1/M2/M3): Runtime auto-detects P-cores for consistent performance</li><li>Thread affinity is advisory on macOS; occasional benchmark variance is normal</li></ul>
 <p><strong>Linux:</strong></p>
-<ul>
-<li>Kernel 4.14+ recommended for full NUMA support</li>
-<li>AddressSanitizer may require <code>gcc-multilib</code> on some
-distributions</li>
-<li>Full thread affinity support for deterministic performance</li>
-</ul>
+<ul><li>Kernel 4.14+ recommended for full NUMA support</li><li>AddressSanitizer may require <code>gcc-multilib</code> on some distributions</li><li>Full thread affinity support for deterministic performance</li></ul>
 <p><strong>Windows:</strong></p>
-<ul>
-<li>Pre-built binaries work in any terminal (PowerShell, CMD, Windows
-Terminal)</li>
-<li>GCC is auto-downloaded on first <code>ae run</code> — no MSYS2 or
-manual setup required</li>
-<li>The runtime uses Win32 threads natively — no pthreads library
-required</li>
-<li>Full thread affinity support via
-<code>SetThreadAffinityMask</code></li>
-<li>P-core detection via <code>GetSystemCpuSetInformation</code>
-(Windows 10 1903+)</li>
-<li><strong>Building from source:</strong> Use MSYS2 MinGW 64-bit shell
-with <code>make ae</code></li>
-</ul>
-    </article>
-  </main>
-
-  <!-- FOOTER -->
-  <footer>
-    <p>&copy; 2026 Nicolas Maman</p>
-    <p><a href="#">Privacy</a> &middot; <a href="https://github.com/nicolasmd87/aether/blob/main/LICENSE">License</a> &middot; <a href="mailto:hello@aether.org">Contact</a></p>
-  </footer>
+<ul><li>Pre-built binaries work in any terminal (PowerShell, CMD, Windows Terminal)</li><li>GCC is auto-downloaded on first <code>ae run</code> no MSYS2 or manual setup required</li><li>The runtime uses Win32 threads natively, no pthreads library required</li><li>Full thread affinity support via <code>SetThreadAffinityMask</code></li><li><strong>Building from source:</strong> Use MSYS2 MinGW 64-bit shell with <code>make ae</code></li></ul>
+      </article>
+    </main>
+    <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#installation" class="l2" data-id="installation">Installation</a><a href="#quick-install-recommended" class="l3" data-id="quick-install-recommended">Quick Install (recommended)</a><a href="#prerequisites" class="l3" data-id="prerequisites">Prerequisites</a><a href="#development-build-without-installing" class="l3" data-id="development-build-without-installing">Development Build (without installing)</a><a href="#editor-setup" class="l3" data-id="editor-setup">Editor Setup</a><a href="#your-first-aether-program" class="l2" data-id="your-first-aether-program">Your First Aether Program</a><a href="#error-handling" class="l2" data-id="error-handling">Error Handling</a><a href="#function-contracts-requires--ensures" class="l2" data-id="function-contracts-requires--ensures">Function Contracts (requires / ensures)</a><a href="#interactive-repl" class="l2" data-id="interactive-repl">Interactive REPL</a><a href="#actor-based-programming" class="l2" data-id="actor-based-programming">Actor-Based Programming</a><a href="#module-system" class="l2" data-id="module-system">Module System</a><a href="#creating-your-own-modules" class="l3" data-id="creating-your-own-modules">Creating Your Own Modules</a><a href="#standard-library" class="l2" data-id="standard-library">Standard Library</a><a href="#error-handling-and-memory" class="l3" data-id="error-handling-and-memory">Error Handling and Memory</a><a href="#pattern-matching" class="l2" data-id="pattern-matching">Pattern Matching</a><a href="#function-pattern-matching" class="l3" data-id="function-pattern-matching">Function Pattern Matching</a><a href="#match-statements" class="l3" data-id="match-statements">Match Statements</a><a href="#list-patterns" class="l3" data-id="list-patterns">List Patterns</a><a href="#project-configuration" class="l2" data-id="project-configuration">Project Configuration</a><a href="#linking-c-libraries" class="l3" data-id="linking-c-libraries">Linking C Libraries</a><a href="#command-line-arguments" class="l3" data-id="command-line-arguments">Command-Line Arguments</a><a href="#environment-variables" class="l3" data-id="environment-variables">Environment Variables</a><a href="#when-something-doesnt-compile" class="l2" data-id="when-something-doesnt-compile">When something doesn't compile</a><a href="#layering-modules-across-multiple-directories" class="l2" data-id="layering-modules-across-multiple-directories">Layering modules across multiple directories</a><a href="#next-steps" class="l2" data-id="next-steps">Next Steps</a><a href="#version-management" class="l2" data-id="version-management">Version Management</a><a href="#troubleshooting" class="l2" data-id="troubleshooting">Troubleshooting</a><a href="#build-failures" class="l3" data-id="build-failures">Build Failures</a><a href="#quick-tips-when-you-hit-trouble" class="l3" data-id="quick-tips-when-you-hit-trouble">Quick tips when you hit trouble</a><a href="#webassembly-and-embedded-targets" class="l3" data-id="webassembly-and-embedded-targets">WebAssembly and Embedded Targets</a><a href="#platform-specific-notes" class="l3" data-id="platform-specific-notes">Platform-Specific Notes</a></nav>
+  </div>
+</div>
+<script src="/docs.js" defer></script>
+<footer class="site-foot">
+  <div class="wrap foot">
+    <span class="ae">ae</span>
+    <span class="m">MIT licensed · compiles to C · v0.462</span>
+    <nav><a href="/Docs/getting-started.html">Docs</a><a href="/repl.html">Playground</a><a href="https://github.com/aether-lang-org/aether">GitHub</a></nav>
+  </div>
+</footer>
 </body>
 </html>

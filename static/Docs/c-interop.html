@@ -1,285 +1,670 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>c-interop</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/style.css" />
-  <link rel="stylesheet" href="/subpages.css" />
-  <link rel="stylesheet" href="/articles.css" />
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>C Interoperability · Aether</title>
+<meta name="description" content="Aether interoperates with C code, so you can call existing libraries like SQLite, libcurl, and OpenSSL.">
+<link rel="canonical" href="https://aether-lang.dev/Docs/c-interop.html">
+<meta property="og:type" content="article">
+<meta property="og:title" content="C Interoperability · Aether">
+<meta property="og:description" content="Aether interoperates with C code, so you can call existing libraries like SQLite, libcurl, and OpenSSL.">
+<meta property="og:url" content="https://aether-lang.dev/Docs/c-interop.html">
+<meta property="og:image" content="https://aether-lang.dev/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/aether.css">
 </head>
 <body>
-
-  <!-- NAV -->
-  <nav>
-    <a class="nav-logo" href="/index.html">Aether<span>.</span></a>
-    <ul class="nav-links">
-      <li><a href="/index.html#features">Features</a></li>
-      <li><a href="/index.html#syntax">Syntax</a></li>
-      <li><a href="/index.html#install">Install</a></li>
-      <li><a href="/faq.html">FAQ</a></li>
-    </ul>
-  </nav>
-
-  <!-- MAIN -->
-  <main class="section">
-    <div>
-      <p class="section-label">Learning Material</p>
-    </div>
-
-    <article class="article-content">
+<a class="skip" href="#doc">Skip to content</a>
+<header class="site-head">
+  <div class="wrap bar">
+    <a class="brand" href="/" aria-label="Aether"><span class="ae">ae</span><span class="nm">aether</span></a>
+    <nav>
+      <a href="/repl.html">Playground</a>
+      <a href="/Docs/getting-started.html" class="on">Docs</a>
+      <a class="src" href="https://github.com/aether-lang-org/aether">Source</a>
+      <span class="vtag">v0.462</span>
+    </nav>
+  </div>
+</header>
+<div class="wrap">
+  <div class="doc-shell">
+    <nav class="doc-nav" aria-label="Documentation">
+      <div class="docsearch"><input id="ds" type="search" placeholder="Search the docs" aria-label="Search documentation" autocomplete="off" spellcheck="false"><kbd>/</kbd><div class="ds-res" id="dsres" role="listbox"></div></div>
+<div class="grp">Start</div>
+<a href="/Docs/getting-started.html">Getting Started with Aether</a>
+<a href="/Docs/tutorial.html">Aether Language Tutorial</a>
+<a href="/Docs/next-steps.html">Next Steps</a>
+<div class="grp">Language</div>
+<a href="/Docs/language-reference.html">Aether Language Reference</a>
+<a href="/Docs/type-inference-guide.html">Aether Type Inference Guide</a>
+<a href="/Docs/type-annotation-style-guide.html">Aether Type Annotation Style Guide</a>
+<a href="/Docs/type-inference-multi-value-returns.html">Multi-Value Return Type Inference</a>
+<a href="/Docs/distinct-types.html">Distinct Types</a>
+<a href="/Docs/sequences.html">Sequences (*StringSeq)</a>
+<a href="/Docs/named-args-and-select.html">Named Arguments and select()</a>
+<a href="/Docs/closures-and-builder-dsl.html">Closures and Builder-Style DSL in Aether</a>
+<a href="/Docs/closures-and-lifetimes.html">Closures and Environment Lifetimes</a>
+<a href="/Docs/module-system-design.html">Aether Module System</a>
+<div class="grp">Runtime</div>
+<a href="/Docs/architecture.html">Aether Architecture</a>
+<a href="/Docs/actor-concurrency.html">Aether Runtime Guide</a>
+<a href="/Docs/structured-concurrency.html">Structured Concurrency for Aether, Design Direction</a>
+<a href="/Docs/scheduler-quick-reference.html">Aether Scheduler - Quick Reference</a>
+<a href="/Docs/memory-management.html">Aether Memory Management</a>
+<a href="/Docs/runtime-optimizations.html">Runtime Optimizations</a>
+<a href="/Docs/numa-support.html">NUMA Support in Aether</a>
+<div class="grp">Interop</div>
+<a href="/Docs/c-interop.html" class="on">C Interoperability</a>
+<a href="/Docs/c-embedding.html">Embedding Aether Actors in C Applications</a>
+<a href="/Docs/emit-lib.html">Embedding Aether as a Shared Library (--emit=lib)</a>
+<a href="/Docs/embedded-namespaces-and-host-bindings.html">Aether as a Configuration Language, v2: Namespaces and Generated Bindings</a>
+<a href="/Docs/aether-embedded-in-host-applications.html">Aether as a Configuration Language for Other Languages</a>
+<a href="/Docs/lib-caller-info.html">--emit=lib caller-info channel</a>
+<div class="grp">Stdlib</div>
+<a href="/Docs/stdlib-reference.html">Aether Standard Library Reference</a>
+<a href="/Docs/stdlib-api.html">Aether Standard Library Guide</a>
+<a href="/Docs/stdlib-module-pattern.html">Aether Stdlib Module Pattern</a>
+<a href="/Docs/stdlib-vs-contrib.html">std/ vs contrib/ placement decisions</a>
+<a href="/Docs/http-server.html">std.http HTTP Server</a>
+<a href="/Docs/http-reverse-proxy.html">std.http.proxy reverse proxy</a>
+<a href="/Docs/http-handler-context.html">HTTP handlers with per-server / per-route state</a>
+<a href="/Docs/http-vcr.html">HTTP Record/Replay (VCR), moved out of Aether</a>
+<a href="/Docs/json-parser-design.html">std.json Design Notes</a>
+<div class="grp">Safety</div>
+<a href="/Docs/containment-sandbox.html">Containment and Sandboxing in Aether</a>
+<a href="/Docs/hide-and-seal.html">hide and seal except scope-level capability denial</a>
+<a href="/Docs/compiler-trust-boundary.html">The Compiler Trust Boundary</a>
+<a href="/Docs/config-is-code.html">Config IS Code</a>
+<a href="/Docs/aether_compared_to_capsicum.html">Aether Sandbox Model vs. BSD Capsicum: Architecture, Parallels, and FreeBSD Integration</a>
+<div class="grp">Build</div>
+<a href="/Docs/build-system.html">Build System</a>
+<a href="/Docs/bootstrap-from-source.html">Bootstrapping Aether from source (HEAD)</a>
+<a href="/Docs/install-layout.html">Aether install layout</a>
+<a href="/Docs/runtime-config.html">Runtime Configuration - Quick Reference</a>
+<a href="/Docs/per-process-config.html">Per-process configuration in Aether</a>
+<a href="/Docs/cic-help.html">ae help &lt;script&gt; Offline diagnostics for config-IS-code</a>
+<div class="grp">More</div>
+<a href="/Docs/allocators.html">Allocators</a>
+<a href="/Docs/bindgen-consts.html">ae bindgen consts, importing C macro constants</a>
+<a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
+<a href="/Docs/contract-folding.html">Compile-time contract folding — costed design</a>
+<a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn't need macro_rules!</a>
+<a href="/Docs/error-unification.html">Unifying T? and (value, err) — costed design</a>
+<a href="/Docs/formatter.html">ae fmt, the source formatter</a>
+<a href="/Docs/isolated.html">Isolated[T]: move-only actor message payloads (#479)</a>
+<a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
+<a href="/Docs/profiling-guide.html">Aether Runtime Profiling Guide</a>
+<a href="/Docs/release-glibc-portability.html">Release binary portability across glibc versions</a>
+<a href="/Docs/when-static-if.html">Compile-time when / static-if</a></nav>
+    <main class="doc-main">
+      <article class="doc-body" id="doc">
+        <div class="bc"><span class="prompt">$</span>docs / interop</div>
 <h1 id="c-interoperability">C Interoperability</h1>
-<p>Aether provides seamless interoperability with C code, allowing you
-to leverage the entire C ecosystem including existing libraries like
-SQLite, libcurl, and OpenSSL.</p>
+<p>Aether interoperates with C code, so you can call existing libraries like SQLite, libcurl, and OpenSSL.</p>
 <h2 id="calling-c-functions">Calling C Functions</h2>
-<p>Aether compiles to C, and the generated code already includes
-<code>&lt;stdio.h&gt;</code>, <code>&lt;stdlib.h&gt;</code>,
-<code>&lt;string.h&gt;</code>, <code>&lt;math.h&gt;</code>, etc. To call
-any C function — whether from the standard library, your own
-<code>.c</code> files, or a third-party library — you declare it with
-<code>extern</code>:</p>
-<pre class="aether"><code>extern abs(x: int) -&gt; int
-extern atoi(s: string) -&gt; int
-extern puts(s: string) -&gt; int
-extern rand() -&gt; int
+<p>Aether compiles to C, and the generated code already includes <code>&lt;stdio.h&gt;</code>, <code>&lt;stdlib.h&gt;</code>, <code>&lt;string.h&gt;</code>, <code>&lt;math.h&gt;</code>, etc. To call any C function, whether from the standard library, your own <code>.c</code> files, or a third-party library, you declare it with <code>extern</code>:</p>
+<pre><code><span class="kw">extern</span> abs(x: <span class="fn">int</span>) -&gt; <span class="fn">int</span>
+<span class="kw">extern</span> atoi(s: <span class="fn">string</span>) -&gt; <span class="fn">int</span>
+<span class="kw">extern</span> puts(s: <span class="fn">string</span>) -&gt; <span class="fn">int</span>
+<span class="kw">extern</span> rand() -&gt; <span class="fn">int</span>
 
 main() {
-    puts(&quot;Hello from C&#39;s puts()!&quot;)
+    puts(<span class="str">"Hello from C's puts()!"</span>)
 
-    n = abs(0 - 42)
-    print(&quot;abs(-42) = &quot;)
+    n = abs(<span class="num">0</span> - <span class="num">42</span>)
+    print(<span class="str">"abs(-42) = "</span>)
     println(n)
 
-    val = atoi(&quot;123&quot;)
-    print(&quot;atoi = &quot;)
+    val = atoi(<span class="str">"123"</span>)
+    print(<span class="str">"atoi = "</span>)
     println(val)
 }</code></pre>
-<p>The <code>extern</code> signature must match the real C signature.
-See the type mapping table below.</p>
-<blockquote>
-<p><strong>Note:</strong> Aether has built-in functions
-(<code>print</code>, <code>println</code>, <code>sleep</code>,
-<code>clock_ns</code>, <code>spawn</code>, etc.) that don't need
-<code>extern</code>. See <a
-href="language-reference.md#built-in-functions">Built-in Functions</a>
-in the language reference.</p>
-</blockquote>
+<p>The <code>extern</code> signature must match the real C signature. See the type mapping table below.</p>
+<blockquote><strong>Note:</strong> Aether has built-in functions (<code>print</code>, <code>println</code>, <code>sleep</code>, <code>clock_ns</code>, <code>spawn</code>, etc.) that don't need <code>extern</code>. See <a href="/Docs/language-reference.html#built-in-functions">Built-in Functions</a> in the language reference.</blockquote>
 <h2 id="the-extern-keyword">The <code>extern</code> Keyword</h2>
-<p>Use <code>extern</code> to declare C functions you want to call from
-Aether code:</p>
-<ul>
-<li>Standard C library functions (<code>abs</code>, <code>atoi</code>,
-<code>puts</code>, <code>rand</code>, etc.)</li>
-<li>Your own C functions in separate <code>.c</code> files</li>
-<li>Third-party C libraries (SQLite, libcurl, etc.)</li>
-<li>System APIs</li>
-</ul>
+<p>Use <code>extern</code> to declare C functions you want to call from Aether code:</p>
+<ul><li>Standard C library functions (<code>abs</code>, <code>atoi</code>, <code>puts</code>, <code>rand</code>, etc.)</li><li>Your own C functions in separate <code>.c</code> files</li><li>Third-party C libraries (SQLite, libcurl, etc.)</li><li>System APIs</li></ul>
 <h3 id="syntax">Syntax</h3>
-<pre class="aether"><code>extern function_name(param1: type1, param2: type2) -&gt; return_type
-extern void_function(param: type)  // No return type = void</code></pre>
+<pre><code><span class="kw">extern</span> function_name(param1: type1, param2: type2) -&gt; return_type
+<span class="kw">extern</span> void_function(param: type)  <span class="com">// No return type = void</span></code></pre>
 <h3 id="type-mapping">Type Mapping</h3>
-<table>
-<thead>
-<tr>
-<th>Aether Type</th>
-<th>C Type</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>int</code></td>
-<td><code>int</code></td>
-</tr>
-<tr>
-<td><code>float</code></td>
-<td><code>double</code></td>
-</tr>
-<tr>
-<td><code>string</code></td>
-<td><code>const char*</code></td>
-</tr>
-<tr>
-<td><code>bool</code></td>
-<td><code>int</code></td>
-</tr>
-<tr>
-<td><code>ptr</code></td>
-<td><code>void*</code></td>
-</tr>
-</tbody>
-</table>
+<div class="tw"><table><thead><tr><th>Aether Type</th><th>C Type</th></tr></thead><tbody><tr><td><code>int</code></td><td><code>int</code></td></tr><tr><td><code>float</code></td><td><code>double</code></td></tr><tr><td><code>string</code></td><td><code>const char*</code></td></tr><tr><td><code>bool</code></td><td><code>int</code></td></tr><tr><td><code>byte</code></td><td><code>unsigned char</code></td></tr><tr><td><code>ptr</code></td><td><code>void*</code></td></tr></tbody></table></div>
+<blockquote><strong><code>byte</code> mapping note.</strong> <code>byte</code> lowers to <code>unsigned char</code>, not <code>uint8_t</code>. The two are typedef-compatible on every platform Aether targets, but C's strict-aliasing rules give <code>unsigned char *</code> an exemption (it can legally alias any type's bytes for read/write); <code>uint8_t *</code> does not. Since <code>byte</code> is exactly the type used in C extern signatures that scrape bytes from other types' storage (packed binary protocol parsers, NaN-boxing tag readers, on-disk file headers), <code>unsigned char</code> is the right choice.</blockquote>
+<blockquote><strong>Binding a C <code>bool</code> return: use <code>byte</code>, not <code>bool</code>.</strong> Aether's <code>bool</code> maps to C <code>int</code> (above), so declaring a C function that returns C's one-byte <code>_Bool</code> as <code>-&gt; bool</code> reads a full <code>int</code> and picks up three bytes of stack garbage past the result, a success can read back as something like <code>-255</code>. Bind a <code>bool</code>-returning C function with <code>-&gt; byte</code> instead: it reads exactly the one byte the ABI wrote, and <code>0</code> vs non-zero tests the same way.</blockquote>
 <h3 id="example-custom-c-functions">Example: Custom C Functions</h3>
 <p><strong>my_math.c:</strong></p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;math.h&gt;</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> my_add<span class="op">(</span><span class="dt">int</span> a<span class="op">,</span> <span class="dt">int</span> b<span class="op">)</span> <span class="op">{</span></span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> a <span class="op">+</span> b<span class="op">;</span></span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="dt">double</span> my_power<span class="op">(</span><span class="dt">double</span> base<span class="op">,</span> <span class="dt">double</span> exp<span class="op">)</span> <span class="op">{</span></span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> pow<span class="op">(</span>base<span class="op">,</span> exp<span class="op">);</span></span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
-<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> my_greet<span class="op">(</span><span class="dt">const</span> <span class="dt">char</span><span class="op">*</span> name<span class="op">)</span> <span class="op">{</span></span>
-<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>    printf<span class="op">(</span><span class="st">&quot;Hello, </span><span class="sc">%s</span><span class="st">!</span><span class="sc">\n</span><span class="st">&quot;</span><span class="op">,</span> name<span class="op">);</span></span>
-<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<pre><code>#include &lt;math.h&gt;
+
+<span class="kw">int</span> my_add(<span class="kw">int</span> a, <span class="kw">int</span> b) {
+    <span class="kw">return</span> a + b;
+}
+
+<span class="kw">double</span> my_power(<span class="kw">double</span> base, <span class="kw">double</span> exp) {
+    <span class="kw">return</span> pow(base, exp);
+}
+
+<span class="kw">void</span> my_greet(<span class="kw">const</span> <span class="kw">char</span>* name) {
+    printf(<span class="str">"Hello, %s!\n"</span>, name);
+}</code></pre>
 <p><strong>main.ae:</strong></p>
-<pre class="aether"><code>// Declare our C functions
-extern my_add(a: int, b: int) -&gt; int
-extern my_power(base: float, exp: float) -&gt; float
-extern my_greet(name: string)
+<pre><code><span class="com">// Declare our C functions</span>
+<span class="kw">extern</span> my_add(a: <span class="fn">int</span>, b: <span class="fn">int</span>) -&gt; <span class="fn">int</span>
+<span class="kw">extern</span> my_power(base: <span class="fn">float</span>, exp: <span class="fn">float</span>) -&gt; <span class="fn">float</span>
+<span class="kw">extern</span> my_greet(name: <span class="fn">string</span>)
 
 main() {
-    result = my_add(10, 20)
-    print(&quot;10 + 20 = &quot;)
+    result = my_add(<span class="num">10</span>, <span class="num">20</span>)
+    print(<span class="str">"10 + 20 = "</span>)
     print(result)
-    print(&quot;\n&quot;)
+    print(<span class="str">"\n"</span>)
 
-    power = my_power(2.0, 10.0)
-    print(&quot;2^10 = &quot;)
+    power = my_power(<span class="num">2.0</span>, <span class="num">10.0</span>)
+    print(<span class="str">"2^10 = "</span>)
     print(power)
-    print(&quot;\n&quot;)
+    print(<span class="str">"\n"</span>)
 
-    my_greet(&quot;Aether&quot;)
+    my_greet(<span class="str">"Aether"</span>)
 }</code></pre>
 <p><strong>Build and run:</strong></p>
-<div class="sourceCode" id="cb5"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Compile C code</span></span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">gcc</span> <span class="at">-c</span> my_math.c <span class="at">-o</span> my_math.o <span class="at">-lm</span></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Compile Aether code to C</span></span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="ex">aetherc</span> main.ae main.c</span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Link everything together</span></span>
-<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="fu">gcc</span> <span class="at">-I</span><span class="va">$HOME</span>/.aether/include/aether/runtime main.c my_math.o <span class="dt">\</span></span>
-<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">-L</span><span class="va">$HOME</span>/.aether/lib <span class="at">-laether</span> <span class="at">-lm</span> <span class="at">-o</span> myapp</span>
-<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a><span class="ex">./myapp</span></span></code></pre></div>
-<h2 id="linking-external-libraries">Linking External Libraries</h2>
-<p>Use <code>link_flags</code> in your <code>aether.toml</code> to link
-external C libraries:</p>
-<div class="sourceCode" id="cb6"><pre
-class="sourceCode toml"><code class="sourceCode toml"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">[project]</span></span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="dt">name</span> <span class="op">=</span> <span class="st">&quot;my-project&quot;</span></span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="dt">version</span> <span class="op">=</span> <span class="st">&quot;1.0.0&quot;</span></span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="kw">[build]</span></span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="dt">link_flags</span> <span class="op">=</span> <span class="op">[</span><span class="st">&quot;-lsqlite3&quot;</span><span class="op">,</span> <span class="st">&quot;-lcurl&quot;</span><span class="op">,</span> <span class="st">&quot;-lm&quot;</span><span class="op">]</span></span></code></pre></div>
-<h3 id="example-using-sqlite">Example: Using SQLite</h3>
-<p><strong>database.ae:</strong></p>
-<pre class="aether"><code>// SQLite C API
-extern sqlite3_open(path: string, db: ptr) -&gt; int
-extern sqlite3_close(db: ptr) -&gt; int
-extern sqlite3_exec(db: ptr, sql: string, callback: ptr, arg: ptr, errmsg: ptr) -&gt; int
+<pre><code><span class="com"># Compile C code</span>
+gcc -c my_math.c -o my_math.o -lm
+
+<span class="com"># Compile Aether code to C</span>
+aetherc main.ae main.c
+
+<span class="com"># Link everything together. `ae cflags` emits the right -I / -L / -l</span>
+<span class="com"># flags for the install in effect, never hand-craft them: the install</span>
+<span class="com"># layout (and the linker search path it requires) is unstable across</span>
+<span class="com"># releases.</span>
+gcc main.c my_math.o $(ae cflags) -o myapp
+
+./myapp</code></pre>
+<h2 id="tuple-return-types-extern-foo---t1-t2-">Tuple Return Types, <code>extern foo(...) -&gt; (T1, T2, ...)</code></h2>
+<p>C functions that return more than one logical value typically pack the results into a struct returned by value. Aether mirrors this on the FFI side: declare the extern with a parenthesised tuple return type, and the codegen synthesises the matching C struct typedef so the call site can destructure the result like any Aether-side tuple-returning function:</p>
+<pre><code><span class="kw">extern</span> parse_int_safe(s: <span class="fn">string</span>) -&gt; (<span class="fn">int</span>, <span class="fn">string</span>)
 
 main() {
-    db = 0  // Will hold database pointer
+    val, err = parse_int_safe(<span class="str">"42"</span>)
+    <span class="kw">if</span> err != <span class="str">""</span> {
+        <span class="com">// …handle error…</span>
+    }
+    println(val)
+}</code></pre>
+<p>The C side provides a function returning a struct with the matching layout. The struct's fields are named <code>_0</code>, <code>_1</code>, … in declaration order, and the typedef name is <code>_tuple_&lt;T1&gt;_&lt;T2&gt;</code> (e.g. <code>_tuple_int_string</code>):</p>
+<pre><code>#include &lt;stdlib.h&gt;
+#include &lt;string.h&gt;
 
-    // Open database
-    result = sqlite3_open(&quot;test.db&quot;, db)
-    if (result != 0) {
-        print(&quot;Failed to open database\n&quot;)
-        return
+<span class="kw">typedef</span> <span class="kw">struct</span> { <span class="kw">int</span> _0; <span class="kw">const</span> <span class="kw">char</span>* _1; } _tuple_int_string;
+
+_tuple_int_string parse_int_safe(<span class="kw">const</span> <span class="kw">char</span>* s) {
+    _tuple_int_string t;
+    <span class="kw">if</span> (!s || !*s) { t._0 = <span class="num">0</span>; t._1 = <span class="str">"empty"</span>; <span class="kw">return</span> t; }
+    <span class="kw">char</span>* end;
+    <span class="kw">long</span> n = strtol(s, &amp;end, <span class="num">10</span>);
+    <span class="kw">if</span> (end == s) { t._0 = <span class="num">0</span>; t._1 = <span class="str">"not a number"</span>; <span class="kw">return</span> t; }
+    t._0 = (<span class="kw">int</span>)n;
+    t._1 = <span class="str">""</span>;
+    <span class="kw">return</span> t;
+}</code></pre>
+<p>Three or more elements work the same way:</p>
+<pre><code><span class="kw">extern</span> fs_read_binary_tuple(path: <span class="fn">string</span>) -&gt; (<span class="fn">ptr</span>, <span class="fn">int</span>, <span class="fn">string</span>)
+
+read_binary(path: <span class="fn">string</span>) -&gt; {
+    <span class="kw">return</span> fs_read_binary_tuple(path)   <span class="com">// Aether destructures into (bytes, length, err)</span>
+}</code></pre>
+<p>The struct-by-value ABI matches what Aether-side multi-return functions emit, so an Aether-defined <code>-&gt; { return a, b }</code> (inferred) or <code>-&gt; (T1, T2) { ... }</code> (explicit) and a C-side <code>-&gt; (T1, T2)</code> extern are interchangeable from the caller's perspective.</p>
+<h3 id="type-name-mangling">Type-name mangling</h3>
+<p>The codegen builds the typedef name from the element types' lowercase Aether names:</p>
+<div class="tw"><table><thead><tr><th>Aether tuple</th><th>C typedef name</th></tr></thead><tbody><tr><td><code>(int, int)</code></td><td><code>_tuple_int_int</code></td></tr><tr><td><code>(int, string)</code></td><td><code>_tuple_int_string</code></td></tr><tr><td><code>(ptr, int, string)</code></td><td><code>_tuple_ptr_int_string</code></td></tr><tr><td><code>(int, float, string)</code></td><td><code>_tuple_int_float_string</code></td></tr></tbody></table></div>
+<p>Element types use <code>string</code> for <code>const char*</code> and <code>ptr</code> for <code>void*</code>. The typedef is emitted once per unique tuple shape, multiple externs returning the same tuple share the typedef.</p>
+<h3 id="when-to-reach-for-it">When to reach for it</h3>
+<p>Tuple returns are the natural shape for any C function that produces a value plus an error message, a value plus a length, or any other small product type. Before this form was available, FFI authors worked around the single-scalar return by either packing values into a delimited string or splitting the operation into 4+ split-accessor externs (<code>&lt;op&gt;_raw</code> + <code>&lt;op&gt;_get</code> + <code>&lt;op&gt;_get_length</code> + <code>&lt;op&gt;_release</code> with TLS-backed storage). The tuple form replaces both patterns with a single declaration.</p>
+<h3 id="binding-struct-returning-c-functions">Binding struct-returning C functions</h3>
+<p>The mechanism above is, in practice, <strong>by-value struct return</strong> for any C struct whose layout matches the synthesized typedef — not just for "multiple logical values". raylib's <code>Image LoadImage(const char*)</code> — layout <code>{void*, int, int, int, int}</code> — binds with zero glue:</p>
+<pre><code>@<span class="kw">extern</span>(<span class="str">"LoadImage"</span>) load_image(path: <span class="fn">string</span>) -&gt; (<span class="fn">ptr</span>, <span class="fn">int</span>, <span class="fn">int</span>, <span class="fn">int</span>, <span class="fn">int</span>)
+
+main() {
+    data, w, h, mips, fmt = load_image(<span class="str">"frame.png"</span>)
+    <span class="com">// -&gt; Image: 400x420 mips=1 fmt=7</span>
+}</code></pre>
+<p>Any struct of scalar/pointer fields works this way; the field ORDER in the tuple is the layout contract.</p>
+<h3 id="tuple-parameters--by-value-struct-arguments-1033">Tuple parameters — by-value struct arguments (#1033)</h3>
+<p>The parameter-position mirror: an extern parameter typed as a tuple lowers to the same synthesized struct typedef, passed <strong>by value</strong>. This is most of any real C API — raylib again:</p>
+<pre><code><span class="kw">void</span> ImageDrawTriangle(Image *dst, Vector2 v1, Vector2 v2, Vector2 v3, Color color);</code></pre>
+<pre><code>@<span class="kw">extern</span>(<span class="str">"ImageDrawTriangle"</span>)
+img_triangle(dst: <span class="fn">ptr</span>, v1: (f32, f32), v2: (f32, f32), v3: (f32, f32),
+             c: (<span class="fn">byte</span>, <span class="fn">byte</span>, <span class="fn">byte</span>, <span class="fn">byte</span>))
+
+img_triangle(img, (<span class="num">10.0</span>, <span class="num">10.0</span>), (<span class="num">60.0</span>, <span class="num">10.0</span>), (<span class="num">35.0</span>, <span class="num">50.0</span>), (<span class="num">255</span>, <span class="num">0</span>, <span class="num">0</span>, <span class="num">255</span>))</code></pre>
+<p>Call sites pass <strong>parenthesized tuple literals</strong> — <code>(x, y)</code>; a comma inside parens is what makes it a tuple rather than grouping. The codegen packs each literal into the matching <code>_tuple_*</code> compound literal with per-element casts, so Aether <code>float</code> (double) expressions narrow to <code>float</code> fields and ints to <code>unsigned char</code> without warnings, and no hand-written flat-scalar C shim (or its extra call frame) is needed.</p>
+<p>A call site may also pass a <strong>tuple-typed value</strong> whose type matches the parameter, not only a literal (#1062): a variable holding a tuple, or the result of a tuple-returning extern passed straight through. The value already <em>is</em> the matching <code>_tuple_*</code> struct, so it crosses by value with no destructure, which is what makes pass-through FFI chains compose:</p>
+<pre><code>img = gen_image(<span class="num">64</span>, <span class="num">48</span>, (<span class="num">30</span>, <span class="num">20</span>, <span class="num">16</span>, <span class="num">255</span>))   <span class="com">// img : (ptr, int, int, int, int)</span>
+export_image(img, <span class="str">"out.png"</span>)                  <span class="com">// hand the same struct back</span>
+save(load(path))                              <span class="com">// and chains compose directly</span></code></pre>
+<p>A value whose tuple shape does not match the parameter (wrong element count or element kinds), or a non-tuple value, is rejected at type-check with the same <code>tuple-typed</code> diagnostic.</p>
+<p><code>f32</code> is the 32-bit C <code>float</code> type, added for exactly these signatures: raylib's <code>Vector2</code> is <code>float</code> ×2 and Aether's own <code>float</code> is C <code>double</code>, so without it the layout was inexpressible. It works in both parameter and return position (<code>extern get_pos() -&gt; (f32, f32)</code>); Aether-side arithmetic on the destructured values still happens in double.</p>
+<p><strong>Conservative slice</strong> (current contract): tuple parameter elements may be <code>int</code>, <code>long</code>, <code>float</code>, <code>f32</code>, <code>byte</code>, <code>bool</code>, or <code>ptr</code> — no strings, no nesting. The typechecker enforces element count and kinds, and rejects a tuple literal aimed at a non-tuple parameter. Exercised end-to-end by <code>tests/integration/extern_tuple_param/</code> (literals) and <code>tests/integration/extern_tuple_var_passthrough/</code> (values and call chains).</p>
+<h2 id="renaming-a-c-symbol-externc_name">Renaming a C Symbol, <code>@extern("c_name")</code></h2>
+<p>Sometimes the C symbol you want to bind has a name that clashes with a wrapper you'd like to expose, or that doesn't fit the module's naming style. Use the <code>@extern</code> annotation to bind an Aether-side name to a chosen C symbol:</p>
+<pre><code>@<span class="kw">extern</span>(<span class="str">"EVP_MD_CTX_new"</span>) md_ctx_new() -&gt; <span class="fn">ptr</span>
+@<span class="kw">extern</span>(<span class="str">"EVP_MD_CTX_free"</span>) md_ctx_free(ctx: <span class="fn">ptr</span>)
+@<span class="kw">extern</span>(<span class="str">"strerror"</span>) describe_errno(errno: <span class="fn">int</span>) -&gt; <span class="fn">string</span></code></pre>
+<p>The Aether-side name (<code>md_ctx_new</code>, <code>describe_errno</code>) is what callers write. The compiler emits the forward declaration and every call site using the C symbol from the annotation, no wrapper function is generated. This is exactly equivalent to writing:</p>
+<pre><code><span class="kw">extern</span> EVP_MD_CTX_new() -&gt; <span class="fn">ptr</span>
+md_ctx_new() -&gt; <span class="fn">ptr</span> {
+    <span class="kw">return</span> EVP_MD_CTX_new()
+}</code></pre>
+<p>…minus the wrapper. Both forms link to the same C symbol; <code>@extern</code> just removes the ceremony when all you wanted was a rename.</p>
+<p>The annotation accepts a single string literal (the C symbol name). Parameter types and return type are required, exactly as for plain <code>extern</code>.</p>
+<p>An <code>@extern</code> declaration is part of its module's public surface: unlike a bare <code>extern</code> C binding (which stays private to its defining file), an <code>@extern</code> name declared in a module is callable as <code>module.name(...)</code> from any file that imports the module. This is the mechanism a stdlib module uses to expose a C symbol under a clean qualified name without an Aether wrapper.</p>
+<p><code>@extern</code> also accepts a trailing <code>...</code> for variadic C symbols, exactly like a plain <code>extern</code>:</p>
+<pre><code>@<span class="kw">extern</span>(<span class="str">"aether_strbuilder_append_format"</span>)
+append_format(b: <span class="fn">ptr</span>, fmt: <span class="fn">string</span>, ...) -&gt; <span class="fn">int</span></code></pre>
+<p>Call sites pass any number of trailing arguments literally. This is the only way to give a variadic C function a clean module-qualified name, an ordinary Aether wrapper cannot forward a <code>...</code> tail (Aether has no varargs-defining syntax, only varargs-declaring).</p>
+<h2 id="exporting-an-aether-function-as-a-c-callback-c_callback">Exporting an Aether Function as a C Callback, <code>@c_callback</code></h2>
+<p>The inverse of <code>@extern</code>. When a C library wants you to hand it a function pointer, HTTP route handlers, signal handlers, <code>qsort</code> comparators, libcurl callbacks, sqlite hooks, annotate the Aether function with <code>@c_callback</code>. The compiler emits a stable, externally-visible C symbol that the linker can resolve from any translation unit:</p>
+<pre><code><span class="kw">extern</span> http_server_add_route(server: <span class="fn">ptr</span>, method: <span class="fn">string</span>, path: <span class="fn">string</span>, handler: <span class="fn">ptr</span>, user_data: <span class="fn">ptr</span>)
+
+@c_callback
+my_handler(req: <span class="fn">ptr</span>, res: <span class="fn">ptr</span>, ud: <span class="fn">ptr</span>) {
+    <span class="com">// …handler body in Aether…</span>
+}
+
+main() {
+    http_server_add_route(server, <span class="str">"GET"</span>, <span class="str">"/hello"</span>, my_handler, <span class="kw">null</span>)
+}</code></pre>
+<p><code>my_handler</code> here is a normal Aether function, direct calls work the same as any other function. The annotation only changes two things:</p>
+<ol><li><strong>The C symbol stays addressable across the linkage boundary.</strong> Without <code>@c_callback</code>, an imported function would be emitted as <code>static</code> (so each translation unit gets a private copy and macOS's <code>ld64</code> doesn't trip on duplicate symbols). With <code>@c_callback</code>, the function is non-<code>static</code> and the symbol resolves at link time wherever it's referenced.</li><li><strong>The function name used as a value</strong> (when you pass it as a <code>ptr</code> argument like the <code>http_server_add_route</code> example above) emits the C symbol the annotation binds to, not the namespace-mangled Aether name.</li></ol>
+<h3 id="optional-explicit-symbol">Optional explicit symbol</h3>
+<p>By default, the C symbol matches the Aether-side name (or the namespace-prefixed form <code>&lt;module&gt;_&lt;name&gt;</code> when defined inside an imported module, e.g. <code>vcr_dispatch</code>). Pass an explicit string when you need a specific C name:</p>
+<pre><code>@c_callback(<span class="str">"aether_signal_handler"</span>)
+on_sigint(sig: <span class="fn">int</span>) {
+    <span class="com">// …</span>
+}</code></pre>
+<p>…the linker resolves <code>aether_signal_handler</code>; calls in Aether code still use <code>on_sigint</code>. Useful when integrating with a C library whose API documents a specific symbol name.</p>
+<h3 id="when-to-use-it">When to use it</h3>
+<p><code>@c_callback</code> is the right shape any time a C function takes a function pointer parameter:</p>
+<ul><li>HTTP route handlers (<code>http_server_add_route</code>).</li><li>POSIX signal handlers (<code>signal(SIGINT, …)</code>).</li><li><code>qsort</code> / <code>bsearch</code> comparators.</li><li>libcurl write/read/header callbacks.</li><li>libuv <code>uv_*_cb</code> callbacks.</li><li>sqlite update/commit/rollback hooks.</li></ul>
+<p>For plain Aether-to-Aether function-pointer use within a single program, no annotation is needed, top-level functions are already addressable as values. The annotation is specifically for the cross-language path.</p>
+<h3 id="companion-externc_symbol">Companion: <code>@extern("c_symbol")</code></h3>
+<p><code>@extern</code> and <code>@c_callback</code> close the FFI loop in both directions. <code>@extern</code> binds an Aether-namespace name to a C symbol the linker provides; <code>@c_callback</code> emits an Aether function under a C symbol the linker can hand to any consumer. Both use the same <code>@</code>-prefixed annotation grammar.</p>
+<h2 id="linking-external-libraries">Linking External Libraries</h2>
+<p>Use <code>link_flags</code> in your <code>aether.toml</code> to link external C libraries:</p>
+<pre><code>[project]
+name = <span class="str">"my-project"</span>
+version = <span class="str">"1.0.0"</span>
+
+[build]
+link_flags = [<span class="str">"-lsqlite3"</span>, <span class="str">"-lcurl"</span>, <span class="str">"-lm"</span>]</code></pre>
+<h3 id="example-using-sqlite">Example: Using SQLite</h3>
+<p><strong>database.ae:</strong></p>
+<pre><code><span class="com">// SQLite C API</span>
+<span class="kw">extern</span> sqlite3_open(path: <span class="fn">string</span>, db: <span class="fn">ptr</span>) -&gt; <span class="fn">int</span>
+<span class="kw">extern</span> sqlite3_close(db: <span class="fn">ptr</span>) -&gt; <span class="fn">int</span>
+<span class="kw">extern</span> sqlite3_exec(db: <span class="fn">ptr</span>, sql: <span class="fn">string</span>, <span class="kw">callback</span>: <span class="fn">ptr</span>, arg: <span class="fn">ptr</span>, errmsg: <span class="fn">ptr</span>) -&gt; <span class="fn">int</span>
+
+main() {
+    db = <span class="num">0</span>  <span class="com">// Will hold database pointer</span>
+
+    <span class="com">// Open database</span>
+    result = sqlite3_open(<span class="str">"test.db"</span>, db)
+    <span class="kw">if</span> (result != <span class="num">0</span>) {
+        print(<span class="str">"Failed to open database\n"</span>)
+        <span class="kw">return</span>
     }
 
-    // Execute SQL
-    sql = &quot;CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, name TEXT)&quot;
-    sqlite3_exec(db, sql, 0, 0, 0)
+    <span class="com">// Execute SQL</span>
+    sql = <span class="str">"CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, name TEXT)"</span>
+    sqlite3_exec(db, sql, <span class="num">0</span>, <span class="num">0</span>, <span class="num">0</span>)
 
-    // Close database
+    <span class="com">// Close database</span>
     sqlite3_close(db)
-    print(&quot;Database operations complete\n&quot;)
+    print(<span class="str">"Database operations complete\n"</span>)
 }</code></pre>
 <p><strong>aether.toml:</strong></p>
-<div class="sourceCode" id="cb8"><pre
-class="sourceCode toml"><code class="sourceCode toml"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="kw">[project]</span></span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="dt">name</span> <span class="op">=</span> <span class="st">&quot;sqlite-demo&quot;</span></span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="dt">version</span> <span class="op">=</span> <span class="st">&quot;1.0.0&quot;</span></span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="kw">[build]</span></span>
-<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="dt">link_flags</span> <span class="op">=</span> <span class="op">[</span><span class="st">&quot;-lsqlite3&quot;</span><span class="op">]</span></span></code></pre></div>
+<pre><code>[project]
+name = <span class="str">"sqlite-demo"</span>
+version = <span class="str">"1.0.0"</span>
+
+[build]
+link_flags = [<span class="str">"-lsqlite3"</span>]</code></pre>
 <h2 id="best-practices">Best Practices</h2>
-<ol type="1">
-<li><strong>Prefer Aether's standard library</strong> for common
-operations when available (e.g. <code>import std.list</code> rather than
-hand-rolling a linked list in C)</li>
-<li><strong>Use <code>extern</code> for any C function</strong> you want
-to call — including standard library functions like <code>abs</code>,
-<code>atoi</code>, <code>puts</code>, etc.</li>
-<li><strong>Document your C dependencies</strong> in your project's
-README</li>
-<li><strong>Handle errors</strong> - C functions often return error
-codes</li>
-<li><strong>Memory management</strong> - Be careful with C memory; use
-Aether's memory management where possible</li>
-</ol>
+<ol><li><strong>Prefer Aether's standard library</strong> for common operations when available (e.g. <code>import std.list</code> rather than hand-rolling a linked list in C)</li><li><strong>Use <code>extern</code> for any C function</strong> you want to call, including standard library functions like <code>abs</code>, <code>atoi</code>, <code>puts</code>, etc.</li><li><strong>Do not redeclare stdlib symbols via <code>extern</code></strong> as a workaround. If you find yourself writing <code>extern list_add_raw(list: ptr, item: ptr) -&gt; int</code> (or similar mirrors of <code>std.list</code> / <code>std.map</code> / <code>std.string</code> raw functions) in your own code, stop and use <code>import std.list</code> (etc.) instead. Older Aether had link-time issues with shared modules importing stdlib (Issue #309-era) which made the manual-extern shape look attractive as a workaround; those bugs are closed. The import-then-namespace shape (<code>list.add(out, x)</code>) is the only supported path today, it gives compile-time type checking against the stdlib's declared signatures, automatic API tracking when stdlib evolves, and consistency with every other Aether codebase. Manual externs of stdlib symbols are fragile (signature drift bites at runtime), bypass type-safety, and grow into per-feature maintenance debt.</li><li><strong>Document your C dependencies</strong> in your project's README</li><li><strong>Handle errors</strong> - C functions often return error codes</li><li><strong>Memory management</strong> - Be careful with C memory; use Aether's memory management where possible</li></ol>
+<h2 id="built-in-primitives-and-the-aether_-c-symbol-convention">Built-in primitives and the <code>aether_</code> C-symbol convention</h2>
+<p>Aether's built-in primitives that have a corresponding libc function (e.g. <code>sleep(ms)</code>) lower to <code>aether_</code>-prefixed runtime symbols rather than the bare libc name. For <code>sleep(ms)</code>, the generated C calls <code>aether_sleep_ms(ms)</code> a thin wrapper provided by <code>libaether.a</code> that handles <code>Sleep()</code> on Win32 and <code>usleep()</code> on POSIX.</p>
+<p>This matters when your Aether program (or any module it imports) declares its own <code>extern sleep(...)</code> for some other purpose. Without the prefix, the codegen-emitted forward declaration of the user's <code>extern sleep</code> would conflict with libc's <code>unsigned int sleep(unsigned int)</code> and break compilation:</p>
+<pre><code>error: conflicting types for 'sleep'; have 'void(int)'
+note:  previous declaration … 'unsigned int(unsigned int)'</code></pre>
+<p>To avoid this collision class entirely:</p>
+<ul><li><strong>Built-ins are routed through <code>aether_</code>-prefixed runtime helpers</strong> in the generated C, they never emit a bare libc symbol.</li><li><strong>User <code>extern</code> declarations of well-known libc names</strong> (e.g. <code>sleep</code>, <code>exit</code>, <code>printf</code>, <code>puts</code>, <code>malloc</code>, <code>read</code>, <code>write</code>, <code>time</code>, …) are recognized and the compiler <strong>suppresses the C forward declaration</strong>. The libc header (already included by the prelude) supplies the canonical prototype, and call-site code generation still uses the registered Aether parameter types for type-aware casting.</li></ul>
+<p>When you write a C shim or third-party binding, you can follow the same convention: prefix exported symbols with <code>aether_&lt;module&gt;_</code> (e.g. <code>aether_vcr_record</code>, <code>aether_http_get</code>) so they don't collide with vendor libraries the user might link via <code>[build] extra_sources = […]</code>.</p>
 <h2 id="working-with-pointers">Working with Pointers</h2>
-<p>The <code>ptr</code> type maps to <code>void*</code> in C, useful for
-opaque handles and callbacks:</p>
-<pre class="aether"><code>extern create_handle() -&gt; ptr
-extern use_handle(h: ptr) -&gt; int
-extern destroy_handle(h: ptr)
+<p>The <code>ptr</code> type maps to <code>void*</code> in C, useful for opaque handles and callbacks:</p>
+<pre><code><span class="kw">extern</span> create_handle() -&gt; <span class="fn">ptr</span>
+<span class="kw">extern</span> use_handle(h: <span class="fn">ptr</span>) -&gt; <span class="fn">int</span>
+<span class="kw">extern</span> destroy_handle(h: <span class="fn">ptr</span>)
 
 main() {
     handle = create_handle()
-    if (handle != 0) {
+    <span class="kw">if</span> (handle != <span class="num">0</span>) {
         use_handle(handle)
         destroy_handle(handle)
     }
 }</code></pre>
-<h3 id="passing-integers-to-ptr-parameters">Passing Integers to
-<code>ptr</code> Parameters</h3>
-<p>When an extern function expects a <code>ptr</code> parameter and you
-pass an <code>int</code>, the compiler automatically emits the correct
-<code>(void*)(intptr_t)</code> cast — no explicit casting required:</p>
-<pre class="aether"><code>import std.list
+<h3 id="passing-integers-to-ptr-parameters">Passing Integers to <code>ptr</code> Parameters</h3>
+<p>When an extern function expects a <code>ptr</code> parameter and you pass an <code>int</code>, the compiler automatically emits the correct <code>(void*)(intptr_t)</code> cast, no explicit casting required:</p>
+<pre><code><span class="kw">import</span> std.list
 
 main() {
     items = list.new()
-    defer list.free(items)
+    <span class="kw">defer</span> list.free(items)
 
-    i = 0
-    while i &lt; 5 {
-        list.add(items, i)   // int passed to void* — cast emitted automatically
-        i = i + 1
+    i = <span class="num">0</span>
+    <span class="kw">while</span> i &lt; <span class="num">5</span> {
+        list.add(items, i)   <span class="com">// int passed to void*, cast emitted automatically</span>
+        i = i + <span class="num">1</span>
     }
     print(list.size(items))
-    print(&quot;\n&quot;)
+    print(<span class="str">"\n"</span>)
 }</code></pre>
-<p>The generated C is
-<code>list_add(items, (void*)(intptr_t)(i))</code>, which is the
-well-defined idiom for storing integer values in <code>void*</code>
-containers.</p>
-<h2 id="embedding-aether-in-c-applications">Embedding Aether in C
-Applications</h2>
-<p>If you want to embed Aether actors in your existing C application
-(the reverse direction), see the <a href="c-embedding.md">C Embedding
-Guide</a>. This covers:</p>
-<ul>
-<li>Compiling Aether to C and linking with your application</li>
-<li>Using the Aether runtime API directly from C</li>
-<li>The <code>--emit-header</code> compiler flag for generating C
-headers</li>
-</ul>
-<h2 id="see-also">See Also</h2>
-<ul>
-<li><a href="getting-started.md">Getting Started</a></li>
-<li><a href="c-embedding.md">C Embedding Guide</a> - Embed Aether actors
-in C applications</li>
-<li><a href="stdlib-reference.md">Standard Library Reference</a></li>
-<li><a href="language-reference.md">Language Reference</a></li>
-</ul>
-    </article>
-  </main>
+<p>The generated C is <code>list_add(items, (void*)(intptr_t)(i))</code>, which is the well-defined idiom for storing integer values in <code>void*</code> containers.</p>
+<h2 id="consuming---string-returns-from-c">Consuming <code>-&gt; string</code> Returns From C</h2>
+<p>An extern declared <code>-&gt; string</code> does NOT give the C side a plain <code>const char*</code>. It returns an <code>AetherString*</code> a 32-byte, magic-tagged header whose <code>data</code> field points at the actual bytes:</p>
+<pre><code><span class="kw">struct</span> AetherString {
+    <span class="kw">unsigned</span> <span class="kw">int</span> magic;      <span class="com">// 0xAE57C0DE</span>
+    <span class="kw">int</span>          ref_count;
+    <span class="kw">size_t</span>       length;
+    <span class="kw">size_t</span>       capacity;
+    <span class="kw">char</span>        *data;       <span class="com">// &lt;- the payload the shim actually wants</span>
+};</code></pre>
+<p>If a C shim types the same extern as <code>extern const char* foo(...)</code> and then runs <code>memcpy(dst, result, n)</code> or <code>strlen(result)</code> on it, the shim reads into the struct header instead of the payload: the first bytes are the magic, followed by the ref count, lengths, etc. The symptom is garbage data + wildly wrong lengths; there is no build warning and no runtime diagnostic.</p>
+<p>The fix is to unwrap the result through the public helpers in <code>aether_string.h</code>:</p>
+<pre><code>#include <span class="str">"aether_string.h"</span>
 
-  <!-- FOOTER -->
-  <footer>
-    <p>&copy; 2026 Nicolas Maman</p>
-    <p><a href="#">Privacy</a> &middot; <a href="https://github.com/nicolasmd87/aether/blob/main/LICENSE">License</a> &middot; <a href="mailto:hello@aether.org">Contact</a></p>
-  </footer>
+<span class="kw">extern</span> <span class="kw">const</span> <span class="kw">void</span>* read_config_file(<span class="kw">const</span> <span class="kw">char</span>* path);
+<span class="com">// (Note: redeclaring the extern's return as `const void*` makes the</span>
+<span class="com">// unwrap requirement obvious. `const char*` compiles but is a trap.)</span>
+
+<span class="kw">void</span> load(<span class="kw">const</span> <span class="kw">char</span>* path, <span class="kw">char</span>* out, <span class="kw">size_t</span> cap) {
+    <span class="kw">const</span> <span class="kw">void</span>* result = read_config_file(path);
+    <span class="kw">const</span> <span class="kw">char</span>* data   = aether_string_data(result);     <span class="com">// real byte pointer</span>
+    <span class="kw">size_t</span>      len    = aether_string_length(result);   <span class="com">// exact length</span>
+    <span class="kw">if</span> (len &gt; cap) len = cap;
+    memcpy(out, data, len);                               <span class="com">// binary-safe</span>
+}</code></pre>
+<p>Both helpers accept either an <code>AetherString*</code> (the common case) or a raw <code>char*</code> (legacy TLS-arena externs whose names end in <code>_raw</code>), so shims can be agnostic about which flavour they got. Both are safe on NULL.</p>
+<blockquote><strong>Historical note:</strong> older shims open-coded this unwrap by pattern-matching the magic number themselves (<code>#define AETHER_STRING_MAGIC 0xAE57C0DE</code> + cast). <code>aether_string_data</code> / <code>aether_string_length</code> have replaced that pattern, downstream projects can delete the open-coded unwrap once they pick up the new headers.</blockquote>
+<h3 id="passing-string-values-into-c-externs-auto-unwrap">Passing <code>string</code> values INTO C externs (auto-unwrap)</h3>
+<p>The symmetric direction, Aether code passing a <code>string</code> value to a C extern declared <code>const char*</code> is handled by the codegen automatically. When the call site has the form:</p>
+<pre><code><span class="kw">extern</span> probe_consume(content: <span class="fn">string</span>, len: <span class="fn">int</span>) -&gt; <span class="fn">int</span>
+
+main() {
+    raw, raw_len, _ = cryptography.base64_decode(<span class="str">"QUI="</span>)  <span class="com">// returns AetherString*</span>
+    probe_consume(raw, raw_len)                            <span class="com">// C side gets payload, not header</span>
+}</code></pre>
+<p>…the codegen emits <code>probe_consume(aether_string_data(raw), raw_len)</code> rather than passing <code>raw</code> straight through. <code>aether_string_data</code> dispatches on the AetherString magic header: returns <code>s-&gt;data</code> for wrapped strings, the bare pointer for plain <code>char*</code> values (string literals). Idempotent and safe on either shape.</p>
+<p>This means C shim authors don't have to remember to unwrap on the receiving side; the C function can <code>memcpy(...)</code> or <code>strlen(...)</code> on the <code>const char*</code> parameter and get the payload bytes regardless of what the Aether caller passed. Closes #297.</p>
+<p><strong>Stdlib exception:</strong> C functions whose names start with <code>string_</code> or <code>aether_string_</code> are treated as "string-aware" and are <em>not</em> unwrapped at the call site. They use <code>str_data</code> / <code>str_len</code> internally and need the AetherString header to recover the stored length on binary content. If a downstream user-defined function happens to match those name prefixes, rename it (or expose it via a different namespace).</p>
+<p><strong>Sophisticated-consumer escape hatch.</strong> A C function that <em>wants</em> the AetherString header pointer (e.g. so it can call <code>aether_string_data</code> / <code>aether_string_length</code> itself to recover the stored length on binary content) should declare its parameter as <code>ptr</code> rather than <code>string</code>:</p>
+<pre><code><span class="com">// Naive consumer, receives payload bytes; codegen auto-unwraps:</span>
+<span class="kw">extern</span> memcpy_into_buf(content: <span class="fn">string</span>, len: <span class="fn">int</span>) -&gt; <span class="fn">int</span>
+
+<span class="com">// Sophisticated consumer, receives raw pointer; consumer dispatches:</span>
+<span class="kw">extern</span> parse_with_explicit_length(s: <span class="fn">ptr</span>) -&gt; <span class="fn">int</span></code></pre>
+<p>The C function then takes <code>const void*</code> (or <code>const AetherString*</code>) and goes through the helpers manually. This is the escape hatch for any FFI shim that needs binary-safe length reads, declaring <code>s: string</code> would auto-unwrap and <code>aether_string_length</code> would fall back to <code>strlen</code>, truncating at the first NUL.</p>
+<h3 id="aether-emitted-receivers-name-aether-string">Aether-emitted receivers, <code>name: @aether string</code></h3>
+<p>The auto-unwrap above is correct for <strong>naive C externs</strong>, functions that receive a <code>const char*</code> and call <code>memcpy</code>/<code>strlen</code> on it. But <code>extern foo(s: string)</code> is also the spelling used to call into <strong>another Aether-emitted module</strong> (e.g. a function exported via <code>--emit=lib</code> from a separate <code>.ae</code> file). Aether-emitted receivers don't behave like naive C: their <code>string.length(s)</code> / <code>string.char_at(s, i)</code> already dispatch on the AetherString magic via <code>str_len</code>. If the call site auto-unwraps before the value crosses the boundary, the receiver's dispatch sees only payload bytes, the magic check fails, and <code>str_len</code> falls through to <code>strlen</code> truncating binary content at the first NUL.</p>
+<p>The fix is per-param, opt-in: annotate the param with <code>@aether</code> to mark it as receiving an AetherString pointer (header preserved) rather than an unwrapped <code>const char*</code>:</p>
+<pre><code><span class="com">// helper.ae (compiled with --emit=lib):</span>
+<span class="kw">export</span> consume_binary(s: <span class="fn">string</span>) {
+    println(<span class="str">"len=${string.length(s)}"</span>)   <span class="com">// sees stored length, not strlen</span>
+}
+
+<span class="com">// caller.ae:</span>
+<span class="kw">extern</span> consume_binary(s: @aether <span class="fn">string</span>)   <span class="com">// ← header preserved</span>
+<span class="kw">extern</span> other_c_function(s: <span class="fn">string</span>)         <span class="com">// ← still unwrapped (naive C contract)</span></code></pre>
+<p>The <code>@aether</code> annotation is per-param, so a single extern can mix Aether-emitted-string params with naive-C-pointer params:</p>
+<pre><code><span class="kw">extern</span> do_thing(aether_msg: @aether <span class="fn">string</span>,
+                c_path:     <span class="fn">string</span>) -&gt; <span class="fn">int</span>
+<span class="com">// Codegen emits: do_thing(msg, aether_string_data(path))</span>
+<span class="com">//                          ^^^                      ^^^^^</span>
+<span class="com">//          header preserved                 unwrapped to const char*</span></code></pre>
+<p><strong>When to reach for it:</strong></p>
+<ul><li>Calling a function exported via <code>export foo(s: string) { ... }</code> from another <code>.ae</code> file linked into the same binary.</li><li>The caller's value is binary content (contains NULs, returned from <code>bytes.finish</code> / <code>cryptography.base64_decode</code> / <code>fs.read_binary</code> / etc.) and the receiver needs to see the full length, not the strlen-truncated prefix.</li></ul>
+<p><strong>When NOT to reach for it:</strong></p>
+<ul><li>The receiver is hand-written C that takes <code>const char*</code>. Use bare <code>s: string</code> the auto-unwrap is doing the right thing.</li><li>The receiver works on text content with no NULs. <code>strlen()</code> and the stored length agree, so either annotation works; bare is simpler.</li></ul>
+<p>The <code>@aether</code> annotation is a sibling to the <code>: ptr</code> escape hatch above. Both opt out of the auto-unwrap; they differ in what the receiving side sees:</p>
+<div class="tw"><table><thead><tr><th>Param declaration</th><th>Call site emits</th><th>Receiver sees</th></tr></thead><tbody><tr><td><code>s: string</code></td><td><code>foo(aether_string_data(s))</code></td><td>unwrapped <code>const char*</code> (strlen-bounded)</td></tr><tr><td><code>s: @aether string</code></td><td><code>foo(s)</code></td><td>AetherString pointer with header, dispatches via <code>str_len</code></td></tr><tr><td><code>s: ptr</code></td><td><code>foo(s)</code></td><td><code>void*</code> caller dispatches manually with <code>aether_string_data</code> / <code>aether_string_length</code></td></tr></tbody></table></div>
+<p>Closes #351. The regression range was v0.97.0 → v0.98.0 (commit 718d13d added the blanket auto-unwrap to fix #297); the <code>@aether</code> annotation restores the v0.97.0 behaviour for Aether-to-Aether crossings without re-breaking the v0.98.0 fix for naive C externs.</p>
+<p><strong>Length-clamp hazard for binary content.</strong> Once the auto-unwrap has fired, a C shim that receives a <code>string</code>-typed parameter has only payload bytes, no header, no stored length. A common defensive pattern is fatal here:</p>
+<pre><code><span class="com">// HAZARD post-#297. `s` is auto-unwrapped payload; aether_string_length</span>
+<span class="com">// falls through to strlen() on binary content and truncates at NUL.</span>
+<span class="kw">int</span> shim(<span class="kw">const</span> <span class="kw">char</span>* s, <span class="kw">int</span> caller_len) {
+    <span class="kw">int</span> n = aether_string_length(s);   <span class="com">// falls through to strlen!</span>
+    <span class="kw">int</span> safe = (caller_len &lt; n) ? caller_len : n;  <span class="com">// wrong on binary</span>
+    <span class="kw">return</span> process(s, safe);
+}</code></pre>
+<p>Pre-#297 the AetherString header leaked through into the shim, and the dispatch inside <code>aether_string_length</code> correctly returned the stored length. Post-#297 the header is stripped at the call site, the dispatch falls through to <code>strlen</code>, and binary content gets truncated at the first embedded NUL, silently producing corrupted output on disk / in messages / etc.</p>
+<p><strong>Rule:</strong> when a C shim takes a <code>string</code> parameter from Aether AND an explicit length, <strong>trust the length</strong>. Don't re-derive via <code>aether_string_length(s)</code> that path is now unreachable for header-bearing values (auto-unwrap stripped the header), and the strlen fallback corrupts binary content. The Aether-side caller knows the length; pass it across the boundary.</p>
+<pre><code><span class="com">// CORRECT, caller-supplied length is the source of truth.</span>
+<span class="kw">int</span> shim(<span class="kw">const</span> <span class="kw">char</span>* s, <span class="kw">int</span> len) {
+    <span class="kw">return</span> process(s, len);
+}</code></pre>
+<p>If a shim genuinely needs to dispatch on the header (e.g. for a polymorphic API where the caller might pass either a literal or a wrapped string and the length isn't known to the caller), declare its parameter as <code>ptr</code> to opt out of auto-unwrap, and dispatch via <code>aether_string_data</code> / <code>aether_string_length</code> manually.</p>
+<p><strong>The same hazard fires inside Aether code.</strong> Any Aether library that exports a <code>string</code>-typed parameter and tries to derive length / slice / iterate is at risk for the symmetric reason: the auto-unwrap fires at the <code>.ae→.ae</code> extern boundary, replacing the length-aware AetherString with a raw payload pointer. By the time the helper sees its argument, calls to <code>string.length(s)</code>, <code>string.substring(s, …)</code>, or <code>string.char_at(s, i)</code> go through <code>str_len</code> → <code>strlen</code> and truncate binary content at the first embedded NUL.</p>
+<pre><code><span class="com">// HAZARD, looks safe; truncates binary content at the auto-unwrap.</span>
+<span class="kw">export</span> slice_from(s: <span class="fn">string</span>, start: <span class="fn">int</span>, end: <span class="fn">int</span>) -&gt; <span class="fn">string</span> {
+    n = <span class="fn">string</span>.length(s)        <span class="com">// strlen on auto-unwrapped payload!</span>
+    <span class="kw">if</span> end &gt; n { end = n }      <span class="com">// clamps to first-NUL-prefix length</span>
+    <span class="kw">return</span> <span class="fn">string</span>.substring(s, start, end)
+}</code></pre>
+<p><strong>The proper fix is the <code>@aether</code> annotation on the caller's <code>extern</code> declaration</strong> (see "Aether-emitted receivers" above). Mark the boundary on the caller side and the auto-unwrap is suppressed for that arg slot, the receiver sees the AetherString pointer intact, <code>string.length</code> reads the stored length, and binary content with embedded NULs round-trips correctly:</p>
+<pre><code><span class="com">// caller.ae</span>
+<span class="kw">extern</span> slice_from(s: @aether <span class="fn">string</span>, start: <span class="fn">int</span>, end: <span class="fn">int</span>) -&gt; <span class="fn">string</span>
+<span class="com">//                ^^^^^^^ marks the receiver as Aether-emitted</span></code></pre>
+<p>The <code>slice_from</code> definition above can stay as-written, <code>string.length(s)</code> now sees the stored length because the header survived the boundary.</p>
+<p><strong>Alternative, explicit-length parameter.</strong> If the call site is a hand-written C shim that can't use <code>@aether</code>, or you want to be defensive about the input type, the explicit-length companions in <code>std.string</code> work:</p>
+<pre><code><span class="com">// CORRECT, caller threads the length through; no internal strlen.</span>
+<span class="kw">export</span> slice_from(s: <span class="fn">string</span>, s_len: <span class="fn">int</span>, start: <span class="fn">int</span>, end: <span class="fn">int</span>) -&gt; <span class="fn">string</span> {
+    n = <span class="fn">string</span>.length_n(s, s_len)   <span class="com">// identity; documents intent</span>
+    <span class="kw">if</span> end &gt; n { end = n }
+    <span class="kw">return</span> <span class="fn">string</span>.substring_n(s, s_len, start, end)
+}</code></pre>
+<p><code>string.substring_n(s, s_len, start, end)</code> and <code>string.length_n(s, s_known)</code> exist specifically to make this pattern available without falling back to a C shim. If you find yourself accumulating <code>_n</code>-suffixed externs (<code>some_op_n</code>, <code>some_op_n_n</code>) at the FFI boundary, that's a sign the function should accept the length as a regular parameter on the Aether side too, or the caller's extern declaration should use <code>@aether</code> to skip the unwrap entirely.</p>
+<h3 id="struct-overlay-on-raw-pointers-structname-and-expr-as-structname">Struct overlay on raw pointers, <code>*StructName</code> and <code>expr as *StructName</code></h3>
+<p>Systems-programming code often needs to overlay a struct header on a raw <code>ptr</code>: a linked-list node whose <code>next</code> field lives at offset 8 of a malloc'd block, a tagged-pointer JSValue, an arena-allocator chunk header, etc. Writing a parallel API of width-typed intrinsics (<code>ptr_set_int</code>, <code>ptr_set_ptr</code>, <code>ptr_set_long</code>, …) for every field width is the wrong shape, it doesn't generalise to mixed-field structs and locks the language into an opaque-pointer style that's harder to read than C itself.</p>
+<p>Aether's answer is a first-class <strong>pointer-to-struct type</strong> spelled <code>*StructName</code>, plus an <code>as</code> cast operator that produces a value of that type from a raw <code>ptr</code>. The pointer-ness is part of the spelled type so callers can declare it on parameters, returns, struct fields, and locals:</p>
+<pre><code><span class="kw">extern</span> malloc(size: <span class="fn">int</span>) -&gt; <span class="fn">ptr</span>
+<span class="kw">extern</span> free(p: <span class="fn">ptr</span>)
+
+<span class="kw">struct</span> ListHead {
+    next: <span class="fn">ptr</span>
+    prev: <span class="fn">ptr</span>
+    flags: <span class="fn">int</span>
+}
+
+<span class="com">// `*ListHead` is a first-class type. Functions can declare it on</span>
+<span class="com">// parameters, returns, locals, and struct fields.</span>
+init_head(h: *ListHead) {
+    h.next  = <span class="num">0</span>
+    h.prev  = <span class="num">0</span>
+    h.flags = <span class="num">1</span>
+}
+
+main() {
+    raw  = malloc(<span class="num">64</span>)
+    head = raw <span class="kw">as</span> *ListHead    <span class="com">// `head` has type *ListHead</span>
+    init_head(head)
+    free(raw)
+}</code></pre>
+<p><code>*ListHead</code> lowers to <code>ListHead*</code> in the generated C; the cast <code>raw as *ListHead</code> lowers to <code>((ListHead*)(raw))</code>. Member access on a <code>*StructName</code>-typed value emits <code>view-&gt;field</code> (not <code>view.field</code>), matching the C convention.</p>
+<p><strong>Semantics</strong></p>
+<ul><li>The operand of <code>as</code> must be a <code>ptr</code> value (or <code>int</code> / <code>int64</code>, since Aether already coerces ptr-shaped integers to and from <code>ptr</code>). A struct value, string, or other type produces a typecheck error.</li><li>The named struct must be defined and visible at the cast site. Unknown struct names produce a typecheck error.</li><li>The cast itself is a view, <strong>it does not allocate, refcount, or auto-free</strong>. The operand pointer's lifetime is the caller's problem (the same contract as raw <code>extern</code> interaction). If the underlying memory is freed while a struct view still references it, you have a use-after-free; Aether does not track this.</li><li>Two views of the same memory alias each other (writes through one are visible through the other). This is the whole point.</li><li>A <code>ptr</code>-typed field of a struct view can itself be re-cast: <code>head.next as *ListHead</code> reaches the next list element.</li><li><code>*StructName</code> is accepted in any type position: variable annotations, function parameters, function return types, struct fields, extern declarations.</li></ul>
+<p><strong>When to reach for it</strong></p>
+<ul><li>Porting C data structures (linked lists, intrusive trees, ring buffers) where the storage was allocated by C and Aether wants to manipulate fields.</li><li>Implementing tagged-pointer / NaN-boxing / pointer-bit-flag schemes for embedded interpreters.</li><li>Reading on-disk file headers or wire-protocol frames where you've <code>read()</code> raw bytes into a buffer and want to reach individual fields.</li></ul>
+<p><strong>When NOT to reach for it</strong></p>
+<ul><li>For Aether-owned data that participates in the language's normal value semantics, declare a struct and use struct-literal construction (<code>Point { x: 1, y: 2 }</code>), that path runs constructors / refcounting / lifetime tracking. The <code>*T</code> cast is specifically the unsafe-by-design escape hatch for crossing into raw memory; reaching for it on Aether-owned data sidesteps the safety machinery for no benefit.</li></ul>
+<p><strong>Token-sharing with <code>import x as y</code></strong></p>
+<p>The <code>as</code> keyword is the same token already used for module-import aliasing (<code>import std.cryptography as crypto</code>). The two parses don't collide because import-aliasing is recognised only inside <code>import</code> statements; expression-level <code>as *T</code> is recognised only as a postfix operator on expressions. Both forms continue to work in the same source file.</p>
+<h3 id="address-of-a-field-lvalue">Address of a field, <code>&amp;lvalue</code></h3>
+<p>The prefix <code>&amp;</code> operator takes the address of an lvalue and lowers directly to C's <code>&amp;</code>. This is what a C extern with a <code>&amp;struct-&gt;field</code> out-parameter needs (in-place mutation, a sub-field written by the callee, a <code>memcpy</code>/resize destination):</p>
+<pre><code><span class="kw">extern</span> <span class="kw">struct</span> JSObject {
+    proto: <span class="fn">long</span>
+    u: <span class="kw">union</span> { array: <span class="kw">struct</span> { tab: <span class="fn">long</span>  len: uint32_t } }
+}
+<span class="kw">extern</span> js_shrink_value_array(ctx: <span class="fn">ptr</span>, slot: <span class="fn">ptr</span>, new_len: <span class="fn">int</span>)
+
+shrink(ctx: <span class="fn">ptr</span>, p: <span class="fn">ptr</span>, new_len: <span class="fn">int</span>) {
+    js_shrink_value_array(ctx, &amp;(p <span class="kw">as</span> *JSObject).u.array.tab, new_len)
+}</code></pre>
+<ul><li><code>&amp;(p as *T).field</code> lowers to <code>&amp;((T*)p)-&gt;field</code> the address of a field on an <code>extern struct</code> / <code>*StructName</code> overlay.</li><li><code>&amp;local.field</code> lowers to <code>&amp;local.field</code> the address of a field on an Aether-owned value struct.</li><li><code>&amp;local</code> and <code>&amp;arr[i]</code> work the same way (address of a local, address of an array element).</li><li>The result is typed as a pointer to the field's type (<code>*T</code>), assignable to a bare <code>ptr</code> parameter. Like the overlay casts, it is a raw view: the pointer is valid only while the underlying storage is.</li></ul>
+<p>Without <code>&amp;</code>, a <code>&amp;struct-&gt;field</code> out-param forces raw <code>mem.long_to_ptr(base + OFFSET)</code> offset math, re-introducing the hand-maintained offset constant the typed overlay was meant to eliminate.</p>
+<h3 id="typed-array-view-expr-as-t">Typed array view, <code>expr as T[]</code></h3>
+<p>The third axis of the <code>as</code> family (after <code>*StructName</code> and <code>fn(...) -&gt; R</code>). Views a raw <code>ptr</code> as a typed C element-pointer so subscript access scales by <code>sizeof(T)</code> automatically. Use this whenever the underlying storage is a <code>malloc</code>'d typed buffer and you'd otherwise be writing <code>mem.set_int(buf, 4*i, v)</code> boilerplate.</p>
+<pre><code><span class="kw">extern</span> malloc(sz: <span class="fn">long</span>) -&gt; <span class="fn">ptr</span>
+<span class="kw">extern</span> free(p: <span class="fn">ptr</span>)
+
+main() {
+    raw = malloc(<span class="num">4</span> * <span class="num">10</span>)
+    arr = raw <span class="kw">as</span> <span class="fn">int</span>[]         <span class="com">// ((int*)(raw))</span>
+    arr[<span class="num">3</span>] = <span class="num">42</span>                 <span class="com">// ((int*)(raw))[3] = 42  → byte offset 12</span>
+    v = arr[<span class="num">3</span>]                  <span class="com">// ((int*)(raw))[3]</span>
+    free(raw)
+}</code></pre>
+<p><strong>What you get</strong></p>
+<ul><li>C lowering: <code>arr = raw as int[]</code> emits <code>int* arr = ((int*)(raw));</code>. Subsequent <code>arr[i]</code> emits <code>arr[i]</code> which C scales by <code>sizeof(int) == 4</code>.</li><li>Covered element types: <code>int</code>, <code>long</code>, <code>byte</code>, <code>ptr</code>, <code>float</code> (and struct types, though for those you usually want <code>*Struct</code> member-access instead).</li><li>The <code>[]</code> syntax (no size) reads as "I don't know the bound, trust me to index inside it." A fixed-size <code>as int[10]</code> parses too but adds no extra checking; useful only as documentation.</li><li>Like <code>as *StructName</code>, this is a <strong>view</strong>. It does NOT allocate, free, or bounds-check. The buffer's lifetime stays with whoever produced the original <code>ptr</code>.</li><li>Aliasing: two views of the same memory alias each other. <code>arr = raw as int[]</code> and <code>arr_b = raw as byte[]</code> see the same bytes, that's the point.</li></ul>
+<p><strong>When to reach for it</strong></p>
+<ul><li>Porting C code that uses <code>int *table = malloc(sizeof(int) * n); table[i] = ...</code> shapes. The C readability is preserved without the <code>mem.*</code> arithmetic.</li><li>Hot loops where the offset arithmetic was hand-rolled and likely to have a one-off bug.</li></ul>
+<p><strong>When NOT to reach for it</strong></p>
+<ul><li>For Aether-owned data; prefer fixed-size stack arrays (<code>int[5] arr</code>) or the higher-level collections in <code>std.collections</code>. The <code>as T[]</code> cast is the systems-programming escape hatch, not the everyday array.</li><li>When you want bounds-checked storage. There is none here.</li></ul>
+<h3 id="c_struct-typed-overlays-width-correct-field-access-over-a-raw-ptr"><code>@c_struct</code> typed overlays, width-correct field access over a raw <code>ptr</code></h3>
+<p>When you're porting C that overlays a struct on memory the <strong>C side owns</strong> (<code>s-&gt;length--</code>, <code>max-&gt;ms = id-&gt;ms</code>), the raw way is hand-rolled offset math through <code>std.mem</code>:</p>
+<pre><code><span class="kw">const</span> ST_LENGTH = <span class="num">8</span>
+mem.set_long(s, ST_LENGTH, mem.get_long(s, ST_LENGTH) - <span class="num">1</span>)   <span class="com">// s-&gt;length--</span></code></pre>
+<p>The footgun is the <strong>accessor width</strong>: picking <code>get_long</code> (8 bytes) for a <code>uint32</code> field silently pulls the next field/padding. A <code>@c_struct</code> overlay fixes that <em>structurally</em>, declare the layout once with explicit offsets, and field access lowers to a width-correct <code>mem</code> accessor the <strong>compiler</strong> chooses:</p>
+<pre><code>@c_struct streamID {
+    ms:  <span class="fn">uint64</span> @<span class="num">0</span>
+    seq: <span class="fn">uint64</span> @<span class="num">8</span>
+}
+
+@c_struct stream {
+    rax:         <span class="fn">ptr</span>      @<span class="num">0</span>
+    length:      <span class="fn">uint64</span>   @<span class="num">8</span>
+    slen:        <span class="fn">uint32</span>   @<span class="num">16</span>     <span class="com">// 32-bit field, read/written at 4 bytes</span>
+    last_id:     streamID @<span class="num">24</span>     <span class="com">// nested overlay</span>
+    max_deleted: streamID @<span class="num">40</span>
+}
+
+s = robj_get_ptr(kv) <span class="kw">as</span> *stream   <span class="com">// reuse the `as *Name` cast, same syntax</span>
+s.length = s.length - <span class="num">1</span>           <span class="com">// mem_set_long at offset 8 (uint64 width)</span>
+s.slen   = <span class="num">42</span>                     <span class="com">// mem_set_uint32 at offset 16 (NOT get_long!)</span>
+s.max_deleted.ms = s.last_id.ms   <span class="com">// nested: offsets add (40+0, 24+0)</span></code></pre>
+<ul><li><strong>The width is derived from the field type</strong>, <code>uint8</code>/<code>byte</code>→1, <code>uint16</code>→2, <code>uint32</code>/<code>int</code>→4, <code>int64</code>/<code>uint64</code>→8, <code>float64</code>→8, <code>ptr</code>→pointer-width. The <code>--audit-mem</code> (#868) class of bug is gone for overlay-declared structs: you never hand-pick the accessor.</li><li><strong>The offsets stay explicit</strong>, Aether can't see the C headers, so you probe them (as before). But they live in one declaration, not a scattered <code>const</code> block, and a <code>ptr</code> field can be re-cast (<code>s.rax as *otherStruct</code>) to chase links.</li><li><strong>It's a pure-Aether lens, not a C struct.</strong> No <code>extern struct</code>, no <code>#include</code>, no C type is emitted, the overlay lowers to <code>aether_mem_*</code> calls over a <code>void*</code>. The C side keeps owning the allocation; the overlay never allocates, frees, or bounds-checks. <strong>No <code>import std.mem</code> needed</strong>, the overlay <em>is</em> the access surface (the accessor prototypes are emitted for you).</li><li>Access reuses the existing <code>expr as *Name</code> cast and <code>s.field</code> member syntax, nothing new to learn at the call site. Nested overlays add offsets along the chain (<code>s.last_id.seq</code> → 24+8).</li></ul>
+<p>Choose <code>@c_struct</code> when the C side owns the memory and you want by-name, width-safe access; choose <code>extern struct</code> (below) only when a C header genuinely owns the struct type and you're linking against it.</p>
+<h3 id="extern-struct-unions-union----and-nested-struct---"><code>extern struct</code> unions, <code>union { ... }</code> and nested <code>struct { ... }</code></h3>
+<p>C structs that span an FFI boundary often contain unions. mquickjs's <code>JSPropDef</code> has six variants overlayed on the same 32-byte tail; every tagged-union C shape (Lua <code>TValue</code>, JSON value, ...) hits the same problem.</p>
+<pre><code><span class="kw">extern</span> <span class="kw">struct</span> JSPropDef {
+    def_type: <span class="fn">int</span>          <span class="com">//  0</span>
+    name: <span class="fn">ptr</span>              <span class="com">//  8</span>
+    u: <span class="kw">union</span> {             <span class="com">// 16</span>
+        f64: <span class="fn">float</span>        <span class="com">//   16, variant: JS_DEF_PROP_DOUBLE</span>
+        str: <span class="fn">ptr</span>          <span class="com">//   16, variant: JS_DEF_PROP_STRING</span>
+        class1: <span class="fn">ptr</span>       <span class="com">//   16, variant: JS_DEF_CLASS</span>
+        <span class="kw">func</span>: <span class="kw">struct</span> {
+            length: <span class="fn">byte</span>  <span class="com">//   16, start of variant: JS_DEF_CFUNC</span>
+            magic: <span class="fn">ptr</span>    <span class="com">//   24</span>
+            cproto_name: <span class="fn">ptr</span> <span class="com">//  32</span>
+            func_name: <span class="fn">ptr</span>   <span class="com">//  40</span>
+        }
+        getset: <span class="kw">struct</span> {
+            magic: <span class="fn">ptr</span>     <span class="com">//   16, start of variant: JS_DEF_CGETSET</span>
+            cproto_name: <span class="fn">ptr</span> <span class="com">//  24</span>
+            get_func_name: <span class="fn">ptr</span> <span class="com">//  32</span>
+            set_func_name: <span class="fn">ptr</span> <span class="com">//  40</span>
+        }
+    }
+}</code></pre>
+<p>Access via dotted notation: <code>d.u.f64</code>, <code>d.u.func.length</code>, <code>d.u.getset.get_func_name</code>. Pointer-overlay access reads the same: <code>(raw as *JSPropDef).u.f64</code>.</p>
+<p><strong>What you get</strong></p>
+<ul><li>C lowering emits a real <code>union { ... }</code> (and nested <code>struct { ... }</code> where present), the same C body any hand-rolled FFI declaration would write.</li><li>The compiler trusts the user's offsets; it does not synthesize the C layout from anything other than the literal field declarations.</li><li>Heap-string ownership tracking (the <code>_heap_&lt;name&gt;</code> companion ints emitted for <code>string</code>-typed fields) does NOT descend into unions, use <code>ptr</code>-typed fields instead. Mixed string-and-union ownership is poorly defined in C; declining to support it keeps the boundary clean.</li></ul>
+<p><strong>Where it's not allowed</strong></p>
+<ul><li>Pure Aether structs (without the <code>extern</code> annotation) reject <code>union { ... }</code> at parse time, Aether's normal value semantics aren't compatible with overlapping fields.</li><li><code>union</code> is now a reserved keyword and can't be used as an identifier name anywhere.</li></ul>
+<h3 id="packed-structs-extern-struct--packed">Packed structs, <code>extern struct ... @packed</code></h3>
+<p>A <code>@packed</code> attribute on an <code>extern struct</code> emits the C body with <code>__attribute__((packed))</code>, so the layout has <strong>no inter-field padding</strong> and no trailing alignment:</p>
+<pre><code><span class="kw">extern</span> <span class="kw">struct</span> sdshdr16 @packed { len: <span class="fn">uint16</span>  alloc: <span class="fn">uint16</span>  flags: <span class="fn">byte</span> }
+<span class="com">// sizeof == 5 (not 6); offsetof(flags) == 4</span></code></pre>
+<p>This is the shape a packed C header struct needs, e.g. the Redis <code>sdshdr8/16/32/64</code> headers, where the length/alloc/flags sit at fixed packed offsets immediately before the string data. <code>sizeof(StructName)</code> and <code>offsetof(StructName, field)</code> lower to C and therefore report the packed numbers, and a <code>*StructName</code> overlay on a raw buffer reads/writes the fields at their packed offsets.</p>
+<ul><li><code>@packed</code> governs only a struct body <strong>Aether emits</strong>. It is mutually exclusive with <code>@c_import</code> (whose layout, including packing, comes from the included C header); combining them is a parse error.</li><li>Bit-width fields (<code>name: type : NN</code>) and a trailing flexible array still work under <code>@packed</code>, exactly as for a plain <code>extern struct</code>.</li></ul>
+<h4 id="recipe-header-before-the-pointer-strings-the-sds-pattern">Recipe: header-before-the-pointer strings (the <code>sds</code> pattern)</h4>
+<p>Redis-style strings hand around a pointer to the <em>data</em> while the packed header lives at negative offsets, <code>SDS_HDR(T, s)</code> is just <code>s - sizeof(struct sdshdrT)</code>, and <code>s[-1]</code> is the flags byte that selects the variant. Both halves compose from <code>@packed</code> + <code>std.mem</code>:</p>
+<pre><code><span class="kw">import</span> std.mem
+
+<span class="kw">extern</span> <span class="kw">struct</span> sdshdr8 @packed { len: <span class="fn">uint8</span>  alloc: <span class="fn">uint8</span>  flags: <span class="fn">byte</span> }
+
+<span class="com">// One allocation: [header][data...]; hand around only `s`.</span>
+base = malloc(sizeof(sdshdr8) + cap)
+*sdshdr8 h = base <span class="kw">as</span> *sdshdr8
+h.len = <span class="num">5</span>
+h.alloc = cap
+h.flags = <span class="num">1</span>
+s = mem.long_to_ptr(mem.ptr_to_long(base) + sizeof(sdshdr8))
+
+<span class="com">// Given ONLY `s`: the s[-1] flags read selects the header variant...</span>
+flags = mem.get_uint8(s, <span class="num">0</span> - <span class="num">1</span>)
+<span class="com">// ...and the negative-offset overlay recovers the whole header.</span>
+*sdshdr8 hdr = mem.long_to_ptr(mem.ptr_to_long(s) - sizeof(sdshdr8)) <span class="kw">as</span> *sdshdr8
+n = hdr.len</code></pre>
+<p><code>mem.get_uint8(p, offset)</code> and friends accept negative offsets (they index a <code>uint8_t*</code> with a signed int), and the recovered overlay aliases the same memory, a write through <code>hdr.len</code> is visible through every other view. End-to-end proof: <code>tests/regression/test_issue747_sds_floor.ae</code>.</p>
+<h3 id="aether-side-string-builder-return-types">Aether-side string-builder return types</h3>
+<p>Every Aether-side primitive that builds a string returns an <code>AetherString*</code> a refcounted, length-aware header that is binary-safe (embedded NULs preserved via the stored length):</p>
+<div class="tw"><table><thead><tr><th>Returns <code>AetherString*</code> (length-aware, binary-safe)</th></tr></thead><tbody><tr><td><code>string_new</code>, <code>string_new_with_length</code>, <code>string_empty</code></td></tr><tr><td><code>string_from_int</code>, <code>string_from_long</code>, <code>string_from_float</code></td></tr><tr><td><code>string_format</code></td></tr><tr><td><code>string_concat</code>, <code>string_concat_wrapped</code></td></tr><tr><td><code>string_substring</code>, <code>string_to_upper</code>, <code>string_to_lower</code>, <code>string_trim</code></td></tr></tbody></table></div>
+<p>These all mint their result through <code>string_adopt_caps_buffer</code>, which sets the magic header and stores the byte length. Aether's <code>string</code> type is <code>void*</code>-shaped at the C level, and the runtime helpers (<code>str_data</code>, <code>str_len</code>) dispatch on the AetherString magic header, so <code>string.length(value)</code> on any of these results reads the stored length, not <code>strlen()</code>, and does not truncate at an embedded NUL.</p>
+<p><code>string_concat_wrapped</code> is retained as an explicit alias for <code>string_concat</code>: both return an <code>AetherString*</code> with the same contract. The truncation hazard only appears when a value has been reduced to a bare <code>char*</code> for example a string literal, or a <code>string</code> argument whose AetherString header was stripped by the #297 auto-unwrap at an extern call boundary (see "Aether-emitted receivers" above). On such a bare pointer, <code>str_len</code> falls through to <code>strlen()</code> and truncates at the first embedded NUL.</p>
+<blockquote><strong>Historical note (#270):</strong> <code>string_concat</code> originally returned a plain <code>char*</code>, so downstream <code>string.length(string.concat(a, b))</code> patterns truncated binary content at the first NUL. <code>string_concat</code> now returns an <code>AetherString*</code> (via <code>string_adopt_caps_buffer</code>), and <code>string_concat_wrapped</code> is kept as an alias for the same contract. Existing call sites don't need to change.</blockquote>
+<h3 id="heap-string-ownership-across-the-ffi-boundary">Heap-string ownership across the FFI boundary</h3>
+<p>When an Aether function takes the result of a C extern <code>-&gt; string</code> call and assigns it to a variable, the same heap-string-tracker machinery (issue #405) decides whether the buffer is freed on later reassignment:</p>
+<ul><li><strong>Hardcoded heap-returning stdlib calls</strong> (<code>string.concat</code>, <code>string.substring</code>, <code>string.{to_upper, to_lower, trim}</code>) and <strong>string interpolation</strong> are always treated as heap.</li><li><strong>A user-defined Aether <code>-&gt; string</code> function</strong> is heap-returning iff the codegen's recursive structural-escape-analysis pass can prove every return statement yields a heap-string-expression (chain into another heap-returning function counts).</li><li><strong>A C extern <code>-&gt; string</code></strong> is NOT analysed structurally, the codegen has no body to walk. It's treated as <strong>non-heap</strong> by default (literal-shape contract). If your C extern returns malloc'd memory that the caller is expected to free, capture its result via <code>ptr</code> and free it explicitly:</li></ul>
+<pre><code><span class="com">// Heap-returning C extern, declare result as ptr, free explicitly.</span>
+<span class="kw">extern</span> my_strdup_raw(s: <span class="fn">string</span>) -&gt; <span class="fn">ptr</span>
+
+main() {
+    p = my_strdup_raw(<span class="str">"hello"</span>)
+    <span class="kw">defer</span> free(p)   <span class="com">// explicit cleanup</span>
+    <span class="com">// ... use p ...</span>
+}</code></pre>
+<p>Why not auto-treat C externs as heap: the C side has no calling-convention discipline that distinguishes heap from literal returns. <code>getenv(3)</code>, <code>dlerror(3)</code>, and dozens of POSIX functions return <em>borrowed</em> <code>char*</code> that must NOT be freed. A blanket "C extern returning string = heap" rule would surface as silent free-of-borrowed-memory aborts. The conservative stance is correct.</p>
+<p>If your C function genuinely matches Aether's heap-returning contract (always allocates, never returns a literal or borrow), wrap it in a small <code>.ae</code> shim that returns a heap-string-expr (e.g. <code>string.concat("", c_result)</code>) and the structural-analysis pass will recognise the shim as heap-returning automatically.</p>
+<h2 id="embedding-aether-in-c-applications">Embedding Aether in C Applications</h2>
+<p>If you want to embed Aether actors in your existing C application (the reverse direction), see the <a href="/Docs/c-embedding.html">C Embedding Guide</a>. This covers:</p>
+<ul><li>Compiling Aether to C and linking with your application</li><li>Using the Aether runtime API directly from C</li><li>The <code>--emit-header</code> compiler flag for generating C headers</li></ul>
+<h2 id="c-symbol-namespace-libc-collision-avoidance">C symbol namespace (libc collision avoidance)</h2>
+<p>Aether is free with its identifier space, you can define an Aether function called <code>bind</code>, <code>listen</code>, <code>accept</code>, or <code>connect</code> without upsetting the parser. At the C-codegen layer, however, those names collide with libc's own <code>bind(2)</code>, <code>listen(2)</code>, etc., and the linker silently picks the wrong symbol, your <code>bind</code> either never runs, or runs when libc's was expected.</p>
+<p>Mitigation (issue #436 facet B): the codegen keeps a curated list of libc / POSIX symbol names (see <code>compiler/codegen/codegen.c</code>'s <code>is_c_reserved_word</code> for the full set, it covers C keywords, the entire BSD/POSIX network sockets API, POSIX I/O, process control, memory + dynamic linking, string + stdio, and time + env). Any Aether function whose name appears in the list gets transparently emitted with an <code>ae_</code> prefix in the C output:</p>
+<div class="tw"><table><thead><tr><th>Aether-side spelling</th><th>Emitted C symbol</th></tr></thead><tbody><tr><td><code>bind</code></td><td><code>ae_bind</code></td></tr><tr><td><code>listen</code></td><td><code>ae_listen</code></td></tr><tr><td><code>read</code></td><td><code>ae_read</code></td></tr><tr><td><code>write</code></td><td><code>ae_write</code></td></tr><tr><td><code>connect</code></td><td><code>ae_connect</code></td></tr><tr><td><code>socket</code></td><td><code>ae_socket</code></td></tr><tr><td><code>fork</code></td><td><code>ae_fork</code></td></tr><tr><td><code>malloc</code></td><td><code>ae_malloc</code></td></tr></tbody></table></div>
+<p>The renaming is <strong>invisible to Aether source</strong>, you call your function <code>bind(...)</code> and the compiler does the right thing. The only place you see the prefix is in the emitted C (useful if you're debugging with <code>nm</code>, <code>objdump</code>, or a stack trace).</p>
+<h3 id="when-to-use-c_callback-instead">When to use <code>@c_callback</code> instead</h3>
+<p>If your Aether function specifically needs a <strong>stable, unprefixed C symbol</strong>, e.g. it's going to be looked up via <code>dlsym()</code> from a host program, or passed as a function pointer to a C library, annotate it with <code>@c_callback("desired_c_name")</code>. That bypasses the prefix logic and emits exactly the symbol you ask for.</p>
+<h3 id="aether-keyword-collisions">Aether-keyword collisions</h3>
+<p>A handful of libc names also happen to be Aether keywords (<code>send</code> is reserved for actor messaging). Those are caught one layer earlier by the parser with <code>error[E0100]</code> the codegen mitigation never sees them.</p>
+<h2 id="see-also">See Also</h2>
+<ul><li><a href="/Docs/getting-started.html">Getting Started</a></li><li><a href="/Docs/c-embedding.html">C Embedding Guide</a> - Embed Aether actors in C applications</li><li><a href="/Docs/stdlib-reference.html">Standard Library Reference</a></li><li><a href="/Docs/language-reference.html">Language Reference</a></li></ul>
+      </article>
+    </main>
+    <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#calling-c-functions" class="l2" data-id="calling-c-functions">Calling C Functions</a><a href="#the-extern-keyword" class="l2" data-id="the-extern-keyword">The extern Keyword</a><a href="#syntax" class="l3" data-id="syntax">Syntax</a><a href="#type-mapping" class="l3" data-id="type-mapping">Type Mapping</a><a href="#example-custom-c-functions" class="l3" data-id="example-custom-c-functions">Example: Custom C Functions</a><a href="#tuple-return-types-extern-foo---t1-t2-" class="l2" data-id="tuple-return-types-extern-foo---t1-t2-">Tuple Return Types, extern foo(...) -&gt; (T1, T2, ...)</a><a href="#type-name-mangling" class="l3" data-id="type-name-mangling">Type-name mangling</a><a href="#when-to-reach-for-it" class="l3" data-id="when-to-reach-for-it">When to reach for it</a><a href="#binding-struct-returning-c-functions" class="l3" data-id="binding-struct-returning-c-functions">Binding struct-returning C functions</a><a href="#tuple-parameters--by-value-struct-arguments-1033" class="l3" data-id="tuple-parameters--by-value-struct-arguments-1033">Tuple parameters — by-value struct arguments (#1033)</a><a href="#renaming-a-c-symbol-externc_name" class="l2" data-id="renaming-a-c-symbol-externc_name">Renaming a C Symbol, @extern("c_name")</a><a href="#exporting-an-aether-function-as-a-c-callback-c_callback" class="l2" data-id="exporting-an-aether-function-as-a-c-callback-c_callback">Exporting an Aether Function as a C Callback, @c_callback</a><a href="#optional-explicit-symbol" class="l3" data-id="optional-explicit-symbol">Optional explicit symbol</a><a href="#when-to-use-it" class="l3" data-id="when-to-use-it">When to use it</a><a href="#companion-externc_symbol" class="l3" data-id="companion-externc_symbol">Companion: @extern("c_symbol")</a><a href="#linking-external-libraries" class="l2" data-id="linking-external-libraries">Linking External Libraries</a><a href="#example-using-sqlite" class="l3" data-id="example-using-sqlite">Example: Using SQLite</a><a href="#best-practices" class="l2" data-id="best-practices">Best Practices</a><a href="#built-in-primitives-and-the-aether_-c-symbol-convention" class="l2" data-id="built-in-primitives-and-the-aether_-c-symbol-convention">Built-in primitives and the aether_ C-symbol convention</a><a href="#working-with-pointers" class="l2" data-id="working-with-pointers">Working with Pointers</a><a href="#passing-integers-to-ptr-parameters" class="l3" data-id="passing-integers-to-ptr-parameters">Passing Integers to ptr Parameters</a><a href="#consuming---string-returns-from-c" class="l2" data-id="consuming---string-returns-from-c">Consuming -&gt; string Returns From C</a><a href="#passing-string-values-into-c-externs-auto-unwrap" class="l3" data-id="passing-string-values-into-c-externs-auto-unwrap">Passing string values INTO C externs (auto-unwrap)</a><a href="#aether-emitted-receivers-name-aether-string" class="l3" data-id="aether-emitted-receivers-name-aether-string">Aether-emitted receivers, name: @aether string</a><a href="#struct-overlay-on-raw-pointers-structname-and-expr-as-structname" class="l3" data-id="struct-overlay-on-raw-pointers-structname-and-expr-as-structname">Struct overlay on raw pointers, *StructName and expr as *StructName</a><a href="#address-of-a-field-lvalue" class="l3" data-id="address-of-a-field-lvalue">Address of a field, &amp;lvalue</a><a href="#typed-array-view-expr-as-t" class="l3" data-id="typed-array-view-expr-as-t">Typed array view, expr as T[]</a><a href="#c_struct-typed-overlays-width-correct-field-access-over-a-raw-ptr" class="l3" data-id="c_struct-typed-overlays-width-correct-field-access-over-a-raw-ptr">@c_struct typed overlays, width-correct field access over a raw ptr</a><a href="#extern-struct-unions-union----and-nested-struct---" class="l3" data-id="extern-struct-unions-union----and-nested-struct---">extern struct unions, union { ... } and nested struct { ... }</a><a href="#packed-structs-extern-struct--packed" class="l3" data-id="packed-structs-extern-struct--packed">Packed structs, extern struct ... @packed</a><a href="#aether-side-string-builder-return-types" class="l3" data-id="aether-side-string-builder-return-types">Aether-side string-builder return types</a><a href="#heap-string-ownership-across-the-ffi-boundary" class="l3" data-id="heap-string-ownership-across-the-ffi-boundary">Heap-string ownership across the FFI boundary</a><a href="#embedding-aether-in-c-applications" class="l2" data-id="embedding-aether-in-c-applications">Embedding Aether in C Applications</a><a href="#c-symbol-namespace-libc-collision-avoidance" class="l2" data-id="c-symbol-namespace-libc-collision-avoidance">C symbol namespace (libc collision avoidance)</a><a href="#when-to-use-c_callback-instead" class="l3" data-id="when-to-use-c_callback-instead">When to use @c_callback instead</a><a href="#aether-keyword-collisions" class="l3" data-id="aether-keyword-collisions">Aether-keyword collisions</a><a href="#see-also" class="l2" data-id="see-also">See Also</a></nav>
+  </div>
+</div>
+<script src="/docs.js" defer></script>
+<footer class="site-foot">
+  <div class="wrap foot">
+    <span class="ae">ae</span>
+    <span class="m">MIT licensed · compiles to C · v0.462</span>
+    <nav><a href="/Docs/getting-started.html">Docs</a><a href="/repl.html">Playground</a><a href="https://github.com/aether-lang-org/aether">GitHub</a></nav>
+  </div>
+</footer>
 </body>
 </html>

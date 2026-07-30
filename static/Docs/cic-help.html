@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ae help &lt;script&gt; Offline diagnostics for config-IS-code · Aether</title>
+<meta name="description" content="A companion command to ae run and aetherc. Goal:">
+<link rel="canonical" href="https://aether-lang.dev/Docs/cic-help.html">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ae help &lt;script&gt; Offline diagnostics for config-IS-code · Aether">
+<meta property="og:description" content="A companion command to ae run and aetherc. Goal:">
+<meta property="og:url" content="https://aether-lang.dev/Docs/cic-help.html">
+<meta property="og:image" content="https://aether-lang.dev/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/aether.css">
+</head>
+<body>
+<a class="skip" href="#doc">Skip to content</a>
+<header class="site-head">
+  <div class="wrap bar">
+    <a class="brand" href="/" aria-label="Aether"><span class="ae">ae</span><span class="nm">aether</span></a>
+    <nav>
+      <a href="/repl.html">Playground</a>
+      <a href="/Docs/getting-started.html" class="on">Docs</a>
+      <a class="src" href="https://github.com/aether-lang-org/aether">Source</a>
+      <span class="vtag">v0.462</span>
+    </nav>
+  </div>
+</header>
+<div class="wrap">
+  <div class="doc-shell">
+    <nav class="doc-nav" aria-label="Documentation">
+      <div class="docsearch"><input id="ds" type="search" placeholder="Search the docs" aria-label="Search documentation" autocomplete="off" spellcheck="false"><kbd>/</kbd><div class="ds-res" id="dsres" role="listbox"></div></div>
+<div class="grp">Start</div>
+<a href="/Docs/getting-started.html">Getting Started with Aether</a>
+<a href="/Docs/tutorial.html">Aether Language Tutorial</a>
+<a href="/Docs/next-steps.html">Next Steps</a>
+<div class="grp">Language</div>
+<a href="/Docs/language-reference.html">Aether Language Reference</a>
+<a href="/Docs/type-inference-guide.html">Aether Type Inference Guide</a>
+<a href="/Docs/type-annotation-style-guide.html">Aether Type Annotation Style Guide</a>
+<a href="/Docs/type-inference-multi-value-returns.html">Multi-Value Return Type Inference</a>
+<a href="/Docs/distinct-types.html">Distinct Types</a>
+<a href="/Docs/sequences.html">Sequences (*StringSeq)</a>
+<a href="/Docs/named-args-and-select.html">Named Arguments and select()</a>
+<a href="/Docs/closures-and-builder-dsl.html">Closures and Builder-Style DSL in Aether</a>
+<a href="/Docs/closures-and-lifetimes.html">Closures and Environment Lifetimes</a>
+<a href="/Docs/module-system-design.html">Aether Module System</a>
+<div class="grp">Runtime</div>
+<a href="/Docs/architecture.html">Aether Architecture</a>
+<a href="/Docs/actor-concurrency.html">Aether Runtime Guide</a>
+<a href="/Docs/structured-concurrency.html">Structured Concurrency for Aether, Design Direction</a>
+<a href="/Docs/scheduler-quick-reference.html">Aether Scheduler - Quick Reference</a>
+<a href="/Docs/memory-management.html">Aether Memory Management</a>
+<a href="/Docs/runtime-optimizations.html">Runtime Optimizations</a>
+<a href="/Docs/numa-support.html">NUMA Support in Aether</a>
+<div class="grp">Interop</div>
+<a href="/Docs/c-interop.html">C Interoperability</a>
+<a href="/Docs/c-embedding.html">Embedding Aether Actors in C Applications</a>
+<a href="/Docs/emit-lib.html">Embedding Aether as a Shared Library (--emit=lib)</a>
+<a href="/Docs/embedded-namespaces-and-host-bindings.html">Aether as a Configuration Language, v2: Namespaces and Generated Bindings</a>
+<a href="/Docs/aether-embedded-in-host-applications.html">Aether as a Configuration Language for Other Languages</a>
+<a href="/Docs/lib-caller-info.html">--emit=lib caller-info channel</a>
+<div class="grp">Stdlib</div>
+<a href="/Docs/stdlib-reference.html">Aether Standard Library Reference</a>
+<a href="/Docs/stdlib-api.html">Aether Standard Library Guide</a>
+<a href="/Docs/stdlib-module-pattern.html">Aether Stdlib Module Pattern</a>
+<a href="/Docs/stdlib-vs-contrib.html">std/ vs contrib/ placement decisions</a>
+<a href="/Docs/http-server.html">std.http HTTP Server</a>
+<a href="/Docs/http-reverse-proxy.html">std.http.proxy reverse proxy</a>
+<a href="/Docs/http-handler-context.html">HTTP handlers with per-server / per-route state</a>
+<a href="/Docs/http-vcr.html">HTTP Record/Replay (VCR), moved out of Aether</a>
+<a href="/Docs/json-parser-design.html">std.json Design Notes</a>
+<div class="grp">Safety</div>
+<a href="/Docs/containment-sandbox.html">Containment and Sandboxing in Aether</a>
+<a href="/Docs/hide-and-seal.html">hide and seal except scope-level capability denial</a>
+<a href="/Docs/compiler-trust-boundary.html">The Compiler Trust Boundary</a>
+<a href="/Docs/config-is-code.html">Config IS Code</a>
+<a href="/Docs/aether_compared_to_capsicum.html">Aether Sandbox Model vs. BSD Capsicum: Architecture, Parallels, and FreeBSD Integration</a>
+<div class="grp">Build</div>
+<a href="/Docs/build-system.html">Build System</a>
+<a href="/Docs/bootstrap-from-source.html">Bootstrapping Aether from source (HEAD)</a>
+<a href="/Docs/install-layout.html">Aether install layout</a>
+<a href="/Docs/runtime-config.html">Runtime Configuration - Quick Reference</a>
+<a href="/Docs/per-process-config.html">Per-process configuration in Aether</a>
+<a href="/Docs/cic-help.html" class="on">ae help &lt;script&gt; Offline diagnostics for config-IS-code</a>
+<div class="grp">More</div>
+<a href="/Docs/allocators.html">Allocators</a>
+<a href="/Docs/bindgen-consts.html">ae bindgen consts, importing C macro constants</a>
+<a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
+<a href="/Docs/contract-folding.html">Compile-time contract folding — costed design</a>
+<a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn't need macro_rules!</a>
+<a href="/Docs/error-unification.html">Unifying T? and (value, err) — costed design</a>
+<a href="/Docs/formatter.html">ae fmt, the source formatter</a>
+<a href="/Docs/isolated.html">Isolated[T]: move-only actor message payloads (#479)</a>
+<a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
+<a href="/Docs/profiling-guide.html">Aether Runtime Profiling Guide</a>
+<a href="/Docs/release-glibc-portability.html">Release binary portability across glibc versions</a>
+<a href="/Docs/when-static-if.html">Compile-time when / static-if</a></nav>
+    <main class="doc-main">
+      <article class="doc-body" id="doc">
+        <div class="bc"><span class="prompt">$</span>docs / build</div>
+<h1 id="ae-help-script-offline-diagnostics-for-config-is-code"><code>ae help &lt;script&gt;</code> Offline diagnostics for config-IS-code</h1>
+<p>A companion command to <code>ae run</code> and <code>aetherc</code>. Goal: catch the common mistakes a less-experienced operator makes when authoring a closure-DSL config script (<code>my_server.ae</code>-shaped files in the <a href="/Docs/config-is-code.html"><code>config-is-code.md</code></a> sense), and translate the compiler's terse output into something an operator can act on.</p>
+<p><strong>Status:</strong> implemented and shipped. <code>ae help &lt;script&gt;</code> is built into the <code>ae</code> driver (<code>tools/ae_help.c</code>, dispatched from <code>tools/ae.c</code>) and compiled by the default <code>make</code> target. This doc describes the design; the sections below note where behaviour matches the implementation.</p>
+<blockquote>Closely scoped: this is not a general "make my Aether code work" assistant. It targets the narrow band of mistakes people make when they're using a builder-DSL library someone else wrote, where the <em>grammar</em> is wrong but the <em>intent</em> is usually clear from context.</blockquote>
+<h2 id="why-a-separate-command">Why a separate command</h2>
+<p>Two reasons the typer alone isn't enough:</p>
+<ol><li>The typer is a precision instrument. It says "Undefined function 'super_token' at line 7" and stops. That's correct, minimal, and the right behaviour for a build tool. It is not, however, the signal an operator who's never written Aether before needs to unstick themselves.</li><li>The closest existing equivalent, feeding the error to a remote LLM service, is <strong>off-limits</strong> for this use case. Config-IS-code files routinely contain secrets: API keys, super-tokens, internal hostnames, paths into private mounts. Sending them to a third party for "help interpreting the error" leaks them. See <a href="#privacy-model">Privacy model</a> below.</li></ol>
+<p><code>ae help &lt;script&gt;</code> is a separate, opt-in tool with a different operating point: it is forgiving where the typer is strict, prints more context, matches heuristically, and runs fully on-machine.</p>
+<h2 id="privacy-model">Privacy model</h2>
+<p>Hard requirements:</p>
+<ul><li><strong>No network calls.</strong> Not telemetry, not error reporting, not "anonymized" usage stats, not a remote LLM. The command runs the same offline as it does online.</li><li><strong>No file reads outside the working set.</strong> Reads the script, reads imports it can resolve (stdlib + user libs the script names), reads hint files (<code>*.help.md</code>) shipped alongside libraries the script imports. Doesn't traverse <code>$HOME</code>, doesn't probe the filesystem for unrelated files.</li><li><strong>No execution of the script.</strong> Static analysis only. Even a well-meaning "compile then run with stubbed externs to see what happens" path could fire <code>os.system</code> / <code>os.exec</code> calls embedded in the user's pre-flight setup.</li><li><strong>Output is local stdout.</strong> No log files, no caching of the script body to disk. Anything the tool prints, the user sees and can pipe themselves.</li></ul>
+<p>These are the same rules <code>aetherc</code> already follows for the build path. <code>ae help</code> extends them to a diagnostic surface without relaxing them.</p>
+<h2 id="command-surface">Command surface</h2>
+<pre><code>ae help &lt;script.ae&gt;           # run all checks, print findings
+ae help &lt;script.ae&gt; --fix     # apply safe rewrites in place,
+                              #   print a diff first
+ae help &lt;script.ae&gt; --json    # machine-readable findings
+ae help &lt;script.ae&gt; --llm &lt;gguf&gt;  # optional local-LLM escalation</code></pre>
+<p>The argument is required, <code>ae help</code> with no argument falls through to the existing CLI usage banner. Disambiguation happens on "is the next token a path that exists with <code>.ae</code> extension."</p>
+<p>Alternative names considered: <code>ae explain</code>, <code>ae check</code>, <code>ae lint</code>. <code>help</code> reads naturally given the form ("Aether, help me with this script"). Final naming is a small bikeshed; the capability is what matters.</p>
+<h2 id="what-it-does">What it does</h2>
+<p>Each capability below is a static-analysis pass that reads only the script and its declared imports. None require running the script.</p>
+<h3 id="1-spelling-matched-suggestions-for-unresolved-symbols">1. Spelling-matched suggestions for unresolved symbols</h3>
+<p>For every "Undefined function <code>X</code>" the typer would emit, the help pass collects the exported-name set of every imported library, runs Levenshtein-1 / Levenshtein-2 matches, and surfaces the closest candidates plus the full setter list:</p>
+<pre><code>Undefined function 'super_token' at line 7.
+Did you mean: superuser_token
+Available setters in avnserver: repo, port, superuser_token,
+                                host, no_compress</code></pre>
+<p>Implementation: the typer already builds a symbol table per translation unit. Reuse it, walk it, score candidates by edit distance.</p>
+<h3 id="2-im-writing-yaml--hcl-pattern-detection">2. "I'm writing YAML / HCL" pattern detection</h3>
+<p>Inside any closure-DSL block (a trailing <code>{ ... }</code> after a <code>builder</code>-keyword or fn-taking-fn callee), pattern-match for non-Aether shapes:</p>
+<div class="tw"><table><thead><tr><th>User wrote</th><th>Help suggests</th></tr></thead><tbody><tr><td><code>port: 9990</code></td><td><code>port(9990)</code> (Aether setters use call form)</td></tr><tr><td><code>port = 9990</code></td><td><code>port(9990)</code> (HCL <code>=</code> not valid here)</td></tr><tr><td><code>repos: [...]</code></td><td>one <code>repo(...)</code> call per entry</td></tr><tr><td><code>port("9990")</code></td><td><code>port(9990)</code> (drop quotes; setter expects int)</td></tr><tr><td><code>- name: alpha</code></td><td><code>repo("alpha", "/path")</code></td></tr></tbody></table></div>
+<p>The list is bounded by what people actually do, keep it short and high-precision. False positives are worse than misses here, since the user is already confused.</p>
+<h3 id="3-type-mismatch-with-english">3. Type-mismatch with English</h3>
+<p>When the typer reports "expected int, got string" on a setter call, join the reported types to the parameter name from the library's exported signature:</p>
+<pre><code>Line 6: port() expects an integer (the TCP port). You passed a
+        string. Drop the quotes: port(9990) not port("9990").</code></pre>
+<h3 id="4-missing-import-detection">4. Missing-import detection</h3>
+<p>For every "Undefined function <code>f</code>" not resolved by step 1, check the stdlib export tables for any module exporting <code>f</code>. If exactly one matches, suggest the import:</p>
+<pre><code>'env' is exported by std.os. Add this import near the top:
+    import std.os (env)</code></pre>
+<p>If multiple match, list them; let the user choose.</p>
+<h3 id="5-library-author-shipped-hints-helpmd">5. Library-author-shipped hints (<code>*.help.md</code>)</h3>
+<p>Libraries opt into richer diagnostics by shipping a <code>&lt;name&gt;.help.md</code> file alongside their <code>.ae</code> source. The format is structured markdown:</p>
+<pre><code># avnserver, common authoring mistakes
+
+## bind shadows libc
+
+If your DSL block uses `bind(...)` as a setter name (or you wrote
+your own helper named `bind`), the C linker will silently pick the
+libc symbol and your listening socket will fail to attach. Use
+`host(...)` instead, same intent, no collision.
+
+Pattern: setter or function definition named `bind`, `listen`,
+        `accept`, `connect`, `socket`, `select`.
+
+## serve without repo
+
+A `serve { ... }` block with no `repo(...)` call compiles cleanly
+but `serve_opts` returns 2 ("no repo declared") at runtime.
+
+Pattern: builder block where the callee is `avnserver.serve` and
+        no `repo` call appears.
+
+## --no-compress in production
+
+avnserver.no_compress(1) (or `no_compress(1)` inside `serve { }`)
+is a bench escape hatch; produced reps/ are 5-15x larger than
+needed and aren't replicated to peers correctly. Don't ship to
+prod.
+
+Pattern: `no_compress(1)` call where the script doesn't also set
+        `STAGE != "prod"` first.</code></pre>
+<p><code>ae help</code> reads these (only for libraries the script imports), matches each section's <code>Pattern:</code> clause against the AST, and surfaces only the matching ones. The library author absorbs the institutional knowledge once; every novice script gets the benefit without the typer growing library-specific rules.</p>
+<p>The pattern language can stay simple, start with literal-name matches and AST-shape predicates; resist the urge to grow it into a rule engine. If a library's hints need more than that, the library should ship better docstrings on its setters instead.</p>
+<h3 id="6-lint-for-compiles-but-fails-at-runtime">6. Lint for "compiles but fails at runtime"</h3>
+<p>Some failures live below the typer. The classic for <code>serve</code>-shaped libraries:</p>
+<pre><code>serve { ... } block at line 4 has port(9990) but no repo() call.
+serve_opts will return 2 ("no repo declared") at runtime.
+At least one repo("name", "/path") is required.</code></pre>
+<p>Surfaced via library-shipped hint files (above), so this stays library-agnostic at the tool layer.</p>
+<h3 id="7-top-level-closure-dsl-detection">7. Top-level closure-DSL detection</h3>
+<p>A novice writes:</p>
+<pre><code><span class="kw">import</span> avnserver
+avnserver.serve { repo(<span class="str">"a"</span>, <span class="str">"/x"</span>); port(<span class="num">9990</span>) }</code></pre>
+<p>The typer's complaint will be structural and confusing. <code>ae help</code>:</p>
+<pre><code>Line 2: serve { ... } is at top-level. Aether scripts run main()
+as the entry point. Wrap it:
+
+    main() {
+        avnserver.serve { repo("a", "/x"); port(9990) }
+    }</code></pre>
+<h3 id="8-side-by-side-canonical-template">8. Side-by-side canonical template</h3>
+<p>The library author can ship <code>_examples/serve.ae</code> (or whatever name their hint file points at). On any failure, <code>ae help</code> prints the user's broken script next to the canonical example. For someone mid-transition from YAML, this is often more useful than the most precise error message.</p>
+<h3 id="9-cross-link-to-docs">9. Cross-link to docs</h3>
+<p>Every help message ends with a doc reference:</p>
+<pre><code>See:  docs/config-is-code.md (Library author recipe)
+      avnserver/embed.ae (canonical serve builder)</code></pre>
+<p>Like <code>man -k</code> for the closure-DSL.</p>
+<h3 id="10---fix-for-the-safe-rewrites">10. <code>--fix</code> for the safe rewrites</h3>
+<p>For mechanical replacements where the intent is unambiguous:</p>
+<ul><li><code>super_token</code> → <code>superuser_token</code> (single-candidate Levenshtein-1 on a closed export set)</li><li><code>port: 9990</code> → <code>port(9990)</code> (YAML colon → call form, when the RHS is a literal)</li><li><code>port("9990")</code> → <code>port(9990)</code> (quoted int literal where setter expects int)</li><li>Missing imports inferred uniquely from undefined names</li></ul>
+<p>Always print the diff first; require explicit confirmation. The user sees the correction and can learn from it rather than having edits applied silently.</p>
+<h2 id="what-it-does-not-do">What it does NOT do</h2>
+<p>These are deliberately out of scope. There are no network calls of any kind: no telemetry, no remote services, no LLM API. The script is never executed; analysis is static only. There is no "ask-an-AI" path beyond the opt-in local-LLM escalation described in the next section, which is still offline. It offers no general code-improvement suggestions outside the closure-DSL config use case, since it isn't a linter for arbitrary Aether. And it exposes no library-author rule DSL: <code>*.help.md</code> patterns stay simple, and a library that needs more expressive hints should use its <code>.ae</code> source and docstrings instead.</p>
+<h2 id="optional-escalation-local-llm---llm">Optional escalation: local LLM (<code>--llm</code>)</h2>
+<p>Past a point, heuristic pattern-matching has diminishing returns. A small on-device language model, llama.cpp-flavoured, a 3-7B weights file the user supplies, pushes the diagnostic quality further by:</p>
+<ul><li>Synthesising plain-English explanations for errors the heuristics caught but couldn't articulate well.</li><li>Suggesting fixes for novel patterns the static rules missed.</li><li>Translating typer output into the operator's first language.</li></ul>
+<p>This stays strictly opt-in:</p>
+<pre><code>ae help my_script.ae --llm /path/to/model.gguf</code></pre>
+<p>The flag does three things and only three things:</p>
+<ol><li>Loads the user-supplied weights file via an embedded llama.cpp shim. No download, no fetch.</li><li>Constructs a prompt from the static-analysis findings + the relevant lines of the script.</li><li>Streams the model's response to stdout.</li></ol>
+<p>No network. No "we'll cache your queries." If the user doesn't pass <code>--llm</code>, the LLM code path doesn't run at all, the embedded shim is gated behind the <code>AETHER_ENABLE_LLM</code> compile-time flag, so a stripped distribution (the default build) omits the binary cost entirely. Without that flag the <code>--llm</code> option prints a build-time hint and exits rather than loading any model.</p>
+<p>The recommendation in the help command's own usage banner is plain: heuristics are sufficient for ~80% of novice mistakes; the LLM escalation is a sharp tool for the long tail, and you bring your own weights.</p>
+<h2 id="implementation">Implementation</h2>
+<p>The pieces, as built in <code>tools/ae_help.c</code>:</p>
+<p>The error source is <code>aetherc</code> itself. Rather than carving a "diagnose" mode into the typer, <code>ae help</code> runs the real <code>aetherc</code> as a subprocess, captures its stderr, and parses the already-structured <code>error[Eabcd]: …</code> lines into findings. This avoids any risk of typer regressions from a parallel code path; the tradeoff is that it only sees the errors <code>aetherc</code> already surfaces.</p>
+<p>The hint loader walks the imported libraries, finds any <code>&lt;name&gt;.help.md</code> next to their <code>module.ae</code> / source, and parses the structured sections into synthetic findings.</p>
+<p>The pattern matchers are per-pattern predicates over the script text: Levenshtein-1 name suggestions, YAML/HCL shape detection inside DSL blocks, and top-level-DSL detection. The set is kept small and high-precision.</p>
+<p>The renderer pretty-prints findings (line, original, suggestion, doc cross-ref, and a diff where applicable) in human form, or as <code>--json</code>.</p>
+<p>The <code>--fix</code> applicator takes findings flagged "safe-fix," applies them to the source, and writes back atomically: it writes to a temp file, then <code>rename</code>s over the original, printing a before/after diff. It refuses to run non-interactively (requires a TTY).</p>
+<p>Total surface: comparable in size to a moderately-featured linter. The <code>--llm</code> mode is an additive feature gate; the heuristic core stands alone.</p>
+<h2 id="cross-references">Cross-references</h2>
+<ul><li><a href="/Docs/config-is-code.html"><code>config-is-code.md</code></a>, the pattern this command serves; the "library author recipe" section defines the surface <code>ae help</code> introspects.</li><li><a href="/Docs/closures-and-builder-dsl.html"><code>closures-and-builder-dsl.md</code></a>, the syntax/semantics the help command's pattern matcher walks.</li><li><a href="/Docs/getting-started.html"><code>getting-started.md</code></a>, where the help command itself should be cross-linked once it ships.</li></ul>
+      </article>
+    </main>
+    <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#why-a-separate-command" class="l2" data-id="why-a-separate-command">Why a separate command</a><a href="#privacy-model" class="l2" data-id="privacy-model">Privacy model</a><a href="#command-surface" class="l2" data-id="command-surface">Command surface</a><a href="#what-it-does" class="l2" data-id="what-it-does">What it does</a><a href="#1-spelling-matched-suggestions-for-unresolved-symbols" class="l3" data-id="1-spelling-matched-suggestions-for-unresolved-symbols">1. Spelling-matched suggestions for unresolved symbols</a><a href="#2-im-writing-yaml--hcl-pattern-detection" class="l3" data-id="2-im-writing-yaml--hcl-pattern-detection">2. "I'm writing YAML / HCL" pattern detection</a><a href="#3-type-mismatch-with-english" class="l3" data-id="3-type-mismatch-with-english">3. Type-mismatch with English</a><a href="#4-missing-import-detection" class="l3" data-id="4-missing-import-detection">4. Missing-import detection</a><a href="#5-library-author-shipped-hints-helpmd" class="l3" data-id="5-library-author-shipped-hints-helpmd">5. Library-author-shipped hints (*.help.md)</a><a href="#6-lint-for-compiles-but-fails-at-runtime" class="l3" data-id="6-lint-for-compiles-but-fails-at-runtime">6. Lint for "compiles but fails at runtime"</a><a href="#7-top-level-closure-dsl-detection" class="l3" data-id="7-top-level-closure-dsl-detection">7. Top-level closure-DSL detection</a><a href="#8-side-by-side-canonical-template" class="l3" data-id="8-side-by-side-canonical-template">8. Side-by-side canonical template</a><a href="#9-cross-link-to-docs" class="l3" data-id="9-cross-link-to-docs">9. Cross-link to docs</a><a href="#10---fix-for-the-safe-rewrites" class="l3" data-id="10---fix-for-the-safe-rewrites">10. --fix for the safe rewrites</a><a href="#what-it-does-not-do" class="l2" data-id="what-it-does-not-do">What it does NOT do</a><a href="#optional-escalation-local-llm---llm" class="l2" data-id="optional-escalation-local-llm---llm">Optional escalation: local LLM (--llm)</a><a href="#implementation" class="l2" data-id="implementation">Implementation</a><a href="#cross-references" class="l2" data-id="cross-references">Cross-references</a></nav>
+  </div>
+</div>
+<script src="/docs.js" defer></script>
+<footer class="site-foot">
+  <div class="wrap foot">
+    <span class="ae">ae</span>
+    <span class="m">MIT licensed · compiles to C · v0.462</span>
+    <nav><a href="/Docs/getting-started.html">Docs</a><a href="/repl.html">Playground</a><a href="https://github.com/aether-lang-org/aether">GitHub</a></nav>
+  </div>
+</footer>
+</body>
+</html>

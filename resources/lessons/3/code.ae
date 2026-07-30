@@ -1,0 +1,17 @@
+message Inc { n: int }
+
+actor Counter {
+    state count = 0
+    receive {
+        Inc(n) -> {
+            count = count + n
+            println("count = ${count}")
+        }
+    }
+}
+
+main() {
+    c = spawn(Counter())
+    c ! Inc { n: 41 }
+    c ! Inc { n: 1 }
+}

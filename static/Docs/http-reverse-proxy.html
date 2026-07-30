@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>std.http.proxy reverse proxy · Aether</title>
+<meta name="description" content="nginx-class outbound HTTP forwarding for the Aether server.">
+<link rel="canonical" href="https://aether-lang.dev/Docs/http-reverse-proxy.html">
+<meta property="og:type" content="article">
+<meta property="og:title" content="std.http.proxy reverse proxy · Aether">
+<meta property="og:description" content="nginx-class outbound HTTP forwarding for the Aether server.">
+<meta property="og:url" content="https://aether-lang.dev/Docs/http-reverse-proxy.html">
+<meta property="og:image" content="https://aether-lang.dev/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/aether.css">
+</head>
+<body>
+<a class="skip" href="#doc">Skip to content</a>
+<header class="site-head">
+  <div class="wrap bar">
+    <a class="brand" href="/" aria-label="Aether"><span class="ae">ae</span><span class="nm">aether</span></a>
+    <nav>
+      <a href="/repl.html">Playground</a>
+      <a href="/Docs/getting-started.html" class="on">Docs</a>
+      <a class="src" href="https://github.com/aether-lang-org/aether">Source</a>
+      <span class="vtag">v0.462</span>
+    </nav>
+  </div>
+</header>
+<div class="wrap">
+  <div class="doc-shell">
+    <nav class="doc-nav" aria-label="Documentation">
+      <div class="docsearch"><input id="ds" type="search" placeholder="Search the docs" aria-label="Search documentation" autocomplete="off" spellcheck="false"><kbd>/</kbd><div class="ds-res" id="dsres" role="listbox"></div></div>
+<div class="grp">Start</div>
+<a href="/Docs/getting-started.html">Getting Started with Aether</a>
+<a href="/Docs/tutorial.html">Aether Language Tutorial</a>
+<a href="/Docs/next-steps.html">Next Steps</a>
+<div class="grp">Language</div>
+<a href="/Docs/language-reference.html">Aether Language Reference</a>
+<a href="/Docs/type-inference-guide.html">Aether Type Inference Guide</a>
+<a href="/Docs/type-annotation-style-guide.html">Aether Type Annotation Style Guide</a>
+<a href="/Docs/type-inference-multi-value-returns.html">Multi-Value Return Type Inference</a>
+<a href="/Docs/distinct-types.html">Distinct Types</a>
+<a href="/Docs/sequences.html">Sequences (*StringSeq)</a>
+<a href="/Docs/named-args-and-select.html">Named Arguments and select()</a>
+<a href="/Docs/closures-and-builder-dsl.html">Closures and Builder-Style DSL in Aether</a>
+<a href="/Docs/closures-and-lifetimes.html">Closures and Environment Lifetimes</a>
+<a href="/Docs/module-system-design.html">Aether Module System</a>
+<div class="grp">Runtime</div>
+<a href="/Docs/architecture.html">Aether Architecture</a>
+<a href="/Docs/actor-concurrency.html">Aether Runtime Guide</a>
+<a href="/Docs/structured-concurrency.html">Structured Concurrency for Aether, Design Direction</a>
+<a href="/Docs/scheduler-quick-reference.html">Aether Scheduler - Quick Reference</a>
+<a href="/Docs/memory-management.html">Aether Memory Management</a>
+<a href="/Docs/runtime-optimizations.html">Runtime Optimizations</a>
+<a href="/Docs/numa-support.html">NUMA Support in Aether</a>
+<div class="grp">Interop</div>
+<a href="/Docs/c-interop.html">C Interoperability</a>
+<a href="/Docs/c-embedding.html">Embedding Aether Actors in C Applications</a>
+<a href="/Docs/emit-lib.html">Embedding Aether as a Shared Library (--emit=lib)</a>
+<a href="/Docs/embedded-namespaces-and-host-bindings.html">Aether as a Configuration Language, v2: Namespaces and Generated Bindings</a>
+<a href="/Docs/aether-embedded-in-host-applications.html">Aether as a Configuration Language for Other Languages</a>
+<a href="/Docs/lib-caller-info.html">--emit=lib caller-info channel</a>
+<div class="grp">Stdlib</div>
+<a href="/Docs/stdlib-reference.html">Aether Standard Library Reference</a>
+<a href="/Docs/stdlib-api.html">Aether Standard Library Guide</a>
+<a href="/Docs/stdlib-module-pattern.html">Aether Stdlib Module Pattern</a>
+<a href="/Docs/stdlib-vs-contrib.html">std/ vs contrib/ placement decisions</a>
+<a href="/Docs/http-server.html">std.http HTTP Server</a>
+<a href="/Docs/http-reverse-proxy.html" class="on">std.http.proxy reverse proxy</a>
+<a href="/Docs/http-handler-context.html">HTTP handlers with per-server / per-route state</a>
+<a href="/Docs/http-vcr.html">HTTP Record/Replay (VCR), moved out of Aether</a>
+<a href="/Docs/json-parser-design.html">std.json Design Notes</a>
+<div class="grp">Safety</div>
+<a href="/Docs/containment-sandbox.html">Containment and Sandboxing in Aether</a>
+<a href="/Docs/hide-and-seal.html">hide and seal except scope-level capability denial</a>
+<a href="/Docs/compiler-trust-boundary.html">The Compiler Trust Boundary</a>
+<a href="/Docs/config-is-code.html">Config IS Code</a>
+<a href="/Docs/aether_compared_to_capsicum.html">Aether Sandbox Model vs. BSD Capsicum: Architecture, Parallels, and FreeBSD Integration</a>
+<div class="grp">Build</div>
+<a href="/Docs/build-system.html">Build System</a>
+<a href="/Docs/bootstrap-from-source.html">Bootstrapping Aether from source (HEAD)</a>
+<a href="/Docs/install-layout.html">Aether install layout</a>
+<a href="/Docs/runtime-config.html">Runtime Configuration - Quick Reference</a>
+<a href="/Docs/per-process-config.html">Per-process configuration in Aether</a>
+<a href="/Docs/cic-help.html">ae help &lt;script&gt; Offline diagnostics for config-IS-code</a>
+<div class="grp">More</div>
+<a href="/Docs/allocators.html">Allocators</a>
+<a href="/Docs/bindgen-consts.html">ae bindgen consts, importing C macro constants</a>
+<a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
+<a href="/Docs/contract-folding.html">Compile-time contract folding — costed design</a>
+<a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn't need macro_rules!</a>
+<a href="/Docs/error-unification.html">Unifying T? and (value, err) — costed design</a>
+<a href="/Docs/formatter.html">ae fmt, the source formatter</a>
+<a href="/Docs/isolated.html">Isolated[T]: move-only actor message payloads (#479)</a>
+<a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
+<a href="/Docs/profiling-guide.html">Aether Runtime Profiling Guide</a>
+<a href="/Docs/release-glibc-portability.html">Release binary portability across glibc versions</a>
+<a href="/Docs/when-static-if.html">Compile-time when / static-if</a></nav>
+    <main class="doc-main">
+      <article class="doc-body" id="doc">
+        <div class="bc"><span class="prompt">$</span>docs / stdlib</div>
+<h1 id="stdhttpproxy-reverse-proxy"><code>std.http.proxy</code> reverse proxy</h1>
+<p>nginx-class outbound HTTP forwarding for the Aether server. Forward inbound requests to a pool of upstream HTTP servers, with:</p>
+<ul><li>five load-balancing algorithms (round-robin, least-conn, ip-hash, smooth-weighted RR, cookie-hash sticky)</li><li>active health checks (one thread per pool, lock-free hot-path read)</li><li>per-upstream circuit breaker (closed / open / half-open)</li><li>in-memory LRU response cache with Vary-aware keying and TTL eviction</li><li>idempotent retry on 5xx + transport with exponential backoff + full jitter, re-picks a different upstream per attempt (nginx <code>proxy_next_upstream</code> semantics)</li><li>per-upstream token-bucket rate limiting</li><li>active drain (take a host out of rotation without removing it from the pool)</li><li>W3C Trace-Context propagation (passthrough or generated traceparent)</li><li>Hop-by-Hop header handling per RFC 7230 §6.1</li><li>Prometheus 0.0.4 metrics surface (per-upstream + per-pool)</li></ul>
+<p>The proxy is a middleware plugged into the existing <code>http_server_use_middleware</code> chain. It short-circuits the chain (returns 0) and owns the response.</p>
+<h2 id="quick-start-single-upstream">Quick start, single upstream</h2>
+<pre><code><span class="kw">import</span> std.http
+<span class="kw">import</span> std.http.proxy
+
+main() {
+    server = http.server_create(<span class="num">8080</span>)
+    err = proxy.mount_simple(server, <span class="str">"/"</span>, <span class="str">"http://localhost:9000"</span>, <span class="num">30</span>)
+    <span class="kw">if</span> err != <span class="str">""</span> { println(<span class="str">"proxy: ${err}"</span>); <span class="kw">return</span> }
+    http.server_start(server)
+}</code></pre>
+<p><code>mount_simple(server, path_prefix, upstream_url, timeout_sec)</code> builds a single-upstream pool with round-robin (no other upstream to balance against), default opts, and the given timeout. Mounts the middleware on <code>path_prefix</code>. <code>"/"</code> forwards everything; <code>"/api"</code> forwards just the <code>/api</code> subtree.</p>
+<h2 id="pool-form-load-balancing--health--cache--breaker">Pool form, load balancing + health + cache + breaker</h2>
+<pre><code><span class="kw">import</span> std.http
+<span class="kw">import</span> std.http.proxy
+
+main() {
+    server = http.server_create(<span class="num">8080</span>)
+
+    <span class="com">// Three upstreams, smooth weighted RR with 3:2:1 ratio.</span>
+    pool = proxy.upstream_pool_new(<span class="str">"weighted_rr"</span>, <span class="num">30</span>, <span class="num">0</span>, <span class="num">100</span>)
+    proxy.upstream_add(pool, <span class="str">"http://10.0.0.1:8080"</span>, <span class="num">3</span>)
+    proxy.upstream_add(pool, <span class="str">"http://10.0.0.2:8080"</span>, <span class="num">2</span>)
+    proxy.upstream_add(pool, <span class="str">"http://10.0.0.3:8080"</span>, <span class="num">1</span>)
+
+    <span class="com">// Active health checks every 5s. Two consecutive 200s flips an</span>
+    <span class="com">// upstream up; three consecutive failures flips it down.</span>
+    proxy.health_checks_enable(pool, <span class="str">"/health"</span>, <span class="num">200</span>, <span class="num">5000</span>, <span class="num">1000</span>, <span class="num">2</span>, <span class="num">3</span>)
+
+    <span class="com">// Per-upstream circuit breaker: 5 consecutive failures opens the</span>
+    <span class="com">// breaker for 30s; one half-open test request closes it on success.</span>
+    proxy.breaker_configure(pool, <span class="num">5</span>, <span class="num">30000</span>, <span class="num">1</span>)
+
+    <span class="com">// Response cache: 1000 entries, 64 KiB body cap, 60s default TTL,</span>
+    <span class="com">// canonical key includes Vary headers from upstream.</span>
+    cache = proxy.cache_new(<span class="num">1000</span>, <span class="num">65536</span>, <span class="num">60</span>, <span class="str">"method_url_vary"</span>)
+
+    <span class="com">// Per-mount options.</span>
+    opts = proxy.opts_new()
+    proxy.opts_bind_cache(opts, cache)
+    proxy.opts_set_strip_prefix(opts, <span class="str">"/api"</span>)  <span class="com">// /api/users → /users upstream</span>
+
+    err = proxy.mount(server, <span class="str">"/api"</span>, pool, opts)
+    <span class="kw">if</span> err != <span class="str">""</span> { println(<span class="str">"proxy: ${err}"</span>); <span class="kw">return</span> }
+
+    http.server_start(server)
+}</code></pre>
+<h2 id="method-aware-routing">Method-Aware Routing</h2>
+<p>Multiple proxy mounts can share one listener. Registration order is execution order; a mount whose method or path pattern does not match passes through to the next middleware, so narrower carve-outs should be registered first.</p>
+<pre><code>proxy.mount_match(server, <span class="str">"/repos/:repo/info"</span>, primary_pool, primary_opts, <span class="str">"GET,HEAD"</span>)
+proxy.mount_methods(server, <span class="str">"/repos"</span>, primary_pool, write_opts, <span class="str">"POST,PUT,DELETE"</span>)
+proxy.mount_methods(server, <span class="str">"/repos"</span>, replica_pool, read_opts, <span class="str">"GET,HEAD"</span>)</code></pre>
+<p><code>mount_methods</code> keeps the normal path-prefix match. <code>mount_match</code> uses std.http route-pattern syntax (<code>:param</code>, <code>*</code>) against the whole request path, which covers cases like <code>GET /repos/:repo/info</code> going to a primary while other reads fan out to replicas.</p>
+<h2 id="load-balancing-algorithms">Load-balancing algorithms</h2>
+<div class="tw"><table><thead><tr><th>Algorithm</th><th>Selection rule</th><th>When to pick</th></tr></thead><tbody><tr><td><code>round_robin</code></td><td>atomic counter mod N (skips ineligible upstreams via retry)</td><td>default, even distribution, no per-request decision cost</td></tr><tr><td><code>least_conn</code></td><td>iterate eligible upstreams; pick smallest in-flight count</td><td>upstream response times vary; long-running requests should avoid stacking on one upstream</td></tr><tr><td><code>ip_hash</code></td><td>FNV-1a over X-Forwarded-For (or X-Real-IP, or "anonymous") mod N</td><td>sticky sessions for clients without explicit cookies; soft sticky, falls back to RR if the natural pick is ineligible</td></tr><tr><td><code>weighted_rr</code></td><td>smooth weighted RR (the algorithm nginx uses)</td><td>mixed-capacity backends; produces interleaved sequences (3:1 → A,A,A,B,A,A,A,B) instead of batched</td></tr><tr><td><code>cookie_hash</code></td><td>FNV-1a over the value of a configured cookie name (set via <code>proxy.pool_set_cookie_name</code>) mod N; falls back to RR if the cookie is absent</td><td>application-layer sticky sessions where the client carries a session cookie and the upstream pool has per-instance state</td></tr></tbody></table></div>
+<p>"Eligible" means: <code>healthy &amp;&amp; !draining &amp;&amp; breaker not OPEN &amp;&amp; inflight &lt; max_inflight_per_up &amp;&amp; rate_limit admits</code>.</p>
+<pre><code><span class="com">// cookie-hash sticky: bind requests carrying SESSIONID=foo to the</span>
+<span class="com">// same upstream every time. Different cookie values may hash to</span>
+<span class="com">// different upstreams; identical values are deterministic.</span>
+pool = proxy.upstream_pool_new(<span class="str">"cookie_hash"</span>, <span class="num">30</span>, <span class="num">0</span>, <span class="num">0</span>)
+proxy.upstream_add(pool, <span class="str">"http://10.0.0.1:8080"</span>, <span class="num">1</span>)
+proxy.upstream_add(pool, <span class="str">"http://10.0.0.2:8080"</span>, <span class="num">1</span>)
+proxy.pool_set_cookie_name(pool, <span class="str">"SESSIONID"</span>)</code></pre>
+<h2 id="health-checks">Health checks</h2>
+<p>One pthread per pool (not per upstream, N-thread blow-up). The thread iterates the upstream list every <code>interval_ms</code>, fires <code>GET probe_path</code> against each <code>base_url</code>, classifies the response, and flips <code>_Atomic int healthy</code> once the threshold trips:</p>
+<ul><li><code>healthy_threshold</code> consecutive OK probes flip an upstream up.</li><li><code>unhealthy_threshold</code> consecutive failed probes flip it down.</li></ul>
+<p><code>expect_status = 0</code> accepts any 2xx; non-zero is the exact status. Down upstreams are skipped by the LB picker (every algorithm).</p>
+<p>Configure once via <code>proxy.health_checks_enable(pool, ...)</code>; calling again on the same pool stops the prior thread and starts a new one with the new config. <code>proxy.upstream_pool_free</code> joins the thread.</p>
+<h2 id="circuit-breaker">Circuit breaker</h2>
+<p>Per-upstream three-state machine:</p>
+<pre><code>   CLOSED ── consecutive_failures ≥ failure_threshold ──→ OPEN
+                                                          │
+   OPEN   ── now - opened_at ≥ open_duration_ms ─────────→ HALF_OPEN
+                                                          │
+   HALF_OPEN ── any test request succeeds ───────────────→ CLOSED
+   HALF_OPEN ── any test request fails ──────────────────→ OPEN (reset opened_at)</code></pre>
+<p>The hot path is one atomic load per request (<code>cb_state</code>). Transitions are CAS-based for the OPEN→HALF_OPEN race so two threads simultaneously timing out the open window don't both admit "the test request"; <code>half_open_max</code> caps concurrent test requests.</p>
+<p>5xx responses and transport errors (DNS, connect, TLS, timeout) count as failures. 4xx is treated as ok (client error, not upstream fault).</p>
+<p><code>failure_threshold = 0</code> disables the breaker (default, opt in via <code>proxy.breaker_configure</code>).</p>
+<h2 id="response-cache">Response cache</h2>
+<p>In-memory LRU with TTL eviction. Open-chained hash + doubly-linked LRU list. Cacheability gates per RFC 7234 conservative subset:</p>
+<ul><li>Methods: GET, HEAD only.</li><li>Status codes: 200, 203, 204, 300, 301, 404, 410.</li><li>Request <code>Cache-Control: no-store</code> → bypass.</li><li>Response <code>Cache-Control: no-store</code> / <code>private</code> → bypass.</li><li>Response <code>Vary: *</code> → uncacheable.</li><li>Body length ≤ <code>max_body_bytes</code>.</li></ul>
+<p>TTL resolution: response <code>Cache-Control: max-age</code> (clamped to 1 hour for v1 conservatism), else <code>default_ttl_sec</code>. <code>s-maxage</code> and <code>Expires</code> are not consulted in v1.</p>
+<h3 id="key-strategies">Key strategies</h3>
+<div class="tw"><table><thead><tr><th>Strategy</th><th>Key</th><th>Use when</th></tr></thead><tbody><tr><td><code>url</code></td><td><code>path?query</code></td><td>method-agnostic, POST/GET share entries (rare; usually wrong)</td></tr><tr><td><code>method_url</code></td><td><code>METHOD path?query</code></td><td>safe default, GET and HEAD don't share entries with each other or with POST</td></tr><tr><td><code>method_url_vary</code></td><td>as above + <code>\0name=value</code> for each header in upstream's <code>Vary:</code></td><td>the response varies on <code>Accept-Encoding</code> / <code>Accept-Language</code> / etc.</td></tr></tbody></table></div>
+<h2 id="idempotent-retry-proxy_next_upstream-semantics">Idempotent retry, <code>proxy_next_upstream</code> semantics</h2>
+<p>Off by default. Opt in with:</p>
+<pre><code>proxy.opts_set_retry_policy(opts, <span class="num">3</span>, <span class="num">100</span>)   <span class="com">// max_retries=3, backoff_base_ms=100</span></code></pre>
+<p>When a 5xx or transport error comes back from an upstream and the request is <strong>idempotent</strong> (<code>GET / HEAD / PUT / DELETE / OPTIONS</code>), the middleware:</p>
+<ol><li>Charges the failure against the failing upstream's circuit breaker (so a flapping host trips the breaker normally).</li><li>Releases the inflight count on that upstream.</li><li>Calls the load-balancer picker again, usually selecting a different upstream.</li><li>Backs off for <code>backoff_base_ms × 2^(attempt-1)</code> with full jitter (uniform random in <code>[0, current_backoff]</code>), capped at 10 s.</li><li>Retries.</li></ol>
+<p><code>POST</code> and <code>PATCH</code> are <strong>never retried</strong>, at-most-once delivery is preserved so the proxy never silently double-applies a non-idempotent request. The total retry budget is <code>1 + max_retries</code> attempts; if no eligible upstream remains, the proxy returns 503 with <code>X-Aether-Proxy-Error: no_upstream_after_retry</code> and <code>Retry-After: 1</code>.</p>
+<h2 id="per-upstream-rate-limit-token-bucket">Per-upstream rate limit (token bucket)</h2>
+<p>Off by default. Configure once on the pool:</p>
+<pre><code>proxy.rate_limit_set(pool, <span class="num">200</span>, <span class="num">50</span>)   <span class="com">// max_rps=200, burst=50</span></code></pre>
+<p>Each upstream gets an independent token bucket: tokens refill at <code>max_rps</code> per second, capped at <code>burst</code>. The LB picker decrements one token before admitting a request; when the bucket is empty the upstream is treated as ineligible (RR / weighted-RR / etc. fall through to the next eligible upstream, or 503 if none).</p>
+<p>Set <code>max_rps = 0</code> to disable. The burst capacity matters at start- up: with <code>burst = 0</code> the first request is rejected, so for typical deployments <code>burst</code> should be at least equal to expected concurrent connection bursts (a small multiple of <code>max_rps</code> is conservative).</p>
+<h2 id="active-drain">Active drain</h2>
+<p>Take a host out of rotation without removing it from the pool:</p>
+<pre><code>proxy.upstream_drain(pool,   <span class="str">"http://10.0.0.1:8080"</span>)   <span class="com">// stop sending new requests</span>
+proxy.upstream_undrain(pool, <span class="str">"http://10.0.0.1:8080"</span>)   <span class="com">// re-admit</span></code></pre>
+<p>Drained upstreams are skipped by the LB picker (every algorithm). In-flight requests finish naturally; when they complete the upstream is fully idle and safe to take down for a deploy. Drain state is operator-driven and orthogonal to <code>healthy</code> (which the health-check thread owns).</p>
+<h2 id="w3c-trace-context-propagation">W3C Trace-Context propagation</h2>
+<p>Two modes per mount:</p>
+<pre><code>proxy.opts_set_trace_inject(opts, <span class="num">0</span>)   <span class="com">// default, passthrough</span>
+proxy.opts_set_trace_inject(opts, <span class="num">1</span>)   <span class="com">// generate when missing</span></code></pre>
+<p><strong>Passthrough</strong> (<code>inject=0</code>): if the inbound request carries <code>traceparent</code> / <code>tracestate</code>, the proxy forwards them unchanged to the upstream. End-to-end traces propagate naturally. If the inbound has no <code>traceparent</code>, none is added.</p>
+<p><strong>Inject</strong> (<code>inject=1</code>): same passthrough behaviour for incoming trace headers, <em>plus</em>, when the inbound request has no <code>traceparent</code> the proxy generates a fresh W3C-compliant one (<code>00-&lt;32-hex&gt;-&lt;16-hex&gt;-01</code>) and stamps it on the outbound request. Use this on the edge of your service mesh so every upstream gets a trace context even from trace-naïve clients.</p>
+<h2 id="prometheus-metrics">Prometheus metrics</h2>
+<pre><code>proxy.pool_metrics_text(pool) -&gt; <span class="fn">string</span>    <span class="com">// 0.0.4 exposition</span></code></pre>
+<p>Wire it to a route to expose Grafana-scrapable metrics:</p>
+<pre><code>handle_metrics(req: <span class="fn">ptr</span>, res: <span class="fn">ptr</span>, ud: <span class="fn">ptr</span>) {
+    body = proxy.pool_metrics_text(ud)
+    http.response_set_status(res, <span class="num">200</span>)
+    http.response_set_header(res, <span class="str">"Content-Type"</span>, <span class="str">"text/plain; version=0.0.4"</span>)
+    http.response_set_body(res, body)
+}
+
+http.server_get(server, <span class="str">"/proxy-metrics"</span>, handle_metrics, pool)
+proxy.mount(server, <span class="str">"/api"</span>, pool, opts)  <span class="com">// mount AFTER routes</span></code></pre>
+<p>(Mount the proxy on a more specific prefix than <code>"/"</code> so it doesn't shadow the metrics route.)</p>
+<p>Surface (HELP + TYPE blocks elided in this table):</p>
+<div class="tw"><table><thead><tr><th>Metric</th><th>Type</th><th>Labels</th><th>What</th></tr></thead><tbody><tr><td><code>aether_proxy_upstream_requests_total</code></td><td>counter</td><td><code>upstream</code>, <code>class</code> (<code>2xx</code>/<code>3xx</code>/<code>4xx</code>/<code>5xx</code>)</td><td>Proxied requests by status class</td></tr><tr><td><code>aether_proxy_upstream_transport_errors_total</code></td><td>counter</td><td><code>upstream</code></td><td>DNS / connect / TLS / non-timeout transport failures</td></tr><tr><td><code>aether_proxy_upstream_timeouts_total</code></td><td>counter</td><td><code>upstream</code></td><td>Calls that exceeded <code>request_timeout_sec</code></td></tr><tr><td><code>aether_proxy_upstream_retries_total</code></td><td>counter</td><td><code>upstream</code></td><td>Idempotent retries fired against this upstream</td></tr><tr><td><code>aether_proxy_upstream_latency_ms_sum</code></td><td>counter</td><td><code>upstream</code></td><td>Sum of upstream call durations (ms)</td></tr><tr><td><code>aether_proxy_upstream_latency_ms_count</code></td><td>counter</td><td><code>upstream</code></td><td>Count of upstream calls observed</td></tr><tr><td><code>aether_proxy_upstream_inflight</code></td><td>gauge</td><td><code>upstream</code></td><td>Current concurrent in-flight requests</td></tr><tr><td><code>aether_proxy_upstream_healthy</code></td><td>gauge</td><td><code>upstream</code></td><td>1 if the health-check thread considers the upstream up</td></tr><tr><td><code>aether_proxy_upstream_breaker_state</code></td><td>gauge</td><td><code>upstream</code></td><td>0=closed, 1=open, 2=half_open</td></tr><tr><td><code>aether_proxy_upstream_draining</code></td><td>gauge</td><td><code>upstream</code></td><td>1 if operator-drained</td></tr><tr><td><code>aether_proxy_cache_hits_total</code></td><td>counter</td><td>(none, pool-level)</td><td>Cache hits</td></tr><tr><td><code>aether_proxy_cache_misses_total</code></td><td>counter</td><td>(none)</td><td>Cache misses</td></tr><tr><td><code>aether_proxy_cache_revalidations_total</code></td><td>counter</td><td>(none)</td><td>Conditional GETs that returned 304. Reserved for v2 conditional revalidation; always 0 in v1.</td></tr><tr><td><code>aether_proxy_503_no_upstream_total</code></td><td>counter</td><td>(none)</td><td>503s due to no eligible upstream</td></tr></tbody></table></div>
+<p>Latency is exposed as <code>_sum + _count</code> so a Grafana panel can compute average latency as <code>rate(_sum) / rate(_count)</code>.</p>
+<h2 id="hop-by-hop-headers-rfc-7230-61">Hop-by-Hop headers (RFC 7230 §6.1)</h2>
+<p>Stripped on <strong>both</strong> directions:</p>
+<pre><code>Connection, Keep-Alive, Proxy-Authenticate, Proxy-Authorization,
+TE, Trailer, Transfer-Encoding, Upgrade, Proxy-Connection</code></pre>
+<p>Plus any header listed in the request's <code>Connection:</code> value.</p>
+<h2 id="headers-added-by-the-proxy">Headers added by the proxy</h2>
+<div class="tw"><table><thead><tr><th>Header</th><th>Default</th><th>Toggle</th></tr></thead><tbody><tr><td><code>X-Forwarded-For</code></td><td>client IP appended (preserves prior comma-separated values)</td><td><code>proxy.opts_set_xforwarded(opts, xff=0, ...)</code></td></tr><tr><td><code>X-Forwarded-Proto</code></td><td><code>http</code></td><td><code>xfp=0</code></td></tr><tr><td><code>X-Forwarded-Host</code></td><td>client's <code>Host:</code> header</td><td><code>xfh=0</code></td></tr><tr><td><code>Via</code></td><td><code>1.1 aether-proxy</code> (appended to existing)</td><td>always on</td></tr><tr><td><code>Host</code></td><td>rewritten to upstream's <code>host:port</code></td><td><code>proxy.opts_set_preserve_host(opts, 1)</code> to forward client Host: instead</td></tr></tbody></table></div>
+<p>Client IP is resolved via the same chain <code>middleware.use_real_ip</code> uses: <code>X-Forwarded-For</code> (leftmost) → <code>X-Real-IP</code> → <code>"unknown"</code>. Mount <code>middleware.use_real_ip</code> before the proxy if you want clients behind a trusted edge to be visible via XFF.</p>
+<h2 id="error-responses">Error responses</h2>
+<p>The middleware emits one of these and short-circuits the chain. Each carries an <code>X-Aether-Proxy-Error</code> header for log aggregators:</p>
+<div class="tw"><table><thead><tr><th>Status</th><th>Trigger</th><th><code>X-Aether-Proxy-Error</code></th></tr></thead><tbody><tr><td>502</td><td>upstream connect / DNS / TLS handshake failure</td><td><code>upstream_transport</code></td></tr><tr><td>502</td><td>request body exceeds <code>opts.max_body_bytes</code></td><td><code>request_body_too_large</code></td></tr><tr><td>502</td><td>upstream response exceeds <code>opts.max_body_bytes</code></td><td><code>response_too_large</code></td></tr><tr><td>502</td><td>request carries <code>Upgrade:</code> (WebSocket / h2 upstream, v2 follow-up)</td><td><code>upgrade_unsupported</code></td></tr><tr><td>503</td><td>LB picker found no eligible upstream (all unhealthy or breaker open). Includes <code>Retry-After: 1</code>.</td><td><code>no_upstream</code></td></tr><tr><td>504</td><td><code>request_timeout_sec</code> elapsed before upstream responded</td><td><code>upstream_timeout</code></td></tr><tr><td>5xx upstream</td><td>passed through verbatim, operators see the actual error</td><td>(none, body is upstream's)</td></tr></tbody></table></div>
+<h2 id="limitations-v1">Limitations (v1)</h2>
+<ul><li>Request and response bodies are buffered in memory up to <code>opts.max_body_bytes</code> (default 8 MiB). Streaming pass-through is the next major feature.</li><li>WebSocket and SSE upstreams are unsupported: requests with <code>Upgrade:</code> headers are refused with 502. The upstream can still serve Server-Sent Events to clients via the existing <code>std.http</code> surface, so long as the proxy is not in front of those routes.</li><li>Upstreams are called over HTTP/1.1 via <code>std.http.client</code>. Inbound HTTP/2 works (the inbound side is independent); upstream HTTP/2 is a v2 follow-up.</li><li><strong>In-memory cache only.</strong> No disk-backed cache, no shared cache across processes.</li><li><strong>Sharded cache lock is a v2 follow-up.</strong> Single mutex around the whole cache works under typical workloads; revisit if contention shows in profiling.</li></ul>
+<h2 id="performance">Performance</h2>
+<div class="tw"><table><thead><tr><th>Cost</th><th>Threshold</th></tr></thead><tbody><tr><td>Single-upstream RR throughput</td><td>within 50% of direct <code>std.http.client</code> at 100 concurrent connections</td></tr><tr><td>Cache hit lookup</td><td>≤1 µs warm</td></tr><tr><td>Health-check thread</td><td>&lt;0.1% CPU at 1 Hz × 1 upstream</td></tr><tr><td>Circuit-breaker hot-path read</td><td>single relaxed atomic load</td></tr><tr><td>WRR pick</td><td>O(N) under pool mutex; &lt;100 ns at N=10</td></tr></tbody></table></div>
+<h2 id="reference">Reference</h2>
+<pre><code><span class="kw">import</span> std.http.proxy
+
+<span class="com">// ---- Pool + upstream lifecycle</span>
+proxy.upstream_pool_new(lb_algo, request_timeout_sec, dial_timeout_ms, max_inflight_per_up) -&gt; <span class="fn">ptr</span>
+proxy.upstream_pool_free(pool)
+proxy.upstream_add(pool, base_url, weight) -&gt; <span class="fn">string</span>
+proxy.upstream_remove(pool, base_url) -&gt; <span class="fn">string</span>
+proxy.upstream_drain(pool, base_url) -&gt; <span class="fn">string</span>       <span class="com">// skip in LB</span>
+proxy.upstream_undrain(pool, base_url) -&gt; <span class="fn">string</span>     <span class="com">// re-admit</span>
+
+<span class="com">// ---- Per-pool tuning</span>
+proxy.pool_set_cookie_name(pool, name) -&gt; <span class="fn">string</span>     <span class="com">// for "cookie_hash"</span>
+proxy.rate_limit_set(pool, max_rps, burst) -&gt; <span class="fn">string</span> <span class="com">// 0 = disable</span>
+
+<span class="com">// ---- Health checks</span>
+proxy.health_checks_enable(pool, probe_path, expect_status,
+    interval_ms, timeout_ms, healthy_threshold, unhealthy_threshold) -&gt; <span class="fn">string</span>
+
+<span class="com">// ---- Circuit breaker</span>
+proxy.breaker_configure(pool, failure_threshold, open_duration_ms, half_open_max) -&gt; <span class="fn">string</span>
+
+<span class="com">// ---- Cache</span>
+proxy.cache_new(max_entries, max_body_bytes, default_ttl_sec, key_strategy) -&gt; <span class="fn">ptr</span>
+proxy.cache_free(cache)
+
+<span class="com">// ---- Per-mount opts</span>
+proxy.opts_new() -&gt; <span class="fn">ptr</span>
+proxy.opts_free(opts)
+proxy.opts_set_strip_prefix(opts, prefix) -&gt; <span class="fn">string</span>
+proxy.opts_set_preserve_host(opts, on) -&gt; <span class="fn">string</span>
+proxy.opts_set_xforwarded(opts, xff, xfp, xfh) -&gt; <span class="fn">string</span>
+proxy.opts_bind_cache(opts, cache) -&gt; <span class="fn">string</span>
+proxy.opts_set_body_cap(opts, max_body_bytes) -&gt; <span class="fn">string</span>
+proxy.opts_set_retry_policy(opts, max_retries, backoff_base_ms) -&gt; <span class="fn">string</span>
+proxy.opts_set_trace_inject(opts, on) -&gt; <span class="fn">string</span>
+
+<span class="com">// ---- Install</span>
+proxy.mount(server, path_prefix, pool, opts) -&gt; <span class="fn">string</span>
+proxy.mount_simple(server, path_prefix, upstream_url, request_timeout_sec) -&gt; <span class="fn">string</span>
+
+<span class="com">// ---- Observability</span>
+proxy.pool_metrics_text(pool) -&gt; <span class="fn">string</span>              <span class="com">// Prometheus 0.0.4</span></code></pre>
+<p>All <code>string</code>-returning functions are Go-style: <code>""</code> is success; non-empty is an error message.</p>
+<h2 id="see-also">See also</h2>
+<ul><li><a href="/Docs/http-server.html"><code>docs/http-server.md</code></a>, the inbound side (routes, middleware, TLS, h2, WS, SSE, health probes, metrics, graceful shutdown).</li><li><a href="https://github.com/aether-lang-org/aether/tree/main/examples/stdlib/http-reverse-proxy.ae"><code>examples/stdlib/http-reverse-proxy.ae</code></a> minimal single-upstream demo.</li><li><a href="https://github.com/aether-lang-org/aether/tree/main/examples/stdlib/http-reverse-proxy-pool.ae"><code>examples/stdlib/http-reverse-proxy-pool.ae</code></a> full enterprise stack: pool, health, breaker, cache, retry, rate limit, drain, trace-context, Prometheus metrics.</li></ul>
+      </article>
+    </main>
+    <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#quick-start-single-upstream" class="l2" data-id="quick-start-single-upstream">Quick start, single upstream</a><a href="#pool-form-load-balancing--health--cache--breaker" class="l2" data-id="pool-form-load-balancing--health--cache--breaker">Pool form, load balancing + health + cache + breaker</a><a href="#method-aware-routing" class="l2" data-id="method-aware-routing">Method-Aware Routing</a><a href="#load-balancing-algorithms" class="l2" data-id="load-balancing-algorithms">Load-balancing algorithms</a><a href="#health-checks" class="l2" data-id="health-checks">Health checks</a><a href="#circuit-breaker" class="l2" data-id="circuit-breaker">Circuit breaker</a><a href="#response-cache" class="l2" data-id="response-cache">Response cache</a><a href="#key-strategies" class="l3" data-id="key-strategies">Key strategies</a><a href="#idempotent-retry-proxy_next_upstream-semantics" class="l2" data-id="idempotent-retry-proxy_next_upstream-semantics">Idempotent retry, proxy_next_upstream semantics</a><a href="#per-upstream-rate-limit-token-bucket" class="l2" data-id="per-upstream-rate-limit-token-bucket">Per-upstream rate limit (token bucket)</a><a href="#active-drain" class="l2" data-id="active-drain">Active drain</a><a href="#w3c-trace-context-propagation" class="l2" data-id="w3c-trace-context-propagation">W3C Trace-Context propagation</a><a href="#prometheus-metrics" class="l2" data-id="prometheus-metrics">Prometheus metrics</a><a href="#hop-by-hop-headers-rfc-7230-61" class="l2" data-id="hop-by-hop-headers-rfc-7230-61">Hop-by-Hop headers (RFC 7230 §6.1)</a><a href="#headers-added-by-the-proxy" class="l2" data-id="headers-added-by-the-proxy">Headers added by the proxy</a><a href="#error-responses" class="l2" data-id="error-responses">Error responses</a><a href="#limitations-v1" class="l2" data-id="limitations-v1">Limitations (v1)</a><a href="#performance" class="l2" data-id="performance">Performance</a><a href="#reference" class="l2" data-id="reference">Reference</a><a href="#see-also" class="l2" data-id="see-also">See also</a></nav>
+  </div>
+</div>
+<script src="/docs.js" defer></script>
+<footer class="site-foot">
+  <div class="wrap foot">
+    <span class="ae">ae</span>
+    <span class="m">MIT licensed · compiles to C · v0.462</span>
+    <nav><a href="/Docs/getting-started.html">Docs</a><a href="/repl.html">Playground</a><a href="https://github.com/aether-lang-org/aether">GitHub</a></nav>
+  </div>
+</footer>
+</body>
+</html>

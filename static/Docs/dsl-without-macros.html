@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DSL without macros, why Aether doesn't need macro_rules! · Aether</title>
+<meta name="description" content="A short comparison between Aether's trailing-block DSL story (see">
+<link rel="canonical" href="https://aether-lang.dev/Docs/dsl-without-macros.html">
+<meta property="og:type" content="article">
+<meta property="og:title" content="DSL without macros, why Aether doesn't need macro_rules! · Aether">
+<meta property="og:description" content="A short comparison between Aether's trailing-block DSL story (see">
+<meta property="og:url" content="https://aether-lang.dev/Docs/dsl-without-macros.html">
+<meta property="og:image" content="https://aether-lang.dev/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/aether.css">
+</head>
+<body>
+<a class="skip" href="#doc">Skip to content</a>
+<header class="site-head">
+  <div class="wrap bar">
+    <a class="brand" href="/" aria-label="Aether"><span class="ae">ae</span><span class="nm">aether</span></a>
+    <nav>
+      <a href="/repl.html">Playground</a>
+      <a href="/Docs/getting-started.html" class="on">Docs</a>
+      <a class="src" href="https://github.com/aether-lang-org/aether">Source</a>
+      <span class="vtag">v0.462</span>
+    </nav>
+  </div>
+</header>
+<div class="wrap">
+  <div class="doc-shell">
+    <nav class="doc-nav" aria-label="Documentation">
+      <div class="docsearch"><input id="ds" type="search" placeholder="Search the docs" aria-label="Search documentation" autocomplete="off" spellcheck="false"><kbd>/</kbd><div class="ds-res" id="dsres" role="listbox"></div></div>
+<div class="grp">Start</div>
+<a href="/Docs/getting-started.html">Getting Started with Aether</a>
+<a href="/Docs/tutorial.html">Aether Language Tutorial</a>
+<a href="/Docs/next-steps.html">Next Steps</a>
+<div class="grp">Language</div>
+<a href="/Docs/language-reference.html">Aether Language Reference</a>
+<a href="/Docs/type-inference-guide.html">Aether Type Inference Guide</a>
+<a href="/Docs/type-annotation-style-guide.html">Aether Type Annotation Style Guide</a>
+<a href="/Docs/type-inference-multi-value-returns.html">Multi-Value Return Type Inference</a>
+<a href="/Docs/distinct-types.html">Distinct Types</a>
+<a href="/Docs/sequences.html">Sequences (*StringSeq)</a>
+<a href="/Docs/named-args-and-select.html">Named Arguments and select()</a>
+<a href="/Docs/closures-and-builder-dsl.html">Closures and Builder-Style DSL in Aether</a>
+<a href="/Docs/closures-and-lifetimes.html">Closures and Environment Lifetimes</a>
+<a href="/Docs/module-system-design.html">Aether Module System</a>
+<div class="grp">Runtime</div>
+<a href="/Docs/architecture.html">Aether Architecture</a>
+<a href="/Docs/actor-concurrency.html">Aether Runtime Guide</a>
+<a href="/Docs/structured-concurrency.html">Structured Concurrency for Aether, Design Direction</a>
+<a href="/Docs/scheduler-quick-reference.html">Aether Scheduler - Quick Reference</a>
+<a href="/Docs/memory-management.html">Aether Memory Management</a>
+<a href="/Docs/runtime-optimizations.html">Runtime Optimizations</a>
+<a href="/Docs/numa-support.html">NUMA Support in Aether</a>
+<div class="grp">Interop</div>
+<a href="/Docs/c-interop.html">C Interoperability</a>
+<a href="/Docs/c-embedding.html">Embedding Aether Actors in C Applications</a>
+<a href="/Docs/emit-lib.html">Embedding Aether as a Shared Library (--emit=lib)</a>
+<a href="/Docs/embedded-namespaces-and-host-bindings.html">Aether as a Configuration Language, v2: Namespaces and Generated Bindings</a>
+<a href="/Docs/aether-embedded-in-host-applications.html">Aether as a Configuration Language for Other Languages</a>
+<a href="/Docs/lib-caller-info.html">--emit=lib caller-info channel</a>
+<div class="grp">Stdlib</div>
+<a href="/Docs/stdlib-reference.html">Aether Standard Library Reference</a>
+<a href="/Docs/stdlib-api.html">Aether Standard Library Guide</a>
+<a href="/Docs/stdlib-module-pattern.html">Aether Stdlib Module Pattern</a>
+<a href="/Docs/stdlib-vs-contrib.html">std/ vs contrib/ placement decisions</a>
+<a href="/Docs/http-server.html">std.http HTTP Server</a>
+<a href="/Docs/http-reverse-proxy.html">std.http.proxy reverse proxy</a>
+<a href="/Docs/http-handler-context.html">HTTP handlers with per-server / per-route state</a>
+<a href="/Docs/http-vcr.html">HTTP Record/Replay (VCR), moved out of Aether</a>
+<a href="/Docs/json-parser-design.html">std.json Design Notes</a>
+<div class="grp">Safety</div>
+<a href="/Docs/containment-sandbox.html">Containment and Sandboxing in Aether</a>
+<a href="/Docs/hide-and-seal.html">hide and seal except scope-level capability denial</a>
+<a href="/Docs/compiler-trust-boundary.html">The Compiler Trust Boundary</a>
+<a href="/Docs/config-is-code.html">Config IS Code</a>
+<a href="/Docs/aether_compared_to_capsicum.html">Aether Sandbox Model vs. BSD Capsicum: Architecture, Parallels, and FreeBSD Integration</a>
+<div class="grp">Build</div>
+<a href="/Docs/build-system.html">Build System</a>
+<a href="/Docs/bootstrap-from-source.html">Bootstrapping Aether from source (HEAD)</a>
+<a href="/Docs/install-layout.html">Aether install layout</a>
+<a href="/Docs/runtime-config.html">Runtime Configuration - Quick Reference</a>
+<a href="/Docs/per-process-config.html">Per-process configuration in Aether</a>
+<a href="/Docs/cic-help.html">ae help &lt;script&gt; Offline diagnostics for config-IS-code</a>
+<div class="grp">More</div>
+<a href="/Docs/allocators.html">Allocators</a>
+<a href="/Docs/bindgen-consts.html">ae bindgen consts, importing C macro constants</a>
+<a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
+<a href="/Docs/contract-folding.html">Compile-time contract folding — costed design</a>
+<a href="/Docs/dsl-without-macros.html" class="on">DSL without macros, why Aether doesn't need macro_rules!</a>
+<a href="/Docs/error-unification.html">Unifying T? and (value, err) — costed design</a>
+<a href="/Docs/formatter.html">ae fmt, the source formatter</a>
+<a href="/Docs/isolated.html">Isolated[T]: move-only actor message payloads (#479)</a>
+<a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
+<a href="/Docs/profiling-guide.html">Aether Runtime Profiling Guide</a>
+<a href="/Docs/release-glibc-portability.html">Release binary portability across glibc versions</a>
+<a href="/Docs/when-static-if.html">Compile-time when / static-if</a></nav>
+    <main class="doc-main">
+      <article class="doc-body" id="doc">
+        <div class="bc"><span class="prompt">$</span>docs / more</div>
+<h1 id="dsl-without-macros-why-aether-doesnt-need-macro_rules">DSL without macros, why Aether doesn't need <code>macro_rules!</code></h1>
+<p>A short comparison between Aether's trailing-block DSL story (see <a href="/Docs/closures-and-builder-dsl.html"><code>closures-and-builder-dsl.md</code></a>) and the Rust macro tower (<code>macro_rules!</code> → proc-macros → <code>syn</code>/<code>quote</code>) that Rust DSLs have to climb. The point isn't a beauty contest; it's that the two designs hit different ceilings for different reasons, and being honest about both is useful when choosing or evaluating either.</p>
+<h2 id="the-shape-under-discussion">The shape under discussion</h2>
+<p>A nested, declarative-feeling DSL, the GUI / SwiftUI / kotlinx.html / Sinatra shape:</p>
+<pre><code>frame(<span class="str">"App"</span>) {
+    panel(<span class="str">"Controls"</span>) {
+        button(<span class="str">"OK"</span>)
+        button(<span class="str">"Cancel"</span>)
+    }
+}</code></pre>
+<p>In Rust this would typically be a function-like macro:</p>
+<pre><code>gui! {
+    frame("App") {
+        panel("Controls") {
+            button("OK");
+            button("Cancel");
+        }
+    }
+}</code></pre>
+<p>Both produce the same surface. The machinery underneath is what differs.</p>
+<h2 id="three-way-comparisons">Three-way comparisons</h2>
+<p>The GUI shape above is the easy case, flat structural nesting. The interesting differences show up when the DSL has to carry <em>behaviour</em>, <em>types</em>, or domain semantics the language was never designed for. Three worked examples below; in each one the alternatives picked different points on the trade.</p>
+<h3 id="test-specs-rspec--jest--aether">Test specs (RSpec / Jest / Aether)</h3>
+<p>Test DSLs are interesting because they have to capture <em>mutable state across</em> <code>before</code> / <code>it</code> / <code>after</code>, <em>and</em> the assertion body needs to read like prose. Different language families pay for that in different ways.</p>
+<p><strong>RSpec (Ruby).</strong> The DSL is trailing blocks all the way down. State crossing <code>before</code>/<code>it</code> lives in instance variables; the closure is an implicit <code>self</code> bound to a context object the framework builds.</p>
+<pre><code>describe "Account" do
+  before { @account = Account.new(balance: 100) }
+  it "deducts on withdrawal" do
+    @account.withdraw(30)
+    expect(@account.balance).to eq(70)
+  end
+end</code></pre>
+<p><strong>Jest (JS).</strong> Same shape, no instance variables. State crossing <code>beforeEach</code>/<code>it</code> lives in <code>let</code> bindings the closures capture by reference. The cost is each callback being an explicit <code>() =&gt; { ... }</code>.</p>
+<pre><code>describe("Account", () =&gt; {
+  let account;
+  beforeEach(() =&gt; { account = new Account({ balance: 100 }); });
+  it("deducts on withdrawal", () =&gt; {
+    account.withdraw(30);
+    expect(account.balance).toBe(70);
+  });
+});</code></pre>
+<p><strong>Rust</strong> never seriously attempts this shape. <code>#[test]</code> is function-attribute-based; <code>rstest</code>, <code>test_case</code> etc. add fixtures and parameterised tests but don't try the nested <code>describe</code>/<code>it</code> form, because <code>macro_rules!</code> would have to invent its own scope-and-capture story across nested blocks. The honest answer in the Rust ecosystem is "flat <code>#[test]</code> functions, fixtures via traits or proc-macros."</p>
+<p><strong>Aether.</strong> Trailing blocks for structure, <code>callback</code> blocks (real closures with implicit capture, <a href="/Docs/closures-and-builder-dsl.html#callback-blocks"><code>closures-and-builder-dsl.md</code> §Callback blocks</a>) for the actual test bodies. Shared state across <code>before</code>/<code>it</code> lives in <code>ref</code> cells the closures capture by pointer:</p>
+<pre><code>describe(<span class="str">"Account"</span>) {
+    account = ref(<span class="num">0</span>)
+    before <span class="kw">callback</span> { ref_set(account, account_new(<span class="num">100</span>)) }
+    it(<span class="str">"deducts on withdrawal"</span>) <span class="kw">callback</span> {
+        a = ref_get(account)
+        account_withdraw(a, <span class="num">30</span>)
+        expect_eq(account_balance(a), <span class="num">70</span>)
+    }
+}</code></pre>
+<p>The structural block (<code>describe { ... }</code>) and the closure-capturing block (<code>it(...) callback { ... }</code>) are <em>different forms</em> of trailing block, that distinction is what makes the DSL legible. The structural block runs inline at registration time; the <code>callback</code> block is a real closure stored in the test registry and invoked later. Both fall out of the language; there's no DSL parser to write.</p>
+<h3 id="sql-query-builders-diesel--jooq--aether">SQL query builders (Diesel / jOOQ / Aether)</h3>
+<p>The interesting axis here is <strong>type checking against the schema</strong>, not nesting. Each ecosystem picked a different way to get there.</p>
+<p><strong>Diesel (Rust).</strong> Proc-macros generate a typed schema module from the DB at compile time. The query is composed via methods, but the <em>types</em> that make <code>users.filter(...).select(...)</code> type-check are macro output.</p>
+<pre><code>use schema::users::dsl::*;
+let actives = users
+    .filter(active.eq(true))
+    .order(created_at.desc())
+    .limit(10)
+    .load::&lt;User&gt;(&amp;mut conn)?;</code></pre>
+<p>Strong correctness guarantees, expensive build-time machinery, and schema changes require regenerating the macro output.</p>
+<p><strong>jOOQ (Java).</strong> A code-generation step builds a typed DSL from the live schema; queries compose via a fluent builder. No macros, Java doesn't have them, so the code-gen step is an external tool.</p>
+<pre><code>List&lt;UsersRecord&gt; actives = ctx
+    .selectFrom(USERS)
+    .where(USERS.ACTIVE.eq(true))
+    .orderBy(USERS.CREATED_AT.desc())
+    .limit(10)
+    .fetch();</code></pre>
+<p>Same idea as Diesel without the macro layer: the typed bindings come from an external generator that runs against the schema.</p>
+<p><strong>Aether.</strong> Builder-flavour trailing block. The setters fill a config object; the function executes with the filled config; the typed bindings come from the same <code>--emit=lib</code> C-ABI shape Aether uses for everything else.</p>
+<pre><code><span class="kw">import</span> std.sql
+
+actives = sql.select(users) {
+    where(eq(users.active, <span class="kw">true</span>))
+    order_by(desc(users.created_at))
+    limit(<span class="num">10</span>)
+}</code></pre>
+<p>The seam this exposes is real: Aether's type system today doesn't have a way to bind the schema's column types into the DSL without code-gen either. The honest comparison is "Aether avoids the macro tower but needs the same code-gen step Java needs for the <em>typed</em> layer."  The ergonomic improvement over Java is in the call site, the trailing block reads as nested clauses rather than a method chain, but the upstream type-binding work is the same shape. A future Aether feature that lets <code>--emit=ast</code> consume a schema and emit typed bindings would close that gap.</p>
+<h3 id="a-domain-that-resists-flat-description-interactive-3d-scenes">A domain that resists flat description: interactive 3D scenes</h3>
+<p>The earlier examples have a flat serialised form that captures most of what matters, HTML for a GUI, SQL for a query. Interactive 3D doesn't. A glTF file describes the <em>renderable state</em> of a scene; it deliberately discards the <em>parametric</em>, <em>behavioural</em>, and <em>constraint</em> layers that make a scene <em>interactive</em>. That's not a bug in glTF, it's the format doing its job, which is "snapshot for renderers", but it means there's no canonical source form a DSL can mirror.</p>
+<p><strong>Concretely</strong>, in an interactive scene the author wants to say:</p>
+<ul><li>This door is the child of the room, but its open angle is a closure over <code>player_distance</code> and <code>interact_pressed</code>.</li><li>This particle emitter's rate is <code>clamp(60, 10, distance_to_camera / 0.5)</code>, re-evaluated per frame.</li><li>This NPC's chase target is whichever of <code>[player, decoy_1, decoy_2]</code> is closest, with a 0.5s hysteresis.</li></ul>
+<p>glTF can encode none of those without an <code>extras</code> field carrying a script blob. The KHR_animation_pointer extension and the various behaviour-graph extensions (<code>KHR_interactivity</code>, vendor-specific ones) are explicit admissions that the serialised form lost something essential and needs a programming language smuggled back in.</p>
+<p><strong>Three actual alternatives:</strong></p>
+<p><strong>Unity prefabs (C# <code>MonoBehaviour</code>).</strong> The scene is a tree of GameObjects with components attached, edited in a visual editor and serialised to YAML. Behaviours are C# scripts referenced by name; the authoring happens in the editor, not in code, and the serialised form is the editor's output, not the source of truth.</p>
+<pre><code>Door:
+  components:
+    - Transform: { ... }
+    - DoorScript: { open_angle_curve: ..., trigger_radius: <span class="num">2.0</span> }</code></pre>
+<p>Power, but the "source" is the editor; reading the YAML doesn't tell you what the door <em>does</em>.</p>
+<p><strong>Three.js (JS fluent code).</strong> The scene is built programmatically:</p>
+<pre><code>const door = new THREE.Mesh(doorGeo, doorMat);
+room.add(door);
+clock.addEventListener('tick', () =&gt; {
+  if (distance(player, door) &lt; 2 &amp;&amp; input.E) {
+    door.rotation.y = lerp(door.rotation.y, openAngle, 0.1);
+  }
+});</code></pre>
+<p>No DSL surface at all, it's just a JS codebase. Behaviour is first- class (closures over scene state), but structure (parent-child, layout, constraints) is scattered across <code>.add()</code> calls and there's no nesting to read.</p>
+<p><strong>Aether.</strong> Trailing blocks for structure, real closures for behaviour, both first-class:</p>
+<pre><code><span class="kw">import</span> contrib.scene <span class="kw">as</span> s
+
+room = s.room(<span class="str">"Library"</span>) {
+    door = s.door(<span class="str">"east_exit"</span>) {
+        position(<span class="num">4.0</span>, <span class="num">0.0</span>, <span class="num">0.0</span>)
+        open_angle = ref(<span class="num">0.0</span>)
+        s.on_frame() <span class="kw">callback</span> {
+            <span class="kw">if</span> s.distance(s.player(), door) &lt; <span class="num">2.0</span> &amp;&amp; s.input(<span class="str">"E"</span>) {
+                ref_set(open_angle,
+                        s.lerp(ref_get(open_angle), <span class="num">90.0</span>, <span class="num">0.1</span>))
+            }
+            s.set_rotation(door, <span class="num">0.0</span>, ref_get(open_angle), <span class="num">0.0</span>)
+        }
+    }
+    s.npc(<span class="str">"librarian"</span>) {
+        s.chase_target() <span class="kw">callback</span> {
+            <span class="kw">return</span> s.nearest(s.player(), [s.decoy(<span class="num">1</span>), s.decoy(<span class="num">2</span>)])
+        }
+    }
+}</code></pre>
+<p>Three things this gets that the serialised forms structurally can't:</p>
+<ol><li><strong>Structure and behaviour at the same level.</strong> The closure that updates <code>open_angle</code> is written next to the <code>door</code> declaration that owns it. No "go look in the script file with the matching name."</li><li><strong>Real expressions in parameter slots.</strong> <code>s.chase_target()</code> takes a <code>callback</code>; the body is just Aether code, <code>if</code>, function calls, <code>for</code>, all of it. No expression mini-language to parse or escape.</li><li><strong>No loss of fidelity round-tripping to a renderer.</strong> You can still <em>export</em> glTF from this scene, but the source of truth is the Aether code, not a serialised snapshot. The closures don't survive the export because they're not renderable state, that's the point.</li></ol>
+<p>The Rust equivalent of this would need a behaviour-tree crate's macros (<code>bevy</code>'s ECS macros, for example), and the macros pay for everything they buy by being their own learning curve. Aether's trailing-block mechanism is the same one that handles GUIs and tests and queries, one construct, applied across domains.</p>
+<h2 id="why-rust-needs-a-macro-layer">Why Rust needs a macro layer</h2>
+<p>Rust the language doesn't have first-class trailing blocks that execute in the caller's scope. A call like <code>panel("Controls") { button("OK") }</code> isn't valid Rust, <code>{ ... }</code> after a call site is a separate expression, not an argument to <code>panel</code>. So a nested DSL has to be <em>parsed by user code</em>.</p>
+<p>The standard escalation:</p>
+<ol><li><strong><code>macro_rules!</code></strong>, declarative, pattern-match over token trees. Works for <code>vec![1, 2, 3]</code>, <code>hashmap! { "k" =&gt; "v" }</code>. Hits a wall on arbitrary nesting: error messages on typos inside the block become "expected <code>something</code>, got <code>something else</code>" pointing into expanded code, with no real source context. The Little Book of Rust Macros covers TT-munchers and the recursion patterns; the part that gets quiet is exactly where production DSLs care most.</li><li><strong>Proc-macros + <code>syn</code>/<code>quote</code></strong>, write a parser in Rust, over a <code>TokenStream</code>, using the same crates rust-analyzer uses internally. This is real work: hand-built recursive descent, span tracking for each token so errors point somewhere useful, and re-emitting code as another <code>TokenStream</code>. <code>syn</code> exists because this is hard enough that nobody should write it from scratch.</li></ol>
+<p>The pattern people hit: the declarative-macro docs feel thin exactly at the point where the real problem starts. That's not a gap in the docs, it's the tool running out of road. <code>macro_rules!</code> is a pattern-matching DSL over token trees, and arbitrary nesting with good diagnostics requires writing a parser, which is what <code>syn</code> is.</p>
+<h2 id="what-aether-does-instead">What Aether does instead</h2>
+<p>The trailing block isn't a macro construct, it's part of the language grammar. <code>panel("Controls") { button("OK") }</code> parses as "call <code>panel</code>, then run this block." The compiler injects <code>_aether_ctx_push(panel_result)</code> before the block and <code>_aether_ctx_pop()</code> after; function calls inside the block whose first param is <code>_ctx: ptr</code> get <code>_aether_ctx_get()</code> auto-injected as their first argument. The whole mechanism is in <a href="/Docs/closures-and-builder-dsl.html#builder-context-stack"><code>closures-and-builder-dsl.md</code></a>.</p>
+<p>What this means in practice:</p>
+<ul><li><strong>No parser to write.</strong> The DSL surface is "function calls with a trailing block." Nesting works because trailing blocks nest. There's no user-side recursion to hand-build.</li><li><strong>Errors come from the regular typechecker.</strong> A typo inside <code>panel { ... }</code> surfaces as "undefined <code>buton</code>" at the line you wrote it, with the same diagnostic quality as any other call site. The receiver-scoping rules (<a href="/Docs/closures-and-builder-dsl.html#dsl-block-receiver-scoping-333"><code>closures-and-builder-dsl.md</code> §DSL Block Receiver Scoping</a>) even let bare-name calls inside a <code>bash.test(b) { ... }</code> block fall back through <code>bash_&lt;name&gt;</code> without a companion <code>import bash (script, jobs)</code> line.</li><li><strong>Refactor safety.</strong> Rename a setter and every call site updates, because the setter is a regular function, not a macro-synthesised identifier. rust-analyzer's rename across macro bodies is a separate feature with separate caveats; Aether's editor tooling sees the DSL body as ordinary code.</li><li><strong>No second language.</strong> Rust DSLs effectively live in a parallel syntactic universe (the macro body's grammar), and <code>syn</code> is a compatibility shim that makes that universe look like Rust. Aether DSL bodies <em>are</em> Aether, <code>for</code>, <code>if</code>, <code>${...}</code> interpolation, closures, ref cells, <code>defer</code> all work and behave identically to how they work outside the block.</li></ul>
+<h2 id="where-aether-hits-its-own-ceiling">Where Aether hits its own ceiling</h2>
+<p>This is the honest part. Aether's trailing block is <em>imperative</em>, it runs its statements in source order. A DSL where order shouldn't matter (declarative attributes, a graph that wants topological resolution, a spec where the user describes <em>what</em> and not <em>the order of operations</em>) sits awkwardly.</p>
+<p>The escape hatch is the builder variant, <code>builder ... with &lt;factory&gt;</code> (<a href="/Docs/closures-and-builder-dsl.html#builder-functions-configure-then-execute"><code>closures-and-builder-dsl.md</code> §Builder Functions</a>). The block runs first against a config object filled via setter calls; the function runs second with that config. This is the closest analogue to a real declarative DSL and it works for most cases:</p>
+<pre><code><span class="kw">builder</span> compile(src: <span class="fn">string</span>) {
+    rel = <span class="str">""</span>
+    <span class="kw">if</span> _builder != <span class="kw">null</span> {
+        <span class="kw">if</span> map_has(_builder, <span class="str">"release"</span>) == <span class="num">1</span> {
+            rel = map_get(_builder, <span class="str">"release"</span>)
+        }
+    }
+    println(<span class="str">"compiling ${src} with release=${rel}"</span>)
+}
+
+<span class="com">// User writes, block fills config, function runs with it</span>
+compile(<span class="str">"Main.java"</span>) {
+    set_release(<span class="str">"21"</span>)
+    set_lint(<span class="str">"all"</span>)
+}</code></pre>
+<p>But there's still ordering: the setters fire in source order, so a "genuinely order-independent" spec has to be reduced to "fill a bag of fields, then resolve." If you need actual declarative semantics where the runtime is allowed to reorder, you build the bag explicitly in the block and post-process it after the call returns. That's a real seam.</p>
+<p>Rust macros have the same problem, they only see token trees, so they can reorder syntactically but can't reorder <em>semantically</em> without emitting a second compile pass. Different ceiling, same general neighbourhood.</p>
+<h2 id="the-trade-summarised">The trade summarised</h2>
+<div class="tw"><table><thead><tr><th>Concern</th><th>Rust (<code>macro_rules!</code> → <code>syn</code>)</th><th>Aether (trailing blocks + <code>_ctx</code>)</th></tr></thead><tbody><tr><td>Surface for <code>panel { button { ... } }</code></td><td>Macro-defined</td><td>Language-native</td></tr><tr><td>Who parses the body</td><td>User code (you, via <code>syn</code>)</td><td>The Aether compiler</td></tr><tr><td>Typo diagnostics</td><td>Macro-expansion error, often pointing into expanded code</td><td>Regular typechecker error at the typo's line</td></tr><tr><td>Editor refactor support</td><td>Limited inside macro bodies</td><td>Same as ordinary code</td></tr><tr><td>Cost to add a setter / nested form</td><td>New macro arm or new proc-macro logic</td><td>New function with <code>_ctx: ptr</code> first param</td></tr><tr><td>Order-independent DSLs</td><td>Hard (token trees only)</td><td>Hard (block is imperative; <code>builder...with</code> is the workaround)</td></tr><tr><td>Reach if the language doesn't bend</td><td>Macros bend it for you (powerful, expensive)</td><td>None, you're stuck with what trailing blocks express</td></tr></tbody></table></div>
+<p>The trade is: Rust pays in tooling complexity to get unbounded syntactic power. Aether pays in expressive ceiling to get diagnostics-for-free and no second language.</p>
+<h2 id="when-this-matters">When this matters</h2>
+<p>If a Rust crate's README shows a deeply-nested DSL macro and the linked issue tracker has a recurring "error messages inside <code>foo!</code> are awful" thread, that's the macro-tower tax showing up. If an Aether project needs a DSL whose semantics genuinely don't care about statement order, that's the imperative-block tax showing up.</p>
+<p>For the nested-builder shape both designs aim at, GUIs, HTML emission, build descriptions, configuration objects, Aether reaches the surface with less machinery. For DSLs whose body is <em>not</em> a sequence of effects (constraint solvers, regex builders that want to be a pure tree, anything the user thinks of as "data not code"), Rust macros still have more reach, at the cost of all the parsing work.</p>
+<hr>
+<p>Companion read: <a href="/Docs/closures-and-builder-dsl.html"><code>closures-and-builder-dsl.md</code></a> covers the implementation in detail, closure compilation, <code>_ctx</code> injection, the builder context stack, ref cells for shared mutable state, and the same-line rule that makes <code>result = build()</code> not greedily eat the next-line block.</p>
+      </article>
+    </main>
+    <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#the-shape-under-discussion" class="l2" data-id="the-shape-under-discussion">The shape under discussion</a><a href="#three-way-comparisons" class="l2" data-id="three-way-comparisons">Three-way comparisons</a><a href="#test-specs-rspec--jest--aether" class="l3" data-id="test-specs-rspec--jest--aether">Test specs (RSpec / Jest / Aether)</a><a href="#sql-query-builders-diesel--jooq--aether" class="l3" data-id="sql-query-builders-diesel--jooq--aether">SQL query builders (Diesel / jOOQ / Aether)</a><a href="#a-domain-that-resists-flat-description-interactive-3d-scenes" class="l3" data-id="a-domain-that-resists-flat-description-interactive-3d-scenes">A domain that resists flat description: interactive 3D scenes</a><a href="#why-rust-needs-a-macro-layer" class="l2" data-id="why-rust-needs-a-macro-layer">Why Rust needs a macro layer</a><a href="#what-aether-does-instead" class="l2" data-id="what-aether-does-instead">What Aether does instead</a><a href="#where-aether-hits-its-own-ceiling" class="l2" data-id="where-aether-hits-its-own-ceiling">Where Aether hits its own ceiling</a><a href="#the-trade-summarised" class="l2" data-id="the-trade-summarised">The trade summarised</a><a href="#when-this-matters" class="l2" data-id="when-this-matters">When this matters</a></nav>
+  </div>
+</div>
+<script src="/docs.js" defer></script>
+<footer class="site-foot">
+  <div class="wrap foot">
+    <span class="ae">ae</span>
+    <span class="m">MIT licensed · compiles to C · v0.462</span>
+    <nav><a href="/Docs/getting-started.html">Docs</a><a href="/repl.html">Playground</a><a href="https://github.com/aether-lang-org/aether">GitHub</a></nav>
+  </div>
+</footer>
+</body>
+</html>

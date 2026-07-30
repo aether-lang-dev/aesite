@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ae bindgen consts, importing C macro constants · Aether</title>
+<meta name="description" content="Ports of C codebases hand-copy flag macros, log levels, error codes and">
+<link rel="canonical" href="https://aether-lang.dev/Docs/bindgen-consts.html">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ae bindgen consts, importing C macro constants · Aether">
+<meta property="og:description" content="Ports of C codebases hand-copy flag macros, log levels, error codes and">
+<meta property="og:url" content="https://aether-lang.dev/Docs/bindgen-consts.html">
+<meta property="og:image" content="https://aether-lang.dev/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/aether.css">
+</head>
+<body>
+<a class="skip" href="#doc">Skip to content</a>
+<header class="site-head">
+  <div class="wrap bar">
+    <a class="brand" href="/" aria-label="Aether"><span class="ae">ae</span><span class="nm">aether</span></a>
+    <nav>
+      <a href="/repl.html">Playground</a>
+      <a href="/Docs/getting-started.html" class="on">Docs</a>
+      <a class="src" href="https://github.com/aether-lang-org/aether">Source</a>
+      <span class="vtag">v0.462</span>
+    </nav>
+  </div>
+</header>
+<div class="wrap">
+  <div class="doc-shell">
+    <nav class="doc-nav" aria-label="Documentation">
+      <div class="docsearch"><input id="ds" type="search" placeholder="Search the docs" aria-label="Search documentation" autocomplete="off" spellcheck="false"><kbd>/</kbd><div class="ds-res" id="dsres" role="listbox"></div></div>
+<div class="grp">Start</div>
+<a href="/Docs/getting-started.html">Getting Started with Aether</a>
+<a href="/Docs/tutorial.html">Aether Language Tutorial</a>
+<a href="/Docs/next-steps.html">Next Steps</a>
+<div class="grp">Language</div>
+<a href="/Docs/language-reference.html">Aether Language Reference</a>
+<a href="/Docs/type-inference-guide.html">Aether Type Inference Guide</a>
+<a href="/Docs/type-annotation-style-guide.html">Aether Type Annotation Style Guide</a>
+<a href="/Docs/type-inference-multi-value-returns.html">Multi-Value Return Type Inference</a>
+<a href="/Docs/distinct-types.html">Distinct Types</a>
+<a href="/Docs/sequences.html">Sequences (*StringSeq)</a>
+<a href="/Docs/named-args-and-select.html">Named Arguments and select()</a>
+<a href="/Docs/closures-and-builder-dsl.html">Closures and Builder-Style DSL in Aether</a>
+<a href="/Docs/closures-and-lifetimes.html">Closures and Environment Lifetimes</a>
+<a href="/Docs/module-system-design.html">Aether Module System</a>
+<div class="grp">Runtime</div>
+<a href="/Docs/architecture.html">Aether Architecture</a>
+<a href="/Docs/actor-concurrency.html">Aether Runtime Guide</a>
+<a href="/Docs/structured-concurrency.html">Structured Concurrency for Aether, Design Direction</a>
+<a href="/Docs/scheduler-quick-reference.html">Aether Scheduler - Quick Reference</a>
+<a href="/Docs/memory-management.html">Aether Memory Management</a>
+<a href="/Docs/runtime-optimizations.html">Runtime Optimizations</a>
+<a href="/Docs/numa-support.html">NUMA Support in Aether</a>
+<div class="grp">Interop</div>
+<a href="/Docs/c-interop.html">C Interoperability</a>
+<a href="/Docs/c-embedding.html">Embedding Aether Actors in C Applications</a>
+<a href="/Docs/emit-lib.html">Embedding Aether as a Shared Library (--emit=lib)</a>
+<a href="/Docs/embedded-namespaces-and-host-bindings.html">Aether as a Configuration Language, v2: Namespaces and Generated Bindings</a>
+<a href="/Docs/aether-embedded-in-host-applications.html">Aether as a Configuration Language for Other Languages</a>
+<a href="/Docs/lib-caller-info.html">--emit=lib caller-info channel</a>
+<div class="grp">Stdlib</div>
+<a href="/Docs/stdlib-reference.html">Aether Standard Library Reference</a>
+<a href="/Docs/stdlib-api.html">Aether Standard Library Guide</a>
+<a href="/Docs/stdlib-module-pattern.html">Aether Stdlib Module Pattern</a>
+<a href="/Docs/stdlib-vs-contrib.html">std/ vs contrib/ placement decisions</a>
+<a href="/Docs/http-server.html">std.http HTTP Server</a>
+<a href="/Docs/http-reverse-proxy.html">std.http.proxy reverse proxy</a>
+<a href="/Docs/http-handler-context.html">HTTP handlers with per-server / per-route state</a>
+<a href="/Docs/http-vcr.html">HTTP Record/Replay (VCR), moved out of Aether</a>
+<a href="/Docs/json-parser-design.html">std.json Design Notes</a>
+<div class="grp">Safety</div>
+<a href="/Docs/containment-sandbox.html">Containment and Sandboxing in Aether</a>
+<a href="/Docs/hide-and-seal.html">hide and seal except scope-level capability denial</a>
+<a href="/Docs/compiler-trust-boundary.html">The Compiler Trust Boundary</a>
+<a href="/Docs/config-is-code.html">Config IS Code</a>
+<a href="/Docs/aether_compared_to_capsicum.html">Aether Sandbox Model vs. BSD Capsicum: Architecture, Parallels, and FreeBSD Integration</a>
+<div class="grp">Build</div>
+<a href="/Docs/build-system.html">Build System</a>
+<a href="/Docs/bootstrap-from-source.html">Bootstrapping Aether from source (HEAD)</a>
+<a href="/Docs/install-layout.html">Aether install layout</a>
+<a href="/Docs/runtime-config.html">Runtime Configuration - Quick Reference</a>
+<a href="/Docs/per-process-config.html">Per-process configuration in Aether</a>
+<a href="/Docs/cic-help.html">ae help &lt;script&gt; Offline diagnostics for config-IS-code</a>
+<div class="grp">More</div>
+<a href="/Docs/allocators.html">Allocators</a>
+<a href="/Docs/bindgen-consts.html" class="on">ae bindgen consts, importing C macro constants</a>
+<a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
+<a href="/Docs/contract-folding.html">Compile-time contract folding — costed design</a>
+<a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn't need macro_rules!</a>
+<a href="/Docs/error-unification.html">Unifying T? and (value, err) — costed design</a>
+<a href="/Docs/formatter.html">ae fmt, the source formatter</a>
+<a href="/Docs/isolated.html">Isolated[T]: move-only actor message payloads (#479)</a>
+<a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
+<a href="/Docs/profiling-guide.html">Aether Runtime Profiling Guide</a>
+<a href="/Docs/release-glibc-portability.html">Release binary portability across glibc versions</a>
+<a href="/Docs/when-static-if.html">Compile-time when / static-if</a></nav>
+    <main class="doc-main">
+      <article class="doc-body" id="doc">
+        <div class="bc"><span class="prompt">$</span>docs / more</div>
+<h1 id="ae-bindgen-consts-importing-c-macro-constants"><code>ae bindgen consts</code>, importing C macro constants</h1>
+<p>Ports of C codebases hand-copy flag macros, log levels, error codes and size constants into <code>.ae</code> files, and every copied value drifts silently when the C header changes. <code>ae bindgen consts</code> generates that file from the header instead (#1245).</p>
+<pre><code>ae bindgen consts sentinel.h -o lib/sentinel/module.ae
+ae bindgen consts redis.h -I ../src --match OBJ_ -o lib/objflags/module.ae</code></pre>
+<pre><code><span class="kw">import</span> sentinel
+
+main() {
+    flags = sentinel.SRI_S_DOWN | sentinel.SRI_O_DOWN
+    <span class="kw">if</span> flags == sentinel.SRI_FAILOVER { ... }   <span class="com">// agrees with C exactly</span>
+}</code></pre>
+<h2 id="what-imports">What imports</h2>
+<p>Object-like macros whose full expansion is one of:</p>
+<div class="tw"><table><thead><tr><th>Expansion</th><th>Example</th><th>Generated</th></tr></thead><tbody><tr><td>integer constant expression</td><td><code>(1&lt;&lt;4)</code>, <code>(A\|B)</code>, <code>512ll*1024*1024</code>, <code>-1</code>, <code>'x'</code></td><td><code>const NAME = &lt;folded value&gt;</code></td></tr><tr><td>string literal(s)</td><td><code>"7.4.0"</code>, <code>"a" "b"</code></td><td><code>const NAME = "ab"</code></td></tr><tr><td>float literal</td><td><code>0.75</code>, <code>1e6</code></td><td><code>const NAME = 0.75</code></td></tr></tbody></table></div>
+<p>The C preprocessor does the work: candidates come from <code>cc -E -dM</code>, and a probe file run through <code>cc -E</code> resolves nested macros, so the values are exactly what a C compilation unit would see. Nothing is executed; both stages are preprocessor-only.</p>
+<h2 id="what-does-not-import">What does not import</h2>
+<p>Function-like macros, casts (<code>((void*)0)</code>), and anything that is not a scalar constant expression. Skipped macros are listed in a comment at the end of the generated file so the omission is visible in review, never silent. Names in the reserved namespace (leading underscore) are excluded up front.</p>
+<h2 id="flags">Flags</h2>
+<div class="tw"><table><thead><tr><th>Flag</th><th>Meaning</th></tr></thead><tbody><tr><td><code>-I &lt;dir&gt;</code></td><td>Include directory for the preprocessor (repeatable)</td></tr><tr><td><code>--match &lt;PREFIX&gt;</code></td><td>Import only macros whose name starts with PREFIX</td></tr><tr><td><code>-o &lt;out.ae&gt;</code></td><td>Output file; stdout when omitted</td></tr></tbody></table></div>
+<h2 id="workflow-notes">Workflow notes</h2>
+<p>The generated file starts with a <code>do not edit</code> header and is meant to be regenerated whenever the C header changes; check it in like any other source so diffs show constant changes explicitly. The generated module exports every imported const, so <code>import &lt;name&gt;</code> then <code>&lt;name&gt;.CONST</code> works with the standard package layout (<code>lib/&lt;name&gt;/module.ae</code>).</p>
+      </article>
+    </main>
+    <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#what-imports" class="l2" data-id="what-imports">What imports</a><a href="#what-does-not-import" class="l2" data-id="what-does-not-import">What does not import</a><a href="#flags" class="l2" data-id="flags">Flags</a><a href="#workflow-notes" class="l2" data-id="workflow-notes">Workflow notes</a></nav>
+  </div>
+</div>
+<script src="/docs.js" defer></script>
+<footer class="site-foot">
+  <div class="wrap foot">
+    <span class="ae">ae</span>
+    <span class="m">MIT licensed · compiles to C · v0.462</span>
+    <nav><a href="/Docs/getting-started.html">Docs</a><a href="/repl.html">Playground</a><a href="https://github.com/aether-lang-org/aether">GitHub</a></nav>
+  </div>
+</footer>
+</body>
+</html>

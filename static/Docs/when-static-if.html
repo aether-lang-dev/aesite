@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Compile-time when / static-if · Aether</title>
+<meta name="description" content="when is a compile-time if. The condition is evaluated by the compiler,">
+<link rel="canonical" href="https://aether-lang.dev/Docs/when-static-if.html">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Compile-time when / static-if · Aether">
+<meta property="og:description" content="when is a compile-time if. The condition is evaluated by the compiler,">
+<meta property="og:url" content="https://aether-lang.dev/Docs/when-static-if.html">
+<meta property="og:image" content="https://aether-lang.dev/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/aether.css">
+</head>
+<body>
+<a class="skip" href="#doc">Skip to content</a>
+<header class="site-head">
+  <div class="wrap bar">
+    <a class="brand" href="/" aria-label="Aether"><span class="ae">ae</span><span class="nm">aether</span></a>
+    <nav>
+      <a href="/repl.html">Playground</a>
+      <a href="/Docs/getting-started.html" class="on">Docs</a>
+      <a class="src" href="https://github.com/aether-lang-org/aether">Source</a>
+      <span class="vtag">v0.462</span>
+    </nav>
+  </div>
+</header>
+<div class="wrap">
+  <div class="doc-shell">
+    <nav class="doc-nav" aria-label="Documentation">
+      <div class="docsearch"><input id="ds" type="search" placeholder="Search the docs" aria-label="Search documentation" autocomplete="off" spellcheck="false"><kbd>/</kbd><div class="ds-res" id="dsres" role="listbox"></div></div>
+<div class="grp">Start</div>
+<a href="/Docs/getting-started.html">Getting Started with Aether</a>
+<a href="/Docs/tutorial.html">Aether Language Tutorial</a>
+<a href="/Docs/next-steps.html">Next Steps</a>
+<div class="grp">Language</div>
+<a href="/Docs/language-reference.html">Aether Language Reference</a>
+<a href="/Docs/type-inference-guide.html">Aether Type Inference Guide</a>
+<a href="/Docs/type-annotation-style-guide.html">Aether Type Annotation Style Guide</a>
+<a href="/Docs/type-inference-multi-value-returns.html">Multi-Value Return Type Inference</a>
+<a href="/Docs/distinct-types.html">Distinct Types</a>
+<a href="/Docs/sequences.html">Sequences (*StringSeq)</a>
+<a href="/Docs/named-args-and-select.html">Named Arguments and select()</a>
+<a href="/Docs/closures-and-builder-dsl.html">Closures and Builder-Style DSL in Aether</a>
+<a href="/Docs/closures-and-lifetimes.html">Closures and Environment Lifetimes</a>
+<a href="/Docs/module-system-design.html">Aether Module System</a>
+<div class="grp">Runtime</div>
+<a href="/Docs/architecture.html">Aether Architecture</a>
+<a href="/Docs/actor-concurrency.html">Aether Runtime Guide</a>
+<a href="/Docs/structured-concurrency.html">Structured Concurrency for Aether, Design Direction</a>
+<a href="/Docs/scheduler-quick-reference.html">Aether Scheduler - Quick Reference</a>
+<a href="/Docs/memory-management.html">Aether Memory Management</a>
+<a href="/Docs/runtime-optimizations.html">Runtime Optimizations</a>
+<a href="/Docs/numa-support.html">NUMA Support in Aether</a>
+<div class="grp">Interop</div>
+<a href="/Docs/c-interop.html">C Interoperability</a>
+<a href="/Docs/c-embedding.html">Embedding Aether Actors in C Applications</a>
+<a href="/Docs/emit-lib.html">Embedding Aether as a Shared Library (--emit=lib)</a>
+<a href="/Docs/embedded-namespaces-and-host-bindings.html">Aether as a Configuration Language, v2: Namespaces and Generated Bindings</a>
+<a href="/Docs/aether-embedded-in-host-applications.html">Aether as a Configuration Language for Other Languages</a>
+<a href="/Docs/lib-caller-info.html">--emit=lib caller-info channel</a>
+<div class="grp">Stdlib</div>
+<a href="/Docs/stdlib-reference.html">Aether Standard Library Reference</a>
+<a href="/Docs/stdlib-api.html">Aether Standard Library Guide</a>
+<a href="/Docs/stdlib-module-pattern.html">Aether Stdlib Module Pattern</a>
+<a href="/Docs/stdlib-vs-contrib.html">std/ vs contrib/ placement decisions</a>
+<a href="/Docs/http-server.html">std.http HTTP Server</a>
+<a href="/Docs/http-reverse-proxy.html">std.http.proxy reverse proxy</a>
+<a href="/Docs/http-handler-context.html">HTTP handlers with per-server / per-route state</a>
+<a href="/Docs/http-vcr.html">HTTP Record/Replay (VCR), moved out of Aether</a>
+<a href="/Docs/json-parser-design.html">std.json Design Notes</a>
+<div class="grp">Safety</div>
+<a href="/Docs/containment-sandbox.html">Containment and Sandboxing in Aether</a>
+<a href="/Docs/hide-and-seal.html">hide and seal except scope-level capability denial</a>
+<a href="/Docs/compiler-trust-boundary.html">The Compiler Trust Boundary</a>
+<a href="/Docs/config-is-code.html">Config IS Code</a>
+<a href="/Docs/aether_compared_to_capsicum.html">Aether Sandbox Model vs. BSD Capsicum: Architecture, Parallels, and FreeBSD Integration</a>
+<div class="grp">Build</div>
+<a href="/Docs/build-system.html">Build System</a>
+<a href="/Docs/bootstrap-from-source.html">Bootstrapping Aether from source (HEAD)</a>
+<a href="/Docs/install-layout.html">Aether install layout</a>
+<a href="/Docs/runtime-config.html">Runtime Configuration - Quick Reference</a>
+<a href="/Docs/per-process-config.html">Per-process configuration in Aether</a>
+<a href="/Docs/cic-help.html">ae help &lt;script&gt; Offline diagnostics for config-IS-code</a>
+<div class="grp">More</div>
+<a href="/Docs/allocators.html">Allocators</a>
+<a href="/Docs/bindgen-consts.html">ae bindgen consts, importing C macro constants</a>
+<a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
+<a href="/Docs/contract-folding.html">Compile-time contract folding — costed design</a>
+<a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn't need macro_rules!</a>
+<a href="/Docs/error-unification.html">Unifying T? and (value, err) — costed design</a>
+<a href="/Docs/formatter.html">ae fmt, the source formatter</a>
+<a href="/Docs/isolated.html">Isolated[T]: move-only actor message payloads (#479)</a>
+<a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
+<a href="/Docs/profiling-guide.html">Aether Runtime Profiling Guide</a>
+<a href="/Docs/release-glibc-portability.html">Release binary portability across glibc versions</a>
+<a href="/Docs/when-static-if.html" class="on">Compile-time when / static-if</a></nav>
+    <main class="doc-main">
+      <article class="doc-body" id="doc">
+        <div class="bc"><span class="prompt">$</span>docs / more</div>
+<h1 id="compile-time-when--static-if">Compile-time <code>when</code> / static-if</h1>
+<p><code>when</code> is a compile-time <code>if</code>. The condition is evaluated by the compiler, and <strong>only the selected arm is type-checked and emitted</strong>, the other arm parses but is pruned before any later phase ever sees it. This lets <code>.ae</code> source fork by platform or build capability <em>visibly in Aether</em> instead of pushing <code>#ifdef</code> into the generated C.</p>
+<pre><code><span class="kw">when</span> target.os == <span class="str">"windows"</span> {
+    <span class="kw">extern</span> win_only(handle: <span class="fn">ptr</span>) -&gt; <span class="fn">int</span>
+    poll(h: <span class="fn">ptr</span>) -&gt; <span class="fn">int</span> { <span class="kw">return</span> win_only(h) }
+} <span class="kw">else</span> {
+    poll(h: <span class="fn">ptr</span>) -&gt; <span class="fn">int</span> { <span class="kw">return</span> posix_poll(h) }
+}</code></pre>
+<p>On a non-Windows host the <code>windows</code> arm, extern binding and all, is discarded before type-checking. <code>win_only</code> never has to exist, type-check, or link. That is the whole point: platform-specific externs and bindings are gated cleanly, with no dead symbol leaking into the build.</p>
+<h2 id="surface">Surface</h2>
+<pre><code>when &lt;const-condition&gt; {
+    &lt;statements or top-level declarations&gt;
+} else {
+    &lt;statements or top-level declarations&gt;
+}</code></pre>
+<ul><li>Works as a <strong>statement</strong> inside a function body (the arms hold statements), and at <strong>top level</strong> around declarations, functions, externs, imports, structs (the arms hold declarations). The two forms are distinguished by where the <code>when</code> appears; you write them the same way.</li><li>The <code>else</code> is optional. When the condition is false and there is no <code>else</code>, the <code>when</code> contributes nothing.</li><li>Arms chain with <code>else when</code>:</li></ul>
+<pre><code>  <span class="kw">when</span> target.os == <span class="str">"darwin"</span> {
+      ...
+  } <span class="kw">else</span> <span class="kw">when</span> target.os == <span class="str">"linux"</span> {
+      ...
+  } <span class="kw">else</span> {
+      ...
+  }</code></pre>
+<ul><li>The arm braces are a <strong>compile-time grouping</strong>, not a runtime scope: at top level the surviving arm's declarations are spliced directly into the program, and in a function body the surviving arm's statements run in the enclosing scope (no extra <code>{ }</code> block in the generated C).</li></ul>
+<p><code>when</code> is also the keyword for Erlang-style function-clause guards (<code>classify(x) when x &lt; 0 -&gt; ...</code>). Those are unaffected: a guard <code>when</code> only appears <em>after</em> a clause's parameter list, never at the head of a statement or declaration, so the two uses never collide.</p>
+<h2 id="supported-condition-forms">Supported condition forms</h2>
+<p>The condition must reduce to a compile-time constant boolean. Supported building blocks:</p>
+<div class="tw"><table><thead><tr><th>Form</th><th>Example</th></tr></thead><tbody><tr><td>OS equality / inequality</td><td><code>target.os == "linux"</code>, <code>target.os != "windows"</code></td></tr><tr><td>Architecture equality / inequality</td><td><code>target.arch == "x86_64"</code>, <code>target.arch != "arm"</code></td></tr><tr><td>String-literal equality between two constants</td><td><code>"a" == "b"</code></td></tr><tr><td>Boolean literal</td><td><code>when true { ... }</code>, <code>when false { ... }</code></td></tr><tr><td>Numeric literal (nonzero is true)</td><td><code>when 1 { ... }</code></td></tr><tr><td>Negation</td><td><code>!(target.os == "windows")</code></td></tr><tr><td>Conjunction / disjunction</td><td><code>target.os == "darwin" \|\| target.os == "linux"</code></td></tr></tbody></table></div>
+<p>These compose freely with <code>&amp;&amp;</code>, <code>||</code>, and <code>!</code>.</p>
+<p>A condition that is <strong>not</strong> a compile-time constant (e.g. a runtime variable, an unsupported call, a comparison the folder doesn't recognise) is a <strong>hard compile error</strong>, the build fails with a message listing the supported forms. <code>when</code> never guesses an arm; if the compiler can't decide the condition at compile time, it stops.</p>
+<h3 id="targetos-and-targetarch"><code>target.os</code> and <code>target.arch</code></h3>
+<p><code>target.os</code> and <code>target.arch</code> are compiler-provided compile-time string constants describing the build target. They are sourced from the <strong>same C preprocessor macros</strong> the runtime's <code>os.platform()</code> uses (see <code>os_platform_raw</code> in <code>std/os/aether_os.c</code>), so the canonical names match across the toolchain. Note the "target" here is the host that built <code>aetherc</code>: <code>target_os_string</code> / <code>target_arch_string</code> in <code>compiler/codegen/optimizer.c</code> return values baked from the C preprocessor macros active when the compiler was compiled. <code>ae build --target wasm</code> does cross-compile the generated C to WebAssembly via <code>emcc</code>, but it does not change these constants: under <code>--target wasm</code> a <code>when target.os == ...</code> still reports the host, not <code>"wasm"</code>, exactly as <code>os.platform()</code> and <code>select()</code> also key off the host.</p>
+<div class="tw"><table><thead><tr><th>Constant</th><th>Canonical values</th></tr></thead><tbody><tr><td><code>target.os</code></td><td><code>"windows"</code>, <code>"darwin"</code> (macOS), <code>"linux"</code>, <code>"freebsd"</code>, <code>"openbsd"</code>, <code>"netbsd"</code>, <code>"dragonfly"</code>, <code>"solaris"</code>, <code>"wasm"</code>, <code>"unknown"</code></td></tr><tr><td><code>target.arch</code></td><td><code>"x86_64"</code>, <code>"aarch64"</code>, <code>"x86"</code>, <code>"arm"</code>, <code>"riscv64"</code>, <code>"ppc64"</code>, <code>"wasm"</code>, <code>"unknown"</code></td></tr></tbody></table></div>
+<p>Note macOS is <code>"darwin"</code> (matching <code>os.platform()</code> and Go/Rust's convention), not <code>"macos"</code>. <code>target.os</code> / <code>target.arch</code> are only meaningful inside a <code>when</code> condition.</p>
+<h2 id="semantics-only-the-selected-arm-is-type-checked-and-emitted">Semantics: only the selected arm is type-checked and emitted</h2>
+<p>The condition is evaluated by a pre-typecheck pass (<code>resolve_when_statements</code>, in <code>compiler/codegen/optimizer.c</code>, invoked from <code>compiler/aetherc.c</code> between parse and type-check). That pass:</p>
+<ol><li>Const-evaluates each <code>when</code> condition.</li><li>Replaces the <code>when</code> node, in place, with the contents of its selected arm (splicing top-level declarations to top level, statement arms into the enclosing block).</li><li>Frees the unselected arm entirely.</li></ol>
+<p>Because this runs <strong>before</strong> type-checking and symbol collection, the unselected arm is never type-checked, never collects symbols, and is never handed to codegen. An undefined function or a platform-only <code>extern</code> in the dead arm is therefore harmless, it is gone before anything can object to it. This is what makes <code>when</code> sound for gating platform bindings, rather than a cosmetic <code>if</code> that still requires the dead branch to compile.</p>
+<h2 id="how-it-complements-select-and---emitlib---with">How it complements <code>select()</code> and <code>--emit=lib --with=</code></h2>
+<ul><li><strong><code>select()</code> is a <em>runtime</em> platform switch.</strong> It lowers to an <code>#ifdef</code> chain in the generated C, choosing a <em>value</em> per platform at the C-compile step (<code>select(linux: a, macos: b, other: c)</code>). Every arm of a <code>select()</code> must type-check, because the value is chosen in C, not in Aether. Use <code>select()</code> to pick a constant per platform; use <code>when</code> to fork <em>which code exists at all</em>, to gate an entire extern, function, or import that only makes sense on one platform. See <a href="/Docs/named-args-and-select.html"><code>named-args-and-select.md</code></a>.</li><li><strong><code>--emit=lib --with=</code></strong> governs which <em>capabilities</em> (fs / net / os) a compiled library is allowed to use. <code>when</code> operates one level up: it decides <em>which declarations are in the program</em> before the capability gate runs. The pruning pass runs before the <code>--emit=lib</code> import gate, so an <code>import std.net</code> gated behind a <code>when</code> arm that the target doesn't select is removed before the gate inspects the import set, a platform whose arm doesn't pull in <code>std.net</code> won't trip the net-capability check. See <a href="/Docs/emit-lib.html"><code>emit-lib.md</code></a>.</li><li><strong><code>const</code> / compile-time constant folding</strong> (<a href="/Docs/compile-time-eval.html"><code>compile-time-eval.md</code></a>) is the value-level analogue: it folds constant <em>expressions</em> to literals. <code>when</code> is the statement/declaration-level analogue: it folds a constant <em>condition</em> to a choice of arm. The same capability-gate discipline applies, the <code>when</code> condition evaluator is a small, audited folder (OS/arch strings, bool/numeric literals, <code>== != &amp;&amp; || !</code>), not a general interpreter, so resolving a <code>when</code> performs no I/O.</li></ul>
+<h2 id="where-it-lives">Where it lives</h2>
+<ul><li><strong>Parsing:</strong> <code>parse_when_statement</code> in <code>compiler/parser/parser.c</code>, reached from <code>parse_statement</code> (statement form) and <code>parse_top_level_decl</code> (top-level form). AST node kind <code>AST_WHEN_STATEMENT</code> (<code>compiler/ast.h</code>), laid out like <code>AST_IF_STATEMENT</code>: <code>children[0]</code> = condition, <code>children[1]</code> = then-arm, <code>children[2]</code> = optional else-arm.</li><li><strong>Condition evaluation + pruning:</strong> <code>when_eval_condition</code>, <code>target_os_string</code> / <code>target_arch_string</code>, and <code>resolve_when_statements</code> in <code>compiler/codegen/optimizer.c</code>.</li><li><strong>Driver wiring:</strong> <code>compiler/aetherc.c</code> calls <code>resolve_when_statements</code> after module merge and the <code>@derive</code> pass, and before the <code>--emit=lib</code> import gate and <code>typecheck_program</code>.</li></ul>
+      </article>
+    </main>
+    <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#surface" class="l2" data-id="surface">Surface</a><a href="#supported-condition-forms" class="l2" data-id="supported-condition-forms">Supported condition forms</a><a href="#targetos-and-targetarch" class="l3" data-id="targetos-and-targetarch">target.os and target.arch</a><a href="#semantics-only-the-selected-arm-is-type-checked-and-emitted" class="l2" data-id="semantics-only-the-selected-arm-is-type-checked-and-emitted">Semantics: only the selected arm is type-checked and emitted</a><a href="#how-it-complements-select-and---emitlib---with" class="l2" data-id="how-it-complements-select-and---emitlib---with">How it complements select() and --emit=lib --with=</a><a href="#where-it-lives" class="l2" data-id="where-it-lives">Where it lives</a></nav>
+  </div>
+</div>
+<script src="/docs.js" defer></script>
+<footer class="site-foot">
+  <div class="wrap foot">
+    <span class="ae">ae</span>
+    <span class="m">MIT licensed · compiles to C · v0.462</span>
+    <nav><a href="/Docs/getting-started.html">Docs</a><a href="/repl.html">Playground</a><a href="https://github.com/aether-lang-org/aether">GitHub</a></nav>
+  </div>
+</footer>
+</body>
+</html>

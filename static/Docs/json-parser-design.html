@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>std.json Design Notes · Aether</title>
+<meta name="description" content="This document explains why aether_json.c is shaped the way it is.">
+<link rel="canonical" href="https://aether-lang.dev/Docs/json-parser-design.html">
+<meta property="og:type" content="article">
+<meta property="og:title" content="std.json Design Notes · Aether">
+<meta property="og:description" content="This document explains why aether_json.c is shaped the way it is.">
+<meta property="og:url" content="https://aether-lang.dev/Docs/json-parser-design.html">
+<meta property="og:image" content="https://aether-lang.dev/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/aether.css">
+</head>
+<body>
+<a class="skip" href="#doc">Skip to content</a>
+<header class="site-head">
+  <div class="wrap bar">
+    <a class="brand" href="/" aria-label="Aether"><span class="ae">ae</span><span class="nm">aether</span></a>
+    <nav>
+      <a href="/repl.html">Playground</a>
+      <a href="/Docs/getting-started.html" class="on">Docs</a>
+      <a class="src" href="https://github.com/aether-lang-org/aether">Source</a>
+      <span class="vtag">v0.462</span>
+    </nav>
+  </div>
+</header>
+<div class="wrap">
+  <div class="doc-shell">
+    <nav class="doc-nav" aria-label="Documentation">
+      <div class="docsearch"><input id="ds" type="search" placeholder="Search the docs" aria-label="Search documentation" autocomplete="off" spellcheck="false"><kbd>/</kbd><div class="ds-res" id="dsres" role="listbox"></div></div>
+<div class="grp">Start</div>
+<a href="/Docs/getting-started.html">Getting Started with Aether</a>
+<a href="/Docs/tutorial.html">Aether Language Tutorial</a>
+<a href="/Docs/next-steps.html">Next Steps</a>
+<div class="grp">Language</div>
+<a href="/Docs/language-reference.html">Aether Language Reference</a>
+<a href="/Docs/type-inference-guide.html">Aether Type Inference Guide</a>
+<a href="/Docs/type-annotation-style-guide.html">Aether Type Annotation Style Guide</a>
+<a href="/Docs/type-inference-multi-value-returns.html">Multi-Value Return Type Inference</a>
+<a href="/Docs/distinct-types.html">Distinct Types</a>
+<a href="/Docs/sequences.html">Sequences (*StringSeq)</a>
+<a href="/Docs/named-args-and-select.html">Named Arguments and select()</a>
+<a href="/Docs/closures-and-builder-dsl.html">Closures and Builder-Style DSL in Aether</a>
+<a href="/Docs/closures-and-lifetimes.html">Closures and Environment Lifetimes</a>
+<a href="/Docs/module-system-design.html">Aether Module System</a>
+<div class="grp">Runtime</div>
+<a href="/Docs/architecture.html">Aether Architecture</a>
+<a href="/Docs/actor-concurrency.html">Aether Runtime Guide</a>
+<a href="/Docs/structured-concurrency.html">Structured Concurrency for Aether, Design Direction</a>
+<a href="/Docs/scheduler-quick-reference.html">Aether Scheduler - Quick Reference</a>
+<a href="/Docs/memory-management.html">Aether Memory Management</a>
+<a href="/Docs/runtime-optimizations.html">Runtime Optimizations</a>
+<a href="/Docs/numa-support.html">NUMA Support in Aether</a>
+<div class="grp">Interop</div>
+<a href="/Docs/c-interop.html">C Interoperability</a>
+<a href="/Docs/c-embedding.html">Embedding Aether Actors in C Applications</a>
+<a href="/Docs/emit-lib.html">Embedding Aether as a Shared Library (--emit=lib)</a>
+<a href="/Docs/embedded-namespaces-and-host-bindings.html">Aether as a Configuration Language, v2: Namespaces and Generated Bindings</a>
+<a href="/Docs/aether-embedded-in-host-applications.html">Aether as a Configuration Language for Other Languages</a>
+<a href="/Docs/lib-caller-info.html">--emit=lib caller-info channel</a>
+<div class="grp">Stdlib</div>
+<a href="/Docs/stdlib-reference.html">Aether Standard Library Reference</a>
+<a href="/Docs/stdlib-api.html">Aether Standard Library Guide</a>
+<a href="/Docs/stdlib-module-pattern.html">Aether Stdlib Module Pattern</a>
+<a href="/Docs/stdlib-vs-contrib.html">std/ vs contrib/ placement decisions</a>
+<a href="/Docs/http-server.html">std.http HTTP Server</a>
+<a href="/Docs/http-reverse-proxy.html">std.http.proxy reverse proxy</a>
+<a href="/Docs/http-handler-context.html">HTTP handlers with per-server / per-route state</a>
+<a href="/Docs/http-vcr.html">HTTP Record/Replay (VCR), moved out of Aether</a>
+<a href="/Docs/json-parser-design.html" class="on">std.json Design Notes</a>
+<div class="grp">Safety</div>
+<a href="/Docs/containment-sandbox.html">Containment and Sandboxing in Aether</a>
+<a href="/Docs/hide-and-seal.html">hide and seal except scope-level capability denial</a>
+<a href="/Docs/compiler-trust-boundary.html">The Compiler Trust Boundary</a>
+<a href="/Docs/config-is-code.html">Config IS Code</a>
+<a href="/Docs/aether_compared_to_capsicum.html">Aether Sandbox Model vs. BSD Capsicum: Architecture, Parallels, and FreeBSD Integration</a>
+<div class="grp">Build</div>
+<a href="/Docs/build-system.html">Build System</a>
+<a href="/Docs/bootstrap-from-source.html">Bootstrapping Aether from source (HEAD)</a>
+<a href="/Docs/install-layout.html">Aether install layout</a>
+<a href="/Docs/runtime-config.html">Runtime Configuration - Quick Reference</a>
+<a href="/Docs/per-process-config.html">Per-process configuration in Aether</a>
+<a href="/Docs/cic-help.html">ae help &lt;script&gt; Offline diagnostics for config-IS-code</a>
+<div class="grp">More</div>
+<a href="/Docs/allocators.html">Allocators</a>
+<a href="/Docs/bindgen-consts.html">ae bindgen consts, importing C macro constants</a>
+<a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
+<a href="/Docs/contract-folding.html">Compile-time contract folding — costed design</a>
+<a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn't need macro_rules!</a>
+<a href="/Docs/error-unification.html">Unifying T? and (value, err) — costed design</a>
+<a href="/Docs/formatter.html">ae fmt, the source formatter</a>
+<a href="/Docs/isolated.html">Isolated[T]: move-only actor message payloads (#479)</a>
+<a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
+<a href="/Docs/profiling-guide.html">Aether Runtime Profiling Guide</a>
+<a href="/Docs/release-glibc-portability.html">Release binary portability across glibc versions</a>
+<a href="/Docs/when-static-if.html">Compile-time when / static-if</a></nav>
+    <main class="doc-main">
+      <article class="doc-body" id="doc">
+        <div class="bc"><span class="prompt">$</span>docs / stdlib</div>
+<h1 id="stdjson-design-notes"><code>std.json</code> Design Notes</h1>
+<p>This document explains <em>why</em> <code>aether_json.c</code> is shaped the way it is. It's meant to be read alongside the source, not as a standalone spec, but as a map to the design decisions so future maintainers know what can be changed freely and what's load-bearing.</p>
+<h2 id="goals">Goals</h2>
+<ol><li><strong>Correctness first.</strong> Pass RFC 8259 conformance. Never UB, never OOB, never silent data loss. JSONTestSuite (318 tests) gates CI.</li><li><strong>Portable to every CI target.</strong> Compiles clean on GCC, Clang, Apple Clang, MinGW (32+64-bit), Emscripten under <code>-Wall -Wextra -Werror -pedantic</code>. SIMD kernels gated behind compile-time feature detection (<code>__SSE2__</code>, <code>__ARM_NEON</code>) with a scalar fallback that's always compiled, no target is SIMD-only.</li><li><strong>Fast enough that JSON isn't a bottleneck.</strong> Every byte in the hot path is touched at most once. Allocations happen from a per-document arena, not per-node. Hot classification decisions are a single LUT read. Measurement harness lives in <a href="/Docs/baseline.html"><code>benchmarks/json/baseline.md</code></a>.</li><li><strong>Low maintenance.</strong> One <code>.c</code> file, one design doc, no vendored deps. Anyone who reads this file should be able to maintain the parser without additional context.</li></ol>
+<p>These are in priority order. Correctness outranks speed. Portability outranks a fast-path optimisation that only works on one arch.</p>
+<h2 id="memory-model-one-arena-per-parsed-document">Memory model: one arena per parsed document</h2>
+<p>Every parsed document lives in a bump-pointer arena allocated at <code>json_parse_raw_n</code> time. Every <code>JsonValue</code>, every string payload, every container backing array for that document comes from the same arena. <code>json_free(root)</code> calls <code>arena_destroy</code> which walks the chunk list and returns everything to <code>malloc</code>'s free list in a single pass.</p>
+<p>This eliminates the <strong>per-node malloc</strong> pattern that dominated the original parser's profile: every JsonValue, every string buffer, and every container (via <code>ArrayList</code>/<code>HashMap</code> wrappers) was its own allocation. On <code>large.json</code> (10 MB, 676k values), that's a million allocator round-trips; on our arena path it's a handful of chunk allocations.</p>
+<h3 id="chunks-and-growth">Chunks and growth</h3>
+<p>The arena is a singly-linked list of <code>ArenaChunk</code>s. First chunk is 16 KB (big enough that tiny documents never grow), subsequent chunks double in size up to a 2 MB cap. An allocation bigger than the current chunk's remaining space triggers a new chunk sized at least as large as the requested bytes, so a single 5 MB string doesn't force the allocator to keep doubling until it exceeds the request.</p>
+<p>Alignment is fixed at 8 bytes. All allocations round up.</p>
+<h3 id="why-not-a-tape">Why not a tape?</h3>
+<p>Several fast parsers store parsed values in a <strong>tape</strong>: a flat array of fixed-size slots indexed by position, with parent/child relationships encoded via sibling offsets. That layout is maximally cache-friendly but it couples value lifetimes to the tape and makes the creation path (<code>json_create_string</code>, <code>json_object_set</code>, …) awkward, a standalone value has nowhere to live without a tape to sit in.</p>
+<p>We preserve the API shape, values are reachable through a tree of pointers, and recover cache locality from the arena's chunk-local allocation. Values allocated close in time end up close in memory, and <code>JsonValue</code> itself is sized to fit two per 64-byte cache line (see "JsonValue sizing" below). A full tape representation is possible later with copy-on-mutate preservation of the creation API; the design is sketched in "When to change what" near the end of this doc.</p>
+<h3 id="heap-path-for-json_create_">Heap path for <code>json_create_*</code></h3>
+<p>Values created standalone (<code>json_create_null</code>, <code>json_create_string</code>, <code>json_create_array</code>, etc.) are heap-allocated individually via <code>malloc</code>. Their children are similarly heap-allocated. <code>json_free</code> on such a value walks the tree and frees each node.</p>
+<p>When a standalone value is handed to <code>json_array_add_raw</code> or <code>json_object_set_raw</code> on an arena-backed container, the mutator <strong>deep-copies the subtree into the parent's arena</strong> and frees the original. After insertion the entire tree is arena-owned; a single <code>json_free</code> at the root tears everything down.</p>
+<p>This double-path (arena for parse, heap for create, deep-copy on merge) is the only real complexity cost of preserving the mutation API. The parse path is a tight loop with no branching on allocation mode; the mutation path is rare and pays for its complexity only when invoked.</p>
+<h2 id="character-classification-via-a-256-entry-lut">Character classification via a 256-entry LUT</h2>
+<p><code>JSON_CC_RW[256]</code> holds per-byte flag bits: <code>CC_WHITESPACE</code>, <code>CC_DIGIT</code>, <code>CC_STRUCTURAL</code>, <code>CC_STR_OK</code>, <code>CC_HEX</code>, <code>CC_NUM_START</code>.</p>
+<p>Hot-path decisions become a single indexed load + bit-test:</p>
+<pre><code><span class="kw">while</span> (s-&gt;p &lt; s-&gt;end &amp;&amp; (CC(*s-&gt;p) &amp; CC_STR_OK)) p_advance(s);</code></pre>
+<p>The table is initialized once on first parse via <code>cc_init()</code> (the static initializer handles the digit/hex/structural entries; runtime code fills <code>CC_STR_OK</code> for the rest of printable ASCII). <code>cc_init</code> is idempotent and guarded by a simple non-atomic flag, the race on first parse is benign because both racing threads would compute the same table contents.</p>
+<h3 id="why-runtime-init">Why runtime init?</h3>
+<p>C89 static initializers can't include loops, and writing out every byte's flags explicitly made the source very noisy. A one-time initializer trades one branch on the first parse call for a much more readable declaration. The check is predicted cold after the first parse.</p>
+<h2 id="fast-string-scanning">Fast string scanning</h2>
+<p><code>parse_string_raw</code> is two-phase:</p>
+<ol><li><strong>Pre-scan</strong>, walk forward from the opening <code>"</code>, skipping <code>\\&lt;byte&gt;</code> pairs verbatim, until the closing <code>"</code> is found. This gives us the exact span length. We allocate a decode buffer of <code>span + 1</code> bytes in the arena, tight upper bound because JSON escapes cannot <em>grow</em> their output (a 6-byte <code>\uXXXX</code> decodes to at most 3 UTF-8 bytes; a 12-byte surrogate pair to 4).</li><li><strong>Decode</strong>, walk again, this time with the LUT fast loop:</li></ol>
+<pre><code>   <span class="kw">while</span> (s-&gt;p &lt; s-&gt;end &amp;&amp; (CC(*s-&gt;p) &amp; CC_STR_OK)) {
+       p_advance(s);  <span class="com">// tight loop, no branches except loop condition</span>
+   }
+   memcpy(dst + di, run_start, run_len);</code></pre>
+<p>When the fast loop exits we look at exactly one byte and dispatch: close-quote, escape, control char (reject), or non-ASCII (UTF-8 DFA).</p>
+<h3 id="the-critical-bug-the-pre-scan-prevents">The critical bug the pre-scan prevents</h3>
+<p>The first rewrite didn't pre-scan. It allocated <code>max_len = s-&gt;end - s-&gt;p</code> bytes per string as an upper bound on decoded length. That's fine for one string in a small document, but for <code>large.json</code> with 676k strings each allocating the remaining input size, the arena exploded to gigabytes before the process was killed.</p>
+<p>The pre-scan turns per-string allocation into <code>O(string bytes)</code> instead of <code>O(remaining document bytes)</code>. Without it, correctness degrades into an OOM long before throughput becomes interesting.</p>
+<h2 id="utf-8-validation-hoehrmanns-dfa">UTF-8 validation: Hoehrmann's DFA</h2>
+<p>Non-ASCII bytes in strings go through a ~30-line state machine from <a href="http://bjoern.hoehrmann.de/utf-8/decoder/dfa/">Bjoern Hoehrmann's 2010 paper</a>. Public domain, easy to verify against the reference, rejects every malformed case RFC 3629 forbids: overlongs, surrogate halves, codepoints &gt; U+10FFFF, continuation bytes in lead position.</p>
+<p>The DFA state <code>UTF8_ACCEPT = 0</code> starts a new codepoint, <code>UTF8_REJECT = 12</code> latches an error, any other value means mid-sequence. Per-byte cost: one table load + two arithmetic ops, much cheaper than branching on each byte's bit pattern.</p>
+<h2 id="simd-string-fast-loop">SIMD string fast-loop</h2>
+<p>The string parser's inner loop skips over "safe" printable ASCII bytes (&gt;= 0x20, &lt; 0x80, not <code>"</code>, not <code>\</code>). That loop is in the hot path of every non-trivial JSON document and is embarrassingly parallel, each byte is classified in isolation.</p>
+<p><code>scan_str_safe()</code> picks one implementation at <strong>compile time</strong>, never at runtime:</p>
+<ul><li><code>__SSE2__</code> → SSE2 kernel (16-byte vectors). SSE2 is the AMD64 baseline, so this lights up on every x86_64 CI row without any extra flags. Uses <code>_mm_cmpeq_epi8</code> for quote/backslash + a signed-compare trick (<code>_mm_cmplt_epi8(v, 0x20)</code>) that flags both control chars (0x00-0x1F) and non-ASCII (0x80-0xFF) in a single instruction, then <code>_mm_movemask_epi8</code> + <code>__builtin_ctz</code> for "offset of first unsafe byte."</li><li><code>__ARM_NEON &amp;&amp; __aarch64__</code> → NEON kernel. Same classification as SSE2, different intrinsics. NEON lacks <code>movemask</code>, so we use the canonical <code>vshrn_n_u16</code> narrow-to-nibbles trick to produce a u64 where each input byte contributes 4 bits, <code>__builtin_ctzll &gt;&gt; 2</code> gives the first-set-byte offset.</li><li>fallback → a scalar loop over the CC_STR_OK lookup table. Byte-at- a-time but branch-predictor-friendly. Active on WASM, embedded, or any target that lacks both intrinsic headers.</li></ul>
+<p>All three produce byte-identical results, SIMD is purely additive acceleration, never a semantic shift. The SIMD path always leaves a scalar tail loop to clean up 0-15 bytes at the end. No runtime feature detection = no per-call branch cost on the happy path.</p>
+<p>Line/col accounting stays correct because safe bytes are by definition</p>
+<blockquote>= 0x20, so no newline can ever appear inside a SIMD chunk: the string</blockquote>
+<p>loop bumps col by the run length without checking for '\n'.</p>
+<p>Why not SIMD for UTF-8 validation or structural scan? Those either need tape-based output (structural) or have significantly more state to track (UTF-8 DFA state carries across bytes). The string fast-loop is the one place SIMD drops in with no architectural follow-through. If a profile ever puts parse throughput ahead of everything else, the next structural step is tape representation, not more SIMD.</p>
+<h2 id="number-parsing-validate--dispatch">Number parsing: validate + dispatch</h2>
+<p>RFC 8259 numbers have a strict grammar: <code>[ minus ] int [ frac ] [ exp ]</code> where <code>int</code> rejects leading zeros. We walk the grammar explicitly <strong>and accumulate all three fields in a single pass</strong>, sign, integer mantissa (int64), fractional mantissa (int64) with digit count, signed exponent.</p>
+<p>Three paths, chosen by which accumulators are in-range:</p>
+<ol><li><strong>Pure-integer path.</strong> No <code>.</code>, no <code>e/E</code>, int accumulator hasn't overflowed. Return <code>(double)int_acc</code> (signed). No <code>strtod</code> call.</li><li><strong>Fast-double path.</strong> Total significant digits ≤ 15 (double's fully-exact range) and |effective exponent| ≤ 22 (where <code>POW10_POS[n]</code> is exactly representable in a double). Fuse int and frac into one integer mantissa, multiply/divide by <code>POW10_POS[|exp|]</code> once. One multiply, one cast, one negate.</li><li><strong>Fallback.</strong> Any of the above conditions fails, typically 16+ significant digits, huge exponents, denormals, or overflow of the int64 mantissa. Hand the validated span off to <code>strtod</code> for correctly-rounded IEEE-754. Guarantees we never silently return a wrong double.</li></ol>
+<p>Paths 1 and 2 cover essentially every config file, API response, and log record we've benchmarked. Path 3 is reserved for scientific data sets, cryptographic constants, and similar edge-case corpora.</p>
+<p>The <code>POW10_POS</code> table tops out at <code>1e22</code> because doubles can exactly represent powers of ten only through that index; past 22 the <code>strtod</code> fallback is the only correct answer.</p>
+<h2 id="containers-flat-arrays--one-indirection-for-objects">Containers: flat arrays + one indirection for objects</h2>
+<p><code>JsonValue::arr</code> is <code>{ JsonValue** items; uint32_t count, capacity }</code>, a pointer to an arena-owned array plus inline count/capacity.</p>
+<p><code>JsonValue::obj</code> holds the same count/capacity pair inline but reaches its three parallel arrays through a single <code>JsonObjBlock*</code>:</p>
+<pre><code><span class="kw">typedef</span> <span class="kw">struct</span> JsonObjBlock {
+    <span class="kw">const</span> <span class="kw">char</span>** keys;
+    <span class="kw">uint32_t</span>*    key_lens;
+    JsonValue**  values;
+} JsonObjBlock;</code></pre>
+<p>Reading an object field is <code>obj-&gt;data.obj.blk-&gt;values[i]</code> one extra pointer load compared to inlining the three arrays in <code>JsonValue</code>. The payoff is that the <code>obj</code> union variant is 16 bytes instead of 32, which collapses <code>sizeof(JsonValue)</code> from 48 to 32 and lets two values share a 64-byte cache line on every machine we care about (see the next section). Since every non-trivial object access is going to miss cache <em>somewhere</em>, either on the value struct or on the block, putting the indirection at the block level is essentially free, and halving the value struct's footprint pays back across the whole parsed tree.</p>
+<p>Growth uses simple doubling with an initial capacity of <code>JSON_CONTAINER_INITIAL_CAP</code> (= 8). Realistic JSON objects cluster in the 5–15 key range, so starting at 8 skips one doubling cycle in the common case; tiny objects waste a few unused pointers which round-off into the arena anyway. Old buffers become arena garbage until the arena is freed, waste is bounded by <code>O(final size)</code> per container.</p>
+<p><strong>Iteration order.</strong> The parallel-array layout means objects iterate in insertion order by construction, the parser appends to the tail as it reads each <code>key: value</code> pair, and the builder's <code>json_object_set_raw</code> does the same on first insert. The public iteration API (<code>json_object_size_raw</code> / <code>json_object_key_at</code> / <code>json_object_value_at</code>, and the Aether-side <code>object_entry(obj, i)</code> wrapper) commits to this order: parsed JSON iterates in the order keys appeared in the source, built JSON iterates in the order <code>object_set</code> was called. Callers that need sorted iteration copy the keys and sort.</p>
+<h2 id="jsonvalue-sizing">JsonValue sizing</h2>
+<pre><code><span class="kw">struct</span> JsonValue {
+    <span class="kw">uint8_t</span> type;           <span class="com">// 1</span>
+    <span class="kw">uint8_t</span> flags;          <span class="com">// 1  (JV_FLAG_ROOT | JV_FLAG_HEAP_STRUCT | JV_FLAG_INTEGER)</span>
+    <span class="kw">uint8_t</span> _pad[<span class="num">6</span>];        <span class="com">// 6, needed to align the union at offset 8</span>
+    <span class="kw">union</span> {
+        <span class="kw">int</span>       boolean;                          <span class="com">// 4</span>
+        <span class="kw">double</span>    number;                           <span class="com">// 8</span>
+        <span class="kw">long</span> <span class="kw">long</span> integer;                          <span class="com">// 8, used when JV_FLAG_INTEGER set</span>
+        <span class="kw">struct</span> { <span class="kw">const</span> <span class="kw">char</span>* data; <span class="kw">uint32_t</span> length; } str;  <span class="com">// 16</span>
+        <span class="kw">struct</span> { JsonValue** items; <span class="kw">uint32_t</span> c, cap; } arr; <span class="com">// 16</span>
+        <span class="kw">struct</span> { JsonObjBlock* blk; <span class="kw">uint32_t</span> c, cap; } obj; <span class="com">// 16</span>
+    } data;                 <span class="com">// 16 bytes, widest variant is str / arr / obj</span>
+    Arena* arena;           <span class="com">// 8, set on root only (interior: NULL)</span>
+};                          <span class="com">// 32 bytes total</span></code></pre>
+<p>Two values per 64-byte cache line. That matters because every parsed tree is a graph of JsonValues pointing at JsonValues; fewer cache lines touched per traversal is a direct throughput win, with no change to any code that reads the fields.</p>
+<p>The <code>_pad[6]</code> after <code>type</code>/<code>flags</code> is forced by the union's 8-byte alignment (it contains a <code>double</code>). The <code>arena</code> pointer lives on the root only, interior values keep it <code>NULL</code> and use it as a "is-this-a-root" marker when the mutation path needs to branch.</p>
+<h3 id="object-lookup-linear-scan">Object lookup: linear scan</h3>
+<p><code>json_object_get_raw</code> does a byte-by-byte <code>memcmp</code> walk across all keys. The typical object in API responses has &lt;20 keys; linear scan beats hashing at those sizes because branch prediction is perfect. The <code>key_lens[]</code> array lets us reject mismatched lengths in a single integer compare before touching <code>memcmp</code>.</p>
+<p>For objects with hundreds of keys this becomes O(n) and pathological. If that pattern ever shows up in profiles we'd switch to a sorted keys representation and binary search, or a tiny open-addressed hash for objects above some threshold. Not v1.</p>
+<h2 id="error-reporting">Error reporting</h2>
+<p>Positioned errors funnel through <code>err_set(line, col, fmt, ...)</code> which formats into a <code>_Thread_local</code> buffer. Input-level failures with no cursor position (null input, arena-create OOM in <code>json_parse_raw_n</code>) go through a separate <code>err_set_no_pos(reason)</code>. Both share the <strong>first error wins</strong> rule: once <code>g_json_err_set</code> is true, subsequent calls no-op. This preserves the innermost diagnostic, which is almost always the most specific.</p>
+<p>Position accuracy is maintained by <code>p_advance(s)</code> every cursor motion goes through it, incrementing <code>line</code> on <code>\n</code> and <code>col</code> otherwise. The fast string loop calls <code>p_advance</code> in every iteration (not just on the escape branch), which costs a little throughput but keeps error messages like "expected <code>:</code> at 3:17" correct.</p>
+<h3 id="structured-error-pilot-issue-392">Structured-error pilot (issue #392)</h3>
+<p>The base parser surfaces errors via <code>err_set</code> (human string) plus the <code>g_json_err_buf</code> thread-local. The structured-error pilot adds a parallel surface that callers can switch on programmatically without parsing English:</p>
+<ul><li><code>g_json_err_kind</code> one of <code>AETHER_JSON_KIND_*</code> (<code>OK</code>, <code>PARSE_ERROR</code>, <code>OUT_OF_MEMORY</code>, <code>INVALID_INPUT</code>). <code>err_set</code> only ever assigns <code>OUT_OF_MEMORY</code> or <code>PARSE_ERROR</code>: OOM detection is a single-site <code>strstr(msg, "out of memory")</code> check, so the dozens of existing <code>err_set("out of memory ...")</code> sites need no change, and everything else falls through to <code>PARSE_ERROR</code>. <code>INVALID_INPUT</code> comes only from <code>err_set_no_pos</code>, which handles the null/empty-input path.</li><li><code>g_json_err_line</code> / <code>_col</code> the same 1-based position the human message reports, but as integers for callers that want to point at source.</li><li><code>json_last_error_kind()</code> / <code>_line()</code> / <code>_col()</code> public C accessors for the three thread-locals. Aether-side wrappers in <code>std/json/module.ae</code> re-export them.</li><li><code>parse_strict(json_str) -&gt; (ptr, int, string)</code> Aether wrapper that returns <code>(value, kind, message)</code> per call. The kind is read from the thread-local immediately after parse so concurrent callers from different threads each see their own; the tuple shape is the canonical structured-error shape from the std.fs pilot.</li></ul>
+<p>KIND values (<code>AETHER_JSON_KIND_*</code> macros + <code>std.json.KIND_*</code> int exports) are intentionally a subset that overlaps <code>std.fs.KIND_*</code> where the meanings align (<code>OK</code>, <code>OUT_OF_MEMORY</code>, <code>INVALID_INPUT</code>), so callers mixing fs and json calls can switch on either surface in the same <code>if</code> chain.</p>
+<p>The existing <code>parse(json_str) -&gt; (ptr, string)</code> surface is unchanged and remains the recommended path for callers that just need "succeeded / failed with this string." <code>parse_strict</code> is opt-in.</p>
+<h2 id="depth-limit">Depth limit</h2>
+<p>Hard cap at <code>JSON_MAX_DEPTH = 256</code>. Enforced on every container entry via <code>parse_value_depth(depth + 1)</code>. Prevents both stack overflow on pathological input and denial-of-service via deeply nested JSON bombs (which DOS many naive parsers). No way to disable at runtime, it's a bounded recursion guarantee, not a configurable limit.</p>
+<h2 id="thread-safety">Thread safety</h2>
+<p>The parser itself is <strong>reentrant and thread-safe</strong>, there is no mutable global state during parse. The five <code>_Thread_local</code> globals (<code>g_json_err_buf</code>, <code>g_json_err_set</code>, and the structured-error trio <code>g_json_err_kind</code> / <code>_line</code> / <code>_col</code>) and the <code>JSON_CC_RW</code> init flag isolate per-thread parses from each other. Two threads parsing concurrently hold independent arenas and see independent error slots.</p>
+<p><code>cc_init</code>'s first-run race is benign (both threads write the same bytes).</p>
+<h2 id="structural-headroom">Structural headroom</h2>
+<p>Three deliberate structural choices bound how far the parser can go without a larger rewrite. Each one trades a specific complexity cost for its current behaviour, and each has a concrete path forward if the bound starts to pinch.</p>
+<h3 id="tape-representation-deferred-path-documented">Tape representation (deferred, path documented)</h3>
+<p>The fastest contemporary JSON parsers store parsed values in a flat slot array ("tape") with parent/child relationships encoded as sibling offsets. That layout is maximally cache-dense for traversal but assumes the whole tree is written once and never mutated, "insert a child" would invalidate every downstream sibling offset.</p>
+<p>Our <code>json_object_set</code> / <code>json_array_add</code> mutation APIs let callers add arbitrary children to parsed trees, including heap-created values from <code>json_create_*</code>. A pure tape can't absorb those without a full rebuild.</p>
+<p>The path forward is <strong>dual representation with copy-on-mutate</strong>:</p>
+<ul><li><code>json.parse</code> produces a flat tape for the parsed document.</li><li><code>json.array_add</code> / <code>json.object_set</code> on a tape-backed value promotes the affected subtree to the existing tree representation once (one deep-copy), flips a flag on the root, then mutates as today.</li><li>Subsequent calls on the promoted root skip the conversion.</li><li>Accessors (<code>object_get</code>, <code>array_get</code>, <code>get_*</code>, …) branch on the tape/tree flag once to pick the right code path.</li></ul>
+<p>What's deferred about this is the breadth of the change, not the design. Every accessor gains a dispatch branch; the mutation path gets a new OOM mode (copy allocation can fail mid-tree); every test needs two flavours. That's worth doing, but it's a standalone review cycle, not a rider on an incremental perf pass. The change-point names the files in "When to change what" below.</p>
+<h3 id="full-simd-parsing-not-on-the-roadmap">Full SIMD parsing (not on the roadmap)</h3>
+<p>Vectorised parsers classify every byte into "structural / whitespace / string-char / escape" with a single wide compare, producing a bitmap the parser walks. The bitmap is only useful if the parser writes tape slots; producing a tree of <code>JsonValue*</code> from the bitmap adds back all the branches the SIMD was meant to save.</p>
+<p>So a full-SIMD path is a tape-path with different input. The targeted SIMD kernel we do ship (<code>scan_str_safe</code>) lives inside the string parser where it drops in cleanly and coexists with a scalar fallback that's always compiled. Anything beyond that depends on tape landing first.</p>
+<h3 id="things-we-deliberately-dont-do">Things we deliberately don't do</h3>
+<ul><li><strong>Streaming / incremental parsing</strong>, everything is parsed into memory in one go. JSON payloads that don't fit in RAM are rare and streaming complicates both the arena and the error-reporting path.</li><li><strong>UTF-16 / UTF-32 input</strong>, RFC 8259 mandates UTF-8. We reject anything else at the byte layer.</li><li><strong>Canonical JSON output / pretty-printing</strong>, <code>json_stringify_raw</code> emits compact JSON. A pretty option is a trivial add if asked for.</li><li><strong>Schema validation</strong>, not a parser concern.</li><li><strong>Runtime CPU feature detection</strong>, compile-time dispatch only. If a binary is built for a target that has SSE2, it uses SSE2 everywhere that target runs. No dispatch cost on the happy path.</li></ul>
+<h2 id="testing-surface">Testing surface</h2>
+<ul><li><strong><code>tests/runtime/test_runtime_json.c</code></strong>, C-level unit tests, 8 tests covering parse/create/stringify for each type.</li><li><strong><code>tests/regression/test_json_*.ae</code></strong>, Aether-level regression tests for edge cases (escapes, Unicode, RFC rejection, position errors, error tuples, edge-case wrappers).</li><li><strong><code>tests/conformance/json/</code></strong>, 318-file JSONTestSuite corpus. <code>make test-json-conformance</code> checks every file. Gates CI on <code>y_*</code> + <code>n_*</code> (283 cases); records <code>i_*</code> (35 cases) as implementation-defined.</li><li><strong><code>make test-json-asan</code></strong>, parses the bench corpus under <code>-fsanitize=address,undefined</code>. Catches leaks, OOB, UB.</li><li><strong><code>make test-json-valgrind</code></strong>, Valgrind run where available.</li><li><strong><code>make bench-json</code> / <code>make bench-json-compare</code></strong>, reproducible benchmark harness; see <a href="/Docs/baseline.html">benchmarks/json/baseline.md</a> for the methodology. Absolute throughput numbers are not committed, run the harness on the machine you care about.</li></ul>
+<h2 id="when-to-change-what">When to change what</h2>
+<div class="tw"><table><thead><tr><th>If you want to …</th><th>Change</th></tr></thead><tbody><tr><td>Land tape representation</td><td>New <code>TapeSlot</code> struct + <code>JV_FLAG_TAPE</code> flag on <code>JsonValue</code>; rewrite <code>parse_value_depth</code>/<code>parse_array</code>/<code>parse_object</code> to produce tape slots; add <code>tape_promote_to_tree()</code> helper called lazily from the mutators; branch in every accessor on <code>flags &amp; JV_FLAG_TAPE</code>.</td></tr><tr><td>Add SIMD for structural scan (tape-only)</td><td>New <code>scan_structurals()</code> beside <code>scan_str_safe</code>, called from the tape parser. Needs tape to land first.</td></tr><tr><td>Improve object lookup for large objects</td><td>Threshold-based switch in <code>json_object_get_raw</code>: linear scan below ~32 keys, open-addressed hash above.</td></tr><tr><td>Resize the object backing block</td><td><code>JsonObjBlock</code> lives behind <code>JsonValue::data.obj.blk</code>. Adding a fourth parallel array (e.g. cached hash) goes here.</td></tr><tr><td>Support streaming</td><td>New <code>json_parse_stream</code> API + state object. Would likely need its own arena-resetting allocator.</td></tr><tr><td>Change max depth</td><td><code>JSON_MAX_DEPTH</code> near top of file.</td></tr><tr><td>Add a pretty-print mode</td><td>New flag in a <code>json_stringify_opts</code> struct, new builder path.</td></tr><tr><td>Tune arena chunk sizes</td><td><code>ARENA_INITIAL_CHUNK</code>, <code>ARENA_MAX_AUTO_CHUNK</code>.</td></tr><tr><td>Track another error field</td><td>Extend <code>JSON_ERR_REASON_BUF</code>, update <code>err_set</code>.</td></tr><tr><td>Raise the fast-double digit cap</td><td><code>FAST_INT_SAFE_DIGITS</code>; only safe up to 15 for double-exactness. Past that, <code>strtod</code> is the only correct answer.</td></tr><tr><td>Add AVX2 string scan (32-byte block)</td><td>New <code>#if defined(__AVX2__)</code> branch in <code>scan_str_safe</code>. Same shape as SSE2, wider vectors. Keep all existing branches.</td></tr></tbody></table></div>
+<p>Each of these is a localized change. The one-file design is the whole point: a new contributor reads this doc, scans the source, and can change any single row of the table above without touching the others.</p>
+      </article>
+    </main>
+    <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#goals" class="l2" data-id="goals">Goals</a><a href="#memory-model-one-arena-per-parsed-document" class="l2" data-id="memory-model-one-arena-per-parsed-document">Memory model: one arena per parsed document</a><a href="#chunks-and-growth" class="l3" data-id="chunks-and-growth">Chunks and growth</a><a href="#why-not-a-tape" class="l3" data-id="why-not-a-tape">Why not a tape?</a><a href="#heap-path-for-json_create_" class="l3" data-id="heap-path-for-json_create_">Heap path for json_create_*</a><a href="#character-classification-via-a-256-entry-lut" class="l2" data-id="character-classification-via-a-256-entry-lut">Character classification via a 256-entry LUT</a><a href="#why-runtime-init" class="l3" data-id="why-runtime-init">Why runtime init?</a><a href="#fast-string-scanning" class="l2" data-id="fast-string-scanning">Fast string scanning</a><a href="#the-critical-bug-the-pre-scan-prevents" class="l3" data-id="the-critical-bug-the-pre-scan-prevents">The critical bug the pre-scan prevents</a><a href="#utf-8-validation-hoehrmanns-dfa" class="l2" data-id="utf-8-validation-hoehrmanns-dfa">UTF-8 validation: Hoehrmann's DFA</a><a href="#simd-string-fast-loop" class="l2" data-id="simd-string-fast-loop">SIMD string fast-loop</a><a href="#number-parsing-validate--dispatch" class="l2" data-id="number-parsing-validate--dispatch">Number parsing: validate + dispatch</a><a href="#containers-flat-arrays--one-indirection-for-objects" class="l2" data-id="containers-flat-arrays--one-indirection-for-objects">Containers: flat arrays + one indirection for objects</a><a href="#jsonvalue-sizing" class="l2" data-id="jsonvalue-sizing">JsonValue sizing</a><a href="#object-lookup-linear-scan" class="l3" data-id="object-lookup-linear-scan">Object lookup: linear scan</a><a href="#error-reporting" class="l2" data-id="error-reporting">Error reporting</a><a href="#structured-error-pilot-issue-392" class="l3" data-id="structured-error-pilot-issue-392">Structured-error pilot (issue #392)</a><a href="#depth-limit" class="l2" data-id="depth-limit">Depth limit</a><a href="#thread-safety" class="l2" data-id="thread-safety">Thread safety</a><a href="#structural-headroom" class="l2" data-id="structural-headroom">Structural headroom</a><a href="#tape-representation-deferred-path-documented" class="l3" data-id="tape-representation-deferred-path-documented">Tape representation (deferred, path documented)</a><a href="#full-simd-parsing-not-on-the-roadmap" class="l3" data-id="full-simd-parsing-not-on-the-roadmap">Full SIMD parsing (not on the roadmap)</a><a href="#things-we-deliberately-dont-do" class="l3" data-id="things-we-deliberately-dont-do">Things we deliberately don't do</a><a href="#testing-surface" class="l2" data-id="testing-surface">Testing surface</a><a href="#when-to-change-what" class="l2" data-id="when-to-change-what">When to change what</a></nav>
+  </div>
+</div>
+<script src="/docs.js" defer></script>
+<footer class="site-foot">
+  <div class="wrap foot">
+    <span class="ae">ae</span>
+    <span class="m">MIT licensed · compiles to C · v0.462</span>
+    <nav><a href="/Docs/getting-started.html">Docs</a><a href="/repl.html">Playground</a><a href="https://github.com/aether-lang-org/aether">GitHub</a></nav>
+  </div>
+</footer>
+</body>
+</html>

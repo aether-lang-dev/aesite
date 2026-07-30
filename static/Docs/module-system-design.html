@@ -1,289 +1,224 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>module-system-design</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/style.css" />
-  <link rel="stylesheet" href="/subpages.css" />
-  <link rel="stylesheet" href="/articles.css" />
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Aether Module System · Aether</title>
+<meta name="description" content="This document describes Aether's module and namespace system.">
+<link rel="canonical" href="https://aether-lang.dev/Docs/module-system-design.html">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Aether Module System · Aether">
+<meta property="og:description" content="This document describes Aether's module and namespace system.">
+<meta property="og:url" content="https://aether-lang.dev/Docs/module-system-design.html">
+<meta property="og:image" content="https://aether-lang.dev/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/aether.css">
 </head>
 <body>
-
-  <!-- NAV -->
-  <nav>
-    <a class="nav-logo" href="/index.html">Aether<span>.</span></a>
-    <ul class="nav-links">
-      <li><a href="/index.html#features">Features</a></li>
-      <li><a href="/index.html#syntax">Syntax</a></li>
-      <li><a href="/index.html#install">Install</a></li>
-      <li><a href="/faq.html">FAQ</a></li>
-    </ul>
-  </nav>
-
-  <!-- MAIN -->
-  <main class="section">
-    <div>
-      <p class="section-label">Learning Material</p>
-    </div>
-
-    <article class="article-content">
+<a class="skip" href="#doc">Skip to content</a>
+<header class="site-head">
+  <div class="wrap bar">
+    <a class="brand" href="/" aria-label="Aether"><span class="ae">ae</span><span class="nm">aether</span></a>
+    <nav>
+      <a href="/repl.html">Playground</a>
+      <a href="/Docs/getting-started.html" class="on">Docs</a>
+      <a class="src" href="https://github.com/aether-lang-org/aether">Source</a>
+      <span class="vtag">v0.462</span>
+    </nav>
+  </div>
+</header>
+<div class="wrap">
+  <div class="doc-shell">
+    <nav class="doc-nav" aria-label="Documentation">
+      <div class="docsearch"><input id="ds" type="search" placeholder="Search the docs" aria-label="Search documentation" autocomplete="off" spellcheck="false"><kbd>/</kbd><div class="ds-res" id="dsres" role="listbox"></div></div>
+<div class="grp">Start</div>
+<a href="/Docs/getting-started.html">Getting Started with Aether</a>
+<a href="/Docs/tutorial.html">Aether Language Tutorial</a>
+<a href="/Docs/next-steps.html">Next Steps</a>
+<div class="grp">Language</div>
+<a href="/Docs/language-reference.html">Aether Language Reference</a>
+<a href="/Docs/type-inference-guide.html">Aether Type Inference Guide</a>
+<a href="/Docs/type-annotation-style-guide.html">Aether Type Annotation Style Guide</a>
+<a href="/Docs/type-inference-multi-value-returns.html">Multi-Value Return Type Inference</a>
+<a href="/Docs/distinct-types.html">Distinct Types</a>
+<a href="/Docs/sequences.html">Sequences (*StringSeq)</a>
+<a href="/Docs/named-args-and-select.html">Named Arguments and select()</a>
+<a href="/Docs/closures-and-builder-dsl.html">Closures and Builder-Style DSL in Aether</a>
+<a href="/Docs/closures-and-lifetimes.html">Closures and Environment Lifetimes</a>
+<a href="/Docs/module-system-design.html" class="on">Aether Module System</a>
+<div class="grp">Runtime</div>
+<a href="/Docs/architecture.html">Aether Architecture</a>
+<a href="/Docs/actor-concurrency.html">Aether Runtime Guide</a>
+<a href="/Docs/structured-concurrency.html">Structured Concurrency for Aether, Design Direction</a>
+<a href="/Docs/scheduler-quick-reference.html">Aether Scheduler - Quick Reference</a>
+<a href="/Docs/memory-management.html">Aether Memory Management</a>
+<a href="/Docs/runtime-optimizations.html">Runtime Optimizations</a>
+<a href="/Docs/numa-support.html">NUMA Support in Aether</a>
+<div class="grp">Interop</div>
+<a href="/Docs/c-interop.html">C Interoperability</a>
+<a href="/Docs/c-embedding.html">Embedding Aether Actors in C Applications</a>
+<a href="/Docs/emit-lib.html">Embedding Aether as a Shared Library (--emit=lib)</a>
+<a href="/Docs/embedded-namespaces-and-host-bindings.html">Aether as a Configuration Language, v2: Namespaces and Generated Bindings</a>
+<a href="/Docs/aether-embedded-in-host-applications.html">Aether as a Configuration Language for Other Languages</a>
+<a href="/Docs/lib-caller-info.html">--emit=lib caller-info channel</a>
+<div class="grp">Stdlib</div>
+<a href="/Docs/stdlib-reference.html">Aether Standard Library Reference</a>
+<a href="/Docs/stdlib-api.html">Aether Standard Library Guide</a>
+<a href="/Docs/stdlib-module-pattern.html">Aether Stdlib Module Pattern</a>
+<a href="/Docs/stdlib-vs-contrib.html">std/ vs contrib/ placement decisions</a>
+<a href="/Docs/http-server.html">std.http HTTP Server</a>
+<a href="/Docs/http-reverse-proxy.html">std.http.proxy reverse proxy</a>
+<a href="/Docs/http-handler-context.html">HTTP handlers with per-server / per-route state</a>
+<a href="/Docs/http-vcr.html">HTTP Record/Replay (VCR), moved out of Aether</a>
+<a href="/Docs/json-parser-design.html">std.json Design Notes</a>
+<div class="grp">Safety</div>
+<a href="/Docs/containment-sandbox.html">Containment and Sandboxing in Aether</a>
+<a href="/Docs/hide-and-seal.html">hide and seal except scope-level capability denial</a>
+<a href="/Docs/compiler-trust-boundary.html">The Compiler Trust Boundary</a>
+<a href="/Docs/config-is-code.html">Config IS Code</a>
+<a href="/Docs/aether_compared_to_capsicum.html">Aether Sandbox Model vs. BSD Capsicum: Architecture, Parallels, and FreeBSD Integration</a>
+<div class="grp">Build</div>
+<a href="/Docs/build-system.html">Build System</a>
+<a href="/Docs/bootstrap-from-source.html">Bootstrapping Aether from source (HEAD)</a>
+<a href="/Docs/install-layout.html">Aether install layout</a>
+<a href="/Docs/runtime-config.html">Runtime Configuration - Quick Reference</a>
+<a href="/Docs/per-process-config.html">Per-process configuration in Aether</a>
+<a href="/Docs/cic-help.html">ae help &lt;script&gt; Offline diagnostics for config-IS-code</a>
+<div class="grp">More</div>
+<a href="/Docs/allocators.html">Allocators</a>
+<a href="/Docs/bindgen-consts.html">ae bindgen consts, importing C macro constants</a>
+<a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
+<a href="/Docs/contract-folding.html">Compile-time contract folding — costed design</a>
+<a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn't need macro_rules!</a>
+<a href="/Docs/error-unification.html">Unifying T? and (value, err) — costed design</a>
+<a href="/Docs/formatter.html">ae fmt, the source formatter</a>
+<a href="/Docs/isolated.html">Isolated[T]: move-only actor message payloads (#479)</a>
+<a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
+<a href="/Docs/profiling-guide.html">Aether Runtime Profiling Guide</a>
+<a href="/Docs/release-glibc-portability.html">Release binary portability across glibc versions</a>
+<a href="/Docs/when-static-if.html">Compile-time when / static-if</a></nav>
+    <main class="doc-main">
+      <article class="doc-body" id="doc">
+        <div class="bc"><span class="prompt">$</span>docs / language</div>
 <h1 id="aether-module-system">Aether Module System</h1>
 <p>This document describes Aether's module and namespace system.</p>
 <h2 id="terminology">Terminology</h2>
-<table>
-<thead>
-<tr>
-<th>Term</th>
-<th>Definition</th>
-<th>Example</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>Package</strong></td>
-<td>A collection of related modules</td>
-<td><code>std</code> (standard library)</td>
-</tr>
-<tr>
-<td><strong>Module</strong></td>
-<td>A single importable unit with functions</td>
-<td><code>std.string</code>, <code>std.http</code></td>
-</tr>
-<tr>
-<td><strong>Namespace</strong></td>
-<td>The prefix used when calling functions</td>
-<td><code>string</code>, <code>http</code></td>
-</tr>
-</tbody>
-</table>
+<div class="tw"><table><thead><tr><th>Term</th><th>Definition</th><th>Example</th></tr></thead><tbody><tr><td><strong>Package</strong></td><td>A collection of related modules</td><td><code>std</code> (standard library)</td></tr><tr><td><strong>Module</strong></td><td>A single importable unit with functions</td><td><code>std.string</code>, <code>std.http</code></td></tr><tr><td><strong>Namespace</strong></td><td>The prefix used when calling functions</td><td><code>string</code>, <code>http</code></td></tr></tbody></table></div>
 <h2 id="current-implementation">Current Implementation</h2>
-<p>The standard library uses <strong>namespace-style function
-calls</strong>:</p>
-<pre class="aether"><code>import std.string    // Import the string module
-import std.file      // Import the file module
+<p>The standard library uses <strong>namespace-style function calls</strong>:</p>
+<pre><code><span class="kw">import</span> std.<span class="fn">string</span>    <span class="com">// Import the string module</span>
+<span class="kw">import</span> std.file      <span class="com">// Import the file module</span>
 
 main() {
-    // Namespace = module name after last dot
-    s = string.new(&quot;hello&quot;)     // string namespace
-    len = string.length(s)
-    string.release(s)
+    <span class="com">// Namespace = module name after last dot</span>
+    s = <span class="fn">string</span>.new(<span class="str">"hello"</span>)     <span class="com">// string namespace</span>
+    len = <span class="fn">string</span>.length(s)
+    <span class="fn">string</span>.release(s)
 
-    if (file.exists(&quot;data.txt&quot;) == 1) {   // file namespace
-        size = file.size(&quot;data.txt&quot;)
+    <span class="kw">if</span> (file.exists(<span class="str">"data.txt"</span>) == <span class="num">1</span>) {   <span class="com">// file namespace</span>
+        size = file.size(<span class="str">"data.txt"</span>)
     }
 }</code></pre>
 <h3 id="how-it-works">How It Works</h3>
-<ol type="1">
-<li><code>import std.X</code> registers <code>X</code> as a
-namespace</li>
-<li><code>X.func()</code> is resolved to the C function
-<code>X_func()</code></li>
-<li>Dot-style calls: <code>string.new()</code>,
-<code>list.free()</code>, etc. (compiler translates to C-level
-<code>string_new</code>, <code>list_free</code>)</li>
-</ol>
+<ol><li><code>import std.X</code> registers <code>X</code> as a namespace</li><li><code>X.func()</code> is resolved to the C function <code>X_func()</code></li><li>Dot-style calls: <code>string.new()</code>, <code>list.free()</code>, etc. (compiler translates to C-level <code>string_new</code>, <code>list_free</code>)</li></ol>
 <h3 id="module-orchestration-phase">Module Orchestration Phase</h3>
-<p>Before type checking, the compiler runs a module orchestration phase
-(added between parsing and type checking in the compilation
-pipeline):</p>
-<ol type="1">
-<li><strong>Scan</strong>: Walk the main program AST for
-<code>import</code> statements</li>
-<li><strong>Resolve</strong>: Map each import to a file path (stdlib,
-lib/, src/ paths)</li>
-<li><strong>Parse</strong>: Lex and parse each module file into an
-AST</li>
-<li><strong>Cache</strong>: Store the parsed AST in
-<code>global_module_registry</code></li>
-<li><strong>Recurse</strong>: Process each module's own imports
-(transitive dependencies)</li>
-<li><strong>Cycle Check</strong>: Build a dependency graph and detect
-circular imports via DFS</li>
-</ol>
-<p>Both the type checker and code generator then use
-<code>module_find()</code> to retrieve cached ASTs — each module file is
-read and parsed exactly once.</p>
+<p>Before type checking, the compiler runs a module orchestration phase (added between parsing and type checking in the compilation pipeline):</p>
+<ol><li><strong>Scan</strong>: Walk the main program AST for <code>import</code> statements</li><li><strong>Resolve</strong>: Map each import to a file path (stdlib, lib/, src/ paths)</li><li><strong>Parse</strong>: Lex and parse each module file into an AST</li><li><strong>Cache</strong>: Store the parsed AST in <code>global_module_registry</code></li><li><strong>Recurse</strong>: Process each module's own imports (transitive dependencies)</li><li><strong>Cycle Check</strong>: Build a dependency graph and detect circular imports via DFS</li></ol>
+<p>Both the type checker and code generator then use <code>module_find()</code> to retrieve cached ASTs, each module file is read and parsed exactly once.</p>
 <h3 id="available-modules">Available Modules</h3>
-<table>
-<thead>
-<tr>
-<th>Import</th>
-<th>Namespace</th>
-<th>Functions</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>import std.string</code></td>
-<td><code>string</code></td>
-<td><code>string.new()</code>, <code>string.length()</code>,
-<code>string.release()</code></td>
-</tr>
-<tr>
-<td><code>import std.file</code></td>
-<td><code>file</code></td>
-<td><code>file.open()</code>, <code>file.read_all()</code>,
-<code>file.write()</code>, <code>file.exists()</code>,
-<code>file.close()</code>, <code>file.delete()</code>,
-<code>file.size()</code></td>
-</tr>
-<tr>
-<td><code>import std.dir</code></td>
-<td><code>dir</code></td>
-<td><code>dir.exists()</code>, <code>dir.create()</code>,
-<code>dir.delete()</code>, <code>dir.list()</code></td>
-</tr>
-<tr>
-<td><code>import std.path</code></td>
-<td><code>path</code></td>
-<td><code>path.join()</code>, <code>path.dirname()</code>,
-<code>path.basename()</code>, <code>path.extension()</code>,
-<code>path.is_absolute()</code></td>
-</tr>
-<tr>
-<td><code>import std.fs</code></td>
-<td><code>file</code>, <code>dir</code>, <code>path</code></td>
-<td>Combined module — re-exports <code>file.*</code>,
-<code>dir.*</code>, and <code>path.*</code> operations</td>
-</tr>
-<tr>
-<td><code>import std.json</code></td>
-<td><code>json</code></td>
-<td><code>json.parse()</code>, <code>json.create_object()</code>,
-<code>json.free()</code></td>
-</tr>
-<tr>
-<td><code>import std.http</code></td>
-<td><code>http</code></td>
-<td><code>http.get()</code>, <code>http.server_create()</code>,
-<code>http.server_start()</code></td>
-</tr>
-<tr>
-<td><code>import std.tcp</code></td>
-<td><code>tcp</code></td>
-<td><code>tcp.connect()</code>, <code>tcp.send()</code>,
-<code>tcp.listen()</code></td>
-</tr>
-<tr>
-<td><code>import std.net</code></td>
-<td><code>tcp</code>, <code>http</code></td>
-<td>Combined module — re-exports <code>tcp.*</code> and
-<code>http.*</code> operations</td>
-</tr>
-<tr>
-<td><code>import std.list</code></td>
-<td><code>list</code></td>
-<td><code>list.new()</code>, <code>list.add()</code>,
-<code>list.get()</code>, <code>list.set()</code>,
-<code>list.remove()</code></td>
-</tr>
-<tr>
-<td><code>import std.map</code></td>
-<td><code>map</code></td>
-<td><code>map.new()</code>, <code>map.put()</code>,
-<code>map.get()</code>, <code>map.has()</code>,
-<code>map.remove()</code></td>
-</tr>
-<tr>
-<td><code>import std.collections</code></td>
-<td><code>list</code>, <code>map</code></td>
-<td>Combined module — re-exports <code>list.*</code> and
-<code>map.*</code> operations</td>
-</tr>
-<tr>
-<td><code>import std.math</code></td>
-<td><code>math</code></td>
-<td><code>math.abs_int()</code>, <code>math.sqrt()</code>,
-<code>math.sin()</code>, <code>math.random_int()</code></td>
-</tr>
-<tr>
-<td><code>import std.log</code></td>
-<td><code>log</code></td>
-<td><code>log.init()</code>, <code>log.write()</code>,
-<code>log.shutdown()</code></td>
-</tr>
-<tr>
-<td><code>import std.io</code></td>
-<td><code>io</code></td>
-<td><code>io.print()</code>, <code>io.read_file()</code>,
-<code>io.getenv()</code></td>
-</tr>
-<tr>
-<td><code>import std.os</code></td>
-<td><code>os</code></td>
-<td><code>os.system()</code>, <code>os.exec()</code>,
-<code>os.getenv()</code></td>
-</tr>
-</tbody>
-</table>
-<hr />
+<div class="tw"><table><thead><tr><th>Import</th><th>Namespace</th><th>Functions</th></tr></thead><tbody><tr><td><code>import std.string</code></td><td><code>string</code></td><td><code>string.new()</code>, <code>string.length()</code>, <code>string.release()</code></td></tr><tr><td><code>import std.file</code></td><td><code>file</code></td><td><code>file.open()</code>, <code>file.read()</code>, <code>file.write()</code>, <code>file.exists()</code>, <code>file.close()</code>, <code>file.delete()</code>, <code>file.size()</code></td></tr><tr><td><code>import std.dir</code></td><td><code>dir</code></td><td><code>dir.exists()</code>, <code>dir.create()</code>, <code>dir.delete()</code>, <code>dir.list()</code></td></tr><tr><td><code>import std.path</code></td><td><code>path</code></td><td><code>path.join()</code>, <code>path.dirname()</code>, <code>path.basename()</code>, <code>path.extension()</code>, <code>path.is_absolute()</code></td></tr><tr><td><code>import std.fs</code></td><td><code>fs</code></td><td>Monolithic file/dir/path module, call under the <code>fs</code> namespace, e.g. <code>fs.read()</code>, <code>fs.exists()</code>, <code>fs.list_dir()</code>, <code>fs.clean()</code> (not <code>file.*</code>/<code>dir.*</code>/<code>path.*</code>)</td></tr><tr><td><code>import std.json</code></td><td><code>json</code></td><td><code>json.parse()</code>, <code>json.create_object()</code>, <code>json.free()</code></td></tr><tr><td><code>import std.http</code></td><td><code>http</code></td><td><code>http.get()</code>, <code>http.server_create()</code>, <code>http.server_start()</code></td></tr><tr><td><code>import std.tcp</code></td><td><code>tcp</code></td><td><code>tcp.connect()</code>, <code>tcp.write()</code>, <code>tcp.listen()</code></td></tr><tr><td><code>import std.net</code></td><td><code>net</code></td><td>Monolithic networking module under the <code>net</code> namespace; redeclares the same TCP/HTTP externs over shared C symbols. Does not re-export the <code>tcp</code>/<code>http</code> namespaces, so <code>http.get()</code> fails after <code>import std.net</code> import <code>std.http</code>/<code>std.tcp</code> for those</td></tr><tr><td><code>import std.list</code></td><td><code>list</code></td><td><code>list.new()</code>, <code>list.add()</code>, <code>list.get()</code>, <code>list.set()</code>, <code>list.remove()</code></td></tr><tr><td><code>import std.map</code></td><td><code>map</code></td><td><code>map.new()</code>, <code>map.put()</code>, <code>map.get()</code>, <code>map.has()</code>, <code>map.remove()</code></td></tr><tr><td><code>import std.collections</code></td><td><code>collections</code></td><td>Monolithic list/map module. Functions keep their raw names; the qualified <code>collections.X</code> surface only reaches the Aether wrappers (<code>collections.list_add()</code>, <code>collections.map_put()</code>, <code>collections.map_get()</code>). Raw externs like <code>list_new</code>/<code>map_new</code> register globally and are callable unqualified, not as <code>collections.list_new()</code>. For a namespaced <code>list.new()</code>/<code>map.new()</code> surface, import <code>std.list</code>/<code>std.map</code></td></tr><tr><td><code>import std.math</code></td><td><code>math</code></td><td><code>math.abs_int()</code>, <code>math.sqrt()</code>, <code>math.sin()</code>, <code>math.random_int()</code></td></tr><tr><td><code>import std.log</code></td><td><code>log</code></td><td><code>log.init()</code>, <code>log.write()</code>, <code>log.shutdown()</code></td></tr><tr><td><code>import std.io</code></td><td><code>io</code></td><td><code>io.print()</code>, <code>io.read_file()</code>, <code>io.getenv()</code></td></tr><tr><td><code>import std.os</code></td><td><code>os</code></td><td><code>os.system()</code>, <code>os.exec()</code>, <code>os.getenv()</code></td></tr></tbody></table></div>
+<hr>
 <h2 id="export-visibility">Export Visibility</h2>
-<p>Use <code>export</code> to control which symbols are part of a
-module's public API:</p>
-<pre class="aether"><code>// lib/geometry/module.ae
+<p>Modules declare their public API via a single Erlang-style <code>exports (…)</code> list at the top of the file. Names in the list are accessible from importers; names not in the list are private, still usable inside the module's own functions, but rejected at qualified-call sites.</p>
+<pre><code><span class="com">// lib/geometry/module.ae</span>
 
-export const PI = 3
+<span class="kw">exports</span> (PI, distance)
 
-export distance(x1, y1, x2, y2) {
+<span class="kw">const</span> PI = <span class="num">3</span>
+
+distance(x1, y1, x2, y2) {
     dx = x1 - x2
     dy = y1 - y2
-    return sqrt_approx(dx * dx + dy * dy)
+    <span class="kw">return</span> _sqrt_approx(dx * dx + dy * dy)
 }
 
-// Private helper — not accessible from outside
-sqrt_approx(n) {
-    return n  // placeholder
+<span class="com">// Private helper, not in the exports list, not accessible from outside.</span>
+_sqrt_approx(n) {
+    <span class="kw">return</span> n  <span class="com">// placeholder</span>
 }</code></pre>
-<pre class="aether"><code>import geometry
+<pre><code><span class="kw">import</span> geometry
 
 main() {
-    d = geometry.distance(0, 0, 3, 4)  // OK — exported
-    println(geometry.PI)                 // OK — exported
-    // geometry.sqrt_approx(25)          // Error: not exported
+    d = geometry.distance(<span class="num">0</span>, <span class="num">0</span>, <span class="num">3</span>, <span class="num">4</span>)   <span class="com">// OK, listed</span>
+    println(geometry.PI)                 <span class="com">// OK, listed</span>
+    <span class="com">// geometry._sqrt_approx(25)         // Error: not in exports list</span>
 }</code></pre>
 <p><strong>Rules:</strong></p>
-<ul>
-<li><code>export</code> works with functions
-(<code>export func_name(...)</code>), constants
-(<code>export const NAME = value</code>), and <code>fn</code>-keyword
-functions (<code>export fn func_name(...)</code>)</li>
-<li>If a module has <strong>any</strong> <code>export</code>
-declarations, only exported symbols are accessible from importers.
-Non-exported symbols are private.</li>
-<li>If a module has <strong>no</strong> <code>export</code>
-declarations, all symbols are public (backwards compatible)</li>
-<li>Private functions can still be used internally by exported functions
-— they are merged into the program but not accessible via
-<code>module.name()</code></li>
-</ul>
+<ul><li><code>exports (…)</code> accepts any combination of function names, const names, and struct/actor names. The list is the contract.</li><li>A module that declares an <code>exports (…)</code> list exposes <strong>only</strong> the listed names. Anything else is private.</li><li>A module with no <code>exports (…)</code> list keeps the legacy default-public behavior, every top-level name is callable from outside. v1 is additive; v2 will flip this default to private once every stdlib + contrib module has been migrated.</li><li>Private names can still be referenced from inside the module's own functions, they're merged into the program, just blocked at the external call boundary.</li></ul>
+<h3 id="legacy-export-fn-form-deprecated">Legacy <code>export &lt;fn&gt;</code> form (deprecated)</h3>
+<p>Earlier versions of Aether used a per-function <code>export</code> keyword:</p>
+<pre><code><span class="com">// DEPRECATED, emits a warning at compile time.</span>
+<span class="kw">export</span> <span class="kw">const</span> PI = <span class="num">3</span>
+<span class="kw">export</span> distance(...) { … }</code></pre>
+<p>This form is still accepted for one release as a deprecation alias. Modules using it get a one-shot warning to stderr. Migrate by collecting every <code>export</code>-tagged name into one <code>exports (…)</code> line at the top, then removing the per-function keywords. Mixing both forms in one module is a hard error.</p>
+<h2 id="selective-import-shadow-rejection-436-facet-a">Selective-import shadow rejection (#436 facet A)</h2>
+<p>A module (or main program) that selectively imports a name AND defines a local function with the same name silently shadowed the import:</p>
+<pre><code><span class="kw">import</span> std.<span class="fn">string</span> (length)
+
+length(s: <span class="fn">string</span>) -&gt; <span class="fn">int</span> {
+    <span class="kw">return</span> length(s)        <span class="com">// intent: std.string.length</span>
+                            <span class="com">// reality: self → infinite recursion</span>
+}</code></pre>
+<p>Pre-fix, the merger renamed the body's bare <code>length(s)</code> to <code>mod_length(s)</code> (matching the local def's namespaced name post-merge), turning the wrapper into self-recursion, a runtime stack overflow with no compile-time signal. As of #436 facet A, the orchestrator rejects this pattern with <code>error[E1000]</code> before merging:</p>
+<pre><code>error[E1000]: module 'mod' (mod/module.ae) defines local function
+'length' (3:1) but also selectively imports 'length' from 'std.string'
+  the local def silently shadows the import, so a bare call to
+  'length(...)' inside the local body would recurse into the local
+  rather than forward to the imported symbol, at runtime this is a
+  stack overflow with no compile-time signal.
+  fix one of:
+    - rename the local function
+    - drop the selective import: `import std.string` (then call via
+      the qualified form)
+    - keep both but call the imported version qualified inside the
+      local body</code></pre>
+<p>The same check applies to entry-point <code>main.ae</code> files when the shadow lives there directly (not inside a module). Both <code>AST_FUNCTION_DEFINITION</code> and <code>export &lt;fn&gt;</code> shapes are caught.</p>
+<h2 id="qualified-surface-survives-a-selective-import-after-merge-870">Qualified surface survives a selective import after merge (#870)</h2>
+<p>The two <code>import std.X</code> forms each light up a different call syntax: a bare <code>import std.X</code> enables the qualified <code>X.fn()</code> surface; a selective <code>import std.X (fn)</code> enables the bare-name <code>fn()</code> surface. These compose per-file, but a merged compilation unit pulls definitions from several files into one program, and a module's own <code>import</code> statements are <em>not</em> cloned in (only its function/const/struct bodies are).</p>
+<p>That dropped the qualified surface in one case: when the entry file imported a module <strong>selectively</strong> (<code>import std.string (string_length)</code>), the merged unit was marked selective for <code>string</code>, so a qualified <code>string.concat(...)</code> arriving from an imported module that bare-imports <code>std.string</code> was rejected with <code>error[E0301]: Undefined function 'string.concat'</code>.</p>
+<p>The merge now injects a <strong>synthetic bare import</strong> for each merged module's own bare imports. A synthetic import marks the namespace non-selective for the unit (re-opening <code>string.X</code>) but is kept out of the user-explicit registry, so sealed-scope isolation (#243) is preserved: user code still cannot call into a namespace it never imported. This mirrors how transitive dependencies already get synthetic imports during merge.</p>
+<h2 id="re-exports">Re-exports</h2>
+<p>A module can re-export a symbol it imports from another module by listing that symbol in its own <code>exports</code>. A consumer then reaches it through the re-exporting module even though that module never defined it:</p>
+<pre><code><span class="com">// hub.ae, re-exports DERIVED from an inner module</span>
+<span class="kw">import</span> layout_consts (DERIVED)
+<span class="kw">exports</span> (DERIVED)
+
+<span class="com">// consumer.ae</span>
+<span class="kw">import</span> hub
+x = hub.DERIVED        <span class="com">// resolves to the definition in layout_consts</span></code></pre>
+<p>Re-export is opt-in through the <code>exports</code> list, transitive (a hub may re-export a symbol another hub re-exports), and cycle-guarded. It is also precise: a locally-defined export is never treated as a re-export, so if a module both defines a name and imports one, the local definition wins. The resolver redirects an unresolved <code>hub.X</code> to the origin module that defines it, and the merge pass pulls that origin definition into the program under the origin's namespace.</p>
+<h2 id="cross-module-method-call-syntax-ufcs">Cross-module method-call syntax (UFCS)</h2>
+<p>A method-style call <code>x.f(args)</code> is rewritten to the free-function call <code>f(x, args)</code> when no field or method named <code>f</code> applies. The target <code>f</code> may be defined in an imported module, not only in the same file. Same-file functions take precedence, and the rewrite is a last resort, it fires only when the call does not already resolve as a normal function or a struct field, so it never shadows an existing binding. This is what lets a fluent chain such as <code>expect(x).to_equal(y)</code> span module boundaries.</p>
+<h2 id="circular-import-diagnostics">Circular-import diagnostics</h2>
+<p>Imports are resolved through a dependency graph, and a cycle is a hard error. The diagnostic names the actual cycle as a path, <code>a -&gt; b -&gt; a</code> rather than the entry point, so the report points at the modules that actually form the loop. The synthetic <code>__main__</code> entry node never appears in the path because nothing imports it.</p>
 <h2 id="future">Future</h2>
-<p>Features not yet implemented:</p>
-<ul>
-<li><code>import math.geometry (Point, distance)</code> — selective
-imports (parsed but not enforced)</li>
-<li><code>import math.geometry as geo</code> — import aliases</li>
-<li><code>import github.com/user/package</code> — remote package
-imports</li>
-<li>Exporting structs and actors from modules</li>
-<li>Re-exports (module A re-exporting module B's symbols)</li>
-</ul>
-<hr />
+<p>Work planned on top of the current module system:</p>
+<ul><li><code>import math.geometry as geo</code> import aliases. The parser accepts them and the typechecker records the alias via <code>add_module_alias</code>, but qualified calls through the alias (<code>geo.distance()</code>) do not yet resolve; completing that lookup is the remaining work.</li><li>Exporting structs and actors from modules.</li></ul>
+<hr>
 <h2 id="creating-packages">Creating Packages</h2>
-<p>Developers can create their own packages using the <code>ae</code>
-CLI tool.</p>
+<p>Developers can create their own packages using the <code>ae</code> CLI tool.</p>
 <h3 id="quick-start">Quick Start</h3>
-<div class="sourceCode" id="cb4"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Create a new package</span></span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="ex">ae</span> init mypackage</span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> mypackage</span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Build and run</span></span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="ex">ae</span> build</span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="ex">ae</span> run</span></code></pre></div>
+<pre><code><span class="com"># Create a new package</span>
+ae init mypackage
+cd mypackage
+
+<span class="com"># Build and run</span>
+ae build
+ae run</code></pre>
 <h3 id="package-structure">Package Structure</h3>
 <pre><code>mypackage/
 ├── aether.toml       # Package manifest
@@ -296,29 +231,23 @@ class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="
 │   └── test_utils.ae
 └── README.md</code></pre>
 <h3 id="package-manifest-aethertoml">Package Manifest (aether.toml)</h3>
-<p>Every package has an <code>aether.toml</code> file:</p>
-<div class="sourceCode" id="cb6"><pre
-class="sourceCode toml"><code class="sourceCode toml"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">[package]</span></span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="dt">name</span> <span class="op">=</span> <span class="st">&quot;mypackage&quot;</span></span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="dt">version</span> <span class="op">=</span> <span class="st">&quot;0.1.0&quot;</span></span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="dt">authors</span> <span class="op">=</span> <span class="op">[</span><span class="st">&quot;Your Name &lt;you@example.com&gt;&quot;</span><span class="op">]</span></span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="dt">license</span> <span class="op">=</span> <span class="st">&quot;MIT&quot;</span></span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="dt">description</span> <span class="op">=</span> <span class="st">&quot;My awesome Aether package&quot;</span></span>
-<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="kw">[dependencies]</span></span>
-<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Dependencies go here (future feature)</span></span>
-<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a><span class="co"># http_client = &quot;1.0&quot;</span></span>
-<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a><span class="kw">[dev-dependencies]</span></span>
-<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Test dependencies</span></span>
-<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a><span class="kw">[build]</span></span>
-<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a><span class="dt">target</span> <span class="op">=</span> <span class="st">&quot;native&quot;</span></span>
-<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a><span class="dt">optimizations</span> <span class="op">=</span> <span class="st">&quot;aggressive&quot;</span></span>
-<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a><span class="kw">[[bin]]</span></span>
-<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a><span class="dt">name</span> <span class="op">=</span> <span class="st">&quot;mypackage&quot;</span></span>
-<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a><span class="dt">path</span> <span class="op">=</span> <span class="st">&quot;src/main.ae&quot;</span></span></code></pre></div>
+<p>Every package has an <code>aether.toml</code> file. This is what <code>ae init mypackage</code> scaffolds:</p>
+<pre><code>[package]
+name = <span class="str">"mypackage"</span>
+version = <span class="str">"0.1.0"</span>
+description = <span class="str">"A new Aether project"</span>
+license = <span class="str">"MIT"</span>
+
+[[bin]]
+name = <span class="str">"mypackage"</span>
+path = <span class="str">"src/main.ae"</span>
+
+[dependencies]
+
+[build]
+target = <span class="str">"native"</span>
+<span class="com"># link_flags = "-lsqlite3 -lcurl"  # Add extra linker flags</span></code></pre>
+<p>Only a subset of the manifest is honored today: the <code>[[bin]]</code> entries (<code>name</code>/<code>path</code>/<code>extra_sources</code>) and the <code>[build]</code> <code>target</code>, <code>link_flags</code>, and <code>cflags</code> keys. The <code>[package]</code> metadata and <code>[dependencies]</code> table are recorded but not yet acted on by the toolchain.</p>
 <h3 id="creating-local-modules">Creating Local Modules</h3>
 <p>Aether supports local modules within your project:</p>
 <p><strong>Project Structure:</strong></p>
@@ -330,146 +259,112 @@ class="sourceCode toml"><code class="sourceCode toml"><span id="cb6-1"><a href="
 │   └── utils/
 │       └── module.ae        # Pure Aether module
 └── tests/</code></pre>
-<p><strong>lib/utils/module.ae</strong> — define your module:</p>
-<pre class="aether"><code>export const MULTIPLIER = 2
+<p><strong>lib/utils/module.ae</strong>, define your module:</p>
+<pre><code><span class="kw">export</span> <span class="kw">const</span> MULTIPLIER = <span class="num">2</span>
 
-export double_value(x) {
-    return multiply(x, MULTIPLIER)
+<span class="kw">export</span> double_value(x) {
+    <span class="kw">return</span> multiply(x, MULTIPLIER)
 }
 
-export triple_value(x) {
-    return multiply(x, 3)
+<span class="kw">export</span> triple_value(x) {
+    <span class="kw">return</span> multiply(x, <span class="num">3</span>)
 }
 
-// Private helper
+<span class="com">// Private helper</span>
 multiply(a, b) {
-    return a * b
+    <span class="kw">return</span> a * b
 }</code></pre>
-<p><strong>src/main.ae</strong> — use the module:</p>
-<pre class="aether"><code>import utils
+<p><strong>src/main.ae</strong>, use the module:</p>
+<pre><code><span class="kw">import</span> utils
 
 main() {
-    println(utils.double_value(5))   // 10
-    println(utils.triple_value(5))   // 15
-    println(utils.MULTIPLIER)        // 2
+    println(utils.double_value(<span class="num">5</span>))   <span class="com">// 10</span>
+    println(utils.triple_value(<span class="num">5</span>))   <span class="com">// 15</span>
+    println(utils.MULTIPLIER)        <span class="com">// 2</span>
 }</code></pre>
 <h3 id="module-resolution">Module Resolution</h3>
 <p>The compiler searches for local modules in this order:</p>
-<ol type="1">
-<li><code>lib/&lt;module&gt;/module.ae</code> - Library directory with
-module file</li>
-<li><code>lib/&lt;module&gt;.ae</code> - Single-file module in lib</li>
-<li><code>src/&lt;module&gt;/module.ae</code> - Source directory with
-module file</li>
-<li><code>src/&lt;module&gt;.ae</code> - Single-file module in src</li>
-<li><code>&lt;module&gt;/module.ae</code> - Project root</li>
-<li><code>&lt;module&gt;.ae</code> - Single file in project root</li>
-</ol>
+<ol><li><code>&lt;lib-path-entry&gt;/&lt;module&gt;/module.ae</code> - Library directory with module file</li><li><code>&lt;lib-path-entry&gt;/&lt;module&gt;.ae</code> - Single-file module in lib</li><li><code>src/&lt;module&gt;/module.ae</code> - Source directory with module file</li><li><code>src/&lt;module&gt;.ae</code> - Single-file module in src</li><li><code>&lt;module&gt;/module.ae</code> - Project root</li><li><code>&lt;module&gt;.ae</code> - Single file in project root</li></ol>
 <p>For nested modules like <code>import mypackage.utils</code>:</p>
-<ul>
-<li>Dots are converted to slashes:
-<code>mypackage/utils/module.ae</code></li>
-<li>Same search paths are used with the converted path</li>
-</ul>
+<ul><li>Dots are converted to slashes: <code>mypackage/utils/module.ae</code></li><li>Same search paths are used with the converted path</li><li><code>~/.aether/packages/&lt;name&gt;/src/module.ae</code> - Installed package (via <code>ae add</code>)</li><li><code>~/.aether/packages/&lt;name&gt;/module.ae</code> - Installed package (flat layout)</li></ul>
+<p>Packages installed with <code>ae add</code> are searched after local paths. The package name is the first component of the import path.</p>
+<h4 id="lib-search-path-413">Lib search path (#413)</h4>
+<p><code>&lt;lib-path-entry&gt;</code> in steps 1 and 2 is a list of directories, PATH-style, <code>:</code> on POSIX and <code>;</code> on Windows. The list is searched left-to-right; the first hit wins. Three forms compose:</p>
+<pre><code>ae run main.ae --lib ./lib:./vendor/stdlib    <span class="com"># separator-string</span>
+ae run main.ae --lib ./lib --lib ./vendor     <span class="com"># repeated flag</span>
+AETHER_LIB_DIR=./lib:./vendor ae run main.ae  <span class="com"># env var</span></code></pre>
+<p>Both forms can be mixed (<code>--lib a:b --lib c</code> → <code>[a, b, c]</code>). The default is the single entry <code>lib</code> (the legacy behaviour); supplying any explicit <code>--lib</code> or <code>AETHER_LIB_DIR</code> replaces the default with the given list. Up to 8 entries. Caching invalidates on lib-path changes, two builds of the same source with different <code>--lib</code> chains get distinct cache slots, and every entry's mtime feeds into the cache key so a <code>touch</code> in a vendored module reuses the right cache bucket.</p>
+<p>The shape matches Java <code>-cp</code>, Python <code>PYTHONPATH</code>, Ruby <code>-I</code> / <code>RUBYLIB</code>. Useful for layering project-local modules over a vendored stdlib, sharing a common lib root across two projects, or pinning a stdlib snapshot alongside HEAD-tracking deps.</p>
+<p>Trailing slashes are normalised: <code>--lib ./lib/</code> and <code>--lib ./lib</code> register the same entry (the dedup catches them), and lookup paths stay clean, <code>&lt;entry&gt;/&lt;module&gt;.ae</code> rather than <code>./lib//&lt;module&gt;.ae</code>. Root paths (<code>/</code> on POSIX, <code>C:\</code> on Windows) are preserved as-is.</p>
+<h4 id="introspecting-the-resolved-chain">Introspecting the resolved chain</h4>
+<p><code>ae lib-path</code> prints the resolved search order, one entry per line, in the same order the toolchain walks them. Useful when debugging "why isn't my import resolving?" without re-reading the user's shell config:</p>
+<pre><code>$ ae lib-path --lib ./lib:./vendor/stdlib
+./lib
+./vendor/stdlib
+
+$ AETHER_LIB_DIR=/usr/share/aether:./local ae lib-path
+/usr/share/aether
+./local
+
+$ ae lib-path                          <span class="com"># defaults, single entry</span>
+lib</code></pre>
+<p>Inputs are merged in the same priority order the build path uses: explicit <code>--lib</code> flags first, then <code>AETHER_LIB_DIR</code>, then the default <code>lib</code>.</p>
 <h3 id="namespace-convention">Namespace Convention</h3>
 <p>Function names must be prefixed with the namespace:</p>
-<ul>
-<li>Import: <code>import utils</code></li>
-<li>Call: <code>utils.double_value(x)</code></li>
-<li>C function: <code>utils_double_value()</code></li>
-</ul>
-<p>The compiler converts <code>namespace.function()</code> to
-<code>namespace_function()</code>.</p>
+<ul><li>Import: <code>import utils</code></li><li>Call: <code>utils.double_value(x)</code></li><li>C function: <code>utils_double_value()</code></li></ul>
+<p>The compiler converts <code>namespace.function()</code> to <code>namespace_function()</code>.</p>
 <h3 id="pure-aether-modules">Pure Aether Modules</h3>
-<p>You can write reusable modules in pure Aether — no C backing file
-required:</p>
+<p>You can write reusable modules in pure Aether, no C backing file required:</p>
 <p><strong>lib/mymath/module.ae:</strong></p>
-<pre class="aether"><code>export const PI_APPROX = 3
+<pre><code><span class="kw">export</span> <span class="kw">const</span> PI_APPROX = <span class="num">3</span>
 
-export double_it(x) {
-    return x * 2
+<span class="kw">export</span> double_it(x) {
+    <span class="kw">return</span> x * <span class="num">2</span>
 }
 
-export add(a, b) {
-    return a + b
+<span class="kw">export</span> add(a, b) {
+    <span class="kw">return</span> a + b
 }
 
-// Intra-module calls work — functions can call each other
-export double_and_add(x, y) {
-    return add(double_it(x), y)
+<span class="com">// Intra-module calls work, functions can call each other</span>
+<span class="kw">export</span> double_and_add(x, y) {
+    <span class="kw">return</span> add(double_it(x), y)
 }</code></pre>
 <p><strong>src/main.ae:</strong></p>
-<pre class="aether"><code>import mymath
+<pre><code><span class="kw">import</span> mymath
 
 main() {
-    println(mymath.double_it(5))    // 10
-    println(mymath.add(3, 4))       // 7
-    println(mymath.double_and_add(5, 3))  // 13
-    println(mymath.PI_APPROX)       // 3
+    println(mymath.double_it(<span class="num">5</span>))    <span class="com">// 10</span>
+    println(mymath.add(<span class="num">3</span>, <span class="num">4</span>))       <span class="com">// 7</span>
+    println(mymath.double_and_add(<span class="num">5</span>, <span class="num">3</span>))  <span class="com">// 13</span>
+    println(mymath.PI_APPROX)       <span class="com">// 3</span>
 }</code></pre>
 <p><strong>How it works:</strong></p>
-<p>After module orchestration, the compiler clones each module's
-function and constant AST nodes into the main program with
-namespace-prefixed names (<code>double_it</code> →
-<code>mymath_double_it</code>). Intra-module calls, constant references,
-and constant-to-constant references (e.g.,
-<code>const DOUBLE_BASE = BASE * 2</code>) are renamed automatically.
-Function parameters and local variables correctly shadow module
-constants — <code>check(SCALE) { return SCALE }</code> returns the
-parameter, not the module constant <code>SCALE</code>. This makes the
-entire downstream pipeline (type inference, type checking, codegen) work
-without modification — merged functions are just regular top-level
-functions.</p>
+<p>After module orchestration, the compiler clones each module's function and constant AST nodes into the main program with namespace-prefixed names (<code>double_it</code> → <code>mymath_double_it</code>). Intra-module calls, constant references, and constant-to-constant references (e.g., <code>const DOUBLE_BASE = BASE * 2</code>) are renamed automatically. Function parameters and local variables correctly shadow module constants, <code>check(SCALE) { return SCALE }</code> returns the parameter, not the module constant <code>SCALE</code>. This makes the entire downstream pipeline (type inference, type checking, codegen) work without modification, merged functions are just regular top-level functions.</p>
+<p><strong>Tree-shake of unused merges.</strong> Immediately after merging and before typechecking, <code>module_prune_unreachable</code> runs a mark-and-sweep over the program AST. It seeds reachability from <code>main</code>, every actor handler, every <code>export</code> statement, and every non-imported user function/builder, then closes over <code>AST_FUNCTION_CALL</code>, <code>AST_IDENTIFIER</code>, and <code>AST_MEMBER_ACCESS</code> references, including suffix matches that handle glob-import (<code>import mymath (*)</code>) and selective-import (<code>import mymath [cube]</code>) shorthands. Imported function and builder definitions outside the closure are dropped from the AST so the typechecker doesn't walk them and the C compiler doesn't emit them. Constants stay (cheap, and pruning them would need a separate pass keyed on identifier references). The whole pass is invisible to user code; programs that <em>do</em> call every imported function build identically before and after.</p>
+<p><strong>Native link dependencies (<code>@link</code>).</strong> A module that wraps a native library declares its own link flags at the top of <code>module.ae</code>:</p>
+<pre><code>@link(<span class="str">"-laether_sqlite -lsqlite3"</span>)</code></pre>
+<p>When the module is in a program's resolved import closure, codegen unions every declared flag (first-seen order, deduplicated) into the <code>// aether-link:</code> comment on the first line of the generated C, which downstream C builds read to link without undefined-reference archaeology. Declaring is enough; there is no central registry to edit. Token order within one <code>@link</code> is preserved, which matters for single-pass linkers (veneer archive before the library it references). For an ordinary <code>ae build</code> the consumer still supplies real link flags via <code>aether.toml</code> (<code>link_flags = ...</code>); <code>@link</code> feeds only the whole-program comment.</p>
 <p><strong>What's supported:</strong></p>
-<ul>
-<li>Functions (with type inference from call sites)</li>
-<li>Constants (<code>const NAME = value</code>), including constants
-referencing other constants</li>
-<li>Intra-module calls (functions calling other functions and
-referencing constants in the same module)</li>
-<li>Export visibility (<code>export</code> keyword controls public
-API)</li>
-<li>Multiple module imports in the same program</li>
-<li>Mixing pure modules with stdlib imports</li>
-<li>Parameter/local variable shadowing of module constants</li>
-</ul>
-<p><strong>Not yet supported:</strong></p>
-<ul>
-<li>Actors from modules (dispatch tables assume main program scope)</li>
-<li>Message definitions from modules</li>
-<li>Selective imports (<code>import mymath (add, PI)</code>)</li>
-<li>Re-exports (module A re-exporting module B's functions)</li>
-<li>Module-level mutable state</li>
-</ul>
-<h3 id="current-limitations">Current Limitations</h3>
-<ul>
-<li>Package publishing/registry not yet implemented</li>
-<li>Remote package downloads not yet functional</li>
-</ul>
+<ul><li>Functions (with type inference from call sites)</li><li>Constants (<code>const NAME = value</code>), including constants referencing other constants</li><li>Intra-module calls (functions calling other functions and referencing constants in the same module)</li><li>Export visibility (<code>export</code> keyword controls public API)</li><li>Multiple module imports in the same program</li><li>Mixing pure modules with stdlib imports</li><li>Parameter/local variable shadowing of module constants</li><li>Actors and their message types (#1006): <code>spawn</code> an <code>actor</code> and send a <code>message</code> declared in an imported module. Both enter the program under their bare name (like structs), so <code>spawn(Worker())</code> and <code>w ! Ping { ... }</code> resolve; the actor's handlers still have their intra-module function/constant references rewritten, and the per-program message registry assigns runtime type ids across the merge.</li></ul>
+<p><strong>On the module-system roadmap (language-level):</strong></p>
+<ul><li>Module-level mutable state</li></ul>
 <h3 id="roadmap">Roadmap</h3>
-<ol type="1">
-<li><strong>Done</strong>: Package initialization
-(<code>ae init</code>)</li>
-<li><strong>Done</strong>: Local package building
-(<code>ae build</code>)</li>
-<li><strong>Done</strong>: Local nested package imports</li>
-<li><strong>Done</strong>: Pure Aether module implementations</li>
-<li><strong>Done</strong>: Export visibility enforcement</li>
-<li><strong>Planned</strong>: Package dependencies</li>
-<li><strong>Planned</strong>: Package registry/publishing</li>
-</ol>
+<ol><li><strong>Done</strong>: Package initialization (<code>ae init</code>)</li><li><strong>Done</strong>: Local package building (<code>ae build</code>)</li><li><strong>Done</strong>: Local nested package imports</li><li><strong>Done</strong>: Pure Aether module implementations</li><li><strong>Done</strong>: Export visibility enforcement</li><li><strong>Planned</strong>: Package dependencies</li><li><strong>Planned</strong>: Package registry/publishing</li></ol>
 <h2 id="notes">Notes</h2>
-<ul>
-<li>Single-file programs continue to work without packages</li>
-<li>The <code>std</code> package is built-in and always available</li>
-</ul>
-    </article>
-  </main>
-
-  <!-- FOOTER -->
-  <footer>
-    <p>&copy; 2026 Nicolas Maman</p>
-    <p><a href="#">Privacy</a> &middot; <a href="https://github.com/nicolasmd87/aether/blob/main/LICENSE">License</a> &middot; <a href="mailto:hello@aether.org">Contact</a></p>
-  </footer>
+<ul><li>Single-file programs continue to work without packages</li><li>The <code>std</code> package is built-in and always available</li></ul>
+      </article>
+    </main>
+    <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#terminology" class="l2" data-id="terminology">Terminology</a><a href="#current-implementation" class="l2" data-id="current-implementation">Current Implementation</a><a href="#how-it-works" class="l3" data-id="how-it-works">How It Works</a><a href="#module-orchestration-phase" class="l3" data-id="module-orchestration-phase">Module Orchestration Phase</a><a href="#available-modules" class="l3" data-id="available-modules">Available Modules</a><a href="#export-visibility" class="l2" data-id="export-visibility">Export Visibility</a><a href="#legacy-export-fn-form-deprecated" class="l3" data-id="legacy-export-fn-form-deprecated">Legacy export &lt;fn&gt; form (deprecated)</a><a href="#selective-import-shadow-rejection-436-facet-a" class="l2" data-id="selective-import-shadow-rejection-436-facet-a">Selective-import shadow rejection (#436 facet A)</a><a href="#qualified-surface-survives-a-selective-import-after-merge-870" class="l2" data-id="qualified-surface-survives-a-selective-import-after-merge-870">Qualified surface survives a selective import after merge (#870)</a><a href="#re-exports" class="l2" data-id="re-exports">Re-exports</a><a href="#cross-module-method-call-syntax-ufcs" class="l2" data-id="cross-module-method-call-syntax-ufcs">Cross-module method-call syntax (UFCS)</a><a href="#circular-import-diagnostics" class="l2" data-id="circular-import-diagnostics">Circular-import diagnostics</a><a href="#future" class="l2" data-id="future">Future</a><a href="#creating-packages" class="l2" data-id="creating-packages">Creating Packages</a><a href="#quick-start" class="l3" data-id="quick-start">Quick Start</a><a href="#package-structure" class="l3" data-id="package-structure">Package Structure</a><a href="#package-manifest-aethertoml" class="l3" data-id="package-manifest-aethertoml">Package Manifest (aether.toml)</a><a href="#creating-local-modules" class="l3" data-id="creating-local-modules">Creating Local Modules</a><a href="#module-resolution" class="l3" data-id="module-resolution">Module Resolution</a><a href="#namespace-convention" class="l3" data-id="namespace-convention">Namespace Convention</a><a href="#pure-aether-modules" class="l3" data-id="pure-aether-modules">Pure Aether Modules</a><a href="#roadmap" class="l3" data-id="roadmap">Roadmap</a><a href="#notes" class="l2" data-id="notes">Notes</a></nav>
+  </div>
+</div>
+<script src="/docs.js" defer></script>
+<footer class="site-foot">
+  <div class="wrap foot">
+    <span class="ae">ae</span>
+    <span class="m">MIT licensed · compiles to C · v0.462</span>
+    <nav><a href="/Docs/getting-started.html">Docs</a><a href="/repl.html">Playground</a><a href="https://github.com/aether-lang-org/aether">GitHub</a></nav>
+  </div>
+</footer>
 </body>
 </html>

@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Compiler Trust Boundary · Aether</title>
+<meta name="description" content="Aether's sandboxing story (see containment-sandbox.md,">
+<link rel="canonical" href="https://aether-lang.dev/Docs/compiler-trust-boundary.html">
+<meta property="og:type" content="article">
+<meta property="og:title" content="The Compiler Trust Boundary · Aether">
+<meta property="og:description" content="Aether's sandboxing story (see containment-sandbox.md,">
+<meta property="og:url" content="https://aether-lang.dev/Docs/compiler-trust-boundary.html">
+<meta property="og:image" content="https://aether-lang.dev/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/aether.css">
+</head>
+<body>
+<a class="skip" href="#doc">Skip to content</a>
+<header class="site-head">
+  <div class="wrap bar">
+    <a class="brand" href="/" aria-label="Aether"><span class="ae">ae</span><span class="nm">aether</span></a>
+    <nav>
+      <a href="/repl.html">Playground</a>
+      <a href="/Docs/getting-started.html" class="on">Docs</a>
+      <a class="src" href="https://github.com/aether-lang-org/aether">Source</a>
+      <span class="vtag">v0.462</span>
+    </nav>
+  </div>
+</header>
+<div class="wrap">
+  <div class="doc-shell">
+    <nav class="doc-nav" aria-label="Documentation">
+      <div class="docsearch"><input id="ds" type="search" placeholder="Search the docs" aria-label="Search documentation" autocomplete="off" spellcheck="false"><kbd>/</kbd><div class="ds-res" id="dsres" role="listbox"></div></div>
+<div class="grp">Start</div>
+<a href="/Docs/getting-started.html">Getting Started with Aether</a>
+<a href="/Docs/tutorial.html">Aether Language Tutorial</a>
+<a href="/Docs/next-steps.html">Next Steps</a>
+<div class="grp">Language</div>
+<a href="/Docs/language-reference.html">Aether Language Reference</a>
+<a href="/Docs/type-inference-guide.html">Aether Type Inference Guide</a>
+<a href="/Docs/type-annotation-style-guide.html">Aether Type Annotation Style Guide</a>
+<a href="/Docs/type-inference-multi-value-returns.html">Multi-Value Return Type Inference</a>
+<a href="/Docs/distinct-types.html">Distinct Types</a>
+<a href="/Docs/sequences.html">Sequences (*StringSeq)</a>
+<a href="/Docs/named-args-and-select.html">Named Arguments and select()</a>
+<a href="/Docs/closures-and-builder-dsl.html">Closures and Builder-Style DSL in Aether</a>
+<a href="/Docs/closures-and-lifetimes.html">Closures and Environment Lifetimes</a>
+<a href="/Docs/module-system-design.html">Aether Module System</a>
+<div class="grp">Runtime</div>
+<a href="/Docs/architecture.html">Aether Architecture</a>
+<a href="/Docs/actor-concurrency.html">Aether Runtime Guide</a>
+<a href="/Docs/structured-concurrency.html">Structured Concurrency for Aether, Design Direction</a>
+<a href="/Docs/scheduler-quick-reference.html">Aether Scheduler - Quick Reference</a>
+<a href="/Docs/memory-management.html">Aether Memory Management</a>
+<a href="/Docs/runtime-optimizations.html">Runtime Optimizations</a>
+<a href="/Docs/numa-support.html">NUMA Support in Aether</a>
+<div class="grp">Interop</div>
+<a href="/Docs/c-interop.html">C Interoperability</a>
+<a href="/Docs/c-embedding.html">Embedding Aether Actors in C Applications</a>
+<a href="/Docs/emit-lib.html">Embedding Aether as a Shared Library (--emit=lib)</a>
+<a href="/Docs/embedded-namespaces-and-host-bindings.html">Aether as a Configuration Language, v2: Namespaces and Generated Bindings</a>
+<a href="/Docs/aether-embedded-in-host-applications.html">Aether as a Configuration Language for Other Languages</a>
+<a href="/Docs/lib-caller-info.html">--emit=lib caller-info channel</a>
+<div class="grp">Stdlib</div>
+<a href="/Docs/stdlib-reference.html">Aether Standard Library Reference</a>
+<a href="/Docs/stdlib-api.html">Aether Standard Library Guide</a>
+<a href="/Docs/stdlib-module-pattern.html">Aether Stdlib Module Pattern</a>
+<a href="/Docs/stdlib-vs-contrib.html">std/ vs contrib/ placement decisions</a>
+<a href="/Docs/http-server.html">std.http HTTP Server</a>
+<a href="/Docs/http-reverse-proxy.html">std.http.proxy reverse proxy</a>
+<a href="/Docs/http-handler-context.html">HTTP handlers with per-server / per-route state</a>
+<a href="/Docs/http-vcr.html">HTTP Record/Replay (VCR), moved out of Aether</a>
+<a href="/Docs/json-parser-design.html">std.json Design Notes</a>
+<div class="grp">Safety</div>
+<a href="/Docs/containment-sandbox.html">Containment and Sandboxing in Aether</a>
+<a href="/Docs/hide-and-seal.html">hide and seal except scope-level capability denial</a>
+<a href="/Docs/compiler-trust-boundary.html" class="on">The Compiler Trust Boundary</a>
+<a href="/Docs/config-is-code.html">Config IS Code</a>
+<a href="/Docs/aether_compared_to_capsicum.html">Aether Sandbox Model vs. BSD Capsicum: Architecture, Parallels, and FreeBSD Integration</a>
+<div class="grp">Build</div>
+<a href="/Docs/build-system.html">Build System</a>
+<a href="/Docs/bootstrap-from-source.html">Bootstrapping Aether from source (HEAD)</a>
+<a href="/Docs/install-layout.html">Aether install layout</a>
+<a href="/Docs/runtime-config.html">Runtime Configuration - Quick Reference</a>
+<a href="/Docs/per-process-config.html">Per-process configuration in Aether</a>
+<a href="/Docs/cic-help.html">ae help &lt;script&gt; Offline diagnostics for config-IS-code</a>
+<div class="grp">More</div>
+<a href="/Docs/allocators.html">Allocators</a>
+<a href="/Docs/bindgen-consts.html">ae bindgen consts, importing C macro constants</a>
+<a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
+<a href="/Docs/contract-folding.html">Compile-time contract folding — costed design</a>
+<a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn't need macro_rules!</a>
+<a href="/Docs/error-unification.html">Unifying T? and (value, err) — costed design</a>
+<a href="/Docs/formatter.html">ae fmt, the source formatter</a>
+<a href="/Docs/isolated.html">Isolated[T]: move-only actor message payloads (#479)</a>
+<a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
+<a href="/Docs/profiling-guide.html">Aether Runtime Profiling Guide</a>
+<a href="/Docs/release-glibc-portability.html">Release binary portability across glibc versions</a>
+<a href="/Docs/when-static-if.html">Compile-time when / static-if</a></nav>
+    <main class="doc-main">
+      <article class="doc-body" id="doc">
+        <div class="bc"><span class="prompt">$</span>docs / safety</div>
+<h1 id="the-compiler-trust-boundary">The Compiler Trust Boundary</h1>
+<h2 id="background">Background</h2>
+<p>Aether's sandboxing story (see <a href="/Docs/containment-sandbox.html">containment-sandbox.md</a>, <a href="/Docs/emit-lib.html">emit-lib.md</a>, <a href="/Docs/hide-and-seal.html">hide-and-seal.md</a>) is about <em>runtime</em> containment: a compiled Aether program, or a hosted interpreter, is restricted in what it may touch. This document is about the layer beneath that: <strong>what the build toolchain itself, <code>aetherc</code>, <code>ae</code>, <code>aeb</code> is permitted to touch, and why some conveniences are permanently off the table.</strong></p>
+<p>A sandbox that only constrains the program-under-execution but trusts the compiler unconditionally has a hole the size of the build step. The compiler reads files, resolves imports, and (in <code>aeb</code>'s case) may orchestrate package discovery. Every one of those is an opportunity for code or data of unknown provenance to influence the build.</p>
+<h2 id="the-cautionary-tale">The cautionary tale</h2>
+<p>In April 2026, lcamtuf published a satirical post demonstrating "remote, on-demand includes" for C and C++:</p>
+<pre><code>#include &lt;https:<span class="com">//lcamtuf.coredump.cx/leftpad.h&gt;</span></code></pre>
+<p>The trick is an <code>LD_PRELOAD</code> shim that intercepts the C preprocessor's <code>open()</code> and, when the path looks like a URL, fetches it over the network. The post is a joke, the "feature" <em>is</em> the vulnerability. But it is a precise threat model, and it states the failure mode cleanly:</p>
+<ol><li><strong>Transparent remote resolution.</strong> <code>#include &lt;https://...&gt;</code> looks syntactically identical to a local include. Nothing at the call site signals that a network fetch happens.</li><li><strong>The compiler is an unsandboxed process.</strong> <code>LD_PRELOAD</code> works because the preprocessor has ambient authority to call <code>open()</code>, <code>connect()</code>, and anything else libc exposes. Nobody constrains it.</li><li><strong>Provenance is invisible.</strong> The resulting binary depends on whatever the remote server returned <em>at build time</em>, uncached, unpinned, unaudited, and different on the next build.</li></ol>
+<p>Aether already has the machinery to be the foil to all three. This document records the posture so it does not erode.</p>
+<h2 id="the-posture">The posture</h2>
+<h3 id="1-the-compiler-is-itself-a-sandbox-target">1. The compiler is itself a sandbox target</h3>
+<p>Aether's <code>libaether_sandbox.so</code> LD_PRELOAD gate (see <a href="/Docs/containment-sandbox.html">containment-sandbox.md</a>) constrains a <em>sandboxed Aether program's</em> libc calls against a grant list. The same idea applies defensively to the toolchain.</p>
+<p><code>aetherc</code> and <code>ae</code> need a small, enumerable set of filesystem reads and nothing else:</p>
+<div class="tw"><table><thead><tr><th>Capability</th><th>Why the toolchain needs it</th><th>Wildcard?</th></tr></thead><tbody><tr><td><strong>Filesystem read</strong></td><td><code>*.ae</code> sources under the invoked project root; the stdlib/contrib tree under <code>&lt;prefix&gt;/lib/aether</code> and <code>&lt;prefix&gt;/share/aether</code></td><td><strong>No</strong>, two fixed roots</td></tr><tr><td><strong>Filesystem write</strong></td><td>The build output directory and a temp dir for generated <code>.c</code></td><td><strong>No</strong>, output dir only</td></tr><tr><td><strong>Process execution</strong></td><td>The C compiler (<code>cc</code>/<code>gcc</code>/<code>clang</code>) and the linker</td><td><strong>No</strong>, toolchain binaries only</td></tr><tr><td><strong>Network</strong></td><td>Never</td><td><strong>Never</strong></td></tr><tr><td><strong>Environment</strong></td><td>A short fixed list (<code>PATH</code>, <code>AETHER_*</code>, install-layout vars)</td><td><strong>No</strong></td></tr></tbody></table></div>
+<p>The recommendation: a documented, opt-in <code>--sandboxed-build</code> mode (not yet implemented) that runs <code>aetherc</code> under a grant list matching exactly the table above. Anything outside it, a network handle, a read outside the two roots, an <code>exec</code> of a non-toolchain binary, is a hard build failure, not a warning. This turns "could a malicious <code>import</code> or a hostile build script reach the network during compilation" from a trust question into a compile-time-enforced one.</p>
+<p>This is the inverse of the lcamtuf shim: instead of an <code>LD_PRELOAD</code> that <em>adds</em> ambient authority to the compiler, Aether's <code>LD_PRELOAD</code> <em>removes</em> it.</p>
+<h3 id="2-imports-never-resolve-to-anything-fetched-at-build-time">2. Imports never resolve to anything fetched at build time</h3>
+<p>Aether's glob and selective imports (<code>import std.math (*)</code>, <code>import std.math (sqrt, pow)</code> see <a href="/Docs/module-system-design.html">module-system-design.md</a> and the language reference's "Glob Import" section) resolve to exactly three kinds of target:</p>
+<ul><li><strong>stdlib</strong>, <code>&lt;prefix&gt;/lib/aether</code> / <code>&lt;prefix&gt;/share/aether</code>, shipped with the toolchain</li><li><strong>contrib</strong>, same tree, vendored</li><li><strong>local modules</strong>, <code>.ae</code> files under the project root</li></ul>
+<p>There is no fourth kind, and there must never be one that is fetched transparently. An <code>import</code> is a pointer into the local filesystem, period. The lcamtuf post's core horror, <code>#include &lt;https://...&gt;</code> looking local, is structurally impossible in Aether because the import grammar has no URL production and the resolver has no network code path.</p>
+<p>If a future need for remote packages arises, it belongs to <code>aeb</code>, not to <code>import</code> (see below). It must never be reachable by writing an <code>import</code> statement.</p>
+<h3 id="3-if-remote-packages-ever-exist-fetch-is-a-separate-audited-pinned-step">3. If remote packages ever exist, fetch is a separate, audited, pinned step</h3>
+<p><code>aeb</code> (the external multi-package build system, github.com/aether-lang-org/aeb) reads <code>share/aether/MANIFEST</code> to discover link-suitable runtime/stdlib <code>.c</code> files; <a href="/Docs/install-layout.html">install-layout.md</a> documents the MANIFEST contract it consumes. Today it operates entirely on the local install tree.</p>
+<p>Should <code>aeb</code> ever grow remote package fetch, the lcamtuf post is the cautionary tale for <em>how not to do it</em>. The non-negotiable constraints:</p>
+<ul><li><strong>Fetch is a distinct command</strong>, not a side effect of build. <code>aeb fetch</code> is separate from <code>aeb build</code>. A build never reaches the network.</li><li><strong>Pinned by content hash.</strong> A lockfile records the exact hash of every fetched artifact. A build verifies hashes against the lockfile and fails on mismatch. The build's inputs are reproducible and auditable.</li><li><strong>Fetched code is contrib-vendored, then reviewed.</strong> A fetched package lands as files on disk that a human (or CI) can diff before it is ever compiled, not streamed straight into the compiler.</li><li><strong>Fetch runs without compiler authority.</strong> The thing that touches the network is not the thing that generates code.</li></ul>
+<p>The principle: <strong>transparent or build-time-implicit remote resolution is permanently off the table.</strong> Provenance must always be visible, pinned, and separable from the build.</p>
+<h2 id="how-this-relates-to-other-aether-features">How this relates to other Aether features</h2>
+<ul><li><strong>Capability sandboxing</strong> (<a href="/Docs/containment-sandbox.html">containment-sandbox.md</a>) constrains the <em>program</em>. This document constrains the <em>toolchain</em>. They are the same idea, applied one layer down: deny by default, and prefer a fixed grant list to a wildcard.</li><li><strong>Effect tags</strong> (proposed, see the per-function capability-axis issue) would let <code>aetherc</code> reason about whether a given <code>.ae</code> <em>needs</em> <code>fs</code>/<code>net</code> at runtime. That is orthogonal to whether the <em>compiler</em> touched the network, but the two together give a full picture: provenance of inputs <em>and</em> authority of outputs.</li><li><strong><code>--emit=lib</code> capability-emptiness</strong> (<a href="/Docs/emit-lib.html">emit-lib.md</a>) is the same deny-by-default reflex: a library built for embedding starts with no capabilities and opts in via <code>--with=</code>. The toolchain sandbox is the same reflex pointed at the build itself.</li></ul>
+<h2 id="invariants-to-not-break">Invariants to not break</h2>
+<ul><li><code>import</code> resolves only to local filesystem targets (stdlib, contrib, local modules). No URL production in the grammar. No network code path in the resolver. Ever.</li><li>A <code>build</code> never touches the network. If remote fetch exists, it is a separate command (<code>aeb fetch</code>), gated by a lockfile of content hashes.</li><li>The <code>--sandboxed-build</code> grant list has no <code>net</code> entry and no filesystem wildcard. Adding a network grant or a <code>--fetch-during-build</code> backdoor is the lcamtuf vulnerability, re-introduced.</li><li>Fetched third-party code is vendored to disk and reviewable <em>before</em> it reaches the compiler, never streamed into <code>aetherc</code> directly.</li></ul>
+<h2 id="references">References</h2>
+<ul><li>lcamtuf, "A breakthrough in C/C++ dependency management", <em>lcamtuf's thing</em>, 2026-04-26, the satirical post that frames the threat model (the "feature" is the vulnerability)</li><li><a href="/Docs/containment-sandbox.html">containment-sandbox.md</a>, the runtime sandbox this mirrors at the toolchain layer</li><li><a href="/Docs/emit-lib.html">emit-lib.md</a>, <code>--emit=lib</code> capability-emptiness, the same deny-by-default reflex</li><li><a href="/Docs/install-layout.html">install-layout.md</a>, the MANIFEST contract that <code>aeb</code> consumes and that any remote-fetch design must respect</li><li><a href="/Docs/module-system-design.html">module-system-design.md</a>, import resolution; the three (and only three) kinds of import target</li></ul>
+      </article>
+    </main>
+    <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#background" class="l2" data-id="background">Background</a><a href="#the-cautionary-tale" class="l2" data-id="the-cautionary-tale">The cautionary tale</a><a href="#the-posture" class="l2" data-id="the-posture">The posture</a><a href="#1-the-compiler-is-itself-a-sandbox-target" class="l3" data-id="1-the-compiler-is-itself-a-sandbox-target">1. The compiler is itself a sandbox target</a><a href="#2-imports-never-resolve-to-anything-fetched-at-build-time" class="l3" data-id="2-imports-never-resolve-to-anything-fetched-at-build-time">2. Imports never resolve to anything fetched at build time</a><a href="#3-if-remote-packages-ever-exist-fetch-is-a-separate-audited-pinned-step" class="l3" data-id="3-if-remote-packages-ever-exist-fetch-is-a-separate-audited-pinned-step">3. If remote packages ever exist, fetch is a separate, audited, pinned step</a><a href="#how-this-relates-to-other-aether-features" class="l2" data-id="how-this-relates-to-other-aether-features">How this relates to other Aether features</a><a href="#invariants-to-not-break" class="l2" data-id="invariants-to-not-break">Invariants to not break</a><a href="#references" class="l2" data-id="references">References</a></nav>
+  </div>
+</div>
+<script src="/docs.js" defer></script>
+<footer class="site-foot">
+  <div class="wrap foot">
+    <span class="ae">ae</span>
+    <span class="m">MIT licensed · compiles to C · v0.462</span>
+    <nav><a href="/Docs/getting-started.html">Docs</a><a href="/repl.html">Playground</a><a href="https://github.com/aether-lang-org/aether">GitHub</a></nav>
+  </div>
+</footer>
+</body>
+</html>
