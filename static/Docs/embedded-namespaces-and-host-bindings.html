@@ -27,7 +27,7 @@
       <a href="/repl.html">Playground</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-org/aether">Source</a>
-      <span class="vtag">v0.464</span>
+      <span class="vtag">v0.467</span>
     </nav>
   </div>
 </header>
@@ -38,7 +38,6 @@
 <div class="grp">Start</div>
 <a href="/Docs/getting-started.html">Getting Started with Aether</a>
 <a href="/Docs/tutorial.html">Aether Language Tutorial</a>
-<a href="/Docs/next-steps.html">Next Steps</a>
 <div class="grp">Language</div>
 <a href="/Docs/language-reference.html">Aether Language Reference</a>
 <a href="/Docs/type-inference-guide.html">Aether Type Inference Guide</a>
@@ -93,7 +92,7 @@
 <a href="/Docs/compiler-trust-boundary.html">The Compiler Trust Boundary</a>
 <a href="/Docs/json-parser-design.html">std.json Design Notes</a>
 <a href="/Docs/aether_compared_to_capsicum.html">Aether Sandbox Model vs. BSD Capsicum: Architecture, Parallels, and FreeBSD Integration</a>
-<a href="/Docs/isolated.html">Isolated[T]: move-only actor message payloads (#479)</a>
+<a href="/Docs/isolated.html">Isolated[T]: move-only actor message payloads</a>
 <a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
 <a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn't need macro_rules!</a>
 <a href="/Docs/lib-caller-info.html">--emit=lib caller-info channel</a>
@@ -107,7 +106,7 @@
         <div class="bc"><span class="prompt">$</span>docs / interop</div>
 <h1 id="aether-as-a-configuration-language-v2-namespaces-and-generated-bindings">Aether as a Configuration Language, v2: Namespaces and Generated Bindings</h1>
 <p>A host application embedding Aether scripts gets a typed, idiomatic SDK in its own language (Java, Python, Ruby, Go stubbed) generated from a single manifest written in Aether itself. The host developer never writes JNI, never writes SWIG <code>.i</code> files, never registers callback function pointers by hand.</p>
-<blockquote><strong>Status (2026-04-18):</strong> <strong>shipped.</strong> Landed on <code>feature/embedded-namespaces</code> (PR #172). Worked example at <code>examples/embedded-java/trading/</code>, integration tests at <code>tests/integration/namespace_{python,ruby,java}/</code> and <code>tests/integration/embedded_java_trading_e2e/</code>.  Out of scope for v1 (each tracked below): - Live host-supplied callbacks (<code>host_call</code>), Shape B - Escape-hatch <code>import trading.manifest</code> for a non-sibling script - <code>@private_to_file</code> annotation - Wall-clock timeout / allocation budget - Go SDK generator (parser captures the binding; emitter is a stub)</blockquote>
+<blockquote><strong>Status (2026-04-18):</strong> <strong>shipped.</strong> Landed on <code>feature/embedded-namespaces</code> . Worked example at <code>examples/embedded-java/trading/</code>, integration tests at <code>tests/integration/namespace_{python,ruby,java}/</code> and <code>tests/integration/embedded_java_trading_e2e/</code>.  Out of scope for v1 (each tracked below): - Live host-supplied callbacks (<code>host_call</code>), Shape B - Escape-hatch <code>import trading.manifest</code> for a non-sibling script - <code>@private_to_file</code> annotation - Wall-clock timeout / allocation budget - Go SDK generator (parser captures the binding; emitter is a stub)</blockquote>
 <h2 id="goals-and-non-goals">Goals and non-goals</h2>
 <p><strong>Goals.</strong></p>
 <ol><li>The Aether-side surface a <em>script</em> author writes is unchanged from what they write today, top-level functions, trailing-block DSLs, <code>notify()</code> for events back to the host. No mention of the host language. No FFI ceremony.</li><li>The host-side surface a <em>Java/Python/Ruby/...</em> developer reads is a normal typed library in their language. No <code>dlopen</code>, no <code>MemorySegment</code>, no <code>ctypes.CDLL</code>, no manual callback registration. Methods, events, fields, named like the Aether functions they wrap.</li><li>The generated SDK is <strong>discoverable at runtime</strong>. A standard <code>aether_describe()</code> entry point returns the namespace's manifest, typed, machine-readable, embedded in the <code>.so</code> so version checks, IDE tooling, and reflective frameworks all work without shipping a sidecar JSON.</li><li>The callback contract follows the Hohpe <strong>claim check</strong> pattern: the script emits thin notifications (<code>notify("OrderRejected", id)</code>) and the host calls back into the script through the same typed downcall API to fetch detail. No bidirectional struct marshalling in v2.</li></ol>
@@ -413,7 +412,7 @@ abi() {
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">A compiled systems language built on actors.</p>
-      <p class="foot-status">v0.464 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.467 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h4>Docs</h4>

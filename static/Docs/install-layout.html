@@ -27,7 +27,7 @@
       <a href="/repl.html">Playground</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-org/aether">Source</a>
-      <span class="vtag">v0.464</span>
+      <span class="vtag">v0.467</span>
     </nav>
   </div>
 </header>
@@ -38,7 +38,6 @@
 <div class="grp">Start</div>
 <a href="/Docs/getting-started.html">Getting Started with Aether</a>
 <a href="/Docs/tutorial.html">Aether Language Tutorial</a>
-<a href="/Docs/next-steps.html">Next Steps</a>
 <div class="grp">Language</div>
 <a href="/Docs/language-reference.html">Aether Language Reference</a>
 <a href="/Docs/type-inference-guide.html">Aether Type Inference Guide</a>
@@ -93,7 +92,7 @@
 <a href="/Docs/compiler-trust-boundary.html">The Compiler Trust Boundary</a>
 <a href="/Docs/json-parser-design.html">std.json Design Notes</a>
 <a href="/Docs/aether_compared_to_capsicum.html">Aether Sandbox Model vs. BSD Capsicum: Architecture, Parallels, and FreeBSD Integration</a>
-<a href="/Docs/isolated.html">Isolated[T]: move-only actor message payloads (#479)</a>
+<a href="/Docs/isolated.html">Isolated[T]: move-only actor message payloads</a>
 <a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
 <a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn't need macro_rules!</a>
 <a href="/Docs/lib-caller-info.html">--emit=lib caller-info channel</a>
@@ -123,7 +122,7 @@
 │   └── std/
 │
 └── share/aether/
-    ├── MANIFEST                  # authoritative list of link-suitable .c files (#329)
+    ├── MANIFEST                  # authoritative list of link-suitable .c files
     ├── runtime/                  # runtime C sources (the actor scheduler, memory,
     │                              # panic/try-catch, sandbox, etc.)
     ├── std/                      # stdlib sources + module.ae descriptors
@@ -138,7 +137,7 @@
 <pre><code>   gcc your.c $(ae cflags) -o your-program</code></pre>
 <p><code>ae cflags</code> resolves to the right <code>-I&lt;prefix&gt;/include/aether/...</code> plus <code>-L&lt;prefix&gt;/lib/aether -laether</code> plus the OS-level deps (<code>-pthread -lm</code>, plus <code>-lssl -lcrypto -lz -lnghttp2 -ldl</code> if the build picked them up at install time). It works identically for in-tree dev builds, <code>~/.aether</code> user installs, and <code>/usr/local</code> system installs.</p>
 <p><strong>Do not hand-craft <code>-L</code> / <code>-l</code>:</strong> <code>libaether.a</code> lives at <code>&lt;prefix&gt;/lib/aether/libaether.a</code> (under the <code>aether/</code> subdir, not flat under <code>&lt;prefix&gt;/lib/</code>), so a bare <code>-laether</code> will fail to resolve without the explicit <code>-L&lt;prefix&gt;/lib/aether</code>. <code>tools/ae.c</code> itself uses this same path, see <code>cmd_cflags</code> for the construction.</p>
-<p><code>ae build</code> is tolerant of a package that ships the archive <strong>flat</strong> at <code>&lt;prefix&gt;/lib/libaether.a</code> instead: it tries the canonical nested path first and falls back to the flat one before resorting to the compile-from-source path below (#959). The nested layout is still the canonical one <code>install.sh</code> and <code>make install</code> produce.</p>
+<p><code>ae build</code> is tolerant of a package that ships the archive <strong>flat</strong> at <code>&lt;prefix&gt;/lib/libaether.a</code> instead: it tries the canonical nested path first and falls back to the flat one before resorting to the compile-from-source path below. The nested layout is still the canonical one <code>install.sh</code> and <code>make install</code> produce.</p>
 <ol><li><strong>Compile from source</strong>, falling through to the <code>.c</code> files in <code>share/aether/</code>. This is what <code>ae build</code> does when <code>libaether.a</code> isn't found. It's also what tooling like aetherBuild's <code>aeb-link</code> does.</li></ol>
 <p>In this mode, <strong>read <code>share/aether/MANIFEST</code></strong> to discover which <code>.c</code> files to compile. The MANIFEST is the authoritative list, one path per non-comment, non-empty line, paths relative to <code>share/aether/</code>. Naive <code>find runtime -name '*.c'</code> walks would pull in benchmarks, orphaned poller hubs, and other source that isn't link-suitable.</p>
 <pre><code>   <span class="com"># Read MANIFEST + build the link command:</span>
@@ -179,7 +178,7 @@ std/http/server/h2/aether_h2.c
 <p>The version stamp at <code>lib/aether/VERSION</code> catches the ae-vs-libaether version skew separately; the define skew is its own thing and silent unless a symbol is actually missing.</p>
 <p>The MANIFEST never references trimmed paths, the regression test at <code>tests/integration/install_manifest/</code> verifies this on every build.</p>
 <h2 id="option-c-alternative-status-quo--docs">Option C alternative (status quo + docs)</h2>
-<p>Issue #329 considered three options for cleaning up the install layout:</p>
+<p>Three options were considered for cleaning up the install layout:</p>
 <ul><li><strong>(A) Drop runtime/std sources entirely.</strong> Header-only <code>include/</code> + prebuilt <code>libaether.a</code> + <code>module.ae</code> resolver descriptors. Cleanest, but breaks the source-fallback path in <code>tools/ae.c</code> that runs when <code>libaether.a</code> is missing (e.g. cross-built / partial installs).</li><li><strong>(B) Ship <code>MANIFEST</code></strong> (the shipped choice). Conservative, keeps the source-fallback path working as a backstop, gives downstream tools an authoritative list, no breakage.</li><li><strong>(C) Status quo + docs only.</strong> Low-touch, but doesn't help consumers who write naive <code>find</code> walks and trip on <code>runtime/examples/</code> / <code>runtime/io/</code>.</li></ul>
 <p><strong>Chose B</strong>. If a future downstream consumer needs the static-only shape, Option A can land additively (the MANIFEST stays useful either way).</p>
       </article>
@@ -193,7 +192,7 @@ std/http/server/h2/aether_h2.c
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">A compiled systems language built on actors.</p>
-      <p class="foot-status">v0.464 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.467 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h4>Docs</h4>

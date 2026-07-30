@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Isolated[T]: move-only actor message payloads (#479) · Aether</title>
+<title>Isolated[T]: move-only actor message payloads · Aether</title>
 <meta name="description" content="Aether's actor model type-checks message shapes, but declared types alone do">
 <link rel="canonical" href="https://aether-lang.dev/Docs/isolated.html">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Isolated[T]: move-only actor message payloads (#479) · Aether">
+<meta property="og:title" content="Isolated[T]: move-only actor message payloads · Aether">
 <meta property="og:description" content="Aether's actor model type-checks message shapes, but declared types alone do">
 <meta property="og:url" content="https://aether-lang.dev/Docs/isolated.html">
 <meta property="og:image" content="https://aether-lang.dev/og.png">
@@ -27,7 +27,7 @@
       <a href="/repl.html">Playground</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-org/aether">Source</a>
-      <span class="vtag">v0.464</span>
+      <span class="vtag">v0.467</span>
     </nav>
   </div>
 </header>
@@ -38,7 +38,6 @@
 <div class="grp">Start</div>
 <a href="/Docs/getting-started.html">Getting Started with Aether</a>
 <a href="/Docs/tutorial.html">Aether Language Tutorial</a>
-<a href="/Docs/next-steps.html">Next Steps</a>
 <div class="grp">Language</div>
 <a href="/Docs/language-reference.html">Aether Language Reference</a>
 <a href="/Docs/type-inference-guide.html">Aether Type Inference Guide</a>
@@ -93,7 +92,7 @@
 <a href="/Docs/compiler-trust-boundary.html">The Compiler Trust Boundary</a>
 <a href="/Docs/json-parser-design.html">std.json Design Notes</a>
 <a href="/Docs/aether_compared_to_capsicum.html">Aether Sandbox Model vs. BSD Capsicum: Architecture, Parallels, and FreeBSD Integration</a>
-<a href="/Docs/isolated.html" class="on">Isolated[T]: move-only actor message payloads (#479)</a>
+<a href="/Docs/isolated.html" class="on">Isolated[T]: move-only actor message payloads</a>
 <a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
 <a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn't need macro_rules!</a>
 <a href="/Docs/lib-caller-info.html">--emit=lib caller-info channel</a>
@@ -105,7 +104,7 @@
     <main class="doc-main">
       <article class="doc-body" id="doc">
         <div class="bc"><span class="prompt">$</span>docs / design &amp; rfcs</div>
-<h1 id="isolatedt-move-only-actor-message-payloads-479"><code>Isolated[T]</code>: move-only actor message payloads (#479)</h1>
+<h1 id="isolatedt-move-only-actor-message-payloads"><code>Isolated[T]</code>: move-only actor message payloads</h1>
 <p>Aether's actor model type-checks message shapes, but declared types alone do not stop a sender from keeping a reference to a heap-bearing value it just handed off. For ref-counted strings that is papered over by reference counting; for pointer-bearing payloads (a <code>*StringSeq</code>, a struct with a file handle, a future capability token) it is a real aliasing hazard.</p>
 <p><code>Isolated[T]</code> is the small, zero-cost answer, borrowed from Nim's <code>Isolated[T]</code> (itself descended from Pony's reference capabilities): a wrapper type that is <strong>move-only</strong> at the language level. You build one with <code>isolate(x)</code>, you unwrap it once with <code>consume(iso)</code>, and the compiler rejects any second use. It is a compile-time discipline only: it lowers to the wrapped type's C type with no runtime structure and no overhead.</p>
 <pre><code>process(iso: Isolated[Payload]) -&gt; <span class="fn">int</span> {
@@ -119,8 +118,8 @@ main() {
     <span class="kw">let</span> r   = process(iso)   <span class="com">// ownership transfers into the callee</span>
     <span class="com">// consume(iso) here would be a compile error: iso was already moved</span>
 }</code></pre>
-<h2 id="the-four-design-questions-from-479">The four design questions (from #479)</h2>
-<p><strong>1. Built-in type, or a stdlib type with a compiler pragma?</strong> Built-in. <code>Isolated[T]</code> is a compiler-known type (<code>TYPE_ISOLATED</code>) whose single type parameter is the wrapped <code>T</code>. It is nominal (never implicitly convertible to or from a bare <code>T</code>) and lowers to <code>T</code>'s C type, exactly like a <code>distinct</code> type (#480). A stdlib struct would have forced a runtime box and lost the zero-cost property; a built-in keeps the whole feature in the type checker.</p>
+<h2 id="the-four-design-questions">The four design questions</h2>
+<p><strong>1. Built-in type, or a stdlib type with a compiler pragma?</strong> Built-in. <code>Isolated[T]</code> is a compiler-known type (<code>TYPE_ISOLATED</code>) whose single type parameter is the wrapped <code>T</code>. It is nominal (never implicitly convertible to or from a bare <code>T</code>) and lowers to <code>T</code>'s C type, exactly like a <code>distinct</code> type. A stdlib struct would have forced a runtime box and lost the zero-cost property; a built-in keeps the whole feature in the type checker.</p>
 <p><strong>2. How does <code>isolate(...)</code> establish that nothing else aliases the value?</strong> v1 enforces <em>linearity of the wrapper and of a move-worthy source binding</em>, not a proof that the transitive heap graph is unaliased:</p>
 <ul><li>The <code>Isolated[T]</code> value is move-only. Every use of it is a consuming move, so a second use, or any use after <code>send</code> / <code>consume</code>, is a compile error.</li><li><code>isolate(x)</code> additionally consumes its source when <code>x</code> is a local of a move-worthy type (a heap or reference or aggregate type: string, <code>ptr</code>, struct, array, message, actor ref, tuple, sum, optional, function). After <code>isolate(x)</code>, referencing <code>x</code> by name is a use-after-move. Copyable scalars (<code>int</code>, <code>float</code>, <code>bool</code>, <code>byte</code>, duration) are not consumed by <code>isolate</code> (a loop counter passed to <code>isolate(i)</code> stays usable), because there is no ownership to relinquish.</li></ul>
 <p>This gives the guarantee the motivation asks for at the binding level: once a value is isolated and handed off, the original binding cannot touch it. It does <em>not</em> yet prove that no other pre-existing alias into the value's heap graph exists; a deeper escape/aliasing check is a documented follow-up (see below).</p>
@@ -133,11 +132,11 @@ main() {
 <h2 id="what-lowers-and-runs-today-and-what-is-a-follow-up">What lowers and runs today, and what is a follow-up</h2>
 <p>Working and covered by tests (<code>tests/regression/test_isolated_basic.ae</code>, <code>tests/integration/isolated_move_reject/</code>):</p>
 <ul><li><code>Isolated[T]</code> for scalar, string, and struct payloads.</li><li><code>isolate()</code> / <code>consume()</code> and ownership transfer into a function.</li><li>The full move checker (use-after-consume, use-after-<code>send</code>, heap-source reuse, loop-external consume all rejected; single-use, both-branch consume, fresh-per-iteration, and scalar-source reuse all accepted).</li><li>Zero-cost lowering: <code>Isolated[T]</code> is <code>T</code> in the emitted C; <code>isolate</code> and <code>consume</code> are the identity.</li></ul>
-<p>Deliberate follow-ups (each a natural next implementation phase, per #479):</p>
+<p>Deliberate follow-ups (each a natural next implementation phase):</p>
 <ul><li><strong>Actor mailbox payloads.</strong> Isolating a <code>message</code> <em>constructor</em> (<code>isolate(Task{...})</code>) and flowing it through the actor mailbox with auto-unwrap in <code>receive</code> is not wired yet: messages have a distinct construction and enqueue path from plain values. The move checker already enforces linearity at a <code>send(w, iso)</code> call site; only the message-payload codegen remains.</li><li><strong>Deep aliasing / escape proof</strong> for question 2 above, so <code>isolate(x)</code> can reject wrapping a value that another live binding still references.</li><li><strong><code>Isolated[Capability]</code></strong> as the type-level shape of a single-use, non -shareable capability token, once capability tokens are a first-class type.</li></ul>
       </article>
     </main>
-    <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#the-four-design-questions-from-479" class="l2" data-id="the-four-design-questions-from-479">The four design questions (from #479)</a><a href="#the-move-checker" class="l2" data-id="the-move-checker">The move checker</a><a href="#what-lowers-and-runs-today-and-what-is-a-follow-up" class="l2" data-id="what-lowers-and-runs-today-and-what-is-a-follow-up">What lowers and runs today, and what is a follow-up</a></nav>
+    <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#the-four-design-questions" class="l2" data-id="the-four-design-questions">The four design questions</a><a href="#the-move-checker" class="l2" data-id="the-move-checker">The move checker</a><a href="#what-lowers-and-runs-today-and-what-is-a-follow-up" class="l2" data-id="what-lowers-and-runs-today-and-what-is-a-follow-up">What lowers and runs today, and what is a follow-up</a></nav>
   </div>
 </div>
 <script src="/docs.js" defer></script>
@@ -146,7 +145,7 @@ main() {
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">A compiled systems language built on actors.</p>
-      <p class="foot-status">v0.464 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.467 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h4>Docs</h4>

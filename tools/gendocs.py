@@ -20,7 +20,7 @@ import os
 import re
 import sys
 
-VERSION = "0.464"
+VERSION = "0.467"
 GH = "https://github.com/aether-lang-org/aether"
 SITE = "Aether"
 DOMAIN = "https://aether-lang.dev"
@@ -503,7 +503,7 @@ PAGE = """<!doctype html>
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">A compiled systems language built on actors.</p>
-      <p class="foot-status">v0.464 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.467 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h4>Docs</h4>
@@ -594,6 +594,12 @@ def main():
     sm.append("</urlset>")
     with open(os.path.join(here, "static", "sitemap.xml"), "w", encoding="utf-8") as fh:
         fh.write("\n".join(sm) + "\n")
+
+    # drop orphaned pages whose source .md was removed upstream
+    for fn in os.listdir(out):
+        if fn.endswith(".html") and fn[:-5] not in docs:
+            os.remove(os.path.join(out, fn))
+            print("removed orphan:", fn)
 
     first = "getting-started" if "getting-started" in docs else sorted(docs)[0]
     with open(os.path.join(here, "static", "docs.html"), "w", encoding="utf-8") as fh:

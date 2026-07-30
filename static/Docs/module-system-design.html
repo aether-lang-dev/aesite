@@ -27,7 +27,7 @@
       <a href="/repl.html">Playground</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-org/aether">Source</a>
-      <span class="vtag">v0.464</span>
+      <span class="vtag">v0.467</span>
     </nav>
   </div>
 </header>
@@ -38,7 +38,6 @@
 <div class="grp">Start</div>
 <a href="/Docs/getting-started.html">Getting Started with Aether</a>
 <a href="/Docs/tutorial.html">Aether Language Tutorial</a>
-<a href="/Docs/next-steps.html">Next Steps</a>
 <div class="grp">Language</div>
 <a href="/Docs/language-reference.html">Aether Language Reference</a>
 <a href="/Docs/type-inference-guide.html">Aether Type Inference Guide</a>
@@ -93,7 +92,7 @@
 <a href="/Docs/compiler-trust-boundary.html">The Compiler Trust Boundary</a>
 <a href="/Docs/json-parser-design.html">std.json Design Notes</a>
 <a href="/Docs/aether_compared_to_capsicum.html">Aether Sandbox Model vs. BSD Capsicum: Architecture, Parallels, and FreeBSD Integration</a>
-<a href="/Docs/isolated.html">Isolated[T]: move-only actor message payloads (#479)</a>
+<a href="/Docs/isolated.html">Isolated[T]: move-only actor message payloads</a>
 <a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
 <a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn't need macro_rules!</a>
 <a href="/Docs/lib-caller-info.html">--emit=lib caller-info channel</a>
@@ -166,7 +165,7 @@ main() {
 <span class="kw">export</span> <span class="kw">const</span> PI = <span class="num">3</span>
 <span class="kw">export</span> distance(...) { … }</code></pre>
 <p>This form is still accepted for one release as a deprecation alias. Modules using it get a one-shot warning to stderr. Migrate by collecting every <code>export</code>-tagged name into one <code>exports (…)</code> line at the top, then removing the per-function keywords. Mixing both forms in one module is a hard error.</p>
-<h2 id="selective-import-shadow-rejection-436-facet-a">Selective-import shadow rejection (#436 facet A)</h2>
+<h2 id="selective-import-shadow-rejection">Selective-import shadow rejection</h2>
 <p>A module (or main program) that selectively imports a name AND defines a local function with the same name silently shadowed the import:</p>
 <pre><code><span class="kw">import</span> std.<span class="fn">string</span> (length)
 
@@ -174,7 +173,7 @@ length(s: <span class="fn">string</span>) -&gt; <span class="fn">int</span> {
     <span class="kw">return</span> length(s)        <span class="com">// intent: std.string.length</span>
                             <span class="com">// reality: self → infinite recursion</span>
 }</code></pre>
-<p>Pre-fix, the merger renamed the body's bare <code>length(s)</code> to <code>mod_length(s)</code> (matching the local def's namespaced name post-merge), turning the wrapper into self-recursion, a runtime stack overflow with no compile-time signal. As of #436 facet A, the orchestrator rejects this pattern with <code>error[E1000]</code> before merging:</p>
+<p>Pre-fix, the merger renamed the body's bare <code>length(s)</code> to <code>mod_length(s)</code> (matching the local def's namespaced name post-merge), turning the wrapper into self-recursion, a runtime stack overflow with no compile-time signal. The orchestrator rejects this pattern with <code>error[E1000]</code> before merging:</p>
 <pre><code>error[E1000]: module 'mod' (mod/module.ae) defines local function
 'length' (3:1) but also selectively imports 'length' from 'std.string'
   the local def silently shadows the import, so a bare call to
@@ -188,10 +187,10 @@ length(s: <span class="fn">string</span>) -&gt; <span class="fn">int</span> {
     - keep both but call the imported version qualified inside the
       local body</code></pre>
 <p>The same check applies to entry-point <code>main.ae</code> files when the shadow lives there directly (not inside a module). Both <code>AST_FUNCTION_DEFINITION</code> and <code>export &lt;fn&gt;</code> shapes are caught.</p>
-<h2 id="qualified-surface-survives-a-selective-import-after-merge-870">Qualified surface survives a selective import after merge (#870)</h2>
+<h2 id="qualified-surface-survives-a-selective-import-after-merge">Qualified surface survives a selective import after merge</h2>
 <p>The two <code>import std.X</code> forms each light up a different call syntax: a bare <code>import std.X</code> enables the qualified <code>X.fn()</code> surface; a selective <code>import std.X (fn)</code> enables the bare-name <code>fn()</code> surface. These compose per-file, but a merged compilation unit pulls definitions from several files into one program, and a module's own <code>import</code> statements are <em>not</em> cloned in (only its function/const/struct bodies are).</p>
 <p>That dropped the qualified surface in one case: when the entry file imported a module <strong>selectively</strong> (<code>import std.string (string_length)</code>), the merged unit was marked selective for <code>string</code>, so a qualified <code>string.concat(...)</code> arriving from an imported module that bare-imports <code>std.string</code> was rejected with <code>error[E0301]: Undefined function 'string.concat'</code>.</p>
-<p>The merge now injects a <strong>synthetic bare import</strong> for each merged module's own bare imports. A synthetic import marks the namespace non-selective for the unit (re-opening <code>string.X</code>) but is kept out of the user-explicit registry, so sealed-scope isolation (#243) is preserved: user code still cannot call into a namespace it never imported. This mirrors how transitive dependencies already get synthetic imports during merge.</p>
+<p>The merge now injects a <strong>synthetic bare import</strong> for each merged module's own bare imports. A synthetic import marks the namespace non-selective for the unit (re-opening <code>string.X</code>) but is kept out of the user-explicit registry, so sealed-scope isolation is preserved: user code still cannot call into a namespace it never imported. This mirrors how transitive dependencies already get synthetic imports during merge.</p>
 <h2 id="re-exports">Re-exports</h2>
 <p>A module can re-export a symbol it imports from another module by listing that symbol in its own <code>exports</code>. A consumer then reaches it through the re-exporting module even though that module never defined it:</p>
 <pre><code><span class="com">// hub.ae, re-exports DERIVED from an inner module</span>
@@ -289,7 +288,7 @@ main() {
 <p>For nested modules like <code>import mypackage.utils</code>:</p>
 <ul><li>Dots are converted to slashes: <code>mypackage/utils/module.ae</code></li><li>Same search paths are used with the converted path</li><li><code>~/.aether/packages/&lt;name&gt;/src/module.ae</code> - Installed package (via <code>ae add</code>)</li><li><code>~/.aether/packages/&lt;name&gt;/module.ae</code> - Installed package (flat layout)</li></ul>
 <p>Packages installed with <code>ae add</code> are searched after local paths. The package name is the first component of the import path.</p>
-<h4 id="lib-search-path-413">Lib search path (#413)</h4>
+<h4 id="lib-search-path">Lib search path</h4>
 <p><code>&lt;lib-path-entry&gt;</code> in steps 1 and 2 is a list of directories, PATH-style, <code>:</code> on POSIX and <code>;</code> on Windows. The list is searched left-to-right; the first hit wins. Three forms compose:</p>
 <pre><code>ae run main.ae --lib ./lib:./vendor/stdlib    <span class="com"># separator-string</span>
 ae run main.ae --lib ./lib --lib ./vendor     <span class="com"># repeated flag</span>
@@ -347,7 +346,7 @@ main() {
 <pre><code>@link(<span class="str">"-laether_sqlite -lsqlite3"</span>)</code></pre>
 <p>When the module is in a program's resolved import closure, codegen unions every declared flag (first-seen order, deduplicated) into the <code>// aether-link:</code> comment on the first line of the generated C, which downstream C builds read to link without undefined-reference archaeology. Declaring is enough; there is no central registry to edit. Token order within one <code>@link</code> is preserved, which matters for single-pass linkers (veneer archive before the library it references). For an ordinary <code>ae build</code> the consumer still supplies real link flags via <code>aether.toml</code> (<code>link_flags = ...</code>); <code>@link</code> feeds only the whole-program comment.</p>
 <p><strong>What's supported:</strong></p>
-<ul><li>Functions (with type inference from call sites)</li><li>Constants (<code>const NAME = value</code>), including constants referencing other constants</li><li>Intra-module calls (functions calling other functions and referencing constants in the same module)</li><li>Export visibility (<code>export</code> keyword controls public API)</li><li>Multiple module imports in the same program</li><li>Mixing pure modules with stdlib imports</li><li>Parameter/local variable shadowing of module constants</li><li>Actors and their message types (#1006): <code>spawn</code> an <code>actor</code> and send a <code>message</code> declared in an imported module. Both enter the program under their bare name (like structs), so <code>spawn(Worker())</code> and <code>w ! Ping { ... }</code> resolve; the actor's handlers still have their intra-module function/constant references rewritten, and the per-program message registry assigns runtime type ids across the merge.</li></ul>
+<ul><li>Functions (with type inference from call sites)</li><li>Constants (<code>const NAME = value</code>), including constants referencing other constants</li><li>Intra-module calls (functions calling other functions and referencing constants in the same module)</li><li>Export visibility (<code>export</code> keyword controls public API)</li><li>Multiple module imports in the same program</li><li>Mixing pure modules with stdlib imports</li><li>Parameter/local variable shadowing of module constants</li><li>Actors and their message types: <code>spawn</code> an <code>actor</code> and send a <code>message</code> declared in an imported module. Both enter the program under their bare name (like structs), so <code>spawn(Worker())</code> and <code>w ! Ping { ... }</code> resolve; the actor's handlers still have their intra-module function/constant references rewritten, and the per-program message registry assigns runtime type ids across the merge.</li></ul>
 <p><strong>On the module-system roadmap (language-level):</strong></p>
 <ul><li>Module-level mutable state</li></ul>
 <h3 id="roadmap">Roadmap</h3>
@@ -356,7 +355,7 @@ main() {
 <ul><li>Single-file programs continue to work without packages</li><li>The <code>std</code> package is built-in and always available</li></ul>
       </article>
     </main>
-    <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#terminology" class="l2" data-id="terminology">Terminology</a><a href="#current-implementation" class="l2" data-id="current-implementation">Current Implementation</a><a href="#how-it-works" class="l3" data-id="how-it-works">How It Works</a><a href="#module-orchestration-phase" class="l3" data-id="module-orchestration-phase">Module Orchestration Phase</a><a href="#available-modules" class="l3" data-id="available-modules">Available Modules</a><a href="#export-visibility" class="l2" data-id="export-visibility">Export Visibility</a><a href="#legacy-export-fn-form-deprecated" class="l3" data-id="legacy-export-fn-form-deprecated">Legacy export &lt;fn&gt; form (deprecated)</a><a href="#selective-import-shadow-rejection-436-facet-a" class="l2" data-id="selective-import-shadow-rejection-436-facet-a">Selective-import shadow rejection (#436 facet A)</a><a href="#qualified-surface-survives-a-selective-import-after-merge-870" class="l2" data-id="qualified-surface-survives-a-selective-import-after-merge-870">Qualified surface survives a selective import after merge (#870)</a><a href="#re-exports" class="l2" data-id="re-exports">Re-exports</a><a href="#cross-module-method-call-syntax-ufcs" class="l2" data-id="cross-module-method-call-syntax-ufcs">Cross-module method-call syntax (UFCS)</a><a href="#circular-import-diagnostics" class="l2" data-id="circular-import-diagnostics">Circular-import diagnostics</a><a href="#future" class="l2" data-id="future">Future</a><a href="#creating-packages" class="l2" data-id="creating-packages">Creating Packages</a><a href="#quick-start" class="l3" data-id="quick-start">Quick Start</a><a href="#package-structure" class="l3" data-id="package-structure">Package Structure</a><a href="#package-manifest-aethertoml" class="l3" data-id="package-manifest-aethertoml">Package Manifest (aether.toml)</a><a href="#creating-local-modules" class="l3" data-id="creating-local-modules">Creating Local Modules</a><a href="#module-resolution" class="l3" data-id="module-resolution">Module Resolution</a><a href="#namespace-convention" class="l3" data-id="namespace-convention">Namespace Convention</a><a href="#pure-aether-modules" class="l3" data-id="pure-aether-modules">Pure Aether Modules</a><a href="#roadmap" class="l3" data-id="roadmap">Roadmap</a><a href="#notes" class="l2" data-id="notes">Notes</a></nav>
+    <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#terminology" class="l2" data-id="terminology">Terminology</a><a href="#current-implementation" class="l2" data-id="current-implementation">Current Implementation</a><a href="#how-it-works" class="l3" data-id="how-it-works">How It Works</a><a href="#module-orchestration-phase" class="l3" data-id="module-orchestration-phase">Module Orchestration Phase</a><a href="#available-modules" class="l3" data-id="available-modules">Available Modules</a><a href="#export-visibility" class="l2" data-id="export-visibility">Export Visibility</a><a href="#legacy-export-fn-form-deprecated" class="l3" data-id="legacy-export-fn-form-deprecated">Legacy export &lt;fn&gt; form (deprecated)</a><a href="#selective-import-shadow-rejection" class="l2" data-id="selective-import-shadow-rejection">Selective-import shadow rejection</a><a href="#qualified-surface-survives-a-selective-import-after-merge" class="l2" data-id="qualified-surface-survives-a-selective-import-after-merge">Qualified surface survives a selective import after merge</a><a href="#re-exports" class="l2" data-id="re-exports">Re-exports</a><a href="#cross-module-method-call-syntax-ufcs" class="l2" data-id="cross-module-method-call-syntax-ufcs">Cross-module method-call syntax (UFCS)</a><a href="#circular-import-diagnostics" class="l2" data-id="circular-import-diagnostics">Circular-import diagnostics</a><a href="#future" class="l2" data-id="future">Future</a><a href="#creating-packages" class="l2" data-id="creating-packages">Creating Packages</a><a href="#quick-start" class="l3" data-id="quick-start">Quick Start</a><a href="#package-structure" class="l3" data-id="package-structure">Package Structure</a><a href="#package-manifest-aethertoml" class="l3" data-id="package-manifest-aethertoml">Package Manifest (aether.toml)</a><a href="#creating-local-modules" class="l3" data-id="creating-local-modules">Creating Local Modules</a><a href="#module-resolution" class="l3" data-id="module-resolution">Module Resolution</a><a href="#namespace-convention" class="l3" data-id="namespace-convention">Namespace Convention</a><a href="#pure-aether-modules" class="l3" data-id="pure-aether-modules">Pure Aether Modules</a><a href="#roadmap" class="l3" data-id="roadmap">Roadmap</a><a href="#notes" class="l2" data-id="notes">Notes</a></nav>
   </div>
 </div>
 <script src="/docs.js" defer></script>
@@ -365,7 +364,7 @@ main() {
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">A compiled systems language built on actors.</p>
-      <p class="foot-status">v0.464 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.467 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h4>Docs</h4>

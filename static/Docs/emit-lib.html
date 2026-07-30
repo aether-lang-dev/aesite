@@ -27,7 +27,7 @@
       <a href="/repl.html">Playground</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-org/aether">Source</a>
-      <span class="vtag">v0.464</span>
+      <span class="vtag">v0.467</span>
     </nav>
   </div>
 </header>
@@ -38,7 +38,6 @@
 <div class="grp">Start</div>
 <a href="/Docs/getting-started.html">Getting Started with Aether</a>
 <a href="/Docs/tutorial.html">Aether Language Tutorial</a>
-<a href="/Docs/next-steps.html">Next Steps</a>
 <div class="grp">Language</div>
 <a href="/Docs/language-reference.html">Aether Language Reference</a>
 <a href="/Docs/type-inference-guide.html">Aether Type Inference Guide</a>
@@ -93,7 +92,7 @@
 <a href="/Docs/compiler-trust-boundary.html">The Compiler Trust Boundary</a>
 <a href="/Docs/json-parser-design.html">std.json Design Notes</a>
 <a href="/Docs/aether_compared_to_capsicum.html">Aether Sandbox Model vs. BSD Capsicum: Architecture, Parallels, and FreeBSD Integration</a>
-<a href="/Docs/isolated.html">Isolated[T]: move-only actor message payloads (#479)</a>
+<a href="/Docs/isolated.html">Isolated[T]: move-only actor message payloads</a>
 <a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
 <a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn't need macro_rules!</a>
 <a href="/Docs/lib-caller-info.html">--emit=lib caller-info channel</a>
@@ -141,7 +140,7 @@ build_config(env: <span class="fn">string</span>, port: <span class="fn">int</sp
 }</code></pre>
 <h2 id="the-flag-matrix">The flag matrix</h2>
 <div class="tw"><table><thead><tr><th>Flag</th><th>Effect</th></tr></thead><tbody><tr><td><code>--emit=exe</code> <em>(default)</em></td><td>Current behaviour, produces an executable.</td></tr><tr><td><code>--emit=lib</code></td><td>No <code>main()</code> in the output; every top-level Aether function gets an <code>aether_&lt;name&gt;()</code> C-ABI alias; built with <code>-fPIC -shared</code>.</td></tr><tr><td><code>--emit=both</code></td><td>Produces both an executable AND a shared library from one source. <code>ae build --emit=both foo.ae -o foo</code> writes <code>foo</code> (the exe) and <code>foo.dylib</code> / <code>foo.so</code> (the lib) side by side. With no <code>-o</code>, defaults are <code>&lt;base&gt;</code> (exe) and <code>lib&lt;base&gt;.&lt;ext&gt;</code> (lib). Internally dispatches <code>cmd_build</code> twice (once per emit mode); the lib pass appends the platform lib extension to the user's <code>-o</code> so the second pass doesn't overwrite the first.</td></tr><tr><td><code>--emit=csrc</code></td><td>Emits the <strong>portable generated C source</strong> (<code>foo.c</code>), a <strong>catalog header</strong> (<code>foo.h</code>, the <code>aether_&lt;name&gt;()</code> prototypes), and a <strong>machine-readable catalog</strong> (<code>foo.catalog.json</code>), and stops. No <code>gcc</code>, no native artifact. Same catalog codegen as <code>--emit=lib</code>; the difference is you get <em>source</em> plus a describable ABI surface, not a host <code>.so</code>.</td></tr></tbody></table></div>
-<h2 id="--emitcsrc-distribute-source-not-n-native-libs-996"><code>--emit=csrc</code>: distribute source, not N native libs (#996)</h2>
+<h2 id="--emitcsrc-distribute-source-not-n-native-libs"><code>--emit=csrc</code>: distribute source, not N native libs</h2>
 <p>A single <strong>native</strong> lib can't be universal across OSes, ELF vs Mach-O vs PE/COFF are different loader formats. But the <strong>pre-native</strong> artifact can be: the generated C is portable, so <code>--emit=csrc</code> moves the "which platform" decision from <em>distribution time</em> (ship 6 natives) to the consumer's build:</p>
 <pre><code>ae build --emit=csrc mylib.ae -o mylib
 <span class="com"># writes mylib.c (portable C) + mylib.h (aether_&lt;name&gt; prototypes)</span>
@@ -152,7 +151,7 @@ cc -fPIC -shared mylib.c $(ae cflags) -o libmylib.so   <span class="com"># this 
 <span class="com"># or feed mylib.c to WASM, or static-link it into a compiled host, or</span>
 <span class="com"># publish {mylib.c, mylib.h, mylib.catalog.json} as a content-addressable</span>
 <span class="com"># source package.</span></code></pre>
-<p>The <code>.h</code> is a normal C header (include guard + <code>extern "C"</code>); a consumer <code>#include</code>s it and calls <code>aether_add(...)</code> / <code>aether_greet(...)</code> directly. This is the enabling primitive for compile-on-install bindings (Python C-extension / Ruby-gem style) and a "source registry" story where every binding compiles the same hash-pinned source in its own toolchain. Follow-ups noted in #996: single-file amalgamation and expressing the required runtime <code>.c</code> set for a fully standalone external compile.</p>
+<p>The <code>.h</code> is a normal C header (include guard + <code>extern "C"</code>); a consumer <code>#include</code>s it and calls <code>aether_add(...)</code> / <code>aether_greet(...)</code> directly. This is the enabling primitive for compile-on-install bindings (Python C-extension / Ruby-gem style) and a "source registry" story where every binding compiles the same hash-pinned source in its own toolchain. Deliberate follow-ups: single-file amalgamation and expressing the required runtime <code>.c</code> set for a fully standalone external compile.</p>
 <h3 id="the-json-catalog-namecatalogjson">The JSON catalog (<code>&lt;name&gt;.catalog.json</code>)</h3>
 <p>The same <code>aether_lib_meta()</code> symbol catalog the <code>.c</code> carries in <code>.rodata</code> (see the reflection section below) is also written as a JSON document, so a binding generator in any language can consume it without dlopening a native artifact. It is a faithful serialization of the C struct, driven by the identical codegen tables, so the two can never drift; it is deterministic (source order, stable version strings) and human-diffable, which makes the source artifact content-addressable. Fields:</p>
 <div class="tw"><table><thead><tr><th>Field</th><th>Meaning</th></tr></thead><tbody><tr><td><code>schema_version</code></td><td><code>"1.0"</code> functions only, <code>"1.1"</code> adds closures, <code>"1.2"</code> adds constants (the highest feature level present)</td></tr><tr><td><code>aether_version</code></td><td>Compiler version stamp</td></tr><tr><td><code>primary_source</code></td><td>The <code>.ae</code> the artifact was built from (mirrors the path passed to the compiler: pass a relative path for a reproducible, machine-independent value)</td></tr><tr><td><code>capabilities</code></td><td>The <code>--with</code> grants this artifact was built with (e.g. <code>["fs","net"]</code>), empty when capability-empty. Because the emitted C only contains code paths for granted capabilities, this is the syscall surface a consumer can inspect <em>before</em> compiling the source</td></tr><tr><td><code>functions[]</code></td><td><code>aether_name</code>, <code>c_symbol</code> (the <code>dlsym</code>/link name), <code>signature</code>, <code>source_file</code>, <code>source_line</code></td></tr><tr><td><code>closures[]</code></td><td>Closure surface reachable from exports: <code>name</code>, <code>role</code> (<code>builder</code> / <code>param</code> / <code>literal</code>), <code>enclosing_export</code>, <code>signature</code>, <code>captures[]</code> (<code>name</code> + <code>type</code>), <code>source_file</code>, <code>source_line</code></td></tr><tr><td><code>constants[]</code></td><td>Exported scalar/string consts: <code>name</code>, <code>type</code>, <code>value</code></td></tr></tbody></table></div>
@@ -243,7 +242,7 @@ swig -java -package com.example.aether runtime/aether_config.i
 <span class="com"># Ruby, Go, C#, ... same pattern with -ruby, -go, -csharp.</span></code></pre>
 <p>The generated bindings wrap <code>AetherValue*</code> as a proxy class per target language, Python gets <code>AetherValue</code>, Java gets a <code>class AetherValue</code>, etc. Users see idiomatic API calls; the opaque pointer is hidden.</p>
 <p>See <code>tests/integration/emit_lib_swig/</code> for a worked Python round-trip.</p>
-<h2 id="per-call-resource-caps-343">Per-call resource caps (#343)</h2>
+<h2 id="per-call-resource-caps">Per-call resource caps</h2>
 <p>Hosts loading untrusted Aether scripts bound the script's resource use via two TLS-backed knobs in <code>include/libaether.h</code>:</p>
 <pre><code>#include &lt;libaether.h&gt;
 
@@ -291,7 +290,7 @@ AetherValue* db = aether_config_get_map(root, <span class="str">"db"</span>);
 
 aether_config_free_deep(root);   <span class="com">/* nested map + list freed too */</span></code></pre>
 <p>Defense-in-depth: <code>list_free</code> and <code>map_free</code> clear the magic before releasing the struct's memory, so a use-after-free probe via <code>aether_value_kind</code> reads the cleared magic and reports <code>UNKNOWN</code> rather than a stale match on the freed-but-still-readable original value.</p>
-<h2 id="reflection-the-symbol-catalog-aether_lib_meta-403">Reflection: the symbol catalog (<code>aether_lib_meta</code>), #403</h2>
+<h2 id="reflection-the-symbol-catalog-aether_lib_meta">Reflection: the symbol catalog (<code>aether_lib_meta</code>)</h2>
 <p>Every <code>--emit=lib</code> artifact exports a single reflection entry point:</p>
 <pre><code><span class="kw">const</span> AetherLibMeta* aether_lib_meta(<span class="kw">void</span>);</code></pre>
 <p>declared in <code>runtime/aether_lib_meta.h</code>. The returned struct describes every exported function, Aether name, C symbol, public signature, source file, source line, in a layout-stable, allocation-free form that any FFI consumer (Python ctypes, Java Panama, Ruby Fiddle, Node-API, hand-rolled <code>dlsym</code>) can walk directly.</p>
@@ -395,7 +394,7 @@ for i in range(meta.function_count):
 <pre><code>tests/integration/emit_lib_composite/test_emit_lib_composite.sh</code></pre>
       </article>
     </main>
-    <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#quick-example" class="l2" data-id="quick-example">Quick example</a><a href="#the-flag-matrix" class="l2" data-id="the-flag-matrix">The flag matrix</a><a href="#--emitcsrc-distribute-source-not-n-native-libs-996" class="l2" data-id="--emitcsrc-distribute-source-not-n-native-libs-996">--emit=csrc: distribute source, not N native libs (#996)</a><a href="#the-json-catalog-namecatalogjson" class="l3" data-id="the-json-catalog-namecatalogjson">The JSON catalog (&lt;name&gt;.catalog.json)</a><a href="#naming" class="l2" data-id="naming">Naming</a><a href="#type-mapping" class="l2" data-id="type-mapping">Type mapping</a><a href="#the-aethervalue-accessor-api" class="l2" data-id="the-aethervalue-accessor-api">The AetherValue* accessor API</a><a href="#ownership" class="l3" data-id="ownership">Ownership</a><a href="#behaviour-of-missing-keys--out-of-range-indices" class="l3" data-id="behaviour-of-missing-keys--out-of-range-indices">Behaviour of missing keys / out-of-range indices</a><a href="#type-contract" class="l3" data-id="type-contract">Type contract</a><a href="#capability-empty-default" class="l2" data-id="capability-empty-default">Capability-empty default</a><a href="#opting-in---withcapabilities" class="l3" data-id="opting-in---withcapabilities">Opting in: --with=&lt;capabilities&gt;</a><a href="#symbol-visibility-matrix" class="l2" data-id="symbol-visibility-matrix">Symbol visibility matrix</a><a href="#using-swig-to-generate-javapythonrubygo-bindings" class="l2" data-id="using-swig-to-generate-javapythonrubygo-bindings">Using SWIG to generate Java/Python/Ruby/Go bindings</a><a href="#per-call-resource-caps-343" class="l2" data-id="per-call-resource-caps-343">Per-call resource caps (#343)</a><a href="#whats-out-of-scope-for-v1" class="l2" data-id="whats-out-of-scope-for-v1">What's out of scope for v1</a><a href="#kind-discrimination--deep-free-aether_value_kind-aether_config_free_deep" class="l2" data-id="kind-discrimination--deep-free-aether_value_kind-aether_config_free_deep">Kind discrimination + deep-free (aether_value_kind, aether_config_free_deep)</a><a href="#reflection-the-symbol-catalog-aether_lib_meta-403" class="l2" data-id="reflection-the-symbol-catalog-aether_lib_meta-403">Reflection: the symbol catalog (aether_lib_meta), #403</a><a href="#ae-lib-info-path-inspect-any-artifact" class="l3" data-id="ae-lib-info-path-inspect-any-artifact">ae lib-info &lt;path&gt; inspect any artifact</a><a href="#what-this-enables-for-ffi-hosts" class="l3" data-id="what-this-enables-for-ffi-hosts">What this enables for FFI hosts</a><a href="#working-tests" class="l2" data-id="working-tests">Working tests</a></nav>
+    <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#quick-example" class="l2" data-id="quick-example">Quick example</a><a href="#the-flag-matrix" class="l2" data-id="the-flag-matrix">The flag matrix</a><a href="#--emitcsrc-distribute-source-not-n-native-libs" class="l2" data-id="--emitcsrc-distribute-source-not-n-native-libs">--emit=csrc: distribute source, not N native libs</a><a href="#the-json-catalog-namecatalogjson" class="l3" data-id="the-json-catalog-namecatalogjson">The JSON catalog (&lt;name&gt;.catalog.json)</a><a href="#naming" class="l2" data-id="naming">Naming</a><a href="#type-mapping" class="l2" data-id="type-mapping">Type mapping</a><a href="#the-aethervalue-accessor-api" class="l2" data-id="the-aethervalue-accessor-api">The AetherValue* accessor API</a><a href="#ownership" class="l3" data-id="ownership">Ownership</a><a href="#behaviour-of-missing-keys--out-of-range-indices" class="l3" data-id="behaviour-of-missing-keys--out-of-range-indices">Behaviour of missing keys / out-of-range indices</a><a href="#type-contract" class="l3" data-id="type-contract">Type contract</a><a href="#capability-empty-default" class="l2" data-id="capability-empty-default">Capability-empty default</a><a href="#opting-in---withcapabilities" class="l3" data-id="opting-in---withcapabilities">Opting in: --with=&lt;capabilities&gt;</a><a href="#symbol-visibility-matrix" class="l2" data-id="symbol-visibility-matrix">Symbol visibility matrix</a><a href="#using-swig-to-generate-javapythonrubygo-bindings" class="l2" data-id="using-swig-to-generate-javapythonrubygo-bindings">Using SWIG to generate Java/Python/Ruby/Go bindings</a><a href="#per-call-resource-caps" class="l2" data-id="per-call-resource-caps">Per-call resource caps</a><a href="#whats-out-of-scope-for-v1" class="l2" data-id="whats-out-of-scope-for-v1">What's out of scope for v1</a><a href="#kind-discrimination--deep-free-aether_value_kind-aether_config_free_deep" class="l2" data-id="kind-discrimination--deep-free-aether_value_kind-aether_config_free_deep">Kind discrimination + deep-free (aether_value_kind, aether_config_free_deep)</a><a href="#reflection-the-symbol-catalog-aether_lib_meta" class="l2" data-id="reflection-the-symbol-catalog-aether_lib_meta">Reflection: the symbol catalog (aether_lib_meta)</a><a href="#ae-lib-info-path-inspect-any-artifact" class="l3" data-id="ae-lib-info-path-inspect-any-artifact">ae lib-info &lt;path&gt; inspect any artifact</a><a href="#what-this-enables-for-ffi-hosts" class="l3" data-id="what-this-enables-for-ffi-hosts">What this enables for FFI hosts</a><a href="#working-tests" class="l2" data-id="working-tests">Working tests</a></nav>
   </div>
 </div>
 <script src="/docs.js" defer></script>
@@ -404,7 +403,7 @@ for i in range(meta.function_count):
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">A compiled systems language built on actors.</p>
-      <p class="foot-status">v0.464 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.467 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h4>Docs</h4>

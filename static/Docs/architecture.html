@@ -27,7 +27,7 @@
       <a href="/repl.html">Playground</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-org/aether">Source</a>
-      <span class="vtag">v0.464</span>
+      <span class="vtag">v0.467</span>
     </nav>
   </div>
 </header>
@@ -38,7 +38,6 @@
 <div class="grp">Start</div>
 <a href="/Docs/getting-started.html">Getting Started with Aether</a>
 <a href="/Docs/tutorial.html">Aether Language Tutorial</a>
-<a href="/Docs/next-steps.html">Next Steps</a>
 <div class="grp">Language</div>
 <a href="/Docs/language-reference.html">Aether Language Reference</a>
 <a href="/Docs/type-inference-guide.html">Aether Type Inference Guide</a>
@@ -93,7 +92,7 @@
 <a href="/Docs/compiler-trust-boundary.html">The Compiler Trust Boundary</a>
 <a href="/Docs/json-parser-design.html">std.json Design Notes</a>
 <a href="/Docs/aether_compared_to_capsicum.html">Aether Sandbox Model vs. BSD Capsicum: Architecture, Parallels, and FreeBSD Integration</a>
-<a href="/Docs/isolated.html">Isolated[T]: move-only actor message payloads (#479)</a>
+<a href="/Docs/isolated.html">Isolated[T]: move-only actor message payloads</a>
 <a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
 <a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn't need macro_rules!</a>
 <a href="/Docs/lib-caller-info.html">--emit=lib caller-info channel</a>
@@ -247,7 +246,7 @@
 <ul><li>Thread-local pool of 256 pre-allocated buffers (256 bytes each)</li><li>Pool acquisition and release use plain loads/stores (no atomics for TLS)</li><li>Falls back to malloc for oversized messages or pool exhaustion</li><li><code>aether_free_message</code> returns buffers to the pool or calls <code>free</code></li></ul>
 <p><strong>Actor Allocation:</strong></p>
 <ul><li><code>scheduler_spawn_actor</code> allocates via <code>aether_numa_alloc</code> with the full derived-struct size</li><li>NUMA-aware placement on the local node of the assigned core</li><li>Falls back to standard allocation on non-NUMA systems</li></ul>
-<p><strong>String Ownership (heap-string tracker, issue #405):</strong></p>
+<p><strong>String Ownership (heap-string tracker):</strong></p>
 <ul><li>Every string variable carries a compiler-emitted <code>_heap_&lt;name&gt;</code> companion that flips between 0 (literal) and 1 (heap-allocated) on each reassignment</li><li>Trackers are emitted at function-entry scope by a dedicated codegen pre-pass (<code>hoist_heap_string_trackers</code> in <code>compiler/codegen/codegen_stmt.c</code>), making cross-block reassignment safe</li><li>Reassignment goes through a unified wrapper handling all four heap/literal transitions: <code>{ const char* _tmp_old = s; s = &lt;rhs&gt;; if (_heap_s) free(_tmp_old); _heap_s = &lt;rhs_is_heap&gt;; }</code></li><li>Recognised heap sources: hardcoded stdlib <code>string.{concat,substring,to_upper,to_lower,trim}</code>, string interpolation <code>"foo ${x}"</code>, and user-defined <code>-&gt; string</code> functions whose body provably returns heap (recursive structural escape analysis with cycle detection, memoised on the function-definition AST node's annotation slot)</li><li>Runtime cost: zero, just <code>if (...) free(...)</code> per assignment. Codegen-time cost: O(K) per call site for fn-def lookup where K is the number of top-level fn definitions; total well under a millisecond for typical programs</li></ul>
 <h3 id="performance-optimizations">Performance Optimizations</h3>
 <p>The runtime implements these optimization strategies in the active code paths:</p>
@@ -295,7 +294,7 @@
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">A compiled systems language built on actors.</p>
-      <p class="foot-status">v0.464 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.467 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h4>Docs</h4>

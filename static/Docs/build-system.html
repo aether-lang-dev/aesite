@@ -27,7 +27,7 @@
       <a href="/repl.html">Playground</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-org/aether">Source</a>
-      <span class="vtag">v0.464</span>
+      <span class="vtag">v0.467</span>
     </nav>
   </div>
 </header>
@@ -38,7 +38,6 @@
 <div class="grp">Start</div>
 <a href="/Docs/getting-started.html">Getting Started with Aether</a>
 <a href="/Docs/tutorial.html">Aether Language Tutorial</a>
-<a href="/Docs/next-steps.html">Next Steps</a>
 <div class="grp">Language</div>
 <a href="/Docs/language-reference.html">Aether Language Reference</a>
 <a href="/Docs/type-inference-guide.html">Aether Type Inference Guide</a>
@@ -93,7 +92,7 @@
 <a href="/Docs/compiler-trust-boundary.html">The Compiler Trust Boundary</a>
 <a href="/Docs/json-parser-design.html">std.json Design Notes</a>
 <a href="/Docs/aether_compared_to_capsicum.html">Aether Sandbox Model vs. BSD Capsicum: Architecture, Parallels, and FreeBSD Integration</a>
-<a href="/Docs/isolated.html">Isolated[T]: move-only actor message payloads (#479)</a>
+<a href="/Docs/isolated.html">Isolated[T]: move-only actor message payloads</a>
 <a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
 <a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn't need macro_rules!</a>
 <a href="/Docs/lib-caller-info.html">--emit=lib caller-info channel</a>
@@ -160,7 +159,7 @@ ae build myapp         <span class="com"># [[bin]] name = "myapp"</span></code><
 <hr>
 <h2 id="build-cache">Build Cache</h2>
 <p>Both <code>ae run</code> and <code>ae build</code> cache compiled binaries in <code>~/.aether/cache/</code>. The cache key is an FNV64 hash of:</p>
-<ul><li>The source file's content</li><li>The <code>aetherc</code> binary's mtime (recompile invalidates everything)</li><li><code>libaether.a</code>'s mtime (stdlib rebuild invalidates everything)</li><li>Every <code>--extra</code> C file's <em>content</em> (editing an FFI shim invalidates the cache, not just touching it)</li><li>Every imported lib module's <em>content</em>: the <code>.ae</code>/<code>.c</code>/<code>.h</code> files under each lib-search directory, walked recursively. This covers both an explicit <code>--lib</code>/<code>$AETHER_LIB_DIR</code> directory and the <strong>default <code>lib/</code></strong> the compiler searches when neither is set (the <code>src/main.ae</code> + <code>lib/&lt;name&gt;/module.ae</code> package layout). Because entries are content-hashed rather than keyed on mtime+size, a same-second, same-size edit (a one-character constant flip in an editor-save loop) still invalidates the cache, and a bare <code>touch</code> does not (#1025, building on #413/#623). This lib-dir walk is POSIX-only; on Windows the key covers the entry file and <code>--extra</code> content but not lib-module edits, so a lib-module change there still needs <code>ae cache clear</code> until the walk is wired for Windows.</li><li>The optimisation level (<code>-O0</code> for <code>ae run</code> and <code>ae build --quick</code>, <code>-O2</code> for default <code>ae build</code>)</li></ul>
+<ul><li>The source file's content</li><li>The <code>aetherc</code> binary's mtime (recompile invalidates everything)</li><li><code>libaether.a</code>'s mtime (stdlib rebuild invalidates everything)</li><li>Every <code>--extra</code> C file's <em>content</em> (editing an FFI shim invalidates the cache, not just touching it)</li><li>Every imported lib module's <em>content</em>: the <code>.ae</code>/<code>.c</code>/<code>.h</code> files under each lib-search directory, walked recursively. This covers both an explicit <code>--lib</code>/<code>$AETHER_LIB_DIR</code> directory and the <strong>default <code>lib/</code></strong> the compiler searches when neither is set (the <code>src/main.ae</code> + <code>lib/&lt;name&gt;/module.ae</code> package layout). Because entries are content-hashed rather than keyed on mtime+size, a same-second, same-size edit (a one-character constant flip in an editor-save loop) still invalidates the cache, and a bare <code>touch</code> does not. This lib-dir walk is POSIX-only; on Windows the key covers the entry file and <code>--extra</code> content but not lib-module edits, so a lib-module change there still needs <code>ae cache clear</code> until the walk is wired for Windows.</li><li>The optimisation level (<code>-O0</code> for <code>ae run</code> and <code>ae build --quick</code>, <code>-O2</code> for default <code>ae build</code>)</li></ul>
 <p><code>ae run</code> and <code>ae build</code> use separate cache slots so toggling between them doesn't churn one entry back and forth.</p>
 <p><strong>Cost breakdown of a build:</strong></p>
 <ul><li>Cache hit (<code>ae build</code>): copy the cached binary to the requested output path. Sub-millisecond on local disk.</li><li>Cache hit (<code>ae run</code>): fork + exec the cached binary directly.</li><li>Cache miss: full <code>aetherc</code> front-end + gcc compile + link. Dominant cost is gcc; <code>aetherc</code> is a small fraction.</li><li>First macOS run: an extra one-time pause while the OS performs its Gatekeeper check on the newly compiled binary. Subsequent runs of the same cached binary are hit-path.</li></ul>
@@ -227,7 +226,7 @@ make stdlib EXTRA_CFLAGS=<span class="str">"-DAETHER_NO_FILESYSTEM -DAETHER_NO_N
 make docker-ci-embedded    <span class="com"># arm-none-eabi-gcc → syntax-check</span>
 make ci-portability        <span class="com"># All: native coop + WASM + embedded</span></code></pre>
 <h3 id="risc-v-64-bit-ci-riscv64">RISC-V 64-bit (<code>ci-riscv64</code>)</h3>
-<p>Cross-compile + run-under-qemu portability check (issue #397):</p>
+<p>Cross-compile + run-under-qemu portability check:</p>
 <pre><code><span class="com"># Install host toolchain (Ubuntu 22.04+):</span>
 sudo apt-get install -y gcc-riscv64-linux-gnu \
     libc6-dev-riscv64-cross qemu-user-static
@@ -261,11 +260,11 @@ HARDEN=<span class="num">1</span> make compiler ae stdlib
 
 <span class="com"># Hardened CI: run the full suite end-to-end under hardening.</span>
 HARDEN=<span class="num">1</span> make ci</code></pre>
-<p>Flags enabled (issue #396):</p>
+<p>Flags enabled:</p>
 <div class="tw"><table><thead><tr><th>Flag</th><th>Purpose</th></tr></thead><tbody><tr><td><code>-fstack-protector-all</code></td><td>Stack canaries on every function (not just gcc-strong heuristic candidates), catches the smashing class of bugs that escape the default heuristic.</td></tr><tr><td><code>-D_FORTIFY_SOURCE=2</code></td><td>Runtime checks on <code>read</code>/<code>write</code>/<code>memcpy</code>/<code>strncpy</code>/<code>printf</code>-family calls. Linux <code>gcc</code> also emits compile-time warnings when it can prove a buffer overflow, those should be fixed at the source, never blanket-suppressed. Requires at least <code>-O1</code>; the default <code>-O2</code> satisfies that.</td></tr><tr><td><code>-Wformat -Wformat-security</code></td><td>Diagnose <code>printf</code>-family format strings sourced from non-literals (the <code>%s</code>-format-injection class). Default in modern Linux distros; we standardise on it explicitly.</td></tr></tbody></table></div>
 <p>The flags are added to <code>CFLAGS</code> only when <code>HARDEN=1</code> is set; the default build path is byte-identical to the unhardened release. The Linux/Hardened (gcc) CI matrix entry pins this so a regression that introduces an unchecked <code>memcpy</code>-over-fixed-buffer trips a red check before merge.</p>
 <h2 id="llm-diagnostics-aether_enable_llm1">LLM diagnostics (<code>AETHER_ENABLE_LLM=1</code>)</h2>
-<p><code>ae help &lt;script&gt; --llm &lt;weights.gguf&gt;</code> is an opt-in offline local-LLM escalation path for the <a href="/Docs/cic-help.html">config-IS-code diagnostic flow</a> (issue #415). Default builds omit the LLM module entirely so the binary stays small and the link line stays dependency-light; embedders enable it explicitly at build time.</p>
+<p><code>ae help &lt;script&gt; --llm &lt;weights.gguf&gt;</code> is an opt-in offline local-LLM escalation path for the <a href="/Docs/cic-help.html">config-IS-code diagnostic flow</a>. Default builds omit the LLM module entirely so the binary stays small and the link line stays dependency-light; embedders enable it explicitly at build time.</p>
 <pre><code><span class="com"># Default build, `ae help --llm &lt;path&gt;` returns a clear "rebuild with</span>
 <span class="com"># AETHER_ENABLE_LLM=1" message; no llama.cpp dependency.</span>
 make ae
@@ -291,7 +290,7 @@ make ae AETHER_ENABLE_LLM=<span class="num">1</span> \
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">A compiled systems language built on actors.</p>
-      <p class="foot-status">v0.464 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.467 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h4>Docs</h4>

@@ -4,11 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>--emit=lib caller-info channel · Aether</title>
-<meta name="description" content="Issue #344. A thread-local channel between the host process and an">
+<meta name="description" content="A thread-local channel between the host process and an">
 <link rel="canonical" href="https://aether-lang.dev/Docs/lib-caller-info.html">
 <meta property="og:type" content="article">
 <meta property="og:title" content="--emit=lib caller-info channel · Aether">
-<meta property="og:description" content="Issue #344. A thread-local channel between the host process and an">
+<meta property="og:description" content="A thread-local channel between the host process and an">
 <meta property="og:url" content="https://aether-lang.dev/Docs/lib-caller-info.html">
 <meta property="og:image" content="https://aether-lang.dev/og.png">
 <meta name="twitter:card" content="summary_large_image">
@@ -27,7 +27,7 @@
       <a href="/repl.html">Playground</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-org/aether">Source</a>
-      <span class="vtag">v0.464</span>
+      <span class="vtag">v0.467</span>
     </nav>
   </div>
 </header>
@@ -38,7 +38,6 @@
 <div class="grp">Start</div>
 <a href="/Docs/getting-started.html">Getting Started with Aether</a>
 <a href="/Docs/tutorial.html">Aether Language Tutorial</a>
-<a href="/Docs/next-steps.html">Next Steps</a>
 <div class="grp">Language</div>
 <a href="/Docs/language-reference.html">Aether Language Reference</a>
 <a href="/Docs/type-inference-guide.html">Aether Type Inference Guide</a>
@@ -93,7 +92,7 @@
 <a href="/Docs/compiler-trust-boundary.html">The Compiler Trust Boundary</a>
 <a href="/Docs/json-parser-design.html">std.json Design Notes</a>
 <a href="/Docs/aether_compared_to_capsicum.html">Aether Sandbox Model vs. BSD Capsicum: Architecture, Parallels, and FreeBSD Integration</a>
-<a href="/Docs/isolated.html">Isolated[T]: move-only actor message payloads (#479)</a>
+<a href="/Docs/isolated.html">Isolated[T]: move-only actor message payloads</a>
 <a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
 <a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn't need macro_rules!</a>
 <a href="/Docs/lib-caller-info.html" class="on">--emit=lib caller-info channel</a>
@@ -106,7 +105,7 @@
       <article class="doc-body" id="doc">
         <div class="bc"><span class="prompt">$</span>docs / design &amp; rfcs</div>
 <h1 id="--emitlib-caller-info-channel"><code>--emit=lib</code> caller-info channel</h1>
-<p>Issue #344. A thread-local channel between the host process and an Aether <code>--emit=lib</code> <code>.so</code> for <strong>per-call advisory context</strong>: the host stamps <code>(identity, attributes, deadline_ms)</code> before invoking an <code>aether_&lt;name&gt;</code> export; the loaded module reads it via <code>host.caller_*</code> accessors.</p>
+<p>A thread-local channel between the host process and an Aether <code>--emit=lib</code> <code>.so</code> for <strong>per-call advisory context</strong>: the host stamps <code>(identity, attributes, deadline_ms)</code> before invoking an <code>aether_&lt;name&gt;</code> export; the loaded module reads it via <code>host.caller_*</code> accessors.</p>
 <h2 id="trust-model-explicit-non-goal">Trust model, explicit non-goal</h2>
 <p>This is <strong>not a security boundary</strong>. The host always has more authority than the loaded <code>.so</code> (it controls the process, the FD table, the address space). Adding cryptographic signing in-process buys nothing the host couldn't fake anyway. Treat caller-info as <strong>plumbing for advisory per-call context</strong>, identity, role flags, soft deadlines, not as authenticated facts.</p>
 <p>If you need cross-machine trustworthy caller identity (the WASM guest in Pollen had this need because the host and guest live in different address spaces and could be on different machines), build that on top: have the host pass a signed JWT in <code>identity</code> and have the Aether code verify the signature.</p>
@@ -129,7 +128,7 @@
  * previous invocation can't leak through. */</span>
 <span class="kw">void</span> aether_clear_caller(<span class="kw">void</span>);</code></pre>
 <p><code>identity</code> may be NULL (means "no identity"; the loaded module sees <code>""</code>). Keys + values are deep-copied into a TLS-owned buffer at <code>aether_set_caller</code> time, so the caller's source pointers can be freed after the call returns. <code>n == 0</code> is allowed for identity-only / deadline-only stamps; <code>attr_keys</code> / <code>attr_vals</code> may then be NULL.</p>
-<p><code>deadline_ms</code> is opaque to the runtime, whatever convention the host wants (milliseconds since epoch, absolute monotonic-clock milliseconds). Pair with the per-call deadline tripwire from issue #343 to enforce.</p>
+<p><code>deadline_ms</code> is opaque to the runtime, whatever convention the host wants (milliseconds since epoch, absolute monotonic-clock milliseconds). Pair with the per-call deadline tripwire from the resource-caps machinery to enforce.</p>
 <h2 id="aether-side-accessors">Aether-side accessors</h2>
 <pre><code><span class="kw">import</span> std.host
 
@@ -150,7 +149,7 @@ main() {
 <h2 id="threading">Threading</h2>
 <p>The slot is thread-local. Hosts that call into Aether from multiple threads each have their own slot. Aether code reading <code>host.caller_*</code> always sees the values populated on the current thread.</p>
 <h2 id="relationship-to-other-isolation-layers">Relationship to other isolation layers</h2>
-<div class="tw"><table><thead><tr><th>Layer</th><th>Granularity</th><th>Decision time</th><th>Issue</th></tr></thead><tbody><tr><td><code>--with=fs</code>/<code>--with=net</code> build flags</td><td>per-build</td><td>compile</td><td>existing</td></tr><tr><td><code>hide</code> / <code>seal except</code> lexical denial</td><td>per-scope</td><td>compile</td><td>existing</td></tr><tr><td><code>libaether_sandbox.so</code> LD_PRELOAD libc gate</td><td>per-process</td><td>runtime</td><td>existing</td></tr><tr><td><strong>caller-info channel</strong></td><td><strong>per-call</strong></td><td><strong>runtime</strong></td><td><strong>#344 (this)</strong></td></tr><tr><td>Resource caps (memory + deadline)</td><td>per-call</td><td>runtime</td><td>#343</td></tr></tbody></table></div>
+<div class="tw"><table><thead><tr><th>Layer</th><th>Granularity</th><th>Decision time</th><th>Issue</th></tr></thead><tbody><tr><td><code>--with=fs</code>/<code>--with=net</code> build flags</td><td>per-build</td><td>compile</td><td>existing</td></tr><tr><td><code>hide</code> / <code>seal except</code> lexical denial</td><td>per-scope</td><td>compile</td><td>existing</td></tr><tr><td><code>libaether_sandbox.so</code> LD_PRELOAD libc gate</td><td>per-process</td><td>runtime</td><td>existing</td></tr><tr><td><strong>caller-info channel</strong></td><td><strong>per-call</strong></td><td><strong>runtime</strong></td><td><strong>this document</strong></td></tr><tr><td>Resource caps (memory + deadline)</td><td>per-call</td><td>runtime</td><td>resource caps</td></tr></tbody></table></div>
 <p>Each layer answers a different question. The build flags answer "what is this binary allowed to do." The lexical layer answers "what can this scope name." The libc gate answers "what syscalls can this process make." Caller-info answers "who's calling me right now, and what authority did the host stamp on them." Compose them as needed; they don't conflict.</p>
       </article>
     </main>
@@ -163,7 +162,7 @@ main() {
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">A compiled systems language built on actors.</p>
-      <p class="foot-status">v0.464 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.467 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h4>Docs</h4>
