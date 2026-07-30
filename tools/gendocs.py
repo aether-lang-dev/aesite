@@ -33,31 +33,39 @@ GROUPS = [
         "language-reference", "type-inference-guide", "type-annotation-style-guide",
         "type-inference-multi-value-returns", "distinct-types", "sequences",
         "named-args-and-select", "closures-and-builder-dsl", "closures-and-lifetimes",
-        "module-system-design",
+        "module-system-design", "when-static-if",
     ]),
     ("Runtime", [
-        "architecture", "actor-concurrency", "structured-concurrency",
-        "scheduler-quick-reference", "memory-management", "runtime-optimizations",
-        "numa-support",
+        "architecture", "actor-concurrency", "scheduler-quick-reference",
+        "memory-management", "runtime-optimizations", "numa-support",
     ]),
     ("Interop", [
         "c-interop", "c-embedding", "emit-lib", "embedded-namespaces-and-host-bindings",
-        "aether-embedded-in-host-applications", "lib-caller-info",
+        "aether-embedded-in-host-applications",
     ]),
-    ("Stdlib", [
-        "stdlib-reference", "stdlib-api", "stdlib-module-pattern", "stdlib-vs-contrib",
-        "http-server", "http-reverse-proxy", "http-handler-context", "http-vcr",
-        "json-parser-design",
+    ("Standard library", [
+        "stdlib-reference", "stdlib-api", "http-server", "http-reverse-proxy",
+        "http-handler-context",
     ]),
-    ("Safety", [
-        "containment-sandbox", "hide-and-seal", "compiler-trust-boundary",
-        "config-is-code", "aether_compared_to_capsicum",
+    ("Safety", ["containment-sandbox", "hide-and-seal", "config-is-code"]),
+    ("Build & tooling", [
+        "build-system", "formatter", "bindgen-consts", "install-layout",
+        "runtime-config", "per-process-config", "cic-help",
     ]),
-    ("Build", [
-        "build-system", "bootstrap-from-source", "install-layout", "runtime-config",
-        "per-process-config", "cic-help",
+    ("Performance", ["performance-benchmarks", "profiling-guide", "allocators"]),
+    ("Design & RFCs", [
+        "structured-concurrency", "contract-folding", "error-unification",
+        "compiler-trust-boundary", "json-parser-design", "aether_compared_to_capsicum",
+        "isolated", "compile-time-eval", "dsl-without-macros", "lib-caller-info",
+    ]),
+    ("Contributing", [
+        "stdlib-module-pattern", "stdlib-vs-contrib", "bootstrap-from-source",
+        "release-glibc-portability",
     ]),
 ]
+
+# Generated but kept out of the sidebar (dead/removed features).
+NAV_SKIP = {"http-vcr"}
 
 # Distinctive Aether keywords only. Kept conservative so ordinary identifiers
 # and method names (map.new, list.add) are not miscoloured as keywords.
@@ -395,7 +403,7 @@ def build_order(slugs_present):
             seen.add(s)
         if picked:
             order.append((grp, picked))
-    extra = sorted(s for s in slugs_present if s not in seen)
+    extra = sorted(s for s in slugs_present if s not in seen and s not in NAV_SKIP)
     if extra:
         order.append(("More", extra))
     return order
