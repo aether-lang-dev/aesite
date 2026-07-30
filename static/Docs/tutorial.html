@@ -4,27 +4,38 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Aether Language Tutorial · Aether</title>
-<meta name="description" content="Aether Language Tutorial — Aether language documentation.">
+<meta name="description" content="This tutorial walks through Aether's core features with working examples you can run. Aether is a compiled language built around the actor model, lightw...">
+<link rel="canonical" href="https://aether-lang.dev/Docs/tutorial.html">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Aether Language Tutorial · Aether">
+<meta property="og:description" content="This tutorial walks through Aether's core features with working examples you can run. Aether is a compiled language built around the actor model, lightw...">
+<meta property="og:url" content="https://aether-lang.dev/Docs/tutorial.html">
+<meta property="og:image" content="https://aether-lang.dev/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="/favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/aether.css">
 </head>
 <body>
+<a class="skip" href="#doc">Skip to content</a>
 <header class="site-head">
   <div class="wrap bar">
     <a class="brand" href="/" aria-label="Aether"><span class="ae">ae</span><span class="nm">aether</span></a>
     <nav>
       <a href="/repl.html">Playground</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
-      <a href="https://github.com/aether-lang-org/aether">Source</a>
-      <span class="vtag">v0.454</span>
+      <a class="src" href="https://github.com/aether-lang-org/aether">Source</a>
+      <span class="vtag">v0.462</span>
     </nav>
   </div>
 </header>
 <div class="wrap">
   <div class="doc-shell">
-    <nav class="doc-nav"><div class="grp">Start</div>
+    <nav class="doc-nav" aria-label="Documentation">
+      <div class="docsearch"><input id="ds" type="search" placeholder="Search the docs" aria-label="Search documentation" autocomplete="off" spellcheck="false"><kbd>/</kbd><div class="ds-res" id="dsres" role="listbox"></div></div>
+<div class="grp">Start</div>
 <a href="/Docs/getting-started.html">Getting Started with Aether</a>
 <a href="/Docs/tutorial.html" class="on">Aether Language Tutorial</a>
 <a href="/Docs/next-steps.html">Next Steps</a>
@@ -34,7 +45,7 @@
 <a href="/Docs/type-annotation-style-guide.html">Aether Type Annotation Style Guide</a>
 <a href="/Docs/type-inference-multi-value-returns.html">Multi-Value Return Type Inference</a>
 <a href="/Docs/distinct-types.html">Distinct Types</a>
-<a href="/Docs/sequences.html">Sequences (`*StringSeq`)</a>
+<a href="/Docs/sequences.html">Sequences (*StringSeq)</a>
 <a href="/Docs/named-args-and-select.html">Named Arguments and select()</a>
 <a href="/Docs/closures-and-builder-dsl.html">Closures and Builder-Style DSL in Aether</a>
 <a href="/Docs/closures-and-lifetimes.html">Closures and Environment Lifetimes</a>
@@ -50,23 +61,23 @@
 <div class="grp">Interop</div>
 <a href="/Docs/c-interop.html">C Interoperability</a>
 <a href="/Docs/c-embedding.html">Embedding Aether Actors in C Applications</a>
-<a href="/Docs/emit-lib.html">Embedding Aether as a Shared Library (`--emit=lib`)</a>
+<a href="/Docs/emit-lib.html">Embedding Aether as a Shared Library (--emit=lib)</a>
 <a href="/Docs/embedded-namespaces-and-host-bindings.html">Aether as a Configuration Language, v2: Namespaces and Generated Bindings</a>
 <a href="/Docs/aether-embedded-in-host-applications.html">Aether as a Configuration Language for Other Languages</a>
-<a href="/Docs/lib-caller-info.html">`--emit=lib` caller-info channel</a>
+<a href="/Docs/lib-caller-info.html">--emit=lib caller-info channel</a>
 <div class="grp">Stdlib</div>
 <a href="/Docs/stdlib-reference.html">Aether Standard Library Reference</a>
 <a href="/Docs/stdlib-api.html">Aether Standard Library Guide</a>
 <a href="/Docs/stdlib-module-pattern.html">Aether Stdlib Module Pattern</a>
-<a href="/Docs/stdlib-vs-contrib.html">`std/` vs `contrib/` placement decisions</a>
-<a href="/Docs/http-server.html">`std.http` HTTP Server</a>
-<a href="/Docs/http-reverse-proxy.html">`std.http.proxy` reverse proxy</a>
+<a href="/Docs/stdlib-vs-contrib.html">std/ vs contrib/ placement decisions</a>
+<a href="/Docs/http-server.html">std.http HTTP Server</a>
+<a href="/Docs/http-reverse-proxy.html">std.http.proxy reverse proxy</a>
 <a href="/Docs/http-handler-context.html">HTTP handlers with per-server / per-route state</a>
 <a href="/Docs/http-vcr.html">HTTP Record/Replay (VCR), moved out of Aether</a>
-<a href="/Docs/json-parser-design.html">`std.json` Design Notes</a>
+<a href="/Docs/json-parser-design.html">std.json Design Notes</a>
 <div class="grp">Safety</div>
 <a href="/Docs/containment-sandbox.html">Containment and Sandboxing in Aether</a>
-<a href="/Docs/hide-and-seal.html">`hide` and `seal except` scope-level capability denial</a>
+<a href="/Docs/hide-and-seal.html">hide and seal except scope-level capability denial</a>
 <a href="/Docs/compiler-trust-boundary.html">The Compiler Trust Boundary</a>
 <a href="/Docs/config-is-code.html">Config IS Code</a>
 <a href="/Docs/aether_compared_to_capsicum.html">Aether Sandbox Model vs. BSD Capsicum: Architecture, Parallels, and FreeBSD Integration</a>
@@ -76,64 +87,64 @@
 <a href="/Docs/install-layout.html">Aether install layout</a>
 <a href="/Docs/runtime-config.html">Runtime Configuration - Quick Reference</a>
 <a href="/Docs/per-process-config.html">Per-process configuration in Aether</a>
-<a href="/Docs/cic-help.html">`ae help &lt;script&gt;` Offline diagnostics for config-IS-code</a>
+<a href="/Docs/cic-help.html">ae help &lt;script&gt; Offline diagnostics for config-IS-code</a>
 <div class="grp">More</div>
-<a href="/Docs/bindgen-consts.html">`ae bindgen consts`, importing C macro constants</a>
-<a href="/Docs/formatter.html">`ae fmt`, the source formatter</a>
-<a href="/Docs/isolated.html">`Isolated[T]`: move-only actor message payloads (#479)</a>
-<a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
-<a href="/Docs/profiling-guide.html">Aether Runtime Profiling Guide</a>
 <a href="/Docs/allocators.html">Allocators</a>
-<a href="/Docs/when-static-if.html">Compile-time `when` / static-if</a>
+<a href="/Docs/bindgen-consts.html">ae bindgen consts, importing C macro constants</a>
 <a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
 <a href="/Docs/contract-folding.html">Compile-time contract folding — costed design</a>
-<a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn&#x27;t need `macro_rules!`</a>
+<a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn't need macro_rules!</a>
+<a href="/Docs/error-unification.html">Unifying T? and (value, err) — costed design</a>
+<a href="/Docs/formatter.html">ae fmt, the source formatter</a>
+<a href="/Docs/isolated.html">Isolated[T]: move-only actor message payloads (#479)</a>
+<a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
+<a href="/Docs/profiling-guide.html">Aether Runtime Profiling Guide</a>
 <a href="/Docs/release-glibc-portability.html">Release binary portability across glibc versions</a>
-<a href="/Docs/error-unification.html">Unifying `T?` and `(value, err)` — costed design</a></nav>
+<a href="/Docs/when-static-if.html">Compile-time when / static-if</a></nav>
     <main class="doc-main">
-      <article class="doc-body">
-        <div class="bc">docs / start</div>
-<h1>Aether Language Tutorial</h1>
-<p>This tutorial walks through Aether&#x27;s core features with working examples you can run. Aether is a compiled language built around the <strong>actor model</strong>, lightweight concurrent entities that communicate through messages.</p>
+      <article class="doc-body" id="doc">
+        <div class="bc"><span class="prompt">$</span>docs / start</div>
+<h1 id="aether-language-tutorial">Aether Language Tutorial</h1>
+<p>This tutorial walks through Aether's core features with working examples you can run. Aether is a compiled language built around the <strong>actor model</strong>, lightweight concurrent entities that communicate through messages.</p>
 <p>Run any example with:</p>
 <pre><code>ae run myfile.ae</code></pre>
-<h2>Table of Contents</h2>
+<h2 id="table-of-contents">Table of Contents</h2>
 <ol><li><a href="#1-hello-world">Hello World</a></li><li><a href="#2-your-first-actor">Your First Actor</a></li><li><a href="#3-actor-state--multiple-messages">Actor State &amp; Multiple Messages</a></li><li><a href="#4-control-flow">Control Flow</a></li><li><a href="#5-pattern-matching">Pattern Matching</a></li><li><a href="#6-multiple-actors">Multiple Actors</a></li><li><a href="#7-string-interpolation">String Interpolation</a></li><li><a href="#8-constants-null-and-bitwise">Constants, Null, and Bitwise</a></li><li><a href="#9-ergonomic-syntax">Ergonomic Syntax</a></li></ol>
 <hr>
-<h2>1. Hello World</h2>
+<h2 id="1-hello-world">1. Hello World</h2>
 <pre><code>main() {
-    println(&quot;Hello, Aether!&quot;)
+    println(<span class="str">"Hello, Aether!"</span>)
 
-    x = 42
-    y = 8
+    x = <span class="num">42</span>
+    y = <span class="num">8</span>
 
-    if (x &gt; y) {
-        println(&quot;x is greater than y&quot;)
+    <span class="kw">if</span> (x &gt; y) {
+        println(<span class="str">"x is greater than y"</span>)
     }
 
     sum = x + y
-    println(&quot;Sum: ${sum}&quot;)
+    println(<span class="str">"Sum: ${sum}"</span>)
 }</code></pre>
 <p><strong>What you see:</strong></p>
 <ul><li><code>main()</code> is the entry point</li><li>Variables use <strong>type inference</strong>, no explicit types needed</li><li><code>println</code> prints with a newline; <code>print</code> prints without</li><li><code>${variable}</code> embeds a value into a string</li></ul>
 <hr>
-<h2>2. Your First Actor</h2>
+<h2 id="2-your-first-actor">2. Your First Actor</h2>
 <p>Actors are the core abstraction in Aether, lightweight concurrent entities that process messages.</p>
-<pre><code>message Ping {}
+<pre><code><span class="kw">message</span> Ping {}
 
-actor Counter {
-    state count = 0
+<span class="kw">actor</span> Counter {
+    <span class="kw">state</span> count = <span class="num">0</span>
 
-    receive {
+    <span class="kw">receive</span> {
         Ping() -&gt; {
-            count = count + 1
-            println(&quot;Count: ${count}&quot;)
+            count = count + <span class="num">1</span>
+            println(<span class="str">"Count: ${count}"</span>)
         }
     }
 }
 
 main() {
-    c = spawn(Counter())
+    c = <span class="kw">spawn</span>(Counter())
     c ! Ping {}
     c ! Ping {}
     c ! Ping {}
@@ -148,17 +159,17 @@ Count: 3</code></pre>
 <ul><li><code>message Ping {}</code> defines a message type (empty here, but can have fields)</li><li><code>actor Counter { state ... receive { ... } }</code> an actor with private state</li><li><code>spawn(Counter())</code> creates a Counter actor; returns a handle</li><li><code>c ! Ping {}</code> sends an asynchronous message</li><li><code>wait_for_idle()</code> blocks until all actors have finished processing</li></ul>
 <p>Without <code>wait_for_idle()</code>, main could exit before the actor processes its messages.</p>
 <hr>
-<h2>3. Actor State &amp; Multiple Messages</h2>
+<h2 id="3-actor-state--multiple-messages">3. Actor State &amp; Multiple Messages</h2>
 <p>Actors can handle multiple message types and carry state across messages:</p>
-<pre><code>message Increment { amount: int }
-message Decrement { amount: int }
-message Reset {}
-message GetValue {}
+<pre><code><span class="kw">message</span> Increment { amount: <span class="fn">int</span> }
+<span class="kw">message</span> Decrement { amount: <span class="fn">int</span> }
+<span class="kw">message</span> Reset {}
+<span class="kw">message</span> GetValue {}
 
-actor Counter {
-    state count = 0
+<span class="kw">actor</span> Counter {
+    <span class="kw">state</span> count = <span class="num">0</span>
 
-    receive {
+    <span class="kw">receive</span> {
         Increment(amount) -&gt; {
             count = count + amount
         }
@@ -166,20 +177,20 @@ actor Counter {
             count = count - amount
         }
         Reset() -&gt; {
-            count = 0
+            count = <span class="num">0</span>
         }
         GetValue() -&gt; {
-            println(&quot;Current value: ${count}&quot;)
+            println(<span class="str">"Current value: ${count}"</span>)
         }
     }
 }
 
 main() {
-    c = spawn(Counter())
-    c ! Increment { amount: 10 }
-    c ! Increment { amount: 5 }
+    c = <span class="kw">spawn</span>(Counter())
+    c ! Increment { amount: <span class="num">10</span> }
+    c ! Increment { amount: <span class="num">5</span> }
     c ! GetValue {}
-    c ! Decrement { amount: 3 }
+    c ! Decrement { amount: <span class="num">3</span> }
     c ! GetValue {}
     c ! Reset {}
     c ! GetValue {}
@@ -192,37 +203,37 @@ Current value: 12
 Current value: 0</code></pre>
 <p>Messages are processed <strong>in order</strong> within a single actor. State (<code>count</code>) is private, nothing outside the actor can access it directly.</p>
 <hr>
-<h2>4. Control Flow</h2>
+<h2 id="4-control-flow">4. Control Flow</h2>
 <p>Aether has standard control structures:</p>
 <pre><code>main() {
-    // For loops (with compound assignment operators)
-    sum = 0
-    for (i = 1; i &lt;= 10; i++) {
+    <span class="com">// For loops (with compound assignment operators)</span>
+    sum = <span class="num">0</span>
+    <span class="kw">for</span> (i = <span class="num">1</span>; i &lt;= <span class="num">10</span>; i++) {
         sum += i
     }
-    println(&quot;Sum 1..10 = ${sum}&quot;)
+    println(<span class="str">"Sum 1..10 = ${sum}"</span>)
 
-    // While loops
-    n = 16
-    steps = 0
-    while (n &gt; 1) {
-        if (n % 2 == 0) {
-            n = n / 2
-        } else {
-            n = n * 3 + 1
+    <span class="com">// While loops</span>
+    n = <span class="num">16</span>
+    steps = <span class="num">0</span>
+    <span class="kw">while</span> (n &gt; <span class="num">1</span>) {
+        <span class="kw">if</span> (n % <span class="num">2</span> == <span class="num">0</span>) {
+            n = n / <span class="num">2</span>
+        } <span class="kw">else</span> {
+            n = n * <span class="num">3</span> + <span class="num">1</span>
         }
-        steps = steps + 1
+        steps = steps + <span class="num">1</span>
     }
-    println(&quot;Collatz steps for 16: ${steps}&quot;)
+    println(<span class="str">"Collatz steps for 16: ${steps}"</span>)
 
-    // If / else if / else
-    score = 85
-    if (score &gt;= 90) {
-        println(&quot;Grade: A&quot;)
-    } else if (score &gt;= 80) {
-        println(&quot;Grade: B&quot;)
-    } else {
-        println(&quot;Grade: C or below&quot;)
+    <span class="com">// If / else if / else</span>
+    score = <span class="num">85</span>
+    <span class="kw">if</span> (score &gt;= <span class="num">90</span>) {
+        println(<span class="str">"Grade: A"</span>)
+    } <span class="kw">else</span> <span class="kw">if</span> (score &gt;= <span class="num">80</span>) {
+        println(<span class="str">"Grade: B"</span>)
+    } <span class="kw">else</span> {
+        println(<span class="str">"Grade: C or below"</span>)
     }
 }</code></pre>
 <p><strong>Output:</strong></p>
@@ -230,30 +241,30 @@ Current value: 0</code></pre>
 Collatz steps for 16: 4
 Grade: B</code></pre>
 <hr>
-<h2>5. Pattern Matching</h2>
+<h2 id="5-pattern-matching">5. Pattern Matching</h2>
 <p>Pattern matching, inspired by Erlang, lets you dispatch on argument values and structure.</p>
-<h3>Function Clauses</h3>
+<h3 id="function-clauses">Function Clauses</h3>
 <p>Define functions with multiple clauses that match on argument values:</p>
-<pre><code>// Recursive factorial with pattern matching
-factorial(0) -&gt; 1
-factorial(n) when n &gt; 0 -&gt; n * factorial(n - 1)
+<pre><code><span class="com">// Recursive factorial with pattern matching</span>
+factorial(<span class="num">0</span>) -&gt; <span class="num">1</span>
+factorial(n) <span class="kw">when</span> n &gt; <span class="num">0</span> -&gt; n * factorial(n - <span class="num">1</span>)
 
-// Fibonacci
-fib(0) -&gt; 0
-fib(1) -&gt; 1
-fib(n) when n &gt; 1 -&gt; fib(n - 1) + fib(n - 2)
+<span class="com">// Fibonacci</span>
+fib(<span class="num">0</span>) -&gt; <span class="num">0</span>
+fib(<span class="num">1</span>) -&gt; <span class="num">1</span>
+fib(n) <span class="kw">when</span> n &gt; <span class="num">1</span> -&gt; fib(n - <span class="num">1</span>) + fib(n - <span class="num">2</span>)
 
-// Classify a number
-classify(x) when x &lt; 0 -&gt; &quot;negative&quot;
-classify(x) when x == 0 -&gt; &quot;zero&quot;
-classify(x) when x &gt; 0 -&gt; &quot;positive&quot;
+<span class="com">// Classify a number</span>
+classify(x) <span class="kw">when</span> x &lt; <span class="num">0</span> -&gt; <span class="str">"negative"</span>
+classify(x) <span class="kw">when</span> x == <span class="num">0</span> -&gt; <span class="str">"zero"</span>
+classify(x) <span class="kw">when</span> x &gt; <span class="num">0</span> -&gt; <span class="str">"positive"</span>
 
 main() {
-    println(&quot;5! = ${factorial(5)}&quot;)
-    println(&quot;fib(8) = ${fib(8)}&quot;)
-    println(&quot;classify(-3) = ${classify(-3)}&quot;)
-    println(&quot;classify(0) = ${classify(0)}&quot;)
-    println(&quot;classify(7) = ${classify(7)}&quot;)
+    println(<span class="str">"5! = ${factorial(5)}"</span>)
+    println(<span class="str">"fib(8) = ${fib(8)}"</span>)
+    println(<span class="str">"classify(-3) = ${classify(-3)}"</span>)
+    println(<span class="str">"classify(0) = ${classify(0)}"</span>)
+    println(<span class="str">"classify(7) = ${classify(7)}"</span>)
 }</code></pre>
 <p><strong>Output:</strong></p>
 <pre><code>5! = 120
@@ -261,28 +272,28 @@ fib(8) = 21
 classify(-3) = negative
 classify(0) = zero
 classify(7) = positive</code></pre>
-<h3>Match Statements</h3>
+<h3 id="match-statements">Match Statements</h3>
 <p>For value dispatch inside functions or message handlers:</p>
-<pre><code>message Process { code: int }
+<pre><code><span class="kw">message</span> Process { code: <span class="fn">int</span> }
 
-actor Dispatcher {
-    receive {
+<span class="kw">actor</span> Dispatcher {
+    <span class="kw">receive</span> {
         Process(code) -&gt; {
-            match (code) {
-                0 -&gt; { println(&quot;OK&quot;) }
-                1 -&gt; { println(&quot;Warning&quot;) }
-                2 -&gt; { println(&quot;Error&quot;) }
-                _ -&gt; { println(&quot;Unknown code: ${code}&quot;) }
+            <span class="kw">match</span> (code) {
+                <span class="num">0</span> -&gt; { println(<span class="str">"OK"</span>) }
+                <span class="num">1</span> -&gt; { println(<span class="str">"Warning"</span>) }
+                <span class="num">2</span> -&gt; { println(<span class="str">"Error"</span>) }
+                _ -&gt; { println(<span class="str">"Unknown code: ${code}"</span>) }
             }
         }
     }
 }
 
 main() {
-    d = spawn(Dispatcher())
-    d ! Process { code: 0 }
-    d ! Process { code: 2 }
-    d ! Process { code: 99 }
+    d = <span class="kw">spawn</span>(Dispatcher())
+    d ! Process { code: <span class="num">0</span> }
+    d ! Process { code: <span class="num">2</span> }
+    d ! Process { code: <span class="num">99</span> }
     wait_for_idle()
 }</code></pre>
 <p><strong>Output:</strong></p>
@@ -290,37 +301,37 @@ main() {
 Error
 Unknown code: 99</code></pre>
 <hr>
-<h2>6. Multiple Actors</h2>
+<h2 id="6-multiple-actors">6. Multiple Actors</h2>
 <p>Actors can be spawned in any number and run concurrently across all CPU cores:</p>
-<pre><code>message Work { id: int, value: int }
-message Done {}
+<pre><code><span class="kw">message</span> Work { id: <span class="fn">int</span>, value: <span class="fn">int</span> }
+<span class="kw">message</span> Done {}
 
-actor Worker {
-    state processed = 0
+<span class="kw">actor</span> Worker {
+    <span class="kw">state</span> processed = <span class="num">0</span>
 
-    receive {
+    <span class="kw">receive</span> {
         Work(id, value) -&gt; {
             result = value * value
-            println(&quot;Worker ${id}: ${value}^2 = ${result}&quot;)
-            processed = processed + 1
+            println(<span class="str">"Worker ${id}: ${value}^2 = ${result}"</span>)
+            processed = processed + <span class="num">1</span>
         }
         Done() -&gt; {
-            println(&quot;Worker finished ${processed} tasks&quot;)
+            println(<span class="str">"Worker finished ${processed} tasks"</span>)
         }
     }
 }
 
 main() {
-    w1 = spawn(Worker())
-    w2 = spawn(Worker())
-    w3 = spawn(Worker())
+    w1 = <span class="kw">spawn</span>(Worker())
+    w2 = <span class="kw">spawn</span>(Worker())
+    w3 = <span class="kw">spawn</span>(Worker())
 
-    // Distribute work across workers
-    w1 ! Work { id: 1, value: 3 }
-    w2 ! Work { id: 2, value: 5 }
-    w3 ! Work { id: 3, value: 7 }
-    w1 ! Work { id: 1, value: 9 }
-    w2 ! Work { id: 2, value: 11 }
+    <span class="com">// Distribute work across workers</span>
+    w1 ! Work { id: <span class="num">1</span>, value: <span class="num">3</span> }
+    w2 ! Work { id: <span class="num">2</span>, value: <span class="num">5</span> }
+    w3 ! Work { id: <span class="num">3</span>, value: <span class="num">7</span> }
+    w1 ! Work { id: <span class="num">1</span>, value: <span class="num">9</span> }
+    w2 ! Work { id: <span class="num">2</span>, value: <span class="num">11</span> }
 
     w1 ! Done {}
     w2 ! Done {}
@@ -330,84 +341,84 @@ main() {
 }</code></pre>
 <p>The Aether runtime automatically distributes actors across CPU cores. Message ordering is guaranteed <strong>within</strong> a single actor, but messages to different actors may be processed in any order.</p>
 <hr>
-<h2>7. String Interpolation</h2>
+<h2 id="7-string-interpolation">7. String Interpolation</h2>
 <p>Use <code>${expression}</code> to embed values in strings:</p>
 <pre><code>main() {
-    name = &quot;Aether&quot;
-    version = 1
-    pi = 3
+    name = <span class="str">"Aether"</span>
+    version = <span class="num">1</span>
+    pi = <span class="num">3</span>
 
-    println(&quot;Welcome to ${name} v${version}!&quot;)
-    println(&quot;Pi is approximately ${pi}&quot;)
+    println(<span class="str">"Welcome to ${name} v${version}!"</span>)
+    println(<span class="str">"Pi is approximately ${pi}"</span>)
 
-    for (i = 1; i &lt;= 5; i = i + 1) {
+    <span class="kw">for</span> (i = <span class="num">1</span>; i &lt;= <span class="num">5</span>; i = i + <span class="num">1</span>) {
         squared = i * i
-        println(&quot;${i}^2 = ${squared}&quot;)
+        println(<span class="str">"${i}^2 = ${squared}"</span>)
     }
 }</code></pre>
 <p>String interpolation works with <code>println</code> and any function that accepts a string. Variables of any type (int, string) can be interpolated.</p>
 <p>Interpolated strings produce a real string value when assigned to a variable, so they can be passed to any function:</p>
-<pre><code>msg = &quot;Hello, ${name}!&quot;     // msg is a string pointer</code></pre>
+<pre><code>msg = <span class="str">"Hello, ${name}!"</span>     <span class="com">// msg is a string pointer</span></code></pre>
 <hr>
-<h2>8. Constants, Null, and Bitwise</h2>
-<h3>Constants</h3>
+<h2 id="8-constants-null-and-bitwise">8. Constants, Null, and Bitwise</h2>
+<h3 id="constants">Constants</h3>
 <p>Define named values at the top level with <code>const</code>:</p>
-<pre><code>const WIDTH = 80
-const HEIGHT = 24
-const TITLE = &quot;My App&quot;
+<pre><code><span class="kw">const</span> WIDTH = <span class="num">80</span>
+<span class="kw">const</span> HEIGHT = <span class="num">24</span>
+<span class="kw">const</span> TITLE = <span class="str">"My App"</span>
 
 main() {
     println(TITLE)
     area = WIDTH * HEIGHT
-    println(&quot;Area: ${area}&quot;)
+    println(<span class="str">"Area: ${area}"</span>)
 }</code></pre>
-<h3>Null</h3>
+<h3 id="null">Null</h3>
 <p>Use <code>null</code> for uninitialized pointers:</p>
 <pre><code>main() {
-    conn = null
-    if conn == null {
-        println(&quot;Not connected&quot;)
+    conn = <span class="kw">null</span>
+    <span class="kw">if</span> conn == <span class="kw">null</span> {
+        println(<span class="str">"Not connected"</span>)
     }
 }</code></pre>
-<h3>Bitwise Operators</h3>
+<h3 id="bitwise-operators">Bitwise Operators</h3>
 <p>Aether supports <code>&amp;</code>, <code>|</code>, <code>^</code>, <code>~</code>, <code>&lt;&lt;</code>, <code>&gt;&gt;</code> for bit manipulation:</p>
 <pre><code>main() {
-    flags = 5 &amp; 3         // AND: 1
-    mask = 5 | 3          // OR: 7
-    flipped = 5 ^ 3       // XOR: 6
-    shifted = 1 &lt;&lt; 4      // Left shift: 16
-    println(&quot;${flags} ${mask} ${flipped} ${shifted}&quot;)
+    flags = <span class="num">5</span> &amp; <span class="num">3</span>         <span class="com">// AND: 1</span>
+    mask = <span class="num">5</span> | <span class="num">3</span>          <span class="com">// OR: 7</span>
+    flipped = <span class="num">5</span> ^ <span class="num">3</span>       <span class="com">// XOR: 6</span>
+    shifted = <span class="num">1</span> &lt;&lt; <span class="num">4</span>      <span class="com">// Left shift: 16</span>
+    println(<span class="str">"${flags} ${mask} ${flipped} ${shifted}"</span>)
 }</code></pre>
 <hr>
-<h2>9. Ergonomic Syntax</h2>
+<h2 id="9-ergonomic-syntax">9. Ergonomic Syntax</h2>
 <p>Aether includes several features that reduce boilerplate.</p>
-<h3>Hex, Octal, and Binary Literals</h3>
+<h3 id="hex-octal-and-binary-literals">Hex, Octal, and Binary Literals</h3>
 <pre><code>main() {
     flags = 0xFF
     mask = 0x0F
     bits = 0b1010_0101
     perms = 0o755
 
-    println(flags &amp; mask)    // 15
-    println(bits &gt;&gt; 4)       // 10
+    println(flags &amp; mask)    <span class="com">// 15</span>
+    println(bits &gt;&gt; <span class="num">4</span>)       <span class="com">// 10</span>
 }</code></pre>
-<h3>If-Expressions</h3>
+<h3 id="if-expressions">If-Expressions</h3>
 <p>Use <code>if</code>/<code>else</code> as a value-producing expression:</p>
 <pre><code>main() {
-    x = 10
-    sign = if x &gt; 0 { 1 } else { -1 }
-    println(sign)   // 1
+    x = <span class="num">10</span>
+    sign = <span class="kw">if</span> x &gt; <span class="num">0</span> { <span class="num">1</span> } <span class="kw">else</span> { -<span class="num">1</span> }
+    println(sign)   <span class="com">// 1</span>
 }</code></pre>
-<h3>Range-Based For Loops</h3>
+<h3 id="range-based-for-loops">Range-Based For Loops</h3>
 <pre><code>main() {
-    // Instead of: for (i = 0; i &lt; 10; i++) { ... }
-    for i in 0..10 {
+    <span class="com">// Instead of: for (i = 0; i &lt; 10; i++) { ... }</span>
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="num">0</span>..<span class="num">10</span> {
         print(i)
-        print(&quot; &quot;)
+        print(<span class="str">" "</span>)
     }
-    // prints: 0 1 2 3 4 5 6 7 8 9
+    <span class="com">// prints: 0 1 2 3 4 5 6 7 8 9</span>
 }</code></pre>
-<h3>Multi-Statement Arrow Bodies</h3>
+<h3 id="multi-statement-arrow-bodies">Multi-Statement Arrow Bodies</h3>
 <p>Arrow functions can contain multiple statements. The last expression is the implicit return:</p>
 <pre><code>distance(x1, y1, x2, y2) -&gt; {
     dx = x2 - x1
@@ -416,25 +427,27 @@ main() {
 }
 
 main() {
-    println(distance(0, 0, 3, 4))  // 25
+    println(distance(<span class="num">0</span>, <span class="num">0</span>, <span class="num">3</span>, <span class="num">4</span>))  <span class="com">// 25</span>
 }</code></pre>
 <hr>
-<h2>Next Steps</h2>
-<h3>Best Practices</h3>
+<h2 id="next-steps">Next Steps</h2>
+<h3 id="best-practices">Best Practices</h3>
 <ol><li><strong>One responsibility per actor</strong>, keep actors focused on a single task</li><li><strong>No shared state</strong>, communicate only through messages, never share memory</li><li><strong>Always <code>wait_for_idle()</code></strong> when you need to read actor state or coordinate completion</li><li><strong>Descriptive message names</strong>, <code>Increment</code> is clearer than <code>Update</code></li></ol>
-<h3>Further Reading</h3>
+<h3 id="further-reading">Further Reading</h3>
 <ul><li><a href="/Docs/getting-started.html">Getting Started</a>, Installation and project setup</li><li><a href="/Docs/language-reference.html">Language Reference</a>, Complete syntax specification</li><li><a href="/Docs/stdlib-reference.html">Standard Library</a>, Collections, I/O, networking</li><li><a href="/Docs/architecture.html">Architecture</a>, Compiler and runtime internals</li><li><a href="/Docs/runtime-optimizations.html">Runtime Optimizations</a>, Performance details</li></ul>
 <hr>
-<h2>Summary</h2>
-<table><thead><tr><th>Feature</th><th>Syntax</th></tr></thead><tbody><tr><td>Define message</td><td><code>message Name { field: type }</code></td></tr><tr><td>Define actor</td><td><code>actor Name { state x = 0; receive { ... } }</code></td></tr><tr><td>Spawn actor</td><td><code>a = spawn(ActorName())</code></td></tr><tr><td>Send message</td><td><code>a ! MessageName { field: value }</code></td></tr><tr><td>Wait for all</td><td><code>wait_for_idle()</code></td></tr><tr><td>Pattern clause</td><td><code>fn(0) -&gt; result</code></td></tr><tr><td>Guard</td><td><code>fn(n) when n &gt; 0 -&gt; ...</code></td></tr><tr><td>Match</td><td><code>match (x) { 0 -&gt; {...} _ -&gt; {...} }</code></td></tr><tr><td>Interpolation</td><td><code>&quot;text ${variable}&quot;</code></td></tr><tr><td>Constant</td><td><code>const NAME = value</code></td></tr><tr><td>Null</td><td><code>x = null</code></td></tr><tr><td>Bitwise</td><td><code>&amp;</code> `\</td><td><code> </code>^<code> </code>~<code> </code>&lt;&lt;<code> </code>&gt;&gt;`</td></tr><tr><td>Compound assign</td><td><code>+=</code> <code>-=</code> <code>*=</code> <code>/=</code> <code>%=</code> <code>&amp;=</code> `\</td><td>=<code> </code>^=`</td></tr><tr><td>Hex/bin/oct</td><td><code>0xFF</code>, <code>0b1010</code>, <code>0o755</code></td></tr><tr><td>If-expression</td><td><code>if cond { a } else { b }</code></td></tr><tr><td>Range for</td><td><code>for i in 0..10 { ... }</code></td></tr><tr><td>Arrow block</td><td><code>f(x) -&gt; { stmts; expr }</code></td></tr></tbody></table>
+<h2 id="summary">Summary</h2>
+<div class="tw"><table><thead><tr><th>Feature</th><th>Syntax</th></tr></thead><tbody><tr><td>Define message</td><td><code>message Name { field: type }</code></td></tr><tr><td>Define actor</td><td><code>actor Name { state x = 0; receive { ... } }</code></td></tr><tr><td>Spawn actor</td><td><code>a = spawn(ActorName())</code></td></tr><tr><td>Send message</td><td><code>a ! MessageName { field: value }</code></td></tr><tr><td>Wait for all</td><td><code>wait_for_idle()</code></td></tr><tr><td>Pattern clause</td><td><code>fn(0) -&gt; result</code></td></tr><tr><td>Guard</td><td><code>fn(n) when n &gt; 0 -&gt; ...</code></td></tr><tr><td>Match</td><td><code>match (x) { 0 -&gt; {...} _ -&gt; {...} }</code></td></tr><tr><td>Interpolation</td><td><code>"text ${variable}"</code></td></tr><tr><td>Constant</td><td><code>const NAME = value</code></td></tr><tr><td>Null</td><td><code>x = null</code></td></tr><tr><td>Bitwise</td><td><code>&amp;</code> <code>\|</code> <code>^</code> <code>~</code> <code>&lt;&lt;</code> <code>&gt;&gt;</code></td></tr><tr><td>Compound assign</td><td><code>+=</code> <code>-=</code> <code>*=</code> <code>/=</code> <code>%=</code> <code>&amp;=</code> <code>\|=</code> <code>^=</code></td></tr><tr><td>Hex/bin/oct</td><td><code>0xFF</code>, <code>0b1010</code>, <code>0o755</code></td></tr><tr><td>If-expression</td><td><code>if cond { a } else { b }</code></td></tr><tr><td>Range for</td><td><code>for i in 0..10 { ... }</code></td></tr><tr><td>Arrow block</td><td><code>f(x) -&gt; { stmts; expr }</code></td></tr></tbody></table></div>
       </article>
     </main>
+    <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#table-of-contents" class="l2" data-id="table-of-contents">Table of Contents</a><a href="#1-hello-world" class="l2" data-id="1-hello-world">1. Hello World</a><a href="#2-your-first-actor" class="l2" data-id="2-your-first-actor">2. Your First Actor</a><a href="#3-actor-state--multiple-messages" class="l2" data-id="3-actor-state--multiple-messages">3. Actor State &amp; Multiple Messages</a><a href="#4-control-flow" class="l2" data-id="4-control-flow">4. Control Flow</a><a href="#5-pattern-matching" class="l2" data-id="5-pattern-matching">5. Pattern Matching</a><a href="#function-clauses" class="l3" data-id="function-clauses">Function Clauses</a><a href="#match-statements" class="l3" data-id="match-statements">Match Statements</a><a href="#6-multiple-actors" class="l2" data-id="6-multiple-actors">6. Multiple Actors</a><a href="#7-string-interpolation" class="l2" data-id="7-string-interpolation">7. String Interpolation</a><a href="#8-constants-null-and-bitwise" class="l2" data-id="8-constants-null-and-bitwise">8. Constants, Null, and Bitwise</a><a href="#constants" class="l3" data-id="constants">Constants</a><a href="#null" class="l3" data-id="null">Null</a><a href="#bitwise-operators" class="l3" data-id="bitwise-operators">Bitwise Operators</a><a href="#9-ergonomic-syntax" class="l2" data-id="9-ergonomic-syntax">9. Ergonomic Syntax</a><a href="#hex-octal-and-binary-literals" class="l3" data-id="hex-octal-and-binary-literals">Hex, Octal, and Binary Literals</a><a href="#if-expressions" class="l3" data-id="if-expressions">If-Expressions</a><a href="#range-based-for-loops" class="l3" data-id="range-based-for-loops">Range-Based For Loops</a><a href="#multi-statement-arrow-bodies" class="l3" data-id="multi-statement-arrow-bodies">Multi-Statement Arrow Bodies</a><a href="#next-steps" class="l2" data-id="next-steps">Next Steps</a><a href="#best-practices" class="l3" data-id="best-practices">Best Practices</a><a href="#further-reading" class="l3" data-id="further-reading">Further Reading</a><a href="#summary" class="l2" data-id="summary">Summary</a></nav>
   </div>
 </div>
+<script src="/docs.js" defer></script>
 <footer class="site-foot">
   <div class="wrap foot">
     <span class="ae">ae</span>
-    <span class="m">MIT licensed · compiles to C · v0.454</span>
+    <span class="m">MIT licensed · compiles to C · v0.462</span>
     <nav><a href="/Docs/getting-started.html">Docs</a><a href="/repl.html">Playground</a><a href="https://github.com/aether-lang-org/aether">GitHub</a></nav>
   </div>
 </footer>

@@ -4,38 +4,49 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Playground · Aether</title>
-<meta name="description" content="Write and run Aether in the browser. Three short lessons, executed on the Aether server.">
+<meta name="description" content="Write Aether in the browser. Short lessons with real sample output, live execution when an Aether backend is connected.">
+<meta name="aesite-exec" content="">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Playground · Aether">
+<meta property="og:description" content="Write Aether in the browser. Short lessons with real sample output, live execution when an Aether backend is connected.">
+<meta property="og:url" content="https://aether-lang.dev/repl.html">
+<meta property="og:image" content="https://aether-lang.dev/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="canonical" href="https://aether-lang.dev/repl.html">
+<link rel="icon" href="/favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/aether.css">
 </head>
 <body>
+<a class="skip" href="#main">Skip to content</a>
 <header class="site-head">
   <div class="wrap bar">
     <a class="brand" href="/" aria-label="Aether"><span class="ae">ae</span><span class="nm">aether</span></a>
     <nav>
       <a href="/repl.html" class="on">Playground</a>
       <a href="/Docs/getting-started.html">Docs</a>
-      <a href="https://github.com/aether-lang-org/aether">Source</a>
-      <span class="vtag">v0.454</span>
+      <a class="src" href="https://github.com/aether-lang-org/aether">Source</a>
+      <span class="vtag">v0.462</span>
     </nav>
   </div>
 </header>
 
-<main class="wrap">
+<main class="wrap" id="main">
   <div class="sec-head" style="padding-top:44px"><h2>Playground</h2><span class="rule"></span></div>
   <div class="repl">
     <div class="lessons" id="lessons"><div class="lh">Lessons</div></div>
     <div class="stage">
-      <div class="theory"><h3 id="ttl">—</h3><div id="thy"></div></div>
+      <div class="theory"><h3 id="ttl">&mdash;</h3><div id="thy"></div></div>
       <div class="editwrap">
         <pre id="hl" aria-hidden="true"></pre>
         <textarea id="ed" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" aria-label="Aether code editor"></textarea>
       </div>
       <div class="runbar">
         <button class="run" id="run">Run &rsaquo;</button>
-        <span class="hint">runs on the Aether server via <code style="color:var(--dim)">ae run</code></span>
+        <button class="ghostbtn" id="copy" title="Copy code to clipboard">Copy</button>
+        <span class="hint" id="mode">connecting&hellip;</span>
         <span class="lnav"><button id="prev">&larr; prev</button><button id="next">next &rarr;</button></span>
       </div>
       <div class="output" id="out"><span class="op">&gt;</span> <span class="muted">press Run</span></div>
@@ -46,7 +57,7 @@
 <footer class="site-foot">
   <div class="wrap foot">
     <span class="ae">ae</span>
-    <span class="m">MIT licensed · compiles to C · v0.454</span>
+    <span class="m">MIT licensed · compiles to C · v0.462</span>
     <nav><a href="/Docs/getting-started.html">Docs</a><a href="/">Home</a><a href="https://github.com/aether-lang-org/aether">GitHub</a></nav>
   </div>
 </footer>
@@ -54,7 +65,8 @@
 <script>
 (function(){
   "use strict";
-  var KW=/\b(actor|message|state|receive|reply|spawn|main|return|for|in|if|else|match|let|const|import|struct|defer|when|and|or|true|false|none)\b/;
+  var KW=/\b(actor|struct|message|state|extern|func|let|var|const|builder|callback|union|import|exports|export|module|as|hide|seal|except|if|else|for|in|while|switch|case|default|break|continue|return|match|receive|reply|send|spawn_actor|spawn|make|defer|panic|try|catch|after|when|requires|ensures|true|false|null|self)\b/;
+  var TY=/\b(int|int64|int32|uint64|uint32|uint16|uint8|longdouble|long|short|float|double|bool|byte|string|cstring_const|cstring|void|ptr|actor_ref)\b/;
   function esc(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
   function hi(src){
     var out="",i=0,n=src.length;
@@ -65,6 +77,7 @@
       if(/[0-9]/.test(c)&&!/[A-Za-z_]/.test(src[i-1]||"")){var j=i;while(j<n&&/[0-9._]/.test(src[j]))j++;out+='<span class="num">'+esc(src.slice(i,j))+'</span>';i=j;continue;}
       if(/[A-Za-z_]/.test(c)){var j=i;while(j<n&&/[A-Za-z0-9_]/.test(src[j]))j++;var w=src.slice(i,j);
         if(KW.test(w))out+='<span class="kw">'+w+'</span>';
+        else if(TY.test(w))out+='<span class="fn">'+w+'</span>';
         else if(src[j]==="(")out+='<span class="fn">'+w+'</span>';
         else out+=esc(w); i=j;continue;}
       if(c==="!"||c==="?"){out+='<span class="kw">'+c+'</span>';i++;continue;}
@@ -73,44 +86,88 @@
     }
     return out;
   }
-  var titles=["Hello, Aether","Functions & loops","Actors"];
+  var ORIGIN=((document.querySelector('meta[name=aesite-exec]')||{}).content||"").replace(/\/$/,"");
   var ed=document.getElementById("ed"),hlEl=document.getElementById("hl"),out=document.getElementById("out"),
       ttl=document.getElementById("ttl"),thy=document.getElementById("thy"),lessonsEl=document.getElementById("lessons"),
-      runBtn=document.getElementById("run");
-  var cur=1;
+      runBtn=document.getElementById("run"),copyBtn=document.getElementById("copy"),modeEl=document.getElementById("mode");
+  var lessons=[],cur=1,LIVE=false;
+
   function paint(){hlEl.innerHTML=hi(ed.value)+"\n";hlEl.scrollTop=ed.scrollTop;hlEl.scrollLeft=ed.scrollLeft;}
   function setActive(n){[].forEach.call(lessonsEl.querySelectorAll("button"),function(b){b.classList.toggle("on",+b.dataset.n===n);});}
+  function starter(n){return ((lessons[n-1]||{}).starter_code||"").replace(/\s+$/,"");}
+  function edited(){return ed.value.replace(/\s+$/,"")!==starter(cur);}
+  function lines(t,cls){return t.split("\n").map(function(l){return '<span class="op">&gt;</span> '+(cls?'<span class="'+cls+'">'+esc(l)+'</span>':esc(l));}).join("\n");}
+  function resetOut(){out.innerHTML='<span class="op">&gt;</span> <span class="muted">press Run</span>';}
+
   function load(n){
     cur=n;setActive(n);
-    out.innerHTML='<span class="op">&gt;</span> <span class="muted">press Run</span>';
-    fetch("/api/lesson/"+n).then(function(r){return r.json();}).then(function(d){
-      ttl.textContent=d.title||titles[n-1]||("Lesson "+n);
-      thy.innerHTML=d.theory||"";
-      ed.value=(d.starter_code||"").replace(/\s+$/,"")+"\n";
-      paint();
-    }).catch(function(){ttl.textContent=titles[n-1]||("Lesson "+n);ed.value="";paint();});
+    var L=lessons[n-1]||{};
+    ttl.textContent=L.title||("Lesson "+n);
+    thy.innerHTML=L.theory||"";
+    ed.value=(L.starter_code||"").replace(/\s+$/,"")+"\n";
+    paint();resetOut();
   }
-  function run(){
+
+  function liveRun(){
     runBtn.disabled=true;
-    out.innerHTML='<span class="op">&gt;</span> <span class="muted">running…</span>';
-    fetch("/api/exec",{method:"PUT",headers:{"Content-Type":"text/plain"},body:ed.value})
-      .then(function(r){return r.json();})
+    out.innerHTML='<span class="op">&gt;</span> <span class="muted">running&hellip;</span>';
+    fetch(ORIGIN+"/api/exec",{method:"PUT",headers:{"Content-Type":"text/plain"},body:ed.value})
+      .then(function(r){if(!r.ok)throw 0;return r.json();})
       .then(function(d){
         var t=((d.stdout||"")+(d.stderr||"")).replace(/\s+$/,"");
-        out.innerHTML=t? t.split("\n").map(function(l){return '<span class="op">&gt;</span> '+esc(l);}).join("\n")
-                       : '<span class="op">&gt;</span> <span class="muted">(no output)</span>';
+        out.innerHTML=t?lines(t):'<span class="op">&gt;</span> <span class="muted">(no output)</span>';
       })
-      .catch(function(){out.innerHTML='<span class="op">&gt;</span> <span class="err">could not reach the server</span>';})
+      .catch(function(){out.innerHTML='<span class="op">&gt;</span> <span class="err">could not reach the Aether backend</span>';})
       .finally(function(){runBtn.disabled=false;});
   }
-  titles.forEach(function(t,i){var b=document.createElement("button");b.dataset.n=i+1;
-    b.innerHTML='<span class="idx">'+String(i+1).padStart(2,"0")+'</span>'+t;b.onclick=function(){load(i+1);};lessonsEl.appendChild(b);});
+
+  function staticRun(){
+    var L=lessons[cur-1]||{};
+    if(!edited()&&L.expected_output!=null){
+      out.innerHTML=lines(L.expected_output)+'\n<span class="op">&gt;</span> <span class="muted">precomputed with ae 0.461 &middot; edit and run locally for live output</span>';
+    }else{
+      out.innerHTML='<span class="op">&gt;</span> <span class="muted">This static playground shows sample output. To run your edits, copy the code and:</span>\n'
+        +'<span class="op">&gt;</span> ae run main.ae\n'
+        +'<span class="op">&gt;</span> <span class="muted">or connect a live Aether backend (see the repo README).</span>';
+    }
+  }
+
+  function run(){ if(LIVE) liveRun(); else staticRun(); }
+
+  function copy(){
+    var t=ed.value;
+    function done(){copyBtn.textContent="Copied";setTimeout(function(){copyBtn.textContent="Copy";},1200);}
+    if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(done,done);}
+    else{ed.select();try{document.execCommand("copy");}catch(e){}done();}
+  }
+
+  function buildButtons(){
+    lessons.forEach(function(L,i){
+      var b=document.createElement("button");b.dataset.n=i+1;
+      b.innerHTML='<span class="idx">'+String(i+1).padStart(2,"0")+'</span>'+esc(L.title||("Lesson "+(i+1)));
+      b.onclick=function(){load(i+1);};lessonsEl.appendChild(b);
+    });
+  }
+
+  function setMode(){
+    modeEl.innerHTML=LIVE
+      ? 'live &middot; runs on the Aether server via <code style="color:var(--dim)">ae run</code>'
+      : 'static preview &middot; edit and run locally with <code style="color:var(--dim)">ae run</code>';
+  }
+
   ed.addEventListener("input",paint);
   ed.addEventListener("scroll",function(){hlEl.scrollTop=ed.scrollTop;hlEl.scrollLeft=ed.scrollLeft;});
-  runBtn.onclick=run;
-  document.getElementById("prev").onclick=function(){load(cur>1?cur-1:titles.length);};
-  document.getElementById("next").onclick=function(){load(cur<titles.length?cur+1:1);};
-  load(1);
+  runBtn.onclick=run;copyBtn.onclick=copy;
+  document.getElementById("prev").onclick=function(){load(cur>1?cur-1:lessons.length);};
+  document.getElementById("next").onclick=function(){load(cur<lessons.length?cur+1:1);};
+
+  // Load lessons (static, works with no server), then probe for a live backend.
+  fetch("lessons.json").then(function(r){return r.json();}).then(function(d){
+    lessons=d;buildButtons();load(1);
+  }).catch(function(){
+    lessonsEl.innerHTML+='<div class="lh" style="color:var(--c-kw)">lessons unavailable</div>';
+  });
+  fetch(ORIGIN+"/healthz").then(function(r){LIVE=r.ok;}).catch(function(){LIVE=false;}).finally(setMode);
 })();
 </script>
 </body>

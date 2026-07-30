@@ -4,27 +4,38 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Build System · Aether</title>
-<meta name="description" content="Build System — Aether language documentation.">
+<meta name="description" content="Aether uses a multi-tier build system with different optimization profiles for development, testing, and release builds.">
+<link rel="canonical" href="https://aether-lang.dev/Docs/build-system.html">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Build System · Aether">
+<meta property="og:description" content="Aether uses a multi-tier build system with different optimization profiles for development, testing, and release builds.">
+<meta property="og:url" content="https://aether-lang.dev/Docs/build-system.html">
+<meta property="og:image" content="https://aether-lang.dev/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="/favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/aether.css">
 </head>
 <body>
+<a class="skip" href="#doc">Skip to content</a>
 <header class="site-head">
   <div class="wrap bar">
     <a class="brand" href="/" aria-label="Aether"><span class="ae">ae</span><span class="nm">aether</span></a>
     <nav>
       <a href="/repl.html">Playground</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
-      <a href="https://github.com/aether-lang-org/aether">Source</a>
-      <span class="vtag">v0.454</span>
+      <a class="src" href="https://github.com/aether-lang-org/aether">Source</a>
+      <span class="vtag">v0.462</span>
     </nav>
   </div>
 </header>
 <div class="wrap">
   <div class="doc-shell">
-    <nav class="doc-nav"><div class="grp">Start</div>
+    <nav class="doc-nav" aria-label="Documentation">
+      <div class="docsearch"><input id="ds" type="search" placeholder="Search the docs" aria-label="Search documentation" autocomplete="off" spellcheck="false"><kbd>/</kbd><div class="ds-res" id="dsres" role="listbox"></div></div>
+<div class="grp">Start</div>
 <a href="/Docs/getting-started.html">Getting Started with Aether</a>
 <a href="/Docs/tutorial.html">Aether Language Tutorial</a>
 <a href="/Docs/next-steps.html">Next Steps</a>
@@ -34,7 +45,7 @@
 <a href="/Docs/type-annotation-style-guide.html">Aether Type Annotation Style Guide</a>
 <a href="/Docs/type-inference-multi-value-returns.html">Multi-Value Return Type Inference</a>
 <a href="/Docs/distinct-types.html">Distinct Types</a>
-<a href="/Docs/sequences.html">Sequences (`*StringSeq`)</a>
+<a href="/Docs/sequences.html">Sequences (*StringSeq)</a>
 <a href="/Docs/named-args-and-select.html">Named Arguments and select()</a>
 <a href="/Docs/closures-and-builder-dsl.html">Closures and Builder-Style DSL in Aether</a>
 <a href="/Docs/closures-and-lifetimes.html">Closures and Environment Lifetimes</a>
@@ -50,23 +61,23 @@
 <div class="grp">Interop</div>
 <a href="/Docs/c-interop.html">C Interoperability</a>
 <a href="/Docs/c-embedding.html">Embedding Aether Actors in C Applications</a>
-<a href="/Docs/emit-lib.html">Embedding Aether as a Shared Library (`--emit=lib`)</a>
+<a href="/Docs/emit-lib.html">Embedding Aether as a Shared Library (--emit=lib)</a>
 <a href="/Docs/embedded-namespaces-and-host-bindings.html">Aether as a Configuration Language, v2: Namespaces and Generated Bindings</a>
 <a href="/Docs/aether-embedded-in-host-applications.html">Aether as a Configuration Language for Other Languages</a>
-<a href="/Docs/lib-caller-info.html">`--emit=lib` caller-info channel</a>
+<a href="/Docs/lib-caller-info.html">--emit=lib caller-info channel</a>
 <div class="grp">Stdlib</div>
 <a href="/Docs/stdlib-reference.html">Aether Standard Library Reference</a>
 <a href="/Docs/stdlib-api.html">Aether Standard Library Guide</a>
 <a href="/Docs/stdlib-module-pattern.html">Aether Stdlib Module Pattern</a>
-<a href="/Docs/stdlib-vs-contrib.html">`std/` vs `contrib/` placement decisions</a>
-<a href="/Docs/http-server.html">`std.http` HTTP Server</a>
-<a href="/Docs/http-reverse-proxy.html">`std.http.proxy` reverse proxy</a>
+<a href="/Docs/stdlib-vs-contrib.html">std/ vs contrib/ placement decisions</a>
+<a href="/Docs/http-server.html">std.http HTTP Server</a>
+<a href="/Docs/http-reverse-proxy.html">std.http.proxy reverse proxy</a>
 <a href="/Docs/http-handler-context.html">HTTP handlers with per-server / per-route state</a>
 <a href="/Docs/http-vcr.html">HTTP Record/Replay (VCR), moved out of Aether</a>
-<a href="/Docs/json-parser-design.html">`std.json` Design Notes</a>
+<a href="/Docs/json-parser-design.html">std.json Design Notes</a>
 <div class="grp">Safety</div>
 <a href="/Docs/containment-sandbox.html">Containment and Sandboxing in Aether</a>
-<a href="/Docs/hide-and-seal.html">`hide` and `seal except` scope-level capability denial</a>
+<a href="/Docs/hide-and-seal.html">hide and seal except scope-level capability denial</a>
 <a href="/Docs/compiler-trust-boundary.html">The Compiler Trust Boundary</a>
 <a href="/Docs/config-is-code.html">Config IS Code</a>
 <a href="/Docs/aether_compared_to_capsicum.html">Aether Sandbox Model vs. BSD Capsicum: Architecture, Parallels, and FreeBSD Integration</a>
@@ -76,110 +87,110 @@
 <a href="/Docs/install-layout.html">Aether install layout</a>
 <a href="/Docs/runtime-config.html">Runtime Configuration - Quick Reference</a>
 <a href="/Docs/per-process-config.html">Per-process configuration in Aether</a>
-<a href="/Docs/cic-help.html">`ae help &lt;script&gt;` Offline diagnostics for config-IS-code</a>
+<a href="/Docs/cic-help.html">ae help &lt;script&gt; Offline diagnostics for config-IS-code</a>
 <div class="grp">More</div>
-<a href="/Docs/bindgen-consts.html">`ae bindgen consts`, importing C macro constants</a>
-<a href="/Docs/formatter.html">`ae fmt`, the source formatter</a>
-<a href="/Docs/isolated.html">`Isolated[T]`: move-only actor message payloads (#479)</a>
-<a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
-<a href="/Docs/profiling-guide.html">Aether Runtime Profiling Guide</a>
 <a href="/Docs/allocators.html">Allocators</a>
-<a href="/Docs/when-static-if.html">Compile-time `when` / static-if</a>
+<a href="/Docs/bindgen-consts.html">ae bindgen consts, importing C macro constants</a>
 <a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
 <a href="/Docs/contract-folding.html">Compile-time contract folding — costed design</a>
-<a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn&#x27;t need `macro_rules!`</a>
+<a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn't need macro_rules!</a>
+<a href="/Docs/error-unification.html">Unifying T? and (value, err) — costed design</a>
+<a href="/Docs/formatter.html">ae fmt, the source formatter</a>
+<a href="/Docs/isolated.html">Isolated[T]: move-only actor message payloads (#479)</a>
+<a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
+<a href="/Docs/profiling-guide.html">Aether Runtime Profiling Guide</a>
 <a href="/Docs/release-glibc-portability.html">Release binary portability across glibc versions</a>
-<a href="/Docs/error-unification.html">Unifying `T?` and `(value, err)` — costed design</a></nav>
+<a href="/Docs/when-static-if.html">Compile-time when / static-if</a></nav>
     <main class="doc-main">
-      <article class="doc-body">
-        <div class="bc">docs / build</div>
-<h1>Build System</h1>
-<h2>Overview</h2>
+      <article class="doc-body" id="doc">
+        <div class="bc"><span class="prompt">$</span>docs / build</div>
+<h1 id="build-system">Build System</h1>
+<h2 id="overview">Overview</h2>
 <p>Aether uses a multi-tier build system with different optimization profiles for development, testing, and release builds.</p>
-<h2>Project Configuration (<code>aether.toml</code>)</h2>
+<h2 id="project-configuration-aethertoml">Project Configuration (<code>aether.toml</code>)</h2>
 <p>Every Aether project has an <code>aether.toml</code> at its root. <code>ae run</code> and <code>ae build</code> read it automatically.</p>
-<h3>Minimal project</h3>
+<h3 id="minimal-project">Minimal project</h3>
 <pre><code>[package]
-name = &quot;myapp&quot;
-version = &quot;0.1.0&quot;
+name = <span class="str">"myapp"</span>
+version = <span class="str">"0.1.0"</span>
 
 [[bin]]
-name = &quot;myapp&quot;
-path = &quot;src/main.ae&quot;</code></pre>
-<h3>Full configuration reference</h3>
+name = <span class="str">"myapp"</span>
+path = <span class="str">"src/main.ae"</span></code></pre>
+<h3 id="full-configuration-reference">Full configuration reference</h3>
 <pre><code>[package]
-name = &quot;myapp&quot;
-version = &quot;1.0.0&quot;
-description = &quot;What this program does&quot;
+name = <span class="str">"myapp"</span>
+version = <span class="str">"1.0.0"</span>
+description = <span class="str">"What this program does"</span>
 
 [build]
-# Extra C compiler flags appended to the gcc invocation on every build path,
-# including `ae run`. They come after the optimisation level, so a cflag like
-# `-O3` overrides the `-O0` that `ae run` and `ae build --quick` use by default.
-cflags = &quot;-O3 -march=native&quot;
+<span class="com"># Extra C compiler flags appended to the gcc invocation on every build path,</span>
+<span class="com"># including `ae run`. They come after the optimisation level, so a cflag like</span>
+<span class="com"># `-O3` overrides the `-O0` that `ae run` and `ae build --quick` use by default.</span>
+cflags = <span class="str">"-O3 -march=native"</span>
 
-# Platform-specific linker flags (e.g. for third-party C libraries).
-# macOS/Linux: link_flags = &quot;-lraylib&quot;
-# Windows:     link_flags = &quot;-Ldeps/raylib/lib -lraylib -lopengl32 -lgdi32 -lwinmm&quot;
-link_flags = &quot;&quot;
+<span class="com"># Platform-specific linker flags (e.g. for third-party C libraries).</span>
+<span class="com"># macOS/Linux: link_flags = "-lraylib"</span>
+<span class="com"># Windows:     link_flags = "-Ldeps/raylib/lib -lraylib -lopengl32 -lgdi32 -lwinmm"</span>
+link_flags = <span class="str">""</span>
 
 [[bin]]
-name = &quot;myapp&quot;
-path = &quot;src/main.ae&quot;
+name = <span class="str">"myapp"</span>
+path = <span class="str">"src/main.ae"</span>
 
-# Extra C source files compiled alongside the Aether output.
-# Useful for C FFI helpers, renderer backends, or any C code your program needs.
-# Merged additively with any --extra flags passed on the command line.
-extra_sources = [&quot;src/ffi_helpers.c&quot;, &quot;src/renderer.c&quot;]</code></pre>
-<h3><code>extra_sources</code> vs <code>--extra</code></h3>
+<span class="com"># Extra C source files compiled alongside the Aether output.</span>
+<span class="com"># Useful for C FFI helpers, renderer backends, or any C code your program needs.</span>
+<span class="com"># Merged additively with any --extra flags passed on the command line.</span>
+extra_sources = [<span class="str">"src/ffi_helpers.c"</span>, <span class="str">"src/renderer.c"</span>]</code></pre>
+<h3 id="extra_sources-vs---extra"><code>extra_sources</code> vs <code>--extra</code></h3>
 <p>Both add C files to the build, they are additive when both are present.</p>
-<table><thead><tr><th></th><th><code>extra_sources</code> in <code>aether.toml</code></th><th><code>--extra file.c</code> CLI flag</th></tr></thead><tbody><tr><td><strong>Scope</strong></td><td>Always included for this binary</td><td>Per-invocation</td></tr><tr><td><strong>Good for</strong></td><td>C helpers your program always needs</td><td>Renderer backends, platform variants</td></tr><tr><td><strong>Works with</strong></td><td><code>ae build</code> and <code>ae run</code></td><td><code>ae build</code> and <code>ae run</code></td></tr></tbody></table>
-<h3><code>--quick</code> for fast iteration</h3>
-<p>By default, <code>ae build</code> runs the C compiler with <code>-O2</code> to match release-quality codegen. For tight edit/build/test loops where binary speed isn&#x27;t critical, pass <code>--quick</code> to drop to <code>-O0 -g</code>:</p>
-<pre><code>ae build src/main.ae           # release-shape, -O2 (default)
-ae build src/main.ae --quick   # iteration-shape, -O0 -g</code></pre>
+<div class="tw"><table><thead><tr><th></th><th><code>extra_sources</code> in <code>aether.toml</code></th><th><code>--extra file.c</code> CLI flag</th></tr></thead><tbody><tr><td><strong>Scope</strong></td><td>Always included for this binary</td><td>Per-invocation</td></tr><tr><td><strong>Good for</strong></td><td>C helpers your program always needs</td><td>Renderer backends, platform variants</td></tr><tr><td><strong>Works with</strong></td><td><code>ae build</code> and <code>ae run</code></td><td><code>ae build</code> and <code>ae run</code></td></tr></tbody></table></div>
+<h3 id="--quick-for-fast-iteration"><code>--quick</code> for fast iteration</h3>
+<p>By default, <code>ae build</code> runs the C compiler with <code>-O2</code> to match release-quality codegen. For tight edit/build/test loops where binary speed isn't critical, pass <code>--quick</code> to drop to <code>-O0 -g</code>:</p>
+<pre><code>ae build src/main.ae           <span class="com"># release-shape, -O2 (default)</span>
+ae build src/main.ae --quick   <span class="com"># iteration-shape, -O0 -g</span></code></pre>
 <p><code>--quick</code> typically halves the gcc step on small programs, at the cost of unoptimised codegen. <code>ae run</code> already uses <code>-O0</code> regardless, since cache hits dominate over a single optimised compile.</p>
-<h3>Resolving the build target</h3>
+<h3 id="resolving-the-build-target">Resolving the build target</h3>
 <p><code>ae build</code> accepts either a path to a <code>.ae</code> file or a <code>[[bin]]</code> name from <code>aether.toml</code>. The two are equivalent:</p>
-<pre><code>ae build src/main.ae   # explicit path
-ae build myapp         # [[bin]] name = &quot;myapp&quot;</code></pre>
-<p>When the positional argument doesn&#x27;t exist as a file, <code>ae</code> checks <code>aether.toml</code>&#x27;s <code>[[bin]]</code> entries for a matching <code>name = &quot;...&quot;</code> and uses that bin&#x27;s <code>path</code> field. Cargo and similar build systems work the same way.</p>
-<p>If you run <code>ae build</code> from a subdirectory and there&#x27;s no <code>aether.toml</code> in the current directory, <code>ae</code> walks up the directory tree looking for one. When it finds an ancestor <code>aether.toml</code>, it switches to that directory before resolving paths, so <code>cd src &amp;&amp; ae build main.ae</code> works as if you had run <code>ae build src/main.ae</code> from the project root, and <code>extra_sources</code> declared in the toml are still applied. Walk-up only happens when there&#x27;s no toml in the current directory; a project with a local <code>aether.toml</code> always wins.</p>
+<pre><code>ae build src/main.ae   <span class="com"># explicit path</span>
+ae build myapp         <span class="com"># [[bin]] name = "myapp"</span></code></pre>
+<p>When the positional argument doesn't exist as a file, <code>ae</code> checks <code>aether.toml</code>'s <code>[[bin]]</code> entries for a matching <code>name = "..."</code> and uses that bin's <code>path</code> field. Cargo and similar build systems work the same way.</p>
+<p>If you run <code>ae build</code> from a subdirectory and there's no <code>aether.toml</code> in the current directory, <code>ae</code> walks up the directory tree looking for one. When it finds an ancestor <code>aether.toml</code>, it switches to that directory before resolving paths, so <code>cd src &amp;&amp; ae build main.ae</code> works as if you had run <code>ae build src/main.ae</code> from the project root, and <code>extra_sources</code> declared in the toml are still applied. Walk-up only happens when there's no toml in the current directory; a project with a local <code>aether.toml</code> always wins.</p>
 <hr>
-<h2>Build Cache</h2>
+<h2 id="build-cache">Build Cache</h2>
 <p>Both <code>ae run</code> and <code>ae build</code> cache compiled binaries in <code>~/.aether/cache/</code>. The cache key is an FNV64 hash of:</p>
-<ul><li>The source file&#x27;s content</li><li>The <code>aetherc</code> binary&#x27;s mtime (recompile invalidates everything)</li><li><code>libaether.a</code>&#x27;s mtime (stdlib rebuild invalidates everything)</li><li>Every <code>--extra</code> C file&#x27;s <em>content</em> (editing an FFI shim invalidates the cache, not just touching it)</li><li>Every imported lib module&#x27;s <em>content</em>: the <code>.ae</code>/<code>.c</code>/<code>.h</code> files under each lib-search directory, walked recursively. This covers both an explicit <code>--lib</code>/<code>$AETHER_LIB_DIR</code> directory and the <strong>default <code>lib/</code></strong> the compiler searches when neither is set (the <code>src/main.ae</code> + <code>lib/&lt;name&gt;/module.ae</code> package layout). Because entries are content-hashed rather than keyed on mtime+size, a same-second, same-size edit (a one-character constant flip in an editor-save loop) still invalidates the cache, and a bare <code>touch</code> does not (#1025, building on #413/#623). This lib-dir walk is POSIX-only; on Windows the key covers the entry file and <code>--extra</code> content but not lib-module edits, so a lib-module change there still needs <code>ae cache clear</code> until the walk is wired for Windows.</li><li>The optimisation level (<code>-O0</code> for <code>ae run</code> and <code>ae build --quick</code>, <code>-O2</code> for default <code>ae build</code>)</li></ul>
-<p><code>ae run</code> and <code>ae build</code> use separate cache slots so toggling between them doesn&#x27;t churn one entry back and forth.</p>
+<ul><li>The source file's content</li><li>The <code>aetherc</code> binary's mtime (recompile invalidates everything)</li><li><code>libaether.a</code>'s mtime (stdlib rebuild invalidates everything)</li><li>Every <code>--extra</code> C file's <em>content</em> (editing an FFI shim invalidates the cache, not just touching it)</li><li>Every imported lib module's <em>content</em>: the <code>.ae</code>/<code>.c</code>/<code>.h</code> files under each lib-search directory, walked recursively. This covers both an explicit <code>--lib</code>/<code>$AETHER_LIB_DIR</code> directory and the <strong>default <code>lib/</code></strong> the compiler searches when neither is set (the <code>src/main.ae</code> + <code>lib/&lt;name&gt;/module.ae</code> package layout). Because entries are content-hashed rather than keyed on mtime+size, a same-second, same-size edit (a one-character constant flip in an editor-save loop) still invalidates the cache, and a bare <code>touch</code> does not (#1025, building on #413/#623). This lib-dir walk is POSIX-only; on Windows the key covers the entry file and <code>--extra</code> content but not lib-module edits, so a lib-module change there still needs <code>ae cache clear</code> until the walk is wired for Windows.</li><li>The optimisation level (<code>-O0</code> for <code>ae run</code> and <code>ae build --quick</code>, <code>-O2</code> for default <code>ae build</code>)</li></ul>
+<p><code>ae run</code> and <code>ae build</code> use separate cache slots so toggling between them doesn't churn one entry back and forth.</p>
 <p><strong>Cost breakdown of a build:</strong></p>
 <ul><li>Cache hit (<code>ae build</code>): copy the cached binary to the requested output path. Sub-millisecond on local disk.</li><li>Cache hit (<code>ae run</code>): fork + exec the cached binary directly.</li><li>Cache miss: full <code>aetherc</code> front-end + gcc compile + link. Dominant cost is gcc; <code>aetherc</code> is a small fraction.</li><li>First macOS run: an extra one-time pause while the OS performs its Gatekeeper check on the newly compiled binary. Subsequent runs of the same cached binary are hit-path.</li></ul>
-<pre><code>ae cache          # Show cache location and entry count
-ae cache clear    # Delete all cached builds</code></pre>
+<pre><code>ae cache          <span class="com"># Show cache location and entry count</span>
+ae cache clear    <span class="com"># Delete all cached builds</span></code></pre>
 <p>Wasm builds, <code>--emit=lib</code>, and <code>--namespace</code> SDK generation skip the cache (different artefact shapes; each will get its own cache layout when measurement justifies it).</p>
 <hr>
-<h2>Build Tiers</h2>
+<h2 id="build-tiers">Build Tiers</h2>
 <p>All builds go through the Makefile, which handles the full source list across subdirectories (<code>compiler/parser/</code>, <code>compiler/analysis/</code>, <code>compiler/codegen/</code>, <code>runtime/scheduler/</code>, <code>runtime/memory/</code>, etc.).</p>
-<h3>Development Build</h3>
-<pre><code>make compiler CFLAGS=&quot;-O0 -g -Icompiler -Iruntime -Iruntime/actors -Iruntime/scheduler -Wall -Wextra -Wno-unused-parameter&quot;</code></pre>
+<h3 id="development-build">Development Build</h3>
+<pre><code>make compiler CFLAGS=<span class="str">"-O0 -g -Icompiler -Iruntime -Iruntime/actors -Iruntime/scheduler -Wall -Wextra -Wno-unused-parameter"</span></code></pre>
 <p><strong>Purpose</strong>: Fast compilation with debug symbols for active development.</p>
-<h3>Testing Build</h3>
-<pre><code>make compiler    # Uses -O2 by default</code></pre>
+<h3 id="testing-build">Testing Build</h3>
+<pre><code>make compiler    <span class="com"># Uses -O2 by default</span></code></pre>
 <p><strong>Purpose</strong>: Moderate optimization for CI and testing.</p>
-<h3>Release Build</h3>
-<pre><code>make compiler CFLAGS=&quot;-O3 -march=native -flto -Icompiler -Iruntime -Iruntime/actors -Iruntime/scheduler -Wall -Wextra -Wno-unused-parameter&quot;</code></pre>
+<h3 id="release-build">Release Build</h3>
+<pre><code>make compiler CFLAGS=<span class="str">"-O3 -march=native -flto -Icompiler -Iruntime -Iruntime/actors -Iruntime/scheduler -Wall -Wextra -Wno-unused-parameter"</span></code></pre>
 <p><strong>Purpose</strong>: Full optimization for production use and benchmarking.</p>
 <p><strong>Flags:</strong></p>
 <ul><li><code>-O3</code>: Aggressive inlining, loop unrolling, auto-vectorization</li><li><code>-march=native</code>: CPU-specific instruction selection</li><li><code>-flto</code>: Link-time optimization for cross-translation-unit inlining</li></ul>
-<h3>Profile-Guided Optimization</h3>
-<pre><code># Stage 1: Instrument
+<h3 id="profile-guided-optimization">Profile-Guided Optimization</h3>
+<pre><code><span class="com"># Stage 1: Instrument</span>
 gcc -O3 -march=native -fprofile-generate -o aetherc_pgo ...
 
-# Stage 2: Profile (run representative workload)
+<span class="com"># Stage 2: Profile (run representative workload)</span>
 ./aetherc_pgo &lt;typical_usage&gt;
 
-# Stage 3: Optimize with profile data
+<span class="com"># Stage 3: Optimize with profile data</span>
 gcc -O3 -march=native -fprofile-use -o aetherc ...</code></pre>
 <p>PGO uses runtime profiling data to improve branch prediction, function inlining decisions, and code layout. It is used by major projects including Chrome, Firefox, CPython, and LLVM for their release builds.</p>
-<h2>Incremental Compilation</h2>
+<h2 id="incremental-compilation">Incremental Compilation</h2>
 <p><strong>Dependency Tracking:</strong></p>
 <pre><code>CFLAGS += -MMD -MP
 -include $(DEPS)
@@ -187,102 +198,97 @@ gcc -O3 -march=native -fprofile-use -o aetherc ...</code></pre>
 build/%.o: %.c
     $(CC) $(CFLAGS) -c $&lt; -o $@</code></pre>
 <p>The <code>-MMD</code> flag generates <code>.d</code> dependency files listing all headers included by each source file. Make uses these to rebuild only modified files and their dependents.</p>
-<h2>Parallel Compilation</h2>
-<pre><code>make -j8    # 8 parallel jobs</code></pre>
+<h2 id="parallel-compilation">Parallel Compilation</h2>
+<pre><code>make -j8    <span class="com"># 8 parallel jobs</span></code></pre>
 <p>Limited by dependency ordering: some files must build before others.</p>
-<h2>Cross-Compilation (PLATFORM variable)</h2>
+<h2 id="cross-compilation-platform-variable">Cross-Compilation (PLATFORM variable)</h2>
 <p>The <code>PLATFORM</code> Makefile variable selects the scheduler backend and sets platform-specific flags:</p>
-<pre><code># Native (default), multi-core scheduler, pthreads
+<pre><code><span class="com"># Native (default), multi-core scheduler, pthreads</span>
 make stdlib PLATFORM=native
 
-# WebAssembly, cooperative scheduler, no pthreads/fs/net
-make stdlib PLATFORM=wasm    # CC=emcc, -DAETHER_NO_THREADING/FILESYSTEM/NETWORKING
+<span class="com"># WebAssembly, cooperative scheduler, no pthreads/fs/net</span>
+make stdlib PLATFORM=wasm    <span class="com"># CC=emcc, -DAETHER_NO_THREADING/FILESYSTEM/NETWORKING</span>
 
-# Or use the ae CLI directly:
-ae build --target wasm hello.ae    # Produces hello.js + hello.wasm
-node hello.js                       # Run with Node.js
+<span class="com"># Or use the ae CLI directly:</span>
+ae build --target wasm hello.ae    <span class="com"># Produces hello.js + hello.wasm</span>
+node hello.js                       <span class="com"># Run with Node.js</span>
 
-# Embedded, cooperative scheduler, no pthreads/fs/net/getenv
-make stdlib PLATFORM=embedded    # -DAETHER_NO_THREADING/FILESYSTEM/NETWORKING/GETENV
+<span class="com"># Embedded, cooperative scheduler, no pthreads/fs/net/getenv</span>
+make stdlib PLATFORM=embedded    <span class="com"># -DAETHER_NO_THREADING/FILESYSTEM/NETWORKING/GETENV</span>
 
-# Override individual features on native
-make stdlib EXTRA_CFLAGS=&quot;-DAETHER_NO_THREADING&quot;    # Auto-selects cooperative scheduler
-make stdlib EXTRA_CFLAGS=&quot;-DAETHER_NO_FILESYSTEM -DAETHER_NO_NETWORKING&quot;</code></pre>
+<span class="com"># Override individual features on native</span>
+make stdlib EXTRA_CFLAGS=<span class="str">"-DAETHER_NO_THREADING"</span>    <span class="com"># Auto-selects cooperative scheduler</span>
+make stdlib EXTRA_CFLAGS=<span class="str">"-DAETHER_NO_FILESYSTEM -DAETHER_NO_NETWORKING"</span></code></pre>
 <p>The Makefile auto-detects <code>AETHER_NO_THREADING</code> in <code>EXTRA_CFLAGS</code> and switches to the cooperative scheduler automatically. It also omits <code>-pthread</code> from linker flags.</p>
-<h3>Docker-Based Cross-Compilation</h3>
+<h3 id="docker-based-cross-compilation">Docker-Based Cross-Compilation</h3>
 <p>For cross-compilation without installing toolchains locally:</p>
-<pre><code>make docker-ci-wasm        # Emscripten SDK → compile + run with Node.js
-make docker-ci-embedded    # arm-none-eabi-gcc → syntax-check
-make ci-portability        # All: native coop + WASM + embedded</code></pre>
-<h3>RISC-V 64-bit (<code>ci-riscv64</code>)</h3>
+<pre><code>make docker-ci-wasm        <span class="com"># Emscripten SDK → compile + run with Node.js</span>
+make docker-ci-embedded    <span class="com"># arm-none-eabi-gcc → syntax-check</span>
+make ci-portability        <span class="com"># All: native coop + WASM + embedded</span></code></pre>
+<h3 id="risc-v-64-bit-ci-riscv64">RISC-V 64-bit (<code>ci-riscv64</code>)</h3>
 <p>Cross-compile + run-under-qemu portability check (issue #397):</p>
-<pre><code># Install host toolchain (Ubuntu 22.04+):
+<pre><code><span class="com"># Install host toolchain (Ubuntu 22.04+):</span>
 sudo apt-get install -y gcc-riscv64-linux-gnu \
     libc6-dev-riscv64-cross qemu-user-static
 
-# Cross-compile compiler/ae/stdlib for riscv64; verify the binaries
-# are riscv64 ELF; smoke-run them under qemu-user-static.
+<span class="com"># Cross-compile compiler/ae/stdlib for riscv64; verify the binaries</span>
+<span class="com"># are riscv64 ELF; smoke-run them under qemu-user-static.</span>
 make ci-riscv64</code></pre>
-<p>Useful for catching pointer-width, struct-padding, and atomic- instruction-availability bugs that an x86_64-only matrix can&#x27;t surface. Optional libs (OpenSSL, zlib, nghttp2, GTK4) are disabled in the riscv64 build because the host runner&#x27;s pkg-config returns x86_64 lib paths, the std.* feature-detection wrappers fall into their &quot;unavailable&quot; stubs cleanly.</p>
+<p>Useful for catching pointer-width, struct-padding, and atomic- instruction-availability bugs that an x86_64-only matrix can't surface. Optional libs (OpenSSL, zlib, nghttp2, GTK4) are disabled in the riscv64 build because the host runner's pkg-config returns x86_64 lib paths, the std.* feature-detection wrappers fall into their "unavailable" stubs cleanly.</p>
 <p>Docker images: <code>docker/Dockerfile.wasm</code> (Emscripten), <code>docker/Dockerfile.embedded</code> (ARM Cortex-M4).</p>
-<h3><code>ae build</code> with an alternate or cross C compiler (<code>$CC</code> / <code>$AE_CC</code>)</h3>
-<p><code>ae build</code>, <code>ae run</code>, and <code>ae build --emit=lib</code> select their C-backend compiler the way the Makefile does: they honor <code>$AE_CC</code> first, then <code>$CC</code>, falling back to <code>gcc</code> (the WinLibs-bundled gcc on Windows) when neither is set. This affects only the C backend that turns Aether&#x27;s generated C into the final binary; it never changes <code>aetherc</code>, the Aether-to-C front end.</p>
+<h3 id="ae-build-with-an-alternate-or-cross-c-compiler-cc--ae_cc"><code>ae build</code> with an alternate or cross C compiler (<code>$CC</code> / <code>$AE_CC</code>)</h3>
+<p><code>ae build</code>, <code>ae run</code>, and <code>ae build --emit=lib</code> select their C-backend compiler the way the Makefile does: they honor <code>$AE_CC</code> first, then <code>$CC</code>, falling back to <code>gcc</code> (the WinLibs-bundled gcc on Windows) when neither is set. This affects only the C backend that turns Aether's generated C into the final binary; it never changes <code>aetherc</code>, the Aether-to-C front end.</p>
 <p>The same-OS, cross-arch cell is then a one-liner. On an x86_64 Linux host with a cross-gcc installed:</p>
 <pre><code>CC=aarch64-linux-gnu-gcc ae build --emit=lib core/embed.ae -o libfoo.so
-file libfoo.so          # =&gt; ELF 64-bit LSB shared object, ARM aarch64
-qemu-aarch64 ./probe    # load/run the emitted lib under an emulator</code></pre>
-<p>That produces an arm64 <code>.so</code> on a cheap x86_64 runner with no arm64 hardware and no new codegen. A compiler that cannot be found fails fast with <code>C compiler &#x27;&lt;name&gt;&#x27; (from $CC) not found</code> rather than a later link error. Cross-<strong>OS</strong> targets (for example Linux to macOS) need a matching C toolchain plus that OS&#x27;s headers, which a stock cross-gcc does not carry: for those, use the <code>zig cc</code> backend below.</p>
-<h3><code>ae build --target=&lt;triple&gt;</code> (cross-OS via a <code>zig cc</code> backend)</h3>
-<p><code>ae build --target=&lt;triple&gt;</code> cross-compiles a foreign-OS/arch binary using <a href="https://ziglang.org">zig</a> as a self-contained cross toolchain. zig bundles each target&#x27;s libc, system headers, and linker, so the Aether runtime and standard library compile straight from source for the target: no cross-gcc, no target sysroot, no per-host file juggling. The platform backend (<code>epoll</code> vs <code>kqueue</code>, <code>spawn_sandboxed_linux</code> vs the BSD/stub path) is selected by the <code>__linux__</code> / <code>__APPLE__</code> macros zig predefines for the target, so one source set serves every target.</p>
-<pre><code>ae build --target=x86_64-linux  hello.ae -o hello      # ELF x86-64
-ae build --target=aarch64-macos hello.ae -o hello      # Mach-O arm64</code></pre>
+file libfoo.so          <span class="com"># =&gt; ELF 64-bit LSB shared object, ARM aarch64</span>
+qemu-aarch64 ./probe    <span class="com"># load/run the emitted lib under an emulator</span></code></pre>
+<p>That produces an arm64 <code>.so</code> on a cheap x86_64 runner with no arm64 hardware and no new codegen. A compiler that cannot be found fails fast with <code>C compiler '&lt;name&gt;' (from $CC) not found</code> rather than a later link error. Cross-<strong>OS</strong> targets (for example Linux to macOS) need a matching C toolchain plus that OS's headers, which a stock cross-gcc does not carry: for those, use the <code>zig cc</code> backend below.</p>
+<h3 id="ae-build---targettriple-cross-os-via-a-zig-cc-backend"><code>ae build --target=&lt;triple&gt;</code> (cross-OS via a <code>zig cc</code> backend)</h3>
+<p><code>ae build --target=&lt;triple&gt;</code> cross-compiles a foreign-OS/arch binary using <a href="https://ziglang.org">zig</a> as a self-contained cross toolchain. zig bundles each target's libc, system headers, and linker, so the Aether runtime and standard library compile straight from source for the target: no cross-gcc, no target sysroot, no per-host file juggling. The platform backend (<code>epoll</code> vs <code>kqueue</code>, <code>spawn_sandboxed_linux</code> vs the BSD/stub path) is selected by the <code>__linux__</code> / <code>__APPLE__</code> macros zig predefines for the target, so one source set serves every target.</p>
+<pre><code>ae build --target=x86_64-linux  hello.ae -o hello      <span class="com"># ELF x86-64</span>
+ae build --target=aarch64-macos hello.ae -o hello      <span class="com"># Mach-O arm64</span></code></pre>
 <p>Supported triples: <code>aarch64-macos</code>, <code>x86_64-macos</code>, <code>aarch64-linux</code>, <code>x86_64-linux</code> (the <code>arm64-</code>/<code>amd64-</code> spellings are accepted too). <code>zig</code> must be on <code>PATH</code> (<code>brew install zig</code>, or &lt;https://ziglang.org/download/&gt;); the build fails fast with an install hint otherwise.</p>
 <p><strong>How it links.</strong> The full runtime and standard library are compiled from source for the target and archived, then the program links against that archive, so the linker pulls only the objects it references, exactly as a native <code>-laether</code> link against the complete <code>libaether.a</code> does. The first build recompiles the runtime from source (a few seconds); caching the per-target archive is a planned optimization.</p>
 <p><strong>Scope.</strong> Cross binaries are built without OpenSSL / zlib / nghttp2 / PCRE2 (zig ships none of those), so standard-library features that need them (HTTPS/TLS, hashing, base64, regex, compression, HTTP/2) report errors at runtime, exactly like a native build on a host that lacks those libraries; plain sockets and pure helpers keep working. <code>ae build</code> prints a note when a program uses such a module (<code>std.http</code>, <code>std.net</code>, <code>std.cryptography</code>, <code>std.regex</code>, <code>std.zlib</code>, <code>std.encoding</code>), then builds it anyway. Cross-building those libraries is the documented follow-up. Executables only (<code>--emit=lib</code>/<code>--emit=both</code> are rejected for now), and the host must be POSIX (Linux/macOS). The generated binary targets another platform, so it is not runnable on the build host; copy it to a matching machine (or an emulator).</p>
-<h2>Build Recommendations</h2>
-<table><thead><tr><th>Use Case</th><th>Flags</th><th>Notes</th></tr></thead><tbody><tr><td>Development</td><td><code>-O0 -g</code></td><td>Fast iteration, debug symbols</td></tr><tr><td>Testing/CI</td><td><code>-O2</code></td><td>Balanced optimization</td></tr><tr><td>Release</td><td><code>-O3 -march=native -flto</code></td><td>Full optimization</td></tr><tr><td>Profiling</td><td>PGO pipeline</td><td>Based on representative workload</td></tr><tr><td>Hardened</td><td><code>HARDEN=1</code></td><td>See &quot;Hardening&quot; section below</td></tr><tr><td>WASM</td><td><code>PLATFORM=wasm</code></td><td>Cooperative scheduler, Emscripten</td></tr><tr><td>Embedded</td><td><code>PLATFORM=embedded</code></td><td>Cooperative scheduler, no OS</td></tr><tr><td>Cross-OS/arch</td><td><code>ae build --target=&lt;triple&gt;</code></td><td><code>zig cc</code> backend, POSIX host, executables</td></tr></tbody></table>
-<h2>Hardening (<code>HARDEN=1</code>)</h2>
+<h2 id="build-recommendations">Build Recommendations</h2>
+<div class="tw"><table><thead><tr><th>Use Case</th><th>Flags</th><th>Notes</th></tr></thead><tbody><tr><td>Development</td><td><code>-O0 -g</code></td><td>Fast iteration, debug symbols</td></tr><tr><td>Testing/CI</td><td><code>-O2</code></td><td>Balanced optimization</td></tr><tr><td>Release</td><td><code>-O3 -march=native -flto</code></td><td>Full optimization</td></tr><tr><td>Profiling</td><td>PGO pipeline</td><td>Based on representative workload</td></tr><tr><td>Hardened</td><td><code>HARDEN=1</code></td><td>See "Hardening" section below</td></tr><tr><td>WASM</td><td><code>PLATFORM=wasm</code></td><td>Cooperative scheduler, Emscripten</td></tr><tr><td>Embedded</td><td><code>PLATFORM=embedded</code></td><td>Cooperative scheduler, no OS</td></tr><tr><td>Cross-OS/arch</td><td><code>ae build --target=&lt;triple&gt;</code></td><td><code>zig cc</code> backend, POSIX host, executables</td></tr></tbody></table></div>
+<h2 id="hardening-harden1">Hardening (<code>HARDEN=1</code>)</h2>
 <p>Opt-in hardening flags add stack canaries, fortified libc-call wrappers, and format-string-injection diagnostics. Enabled with the <code>HARDEN=1</code> environment variable; disabled by default in release builds because the runtime overhead is non-zero (~3-5% on micro-benchmarks) and macOS Clang has historically been finicky with <code>_FORTIFY_SOURCE</code> on a few setups.</p>
-<pre><code># Local hardened build, recommended before submitting a PR that
-# touches C in compiler/, runtime/, or std/.
-HARDEN=1 make compiler ae stdlib
+<pre><code><span class="com"># Local hardened build, recommended before submitting a PR that</span>
+<span class="com"># touches C in compiler/, runtime/, or std/.</span>
+HARDEN=<span class="num">1</span> make compiler ae stdlib
 
-# Hardened CI: run the full suite end-to-end under hardening.
-HARDEN=1 make ci</code></pre>
+<span class="com"># Hardened CI: run the full suite end-to-end under hardening.</span>
+HARDEN=<span class="num">1</span> make ci</code></pre>
 <p>Flags enabled (issue #396):</p>
-<table><thead><tr><th>Flag</th><th>Purpose</th></tr></thead><tbody><tr><td><code>-fstack-protector-all</code></td><td>Stack canaries on every function (not just gcc-strong heuristic candidates), catches the smashing class of bugs that escape the default heuristic.</td></tr><tr><td><code>-D_FORTIFY_SOURCE=2</code></td><td>Runtime checks on <code>read</code>/<code>write</code>/<code>memcpy</code>/<code>strncpy</code>/<code>printf</code>-family calls. Linux <code>gcc</code> also emits compile-time warnings when it can prove a buffer overflow, those should be fixed at the source, never blanket-suppressed. Requires at least <code>-O1</code>; the default <code>-O2</code> satisfies that.</td></tr><tr><td><code>-Wformat -Wformat-security</code></td><td>Diagnose <code>printf</code>-family format strings sourced from non-literals (the <code>%s</code>-format-injection class). Default in modern Linux distros; we standardise on it explicitly.</td></tr></tbody></table>
+<div class="tw"><table><thead><tr><th>Flag</th><th>Purpose</th></tr></thead><tbody><tr><td><code>-fstack-protector-all</code></td><td>Stack canaries on every function (not just gcc-strong heuristic candidates), catches the smashing class of bugs that escape the default heuristic.</td></tr><tr><td><code>-D_FORTIFY_SOURCE=2</code></td><td>Runtime checks on <code>read</code>/<code>write</code>/<code>memcpy</code>/<code>strncpy</code>/<code>printf</code>-family calls. Linux <code>gcc</code> also emits compile-time warnings when it can prove a buffer overflow, those should be fixed at the source, never blanket-suppressed. Requires at least <code>-O1</code>; the default <code>-O2</code> satisfies that.</td></tr><tr><td><code>-Wformat -Wformat-security</code></td><td>Diagnose <code>printf</code>-family format strings sourced from non-literals (the <code>%s</code>-format-injection class). Default in modern Linux distros; we standardise on it explicitly.</td></tr></tbody></table></div>
 <p>The flags are added to <code>CFLAGS</code> only when <code>HARDEN=1</code> is set; the default build path is byte-identical to the unhardened release. The Linux/Hardened (gcc) CI matrix entry pins this so a regression that introduces an unchecked <code>memcpy</code>-over-fixed-buffer trips a red check before merge.</p>
-<h2>LLM diagnostics (<code>AETHER_ENABLE_LLM=1</code>)</h2>
+<h2 id="llm-diagnostics-aether_enable_llm1">LLM diagnostics (<code>AETHER_ENABLE_LLM=1</code>)</h2>
 <p><code>ae help &lt;script&gt; --llm &lt;weights.gguf&gt;</code> is an opt-in offline local-LLM escalation path for the <a href="/Docs/cic-help.html">config-IS-code diagnostic flow</a> (issue #415). Default builds omit the LLM module entirely so the binary stays small and the link line stays dependency-light; embedders enable it explicitly at build time.</p>
-<pre><code># Default build, `ae help --llm &lt;path&gt;` returns a clear &quot;rebuild with
-# AETHER_ENABLE_LLM=1&quot; message; no llama.cpp dependency.
+<pre><code><span class="com"># Default build, `ae help --llm &lt;path&gt;` returns a clear "rebuild with</span>
+<span class="com"># AETHER_ENABLE_LLM=1" message; no llama.cpp dependency.</span>
 make ae
 
-# LLM-enabled build, requires llama.cpp built and linkable. The shim
-# in `tools/llm_shim.c` targets the stable `llama.h` C API.
-make ae AETHER_ENABLE_LLM=1 \
-    LLM_LDFLAGS=&quot;-L/path/to/llama.cpp/build -lllama -lggml -lstdc++ -lm&quot; \
-    LLM_CFLAGS=&quot;-I/path/to/llama.cpp&quot;</code></pre>
+<span class="com"># LLM-enabled build, requires llama.cpp built and linkable. The shim</span>
+<span class="com"># in `tools/llm_shim.c` targets the stable `llama.h` C API.</span>
+make ae AETHER_ENABLE_LLM=<span class="num">1</span> \
+    LLM_LDFLAGS=<span class="str">"-L/path/to/llama.cpp/build -lllama -lggml -lstdc++ -lm"</span> \
+    LLM_CFLAGS=<span class="str">"-I/path/to/llama.cpp"</span></code></pre>
 <p>Hard privacy invariants (enforced by code structure + a Linux CI <code>strace -e network</code> guard):</p>
-<ul><li><strong>No network calls.</strong> The shim opens exactly the weights file the user names.</li></ul>
-<p>No download, no fetch, no telemetry, no &quot;anonymised usage stats.&quot; Same offline as online.</p>
-<ul><li><strong>No bundled weights.</strong> We ship no <code>.gguf</code>. You bring your own (3-7B range</li></ul>
-<p>works on a laptop CPU; larger models also fine but slower).</p>
-<ul><li><strong>No model marketplace integration.</strong> No <code>ae help --download-model</code>. Path</li></ul>
-<p>argument only; a missing path is a clean error, not a &quot;would you like to fetch it?&quot; prompt.</p>
-<ul><li><strong>Stripped builds (default) omit the entire module.</strong> A binary built without</li></ul>
-<p><code>AETHER_ENABLE_LLM=1</code> cannot run inference even if someone passes <code>--llm &lt;path&gt;</code>, they get the documented &quot;rebuild with the flag&quot; message instead.</p>
-<p>The shim&#x27;s surface is a single C function (<code>int ae_llm_run(const char* weights_path, const char* prompt, FILE* out)</code>); upstream API rotations in llama.cpp need touching only that one TU. See <a href="/Docs/cic-help.html"><code>docs/cic-help.md</code></a> for the full design.</p>
-<h2>References</h2>
+<ul><li><strong>No network calls.</strong> The shim opens exactly the weights file the user names. No download, no fetch, no telemetry, no "anonymised usage stats." Same offline as online.</li><li><strong>No bundled weights.</strong> We ship no <code>.gguf</code>. You bring your own (3-7B range works on a laptop CPU; larger models also fine but slower).</li><li><strong>No model marketplace integration.</strong> No <code>ae help --download-model</code>. Path argument only; a missing path is a clean error, not a "would you like to fetch it?" prompt.</li><li><strong>Stripped builds (default) omit the entire module.</strong> A binary built without <code>AETHER_ENABLE_LLM=1</code> cannot run inference even if someone passes <code>--llm &lt;path&gt;</code>, they get the documented "rebuild with the flag" message instead.</li></ul>
+<p>The shim's surface is a single C function (<code>int ae_llm_run(const char* weights_path, const char* prompt, FILE* out)</code>); upstream API rotations in llama.cpp need touching only that one TU. See <a href="/Docs/cic-help.html"><code>docs/cic-help.md</code></a> for the full design.</p>
+<h2 id="references">References</h2>
 <ul><li>GCC Optimization Options: https://gcc.gnu.org/onlinedocs/gcc/Optimize-Options.html</li><li>LLVM PGO Guide: https://llvm.org/docs/HowToBuildWithPGO.html</li><li>llama.cpp (C API used by the LLM shim): https://github.com/ggerganov/llama.cpp</li></ul>
       </article>
     </main>
+    <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#overview" class="l2" data-id="overview">Overview</a><a href="#project-configuration-aethertoml" class="l2" data-id="project-configuration-aethertoml">Project Configuration (aether.toml)</a><a href="#minimal-project" class="l3" data-id="minimal-project">Minimal project</a><a href="#full-configuration-reference" class="l3" data-id="full-configuration-reference">Full configuration reference</a><a href="#extra_sources-vs---extra" class="l3" data-id="extra_sources-vs---extra">extra_sources vs --extra</a><a href="#--quick-for-fast-iteration" class="l3" data-id="--quick-for-fast-iteration">--quick for fast iteration</a><a href="#resolving-the-build-target" class="l3" data-id="resolving-the-build-target">Resolving the build target</a><a href="#build-cache" class="l2" data-id="build-cache">Build Cache</a><a href="#build-tiers" class="l2" data-id="build-tiers">Build Tiers</a><a href="#development-build" class="l3" data-id="development-build">Development Build</a><a href="#testing-build" class="l3" data-id="testing-build">Testing Build</a><a href="#release-build" class="l3" data-id="release-build">Release Build</a><a href="#profile-guided-optimization" class="l3" data-id="profile-guided-optimization">Profile-Guided Optimization</a><a href="#incremental-compilation" class="l2" data-id="incremental-compilation">Incremental Compilation</a><a href="#parallel-compilation" class="l2" data-id="parallel-compilation">Parallel Compilation</a><a href="#cross-compilation-platform-variable" class="l2" data-id="cross-compilation-platform-variable">Cross-Compilation (PLATFORM variable)</a><a href="#docker-based-cross-compilation" class="l3" data-id="docker-based-cross-compilation">Docker-Based Cross-Compilation</a><a href="#risc-v-64-bit-ci-riscv64" class="l3" data-id="risc-v-64-bit-ci-riscv64">RISC-V 64-bit (ci-riscv64)</a><a href="#ae-build-with-an-alternate-or-cross-c-compiler-cc--ae_cc" class="l3" data-id="ae-build-with-an-alternate-or-cross-c-compiler-cc--ae_cc">ae build with an alternate or cross C compiler ($CC / $AE_CC)</a><a href="#ae-build---targettriple-cross-os-via-a-zig-cc-backend" class="l3" data-id="ae-build---targettriple-cross-os-via-a-zig-cc-backend">ae build --target=&lt;triple&gt; (cross-OS via a zig cc backend)</a><a href="#build-recommendations" class="l2" data-id="build-recommendations">Build Recommendations</a><a href="#hardening-harden1" class="l2" data-id="hardening-harden1">Hardening (HARDEN=1)</a><a href="#llm-diagnostics-aether_enable_llm1" class="l2" data-id="llm-diagnostics-aether_enable_llm1">LLM diagnostics (AETHER_ENABLE_LLM=1)</a><a href="#references" class="l2" data-id="references">References</a></nav>
   </div>
 </div>
+<script src="/docs.js" defer></script>
 <footer class="site-foot">
   <div class="wrap foot">
     <span class="ae">ae</span>
-    <span class="m">MIT licensed · compiles to C · v0.454</span>
+    <span class="m">MIT licensed · compiles to C · v0.462</span>
     <nav><a href="/Docs/getting-started.html">Docs</a><a href="/repl.html">Playground</a><a href="https://github.com/aether-lang-org/aether">GitHub</a></nav>
   </div>
 </footer>

@@ -3,51 +3,61 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Aether — clear code that compiles to C</title>
-<meta name="description" content="Aether is a compiled, actor-based systems language. Actors, type inference, and pattern matching, lowered to readable C. Native speed, no VM, no garbage collector.">
+<title>Aether — a compiled systems language built on actors</title>
+<meta name="description" content="Aether is a compiled systems language built on the actor model: message-passing concurrency, type inference, and pattern matching, compiled to native binaries. No VM, no garbage collector.">
+<link rel="icon" href="/favicon.png">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Aether — a compiled systems language built on actors">
+<meta property="og:description" content="A compiled systems language built on the actor model: message-passing concurrency, native performance, no VM, no garbage collector.">
+<meta property="og:url" content="https://aether-lang.dev/">
+<meta property="og:image" content="https://aether-lang.dev/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="canonical" href="https://aether-lang.dev/">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/aether.css">
 </head>
 <body>
+<a class="skip" href="#main">Skip to content</a>
 <header class="site-head">
   <div class="wrap bar">
     <a class="brand" href="/" aria-label="Aether"><span class="ae">ae</span><span class="nm">aether</span></a>
     <nav>
       <a href="/repl.html">Playground</a>
       <a href="/Docs/getting-started.html">Docs</a>
-      <a href="https://github.com/aether-lang-org/aether">Source</a>
-      <span class="vtag">v0.454</span>
+      <a class="src" href="https://github.com/aether-lang-org/aether">Source</a>
+      <span class="vtag">v0.462</span>
     </nav>
   </div>
 </header>
 
-<main>
+<main id="main">
   <section class="hero">
     <div class="wrap hero-grid">
-      <div>
-        <p class="eyebrow">A compiled actor language</p>
-        <h1>Clear code that compiles to <span class="hl">C</span>.</h1>
-        <p class="lede">Aether has actors, type inference, and pattern matching, then lowers to readable C a normal compiler builds. Native speed, no VM, no garbage collector.</p>
+      <div class="hero-copy">
+        <p class="eyebrow">The Aether programming language</p>
+        <h1>A compiled systems language built on <span class="hl">actors</span>.</h1>
+        <p class="lede">Message-passing concurrency with type inference and pattern matching, compiled to native binaries. No VM, no garbage collector, nothing between your code and the machine.</p>
+        <div class="install">
+          <div class="install-row">
+            <span class="dollar">$</span>
+            <code id="cmd">curl -fsSL https://aether-lang.dev/install.sh | sh</code>
+            <button class="cpy" data-copy="curl -fsSL https://aether-lang.dev/install.sh | sh" aria-label="Copy install command">Copy</button>
+          </div>
+          <p class="install-note">Needs only a C compiler. Or <a href="/Docs/getting-started.html">grab a prebuilt binary</a>.</p>
+        </div>
         <div class="cta">
           <a class="btn btn-red" href="/repl.html">Open the playground &rsaquo;</a>
           <a class="btn btn-ghost" href="/Docs/getting-started.html">Read the docs</a>
         </div>
-        <div class="metaline">
-          <span><b>compiles to</b> C</span>
-          <span><b>concurrency</b> actors</span>
-          <span><b>memory</b> no GC</span>
-          <span><b>ships</b> static, ~400&nbsp;KB</span>
-        </div>
       </div>
-      <div class="panel">
-        <div class="panel-bar"><span class="file">counter.ae</span></div>
-<pre><span class="kw">message</span> Inc <span class="pn">{</span> n: <span class="fn">int</span> <span class="pn">}</span>
+      <div class="panel term">
+        <div class="term-bar"><span class="file">counter.ae</span></div>
+<pre class="run-src"><span class="kw">message</span> Inc <span class="pn">{</span> n: <span class="fn">int</span> <span class="pn">}</span>
 
 <span class="kw">actor</span> <span class="fn">Counter</span> <span class="pn">{</span>
     <span class="kw">state</span> count = <span class="num">0</span>
-
     <span class="kw">receive</span> <span class="pn">{</span>
         Inc(n) -&gt; <span class="pn">{</span>
             count = count + n
@@ -58,63 +68,135 @@
 
 <span class="fn">main</span>() <span class="pn">{</span>
     c = <span class="kw">spawn</span>(<span class="fn">Counter</span>())
-    c <span class="kw">!</span> Inc <span class="pn">{</span> n: <span class="num">41</span> <span class="pn">}</span>   <span class="com">// count = 41</span>
-    c <span class="kw">!</span> Inc <span class="pn">{</span> n: <span class="num">1</span> <span class="pn">}</span>    <span class="com">// count = 42</span>
+    c <span class="kw">!</span> Inc <span class="pn">{</span> n: <span class="num">41</span> <span class="pn">}</span>
+    c <span class="kw">!</span> Inc <span class="pn">{</span> n: <span class="num">1</span> <span class="pn">}</span>
 <span class="pn">}</span></pre>
+        <div class="run-out"><span class="run-cmd">$ ae run counter.ae</span>
+count = 41
+count = 42</div>
       </div>
     </div>
   </section>
 
-  <section class="block">
+  <section class="strip">
     <div class="wrap">
-      <div class="sec-head"><h2>What it is</h2><span class="rule"></span></div>
-      <div class="feat">
-        <div class="cell">
-          <div class="k">/&gt; c</div>
-          <h3>Compiles to C</h3>
-          <p>Readable C output, native speed, and direct use of any C library. No opaque runtime underneath.</p>
-        </div>
-        <div class="cell">
-          <div class="k">/&gt; actors</div>
-          <h3>Actors, not locks</h3>
-          <p>Typed message passing scheduled across every core. No shared mutable state, nothing to lock.</p>
-        </div>
-        <div class="cell">
-          <div class="k">/&gt; mem</div>
-          <h3>No GC, no VM</h3>
-          <p>Deterministic memory with defer and compiler-inserted ownership tracking. Nothing collects behind you.</p>
-        </div>
-        <div class="cell">
-          <div class="k">/&gt; ship</div>
-          <h3>Tiny &amp; portable</h3>
-          <p>Static binaries in the hundreds of KB, cross-compiled to Linux, macOS, Windows and BSD from one host.</p>
-        </div>
-      </div>
+      <p>Message-passing actors on a work-stealing, NUMA-aware scheduler across every core. Explicit <code>(value, err)</code> error handling. Compile-time contracts. Capability discipline in the language. A production HTTP stack in the standard library. All of it lowered to C you can read.</p>
     </div>
   </section>
 
-  <section class="block">
-    <div class="wrap">
-      <div class="sec-head"><h2>The output is the point</h2><span class="rule"></span></div>
-      <h3 class="cc-h">You can read what it produces.</h3>
-      <p class="cc-note">Every program lowers to C a person can audit, then a normal compiler builds it. No bytecode, no black box.</p>
+  <section class="feature">
+    <div class="wrap feature-grid">
+      <div class="feature-text">
+        <h2>You can read what it compiles to.</h2>
+        <p>Aether lowers to C a normal compiler builds, then GCC or Clang produces the native binary. No bytecode, no black box, and the same source always compiles to byte-identical C.</p>
+        <p class="muted-p">Every abstraction, enums, optionals, distinct types, contracts, is zero-cost: it disappears into plain C with no vtables and no virtual dispatch.</p>
+      </div>
       <div class="cc">
-        <div class="panel">
-          <div class="panel-bar"><span class="file">hello.ae</span></div>
-<pre><span class="fn">main</span>() <span class="pn">{</span>
+        <div class="panel term">
+          <div class="term-bar"><span class="file">hello.ae</span></div>
+<pre class="run-src"><span class="fn">main</span>() <span class="pn">{</span>
     <span class="fn">println</span>(<span class="str">"hello, aether"</span>)
 <span class="pn">}</span></pre>
         </div>
-        <div class="panel">
-          <div class="panel-bar"><span class="file">hello.c &nbsp;·&nbsp; generated</span></div>
-<pre><span class="com">#include</span> <span class="str">"aether_runtime.h"</span>
+        <div class="panel term">
+          <div class="term-bar"><span class="file">hello.c &nbsp;·&nbsp; generated</span></div>
+<pre class="run-src"><span class="com">#include</span> <span class="str">&lt;stdio.h&gt;</span>
+<span class="com">/* ... aether runtime preamble ... */</span>
 
-<span class="fn">int</span> main(<span class="fn">void</span>) <span class="pn">{</span>
-    aether_println(
-        aether_str(<span class="str">"hello, aether"</span>));
+<span class="fn">int</span> main(<span class="fn">int</span> argc, <span class="fn">char</span>** argv) <span class="pn">{</span>
+    aether_args_init(argc, argv);
+    <span class="pn">{</span>
+        <span class="com">#line 2 "hello.ae"</span>
+        puts(<span class="str">"hello, aether"</span>);
+    <span class="pn">}</span>
     <span class="kw">return</span> <span class="num">0</span>;
 <span class="pn">}</span></pre>
         </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="feature">
+    <div class="wrap two-up">
+      <div class="col">
+        <h3>Errors without exceptions</h3>
+        <p>Fallible functions return <code>T!</code>, a <code>(value, err)</code> pair. Handle it inline with <code>or</code>, or propagate with <code>!</code>. No exceptions, no hidden control flow.</p>
+        <div class="panel term">
+          <div class="term-bar"><span class="file">divide.ae</span></div>
+<pre class="run-src"><span class="fn">safe_divide</span>(a: <span class="fn">int</span>, b: <span class="fn">int</span>) -&gt; <span class="fn">int</span><span class="kw">!</span> <span class="pn">{</span>
+    <span class="kw">if</span> b == <span class="num">0</span> <span class="pn">{</span> <span class="kw">return</span> <span class="num">0</span>, <span class="str">"division by zero"</span> <span class="pn">}</span>
+    <span class="kw">return</span> a / b
+<span class="pn">}</span>
+
+q = <span class="fn">safe_divide</span>(<span class="num">10</span>, <span class="num">0</span>) <span class="kw">or</span> -<span class="num">1</span>   <span class="com">// -&gt; -1</span></pre>
+        </div>
+      </div>
+      <div class="col">
+        <h3>Contracts the compiler checks</h3>
+        <p>Attach <code>requires</code> / <code>ensures</code> to a function. A predicate the compiler can prove is elided; one it can prove false is a build error, folded at the call site.</p>
+        <div class="panel term">
+          <div class="term-bar"><span class="file">contract.ae</span></div>
+<pre class="run-src"><span class="fn">divide</span>(a: <span class="fn">int</span>, b: <span class="fn">int</span>) -&gt; <span class="fn">int</span>
+    <span class="kw">requires</span> b != <span class="num">0</span>
+<span class="pn">{</span>
+    <span class="kw">return</span> a / b
+<span class="pn">}</span>
+
+<span class="fn">divide</span>(<span class="num">10</span>, <span class="num">0</span>)   <span class="com">// rejected at compile time</span></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="feature alt">
+    <div class="wrap feature-grid">
+      <div class="feature-text">
+        <h2>Config that is code.</h2>
+        <p>A trailing block runs in the caller's scope, so a library's setup surface reads like a config file, but it's real Aether: conditionals, loops, and environment lookups, with no YAML dialect and no macro system.</p>
+        <p class="muted-p">It's the "DSL with scope" pattern, built into the grammar rather than bolted on as macros.</p>
+      </div>
+      <div class="panel term">
+        <div class="term-bar"><span class="file">deploy.ae</span></div>
+<pre class="run-src"><span class="fn">serve</span> <span class="pn">{</span>
+    <span class="fn">host</span>(<span class="str">"127.0.0.1"</span>)
+    <span class="fn">port</span>(<span class="num">9990</span>)
+    <span class="kw">if</span> <span class="fn">os_getenv</span>(<span class="str">"STAGE"</span>) == <span class="str">"prod"</span> <span class="pn">{</span>
+        <span class="fn">host</span>(<span class="str">"0.0.0.0"</span>)
+    <span class="pn">}</span>
+    <span class="fn">repo</span>(<span class="str">"alpha"</span>, <span class="str">"/srv/alpha"</span>)
+    <span class="fn">repo</span>(<span class="str">"beta"</span>,  <span class="str">"/srv/beta"</span>)
+<span class="pn">}</span></pre>
+      </div>
+    </div>
+  </section>
+
+  <section class="feature">
+    <div class="wrap">
+      <h2 class="center-h">More than a language.</h2>
+      <div class="rows">
+        <div class="row"><div class="row-k">Standard library</div><div class="row-v">A production HTTP stack in <code>std.http</code>: routing, TLS, HTTP/2, WebSocket, SSE, and a full reverse proxy with load balancing, health checks, and caching. Plus JSON, crypto, regex, and more.</div></div>
+        <div class="row"><div class="row-k">C interop</div><div class="row-v">Call any C library by declaring an <code>extern</code>. Tuple returns bind struct-returning C APIs with zero glue. Or embed Aether in Python, Java, and Ruby with <code>--emit=lib</code>.</div></div>
+        <div class="row"><div class="row-k">Cross-compile</div><div class="row-v">One flag: <code>ae build --target=aarch64-linux</code>, via a bundled cross toolchain. No cross-gcc, no sysroot. Or target WebAssembly and run the same actor code on a cooperative scheduler.</div></div>
+        <div class="row"><div class="row-k">Capabilities</div><div class="row-v">Capability discipline is a language feature: <code>hide</code>, <code>seal</code>, and effect tags give an auditable, compiler-enforced dependency surface, defense-in-depth for trusted plugins, config, and hosted scripts.</div></div>
+        <div class="row"><div class="row-k">Memory</div><div class="row-v">No garbage collector. Deterministic scope-exit cleanup with <code>defer</code>, compiler-managed string ownership, swappable allocators, and built-in leak tracking.</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="getstarted">
+    <div class="wrap">
+      <h2>Start writing Aether.</h2>
+      <div class="install install-lg">
+        <div class="install-row">
+          <span class="dollar">$</span>
+          <code>curl -fsSL https://aether-lang.dev/install.sh | sh</code>
+          <button class="cpy" data-copy="curl -fsSL https://aether-lang.dev/install.sh | sh" aria-label="Copy install command">Copy</button>
+        </div>
+      </div>
+      <p class="gs-next"><span class="dollar">$</span> <code class="plain">ae init hello &amp;&amp; cd hello &amp;&amp; ae run</code></p>
+      <div class="cta">
+        <a class="btn btn-red" href="/repl.html">Try it in the playground &rsaquo;</a>
+        <a class="btn btn-ghost" href="/Docs/tutorial.html">Read the tutorial</a>
       </div>
     </div>
   </section>
@@ -123,7 +205,7 @@
 <footer class="site-foot">
   <div class="wrap foot">
     <span class="ae">ae</span>
-    <span class="m">MIT licensed · compiles to C · v0.454</span>
+    <span class="m">MIT licensed · compiles to C · v0.462</span>
     <nav>
       <a href="/Docs/getting-started.html">Docs</a>
       <a href="/repl.html">Playground</a>
@@ -131,5 +213,15 @@
     </nav>
   </div>
 </footer>
+
+<script>
+document.querySelectorAll(".cpy").forEach(function(b){
+  b.addEventListener("click",function(){
+    var t=b.getAttribute("data-copy");
+    var done=function(){var o=b.textContent;b.textContent="Copied";b.classList.add("ok");setTimeout(function(){b.textContent=o;b.classList.remove("ok");},1300);};
+    if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(done,done);}else{done();}
+  });
+});
+</script>
 </body>
 </html>

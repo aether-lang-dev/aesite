@@ -3,28 +3,39 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>`hide` and `seal except` scope-level capability denial · Aether</title>
-<meta name="description" content="`hide` and `seal except` scope-level capability denial — Aether language documentation.">
+<title>hide and seal except scope-level capability denial · Aether</title>
+<meta name="description" content="Aether provides two scope-level directives that let a block decline to">
+<link rel="canonical" href="https://aether-lang.dev/Docs/hide-and-seal.html">
+<meta property="og:type" content="article">
+<meta property="og:title" content="hide and seal except scope-level capability denial · Aether">
+<meta property="og:description" content="Aether provides two scope-level directives that let a block decline to">
+<meta property="og:url" content="https://aether-lang.dev/Docs/hide-and-seal.html">
+<meta property="og:image" content="https://aether-lang.dev/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="/favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/aether.css">
 </head>
 <body>
+<a class="skip" href="#doc">Skip to content</a>
 <header class="site-head">
   <div class="wrap bar">
     <a class="brand" href="/" aria-label="Aether"><span class="ae">ae</span><span class="nm">aether</span></a>
     <nav>
       <a href="/repl.html">Playground</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
-      <a href="https://github.com/aether-lang-org/aether">Source</a>
-      <span class="vtag">v0.454</span>
+      <a class="src" href="https://github.com/aether-lang-org/aether">Source</a>
+      <span class="vtag">v0.462</span>
     </nav>
   </div>
 </header>
 <div class="wrap">
   <div class="doc-shell">
-    <nav class="doc-nav"><div class="grp">Start</div>
+    <nav class="doc-nav" aria-label="Documentation">
+      <div class="docsearch"><input id="ds" type="search" placeholder="Search the docs" aria-label="Search documentation" autocomplete="off" spellcheck="false"><kbd>/</kbd><div class="ds-res" id="dsres" role="listbox"></div></div>
+<div class="grp">Start</div>
 <a href="/Docs/getting-started.html">Getting Started with Aether</a>
 <a href="/Docs/tutorial.html">Aether Language Tutorial</a>
 <a href="/Docs/next-steps.html">Next Steps</a>
@@ -34,7 +45,7 @@
 <a href="/Docs/type-annotation-style-guide.html">Aether Type Annotation Style Guide</a>
 <a href="/Docs/type-inference-multi-value-returns.html">Multi-Value Return Type Inference</a>
 <a href="/Docs/distinct-types.html">Distinct Types</a>
-<a href="/Docs/sequences.html">Sequences (`*StringSeq`)</a>
+<a href="/Docs/sequences.html">Sequences (*StringSeq)</a>
 <a href="/Docs/named-args-and-select.html">Named Arguments and select()</a>
 <a href="/Docs/closures-and-builder-dsl.html">Closures and Builder-Style DSL in Aether</a>
 <a href="/Docs/closures-and-lifetimes.html">Closures and Environment Lifetimes</a>
@@ -50,23 +61,23 @@
 <div class="grp">Interop</div>
 <a href="/Docs/c-interop.html">C Interoperability</a>
 <a href="/Docs/c-embedding.html">Embedding Aether Actors in C Applications</a>
-<a href="/Docs/emit-lib.html">Embedding Aether as a Shared Library (`--emit=lib`)</a>
+<a href="/Docs/emit-lib.html">Embedding Aether as a Shared Library (--emit=lib)</a>
 <a href="/Docs/embedded-namespaces-and-host-bindings.html">Aether as a Configuration Language, v2: Namespaces and Generated Bindings</a>
 <a href="/Docs/aether-embedded-in-host-applications.html">Aether as a Configuration Language for Other Languages</a>
-<a href="/Docs/lib-caller-info.html">`--emit=lib` caller-info channel</a>
+<a href="/Docs/lib-caller-info.html">--emit=lib caller-info channel</a>
 <div class="grp">Stdlib</div>
 <a href="/Docs/stdlib-reference.html">Aether Standard Library Reference</a>
 <a href="/Docs/stdlib-api.html">Aether Standard Library Guide</a>
 <a href="/Docs/stdlib-module-pattern.html">Aether Stdlib Module Pattern</a>
-<a href="/Docs/stdlib-vs-contrib.html">`std/` vs `contrib/` placement decisions</a>
-<a href="/Docs/http-server.html">`std.http` HTTP Server</a>
-<a href="/Docs/http-reverse-proxy.html">`std.http.proxy` reverse proxy</a>
+<a href="/Docs/stdlib-vs-contrib.html">std/ vs contrib/ placement decisions</a>
+<a href="/Docs/http-server.html">std.http HTTP Server</a>
+<a href="/Docs/http-reverse-proxy.html">std.http.proxy reverse proxy</a>
 <a href="/Docs/http-handler-context.html">HTTP handlers with per-server / per-route state</a>
 <a href="/Docs/http-vcr.html">HTTP Record/Replay (VCR), moved out of Aether</a>
-<a href="/Docs/json-parser-design.html">`std.json` Design Notes</a>
+<a href="/Docs/json-parser-design.html">std.json Design Notes</a>
 <div class="grp">Safety</div>
 <a href="/Docs/containment-sandbox.html">Containment and Sandboxing in Aether</a>
-<a href="/Docs/hide-and-seal.html" class="on">`hide` and `seal except` scope-level capability denial</a>
+<a href="/Docs/hide-and-seal.html" class="on">hide and seal except scope-level capability denial</a>
 <a href="/Docs/compiler-trust-boundary.html">The Compiler Trust Boundary</a>
 <a href="/Docs/config-is-code.html">Config IS Code</a>
 <a href="/Docs/aether_compared_to_capsicum.html">Aether Sandbox Model vs. BSD Capsicum: Architecture, Parallels, and FreeBSD Integration</a>
@@ -76,269 +87,234 @@
 <a href="/Docs/install-layout.html">Aether install layout</a>
 <a href="/Docs/runtime-config.html">Runtime Configuration - Quick Reference</a>
 <a href="/Docs/per-process-config.html">Per-process configuration in Aether</a>
-<a href="/Docs/cic-help.html">`ae help &lt;script&gt;` Offline diagnostics for config-IS-code</a>
+<a href="/Docs/cic-help.html">ae help &lt;script&gt; Offline diagnostics for config-IS-code</a>
 <div class="grp">More</div>
-<a href="/Docs/bindgen-consts.html">`ae bindgen consts`, importing C macro constants</a>
-<a href="/Docs/formatter.html">`ae fmt`, the source formatter</a>
-<a href="/Docs/isolated.html">`Isolated[T]`: move-only actor message payloads (#479)</a>
-<a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
-<a href="/Docs/profiling-guide.html">Aether Runtime Profiling Guide</a>
 <a href="/Docs/allocators.html">Allocators</a>
-<a href="/Docs/when-static-if.html">Compile-time `when` / static-if</a>
+<a href="/Docs/bindgen-consts.html">ae bindgen consts, importing C macro constants</a>
 <a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
 <a href="/Docs/contract-folding.html">Compile-time contract folding — costed design</a>
-<a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn&#x27;t need `macro_rules!`</a>
+<a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn't need macro_rules!</a>
+<a href="/Docs/error-unification.html">Unifying T? and (value, err) — costed design</a>
+<a href="/Docs/formatter.html">ae fmt, the source formatter</a>
+<a href="/Docs/isolated.html">Isolated[T]: move-only actor message payloads (#479)</a>
+<a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
+<a href="/Docs/profiling-guide.html">Aether Runtime Profiling Guide</a>
 <a href="/Docs/release-glibc-portability.html">Release binary portability across glibc versions</a>
-<a href="/Docs/error-unification.html">Unifying `T?` and `(value, err)` — costed design</a></nav>
+<a href="/Docs/when-static-if.html">Compile-time when / static-if</a></nav>
     <main class="doc-main">
-      <article class="doc-body">
-        <div class="bc">docs / safety</div>
-<h1><code>hide</code> and <code>seal except</code> scope-level capability denial</h1>
-<p>Aether provides two scope-level directives that let a block decline to see selected names from its enclosing lexical scopes. They are the language-level expression of the <a href=" https://paulhammant.com/2016/12/14/principles-of-containment/">&quot;Principles of Containment&quot;</a>, capability flow becomes explicit not just on the way <em>in</em> (via dependency injection) but also on the way <em>out</em> (via name denial).</p>
-<h2>The two forms</h2>
-<h3><code>hide</code> blacklist</h3>
+      <article class="doc-body" id="doc">
+        <div class="bc"><span class="prompt">$</span>docs / safety</div>
+<h1 id="hide-and-seal-except-scope-level-capability-denial"><code>hide</code> and <code>seal except</code> scope-level capability denial</h1>
+<p>Aether provides two scope-level directives that let a block decline to see selected names from its enclosing lexical scopes. They are the language-level expression of the <a href="https://paulhammant.com/2016/12/14/principles-of-containment/">"Principles of Containment"</a>, capability flow becomes explicit not just on the way <em>in</em> (via dependency injection) but also on the way <em>out</em> (via name denial).</p>
+<h2 id="the-two-forms">The two forms</h2>
+<h3 id="hide-blacklist"><code>hide</code> blacklist</h3>
 <pre><code>{
-    hide secret_token, db_handle
-    // From here on, `secret_token` and `db_handle` are not in scope, even
-    // though they&#x27;re declared in an outer block. Reading them is a compile
-    // error. Reassigning them is a compile error. Declaring a fresh
-    // variable with the same name in this block is a compile error.
+    <span class="kw">hide</span> secret_token, db_handle
+    <span class="com">// From here on, `secret_token` and `db_handle` are not in scope, even</span>
+    <span class="com">// though they're declared in an outer block. Reading them is a compile</span>
+    <span class="com">// error. Reassigning them is a compile error. Declaring a fresh</span>
+    <span class="com">// variable with the same name in this block is a compile error.</span>
 }</code></pre>
-<h3><code>seal except</code> whitelist</h3>
+<h3 id="seal-except-whitelist"><code>seal except</code> whitelist</h3>
 <pre><code>{
-    seal except req, res, inventory, response_write, response_write_status
-    // Every name from every outer scope is now invisible EXCEPT the five
-    // listed here. The block can still create its own local variables
-    // freely; it just can&#x27;t reach out for ambient state.
+    <span class="kw">seal</span> <span class="kw">except</span> req, res, inventory, response_write, response_write_status
+    <span class="com">// Every name from every outer scope is now invisible EXCEPT the five</span>
+    <span class="com">// listed here. The block can still create its own local variables</span>
+    <span class="com">// freely; it just can't reach out for ambient state.</span>
 }</code></pre>
-<p><code>seal except</code> is the form you reach for when writing a request handler or any block where you want a one-line audit of &quot;what does this code even see?&quot;. The whitelist is the dependency surface.</p>
-<h2>Semantics</h2>
-<h3>Scope-level, not statement-level</h3>
+<p><code>seal except</code> is the form you reach for when writing a request handler or any block where you want a one-line audit of "what does this code even see?". The whitelist is the dependency surface.</p>
+<h2 id="semantics">Semantics</h2>
+<h3 id="scope-level-not-statement-level">Scope-level, not statement-level</h3>
 <p>The position of a <code>hide</code> directive within its block does not matter. Either of these is valid and equivalent:</p>
 <pre><code>{
-    fooStr = &quot;abc&quot;
-    hide fooStr        // hide appears AFTER the declaration
+    fooStr = <span class="str">"abc"</span>
+    <span class="kw">hide</span> fooStr        <span class="com">// hide appears AFTER the declaration</span>
     use_helper()
 }</code></pre>
 <pre><code>{
-    hide fooStr        // hide appears FIRST
-    fooStr = &quot;abc&quot;     // ERROR: cannot declare &#x27;fooStr&#x27;, it is hidden
+    <span class="kw">hide</span> fooStr        <span class="com">// hide appears FIRST</span>
+    fooStr = <span class="str">"abc"</span>     <span class="com">// ERROR: cannot declare 'fooStr', it is hidden</span>
 }</code></pre>
 <p>The first compiles cleanly because <code>fooStr</code> was declared in the outer scope (not in the inner block), and the inner block hides it. The second fails because the inner block is now trying to <em>create</em> a local binding called <code>fooStr</code>, which collides with the hidden outer name.</p>
-<h3>Reads AND writes both blocked</h3>
+<h3 id="reads-and-writes-both-blocked">Reads AND writes both blocked</h3>
 <p><code>hide x</code> blocks <code>println(x)</code>, <code>x = 5</code>, <code>x += 1</code>, and <code>do_stuff(x)</code>, every form of access. Half-hiding (read-only or write-only) would be a footgun.</p>
-<h3>Propagates to all nested blocks</h3>
-<p>If the outer block hides <code>x</code>, every nested block, closure, and trailing-block lambda inside it also has <code>x</code> hidden. There is no way to &quot;un-hide&quot; a name in a nested block, declaring a fresh variable with the same name in a nested block is allowed, but that&#x27;s a fresh binding in a child scope, not a re-exposure of the parent&#x27;s hidden binding.</p>
-<h3>Does NOT reach through call boundaries</h3>
+<h3 id="propagates-to-all-nested-blocks">Propagates to all nested blocks</h3>
+<p>If the outer block hides <code>x</code>, every nested block, closure, and trailing-block lambda inside it also has <code>x</code> hidden. There is no way to "un-hide" a name in a nested block, declaring a fresh variable with the same name in a nested block is allowed, but that's a fresh binding in a child scope, not a re-exposure of the parent's hidden binding.</p>
+<h3 id="does-not-reach-through-call-boundaries">Does NOT reach through call boundaries</h3>
 <p>A visible function defined in an outer scope can still use the hidden name via its own lexical chain:</p>
-<pre><code>log_secret() { println(secret_token) }   // sees secret_token
+<pre><code>log_secret() { println(secret_token) }   <span class="com">// sees secret_token</span>
 
 main() {
-    secret_token = &quot;abc&quot;
+    secret_token = <span class="str">"abc"</span>
     {
-        hide secret_token
-        log_secret()                      // OK, log_secret is visible,
-                                          //      and reads secret_token
-                                          //      via its OWN lexical scope
+        <span class="kw">hide</span> secret_token
+        log_secret()                      <span class="com">// OK, log_secret is visible,</span>
+                                          <span class="com">//      and reads secret_token</span>
+                                          <span class="com">//      via its OWN lexical scope</span>
     }
 }</code></pre>
-<p>This is deliberate. <code>hide</code> is about <em>your scope&#x27;s name resolution</em>, not about <em>information flow</em> through your callees. If you wanted to deny the capability transitively, you needed an effect type system; Aether doesn&#x27;t claim to have one.</p>
+<p>This is deliberate. <code>hide</code> is about <em>your scope's name resolution</em>, not about <em>information flow</em> through your callees. If you wanted to deny the capability transitively, you needed an effect type system; Aether doesn't claim to have one.</p>
 <p>The same caveat applies to closures captured into local variables:</p>
 <pre><code>{
-    secret = 42
-    incr = || { secret = secret + 1 }     // closure captures `secret`
+    secret = <span class="num">42</span>
+    incr = || { secret = secret + <span class="num">1</span> }     <span class="com">// closure captures `secret`</span>
     {
-        hide secret
-        incr()                             // legal, incr was already
-                                           // captured before the hide
+        <span class="kw">hide</span> secret
+        incr()                             <span class="com">// legal, incr was already</span>
+                                           <span class="com">// captured before the hide</span>
     }
 }</code></pre>
-<p>If you don&#x27;t want the closure&#x27;s mutation to land, don&#x27;t expose the closure into the hiding scope.</p>
-<h3>Applies to qualified (dotted) names</h3>
+<p>If you don't want the closure's mutation to land, don't expose the closure into the hiding scope.</p>
+<h3 id="applies-to-qualified-dotted-names">Applies to qualified (dotted) names</h3>
 <p><code>hide</code> and <code>seal except</code> apply to the prefix of qualified names. If you hide a namespace, all member access through that namespace is blocked:</p>
-<pre><code>import std.http
+<pre><code><span class="kw">import</span> std.http
 {
-    hide http
-    r = http.get(&quot;http://example.com&quot;)   // rejected: http is hidden here
+    <span class="kw">hide</span> http
+    r = http.get(<span class="str">"http://example.com"</span>)   <span class="com">// rejected: http is hidden here</span>
 }</code></pre>
-<p>The hidden prefix is refused before namespace resolution, so the call never resolves. The diagnostic on a hidden dotted call reports the name as undefined (<code>E0301: Undefined function &#x27;http.get&#x27;</code>) rather than the <code>E0304</code> you get for a hidden bare name, the qualified lookup returns no symbol once the prefix is denied. Either way the access is blocked.</p>
-<p>(Don&#x27;t reach for a built-in type keyword like <code>string</code> here: <code>hide string</code> fails earlier with <code>E0100</code>, because <code>string</code> is a reserved keyword and can&#x27;t be used as an identifier at all.)</p>
-<h3>Works inside actor receive arms</h3>
+<p>The hidden prefix is refused before namespace resolution, so the call never resolves. The diagnostic on a hidden dotted call reports the name as undefined (<code>E0301: Undefined function 'http.get'</code>) rather than the <code>E0304</code> you get for a hidden bare name, the qualified lookup returns no symbol once the prefix is denied. Either way the access is blocked.</p>
+<p>(Don't reach for a built-in type keyword like <code>string</code> here: <code>hide string</code> fails earlier with <code>E0100</code>, because <code>string</code> is a reserved keyword and can't be used as an identifier at all.)</p>
+<h3 id="works-inside-actor-receive-arms">Works inside actor receive arms</h3>
 <p>Receive handler bodies are block scopes, so <code>hide</code> and <code>seal except</code> work exactly as in any other block:</p>
-<pre><code>actor Server {
-    state secret = &quot;do not touch&quot;
-    state public_val = &quot;ok&quot;
+<pre><code><span class="kw">actor</span> Server {
+    <span class="kw">state</span> secret = <span class="str">"do not touch"</span>
+    <span class="kw">state</span> public_val = <span class="str">"ok"</span>
 
-    receive {
+    <span class="kw">receive</span> {
         Ping() -&gt; {
-            hide secret
-            // public_val is still visible; secret is not.
+            <span class="kw">hide</span> secret
+            <span class="com">// public_val is still visible; secret is not.</span>
             println(public_val)
         }
         Greet(name) -&gt; {
-            seal except name, greeting, println
-            // Only name, greeting, and println are visible from
-            // outer scopes. Other state variables are sealed out.
+            <span class="kw">seal</span> <span class="kw">except</span> name, greeting, println
+            <span class="com">// Only name, greeting, and println are visible from</span>
+            <span class="com">// outer scopes. Other state variables are sealed out.</span>
         }
     }
 }</code></pre>
 <p>This is particularly useful for actors with multiple state variables where individual receive arms should only touch a subset of state.</p>
-<h3>Local bindings are always visible</h3>
-<p><code>hide</code> only affects lookups that walk OUT of the current block into a parent scope. A local binding declared inside the hiding block is always visible inside that block, regardless of what&#x27;s hidden:</p>
+<h3 id="local-bindings-are-always-visible">Local bindings are always visible</h3>
+<p><code>hide</code> only affects lookups that walk OUT of the current block into a parent scope. A local binding declared inside the hiding block is always visible inside that block, regardless of what's hidden:</p>
 <pre><code>{
-    seal except println
-    local_thing = &quot;fresh&quot;
-    println(local_thing)    // OK, local_thing is local, not from outside
+    <span class="kw">seal</span> <span class="kw">except</span> println
+    local_thing = <span class="str">"fresh"</span>
+    println(local_thing)    <span class="com">// OK, local_thing is local, not from outside</span>
 }</code></pre>
-<h2>What <code>hide</code> is NOT</h2>
-<ul><li><strong>Not an effect system.</strong> It cannot prevent a function you call from</li></ul>
-<p>reaching its own ambient state. It can only stop <em>your scope</em> from naming things directly.</p>
-<ul><li><strong>Not a security boundary.</strong> It&#x27;s compile-time hygiene. A determined</li></ul>
-<p>caller can route around it by exposing a closure or accessor function. It catches <em>accidents</em> and <em>enforces intent</em>, not malice.</p>
-<ul><li><strong>Not a privacy modifier.</strong> Java <code>private</code> means &quot;this field is not</li></ul>
-<p>part of my class&#x27;s API&quot;. <code>hide</code> means &quot;this scope declines to see this name&quot;. Different layer.</p>
-<h2>What <code>hide</code> IS for</h2>
-<ol><li><strong>Containment of ambient authority in handlers.</strong> When a request</li></ol>
-<p>handler is buried 200 lines into a big function, it&#x27;s easy to accidentally close over a sensitive variable. A one-line <code>hide</code> at the top of the handler block prevents that class of bug at compile time.</p>
-<ol><li><strong>Auditable dependency surfaces.</strong> Reading a <code>seal except a, b, c</code></li></ol>
-<p>handler, you know in one glance the entire set of names it can reach. No more grepping outward for ambient state.</p>
-<ol><li>**Capability-style guarantees without buying into a capability</li></ol>
-<p>language.** E and Joe-E achieve &quot;only what you were handed&quot; by <em>constructing</em> every reference through capability objects. <code>hide</code> achieves &quot;only what you didn&#x27;t decline&quot; by <em>subtracting</em> from lexical scope. Cheaper, weaker, available today.</p>
-<ol><li><strong>The DI flip-side of dependency injection.</strong> DI delivers</li></ol>
-<p>capabilities to a handler. Without <code>hide</code>, the handler can always reach around the injection and grab ambient state, the DI is convention. With <code>hide</code>/<code>seal except</code>, the handler is a closed container with a declared dependency surface, and the DI is enforced at the call site.</p>
-<h2>Errors</h2>
+<h2 id="what-hide-is-not">What <code>hide</code> is NOT</h2>
+<ul><li><strong>Not an effect system.</strong> It cannot prevent a function you call from reaching its own ambient state. It can only stop <em>your scope</em> from naming things directly.</li><li><strong>Not a security boundary.</strong> It's compile-time hygiene. A determined caller can route around it by exposing a closure or accessor function. It catches <em>accidents</em> and <em>enforces intent</em>, not malice.</li><li><strong>Not a privacy modifier.</strong> Java <code>private</code> means "this field is not part of my class's API". <code>hide</code> means "this scope declines to see this name". Different layer.</li></ul>
+<h2 id="what-hide-is-for">What <code>hide</code> IS for</h2>
+<ol><li><strong>Containment of ambient authority in handlers.</strong> When a request handler is buried 200 lines into a big function, it's easy to accidentally close over a sensitive variable. A one-line <code>hide</code> at the top of the handler block prevents that class of bug at compile time.</li><li><strong>Auditable dependency surfaces.</strong> Reading a <code>seal except a, b, c</code> handler, you know in one glance the entire set of names it can reach. No more grepping outward for ambient state.</li><li><strong>Capability-style guarantees without buying into a capability language.</strong> E and Joe-E achieve "only what you were handed" by <em>constructing</em> every reference through capability objects. <code>hide</code> achieves "only what you didn't decline" by <em>subtracting</em> from lexical scope. Cheaper, weaker, available today.</li><li><strong>The DI flip-side of dependency injection.</strong> DI delivers capabilities to a handler. Without <code>hide</code>, the handler can always reach around the injection and grab ambient state, the DI is convention. With <code>hide</code>/<code>seal except</code>, the handler is a closed container with a declared dependency surface, and the DI is enforced at the call site.</li></ol>
+<h2 id="errors">Errors</h2>
 <p>Hide / seal violations all use the new error code:</p>
-<pre><code>E0304: &#x27;secret&#x27; is hidden in this scope by `hide` or `seal except`</code></pre>
-<p>with a source line and column pointing at the offending use. Trying to declare a hidden name produces the same code with the message &quot;cannot declare &#x27;secret&#x27;, it is hidden in this scope by <code>hide</code>&quot;.</p>
-<h2>Interaction with shadowing</h2>
+<pre><code>E0304: 'secret' is hidden in this scope by `hide` or `seal except`</code></pre>
+<p>with a source line and column pointing at the offending use. Trying to declare a hidden name produces the same code with the message "cannot declare 'secret', it is hidden in this scope by <code>hide</code>".</p>
+<h2 id="interaction-with-shadowing">Interaction with shadowing</h2>
 <p>You may NOT declare a variable in the same scope where its name is hidden:</p>
 <pre><code>{
-    hide x
-    var x = 5     // E0304: cannot declare &#x27;x&#x27;, it is hidden
+    <span class="kw">hide</span> x
+    <span class="kw">var</span> x = <span class="num">5</span>     <span class="com">// E0304: cannot declare 'x', it is hidden</span>
 }</code></pre>
-<p>You MAY declare it in a nested child block, that&#x27;s a fresh binding in the child&#x27;s own scope, lexically unrelated to the hidden outer one:</p>
+<p>You MAY declare it in a nested child block, that's a fresh binding in the child's own scope, lexically unrelated to the hidden outer one:</p>
 <pre><code>{
-    hide x
+    <span class="kw">hide</span> x
     {
-        var x = 5     // OK, fresh binding in inner block
-        println(x)    // refers to the inner binding
+        <span class="kw">var</span> x = <span class="num">5</span>     <span class="com">// OK, fresh binding in inner block</span>
+        println(x)    <span class="com">// refers to the inner binding</span>
     }
 }</code></pre>
 <p>This is consistent with normal lexical shadowing and means <code>hide</code> cannot trap a programmer who wants to use a popular name like <code>i</code> or <code>x</code> for unrelated purposes deeper in the call tree.</p>
-<h2>Minimal reference card</h2>
-<table><thead><tr><th>Form</th><th>Effect</th></tr></thead><tbody><tr><td><code>hide a, b, c</code></td><td>Names <code>a</code>, <code>b</code>, <code>c</code> from outer scopes are not in this block (or any nested block within it).</td></tr><tr><td><code>seal except a, b, c</code></td><td>EVERY name from outer scopes is invisible in this block, except <code>a</code>, <code>b</code>, <code>c</code>. Local bindings inside the block are still visible.</td></tr><tr><td><code>hide x</code> followed by <code>var x = …</code> in the same scope</td><td>Compile error, cannot redeclare a hidden name.</td></tr><tr><td><code>hide x</code> then a nested block declaring <code>var x = …</code></td><td>OK, fresh binding in the child scope.</td></tr><tr><td><code>hide x</code> then calling a visible function that reads <code>x</code> from its own scope</td><td>OK, name resolution at the call site doesn&#x27;t touch <code>x</code>.</td></tr><tr><td><code>seal except printf, malloc</code> then trying to call <code>free</code></td><td>Compile error, <code>free</code> is not in the whitelist.</td></tr><tr><td><code>hide http</code> then <code>http.get(&quot;x&quot;)</code></td><td>Compile error, qualified access blocked because the prefix is hidden (reported as <code>E0301</code> undefined, since the hidden prefix resolves to no symbol).</td></tr><tr><td><code>hide</code> or <code>seal except</code> inside an actor receive arm</td><td>Works, receive arm bodies are block scopes like any other.</td></tr></tbody></table>
-<h2>Implementation note</h2>
-<p><code>hide</code> and <code>seal except</code> are enforced entirely at compile time, in <code>compiler/analysis/typechecker.c</code>&#x27;s <code>lookup_symbol()</code> and <code>lookup_qualified_symbol()</code>. When a name is not found in the current scope, <code>lookup_symbol()</code> checks the scope&#x27;s <code>hidden_names</code> list and <code>seal_whitelist</code> before walking to the parent. <code>lookup_qualified_symbol()</code> checks hide/seal on the dotted prefix before namespace resolution, so <code>hide http</code> blocks <code>http.get()</code> too. Local bindings always win, the hide/seal sets only affect the boundary crossing into outer scopes.</p>
+<h2 id="minimal-reference-card">Minimal reference card</h2>
+<div class="tw"><table><thead><tr><th>Form</th><th>Effect</th></tr></thead><tbody><tr><td><code>hide a, b, c</code></td><td>Names <code>a</code>, <code>b</code>, <code>c</code> from outer scopes are not in this block (or any nested block within it).</td></tr><tr><td><code>seal except a, b, c</code></td><td>EVERY name from outer scopes is invisible in this block, except <code>a</code>, <code>b</code>, <code>c</code>. Local bindings inside the block are still visible.</td></tr><tr><td><code>hide x</code> followed by <code>var x = …</code> in the same scope</td><td>Compile error, cannot redeclare a hidden name.</td></tr><tr><td><code>hide x</code> then a nested block declaring <code>var x = …</code></td><td>OK, fresh binding in the child scope.</td></tr><tr><td><code>hide x</code> then calling a visible function that reads <code>x</code> from its own scope</td><td>OK, name resolution at the call site doesn't touch <code>x</code>.</td></tr><tr><td><code>seal except printf, malloc</code> then trying to call <code>free</code></td><td>Compile error, <code>free</code> is not in the whitelist.</td></tr><tr><td><code>hide http</code> then <code>http.get("x")</code></td><td>Compile error, qualified access blocked because the prefix is hidden (reported as <code>E0301</code> undefined, since the hidden prefix resolves to no symbol).</td></tr><tr><td><code>hide</code> or <code>seal except</code> inside an actor receive arm</td><td>Works, receive arm bodies are block scopes like any other.</td></tr></tbody></table></div>
+<h2 id="implementation-note">Implementation note</h2>
+<p><code>hide</code> and <code>seal except</code> are enforced entirely at compile time, in <code>compiler/analysis/typechecker.c</code>'s <code>lookup_symbol()</code> and <code>lookup_qualified_symbol()</code>. When a name is not found in the current scope, <code>lookup_symbol()</code> checks the scope's <code>hidden_names</code> list and <code>seal_whitelist</code> before walking to the parent. <code>lookup_qualified_symbol()</code> checks hide/seal on the dotted prefix before namespace resolution, so <code>hide http</code> blocks <code>http.get()</code> too. Local bindings always win, the hide/seal sets only affect the boundary crossing into outer scopes.</p>
 <p>There is no runtime overhead. There is no codegen change. The feature is a pure compile-time hygiene check.</p>
 <hr>
-<h1>Worked example: a solid IoC alternative to Java-style DI</h1>
-<blockquote>Up to here is the language reference. The rest of this document is a<br>long-form worked example showing how <code>hide</code> / <code>seal except</code> enables<br>a dependency-injection story that is smaller, simpler, and<br>compiler-enforced, in contrast to the Java <code>DependencyManager</code> /<br><code>ComponentCache</code> hierarchy that the <code>contrib/tinyweb/</code> Aether port left<br>behind. Skip if you only wanted the language reference.</blockquote>
-<h2>Q. Do we now have a solid IoC alternative to Java-style DI?</h2>
-<blockquote>*In the <code>contrib/tinyweb/</code> Aether conversion of the Java TinyWeb thing<br>(<code>~/scm/tiny</code>) we left out <code>DependencyManager</code> and <code>Cache</code> do we now<br>have a solid inversion-of-control alternative to that Java hackery?*</blockquote>
-<p>Yes, with <code>hide</code> / <code>seal except</code> we now have a <strong>better</strong> alternative than the Java pattern, and it&#x27;s smaller too.</p>
-<h2>The key insight</h2>
-<p>The Java <code>DependencyManager</code> exists to solve a problem Java has and Aether (now) doesn&#x27;t:</p>
-<blockquote>*&quot;How do I make sure a request handler can only reach the things I<br>deliberately handed it?&quot;*</blockquote>
-<p>Java&#x27;s default is: every static method, every singleton, every classpath-reachable type is one keystroke away from any handler. The DI container is a <em>convention layer</em> on top of that, it organizes construction order, caches instances, and handles transitive deps, but <strong>it cannot stop a handler from reaching around it</strong>. <code>static Foo.INSTANCE.doStuff()</code> always wins. The container is fundamentally polite, not enforcing.</p>
-<p>Aether with <code>seal except</code> flips this. The handler <strong>declares its dependency surface in one line</strong>, and the compiler enforces it. You don&#x27;t need a framework to give you containment, you have a language feature. The &quot;container&quot; is just ~80 lines of map plumbing.</p>
-<h2>What it looks like</h2>
+<h1 id="worked-example-a-solid-ioc-alternative-to-java-style-di">Worked example: a solid IoC alternative to Java-style DI</h1>
+<blockquote>Up to here is the language reference. The rest of this document is a long-form worked example showing how <code>hide</code> / <code>seal except</code> enables a dependency-injection story that is smaller, simpler, and compiler-enforced, in contrast to the Java <code>DependencyManager</code> / <code>ComponentCache</code> hierarchy that the <code>contrib/tinyweb/</code> Aether port left behind. Skip if you only wanted the language reference.</blockquote>
+<h2 id="q-do-we-now-have-a-solid-ioc-alternative-to-java-style-di">Q. Do we now have a solid IoC alternative to Java-style DI?</h2>
+<blockquote><em>In the <code>contrib/tinyweb/</code> Aether conversion of the Java TinyWeb thing (<code>~/scm/tiny</code>) we left out <code>DependencyManager</code> and <code>Cache</code> do we now have a solid inversion-of-control alternative to that Java hackery?</em></blockquote>
+<p>Yes, with <code>hide</code> / <code>seal except</code> we now have a <strong>better</strong> alternative than the Java pattern, and it's smaller too.</p>
+<h2 id="the-key-insight">The key insight</h2>
+<p>The Java <code>DependencyManager</code> exists to solve a problem Java has and Aether (now) doesn't:</p>
+<blockquote><em>"How do I make sure a request handler can only reach the things I deliberately handed it?"</em></blockquote>
+<p>Java's default is: every static method, every singleton, every classpath-reachable type is one keystroke away from any handler. The DI container is a <em>convention layer</em> on top of that, it organizes construction order, caches instances, and handles transitive deps, but <strong>it cannot stop a handler from reaching around it</strong>. <code>static Foo.INSTANCE.doStuff()</code> always wins. The container is fundamentally polite, not enforcing.</p>
+<p>Aether with <code>seal except</code> flips this. The handler <strong>declares its dependency surface in one line</strong>, and the compiler enforces it. You don't need a framework to give you containment, you have a language feature. The "container" is just ~80 lines of map plumbing.</p>
+<h2 id="what-it-looks-like">What it looks like</h2>
 <p>Registration at server-build time:</p>
-<pre><code>srv = web_server(8080) {
+<pre><code>srv = web_server(<span class="num">8080</span>) {
 
-    // Three scopes, the factory&#x27;s scope determines its cache lifetime.
-    app_factory(&quot;inventory&quot;) callback { return new_inventory() }
-    app_factory(&quot;db&quot;) callback { return open_db() }
+    <span class="com">// Three scopes, the factory's scope determines its cache lifetime.</span>
+    app_factory(<span class="str">"inventory"</span>) <span class="kw">callback</span> { <span class="kw">return</span> new_inventory() }
+    app_factory(<span class="str">"db"</span>) <span class="kw">callback</span> { <span class="kw">return</span> open_db() }
 
-    session_factory(&quot;cart&quot;) callback { return new_cart() }
-    session_factory(&quot;user_prefs&quot;) callback {
-        // Factories can themselves use `dep` to ask for other things.
-        // The resolver walks app → session → request looking for them.
-        u = dep(ctx, &quot;user&quot;)
-        return load_prefs(u)
+    session_factory(<span class="str">"cart"</span>) <span class="kw">callback</span> { <span class="kw">return</span> new_cart() }
+    session_factory(<span class="str">"user_prefs"</span>) <span class="kw">callback</span> {
+        <span class="com">// Factories can themselves use `dep` to ask for other things.</span>
+        <span class="com">// The resolver walks app → session → request looking for them.</span>
+        u = dep(ctx, <span class="str">"user"</span>)
+        <span class="kw">return</span> load_prefs(u)
     }
 
-    request_factory(&quot;logger&quot;) callback {
-        return new_request_logger(dep(ctx, &quot;request_id&quot;))
+    request_factory(<span class="str">"logger"</span>) <span class="kw">callback</span> {
+        <span class="kw">return</span> new_request_logger(dep(ctx, <span class="str">"request_id"</span>))
     }
 
-    path(&quot;/cart&quot;) {
-        end_point(POST, &quot;/add&quot;) |req, res, ctx| {
-            seal except req, res, ctx, dep, response_write, response_write_status
+    path(<span class="str">"/cart"</span>) {
+        end_point(POST, <span class="str">"/add"</span>) |req, res, ctx| {
+            <span class="kw">seal</span> <span class="kw">except</span> req, res, ctx, dep, response_write, response_write_status
 
-            inventory = dep(ctx, &quot;inventory&quot;)   // app-scoped (cached for server lifetime)
-            cart      = dep(ctx, &quot;cart&quot;)        // session-scoped (cached per session)
+            inventory = dep(ctx, <span class="str">"inventory"</span>)   <span class="com">// app-scoped (cached for server lifetime)</span>
+            cart      = dep(ctx, <span class="str">"cart"</span>)        <span class="com">// session-scoped (cached per session)</span>
 
-            sku = request_get_query_param(req, &quot;sku&quot;)
-            if map_has(inventory, sku) == 0 {
-                response_write_status(res, &quot;unknown sku&quot;, 404)
-                return 0
+            sku = request_get_query_param(req, <span class="str">"sku"</span>)
+            <span class="kw">if</span> map_has(inventory, sku) == <span class="num">0</span> {
+                response_write_status(res, <span class="str">"unknown sku"</span>, <span class="num">404</span>)
+                <span class="kw">return</span> <span class="num">0</span>
             }
             cart_add(cart, sku)
-            response_write(res, &quot;added&quot;)
+            response_write(res, <span class="str">"added"</span>)
         }
     }
 }</code></pre>
 <p>The <code>seal except</code> line is <strong>the entire dependency surface</strong> of that handler. A reviewer reads it and knows: this handler can touch <code>req</code>, <code>res</code>, <code>ctx</code>, <code>dep</code>, <code>response_write</code>, <code>response_write_status</code>. Nothing else from any outer scope. If someone later edits the handler to grab <code>db</code> directly, the compiler refuses.</p>
-<h2>What you give up vs. Java</h2>
-<table><thead><tr><th>Java DM</th><th>Aether equivalent</th><th>Trade</th></tr></thead><tbody><tr><td><code>dep(Cart.class)</code> returns typed <code>Cart</code></td><td><code>dep(ctx, &quot;cart&quot;)</code> returns generic <code>ptr</code></td><td>Lose compile-time type safety on lookups. Mitigate with typed wrappers: <code>cart(ctx)</code> that internally does <code>(Cart*) dep(ctx, &quot;cart&quot;)</code>. One line per type.</td></tr><tr><td>Constructor-injection static graph analysis at startup</td><td>Name-based lookup deferred to first request</td><td>Mitigate with a <code>validate(srv)</code> pass at <code>server_start</code> that walks every registered factory&#x27;s body and ensures every name it asks for has a registration somewhere. ~30 lines of compile-time-ish reflection over the closure registry.</td></tr><tr><td><code>@Inject</code> / <code>@Component</code> / <code>@Singleton</code> / <code>@RequestScoped</code> annotations</td><td>Three explicit functions: <code>app_factory</code>, <code>session_factory</code>, <code>request_factory</code></td><td>Aether&#x27;s wins, you can see at the registration site exactly what scope it&#x27;s in. No &quot;where is this annotation processed?&quot; hunt.</td></tr><tr><td><code>ComponentCache</code> / <code>DefaultComponentCache</code> / <code>UseOnceComponentCache</code> interface hierarchy</td><td>Three maps carried in <code>ctx</code>: <code>app_cache</code>, <code>session_cache</code>, <code>request_cache</code></td><td>Aether&#x27;s wins, no interface, no implementation classes, no factory pattern, just maps.</td></tr><tr><td><code>DependencyException</code> when resolution fails</td><td><code>dep(ctx, name)</code> returns null + a runtime check, or <code>validate(srv)</code> catches it at startup</td><td>Comparable.</td></tr><tr><td><code>RequestContext.dep()</code> interface</td><td>A <code>dep(ctx, name)</code> function</td><td>Same.</td></tr></tbody></table>
+<h2 id="what-you-give-up-vs-java">What you give up vs. Java</h2>
+<div class="tw"><table><thead><tr><th>Java DM</th><th>Aether equivalent</th><th>Trade</th></tr></thead><tbody><tr><td><code>dep(Cart.class)</code> returns typed <code>Cart</code></td><td><code>dep(ctx, "cart")</code> returns generic <code>ptr</code></td><td>Lose compile-time type safety on lookups. Mitigate with typed wrappers: <code>cart(ctx)</code> that internally does <code>(Cart*) dep(ctx, "cart")</code>. One line per type.</td></tr><tr><td>Constructor-injection static graph analysis at startup</td><td>Name-based lookup deferred to first request</td><td>Mitigate with a <code>validate(srv)</code> pass at <code>server_start</code> that walks every registered factory's body and ensures every name it asks for has a registration somewhere. ~30 lines of compile-time-ish reflection over the closure registry.</td></tr><tr><td><code>@Inject</code> / <code>@Component</code> / <code>@Singleton</code> / <code>@RequestScoped</code> annotations</td><td>Three explicit functions: <code>app_factory</code>, <code>session_factory</code>, <code>request_factory</code></td><td>Aether's wins, you can see at the registration site exactly what scope it's in. No "where is this annotation processed?" hunt.</td></tr><tr><td><code>ComponentCache</code> / <code>DefaultComponentCache</code> / <code>UseOnceComponentCache</code> interface hierarchy</td><td>Three maps carried in <code>ctx</code>: <code>app_cache</code>, <code>session_cache</code>, <code>request_cache</code></td><td>Aether's wins, no interface, no implementation classes, no factory pattern, just maps.</td></tr><tr><td><code>DependencyException</code> when resolution fails</td><td><code>dep(ctx, name)</code> returns null + a runtime check, or <code>validate(srv)</code> catches it at startup</td><td>Comparable.</td></tr><tr><td><code>RequestContext.dep()</code> interface</td><td>A <code>dep(ctx, name)</code> function</td><td>Same.</td></tr></tbody></table></div>
 <p>The biggest real loss is <strong>type safety on lookups</strong>. The fix is one wrapper function per type:</p>
-<pre><code>inventory(ctx) { return dep(ctx, &quot;inventory&quot;) }   // returns ptr but named-as-inventory
-cart(ctx)      { return dep(ctx, &quot;cart&quot;) }
-db(ctx)        { return dep(ctx, &quot;db&quot;) }</code></pre>
-<p>Now handlers say <code>cart(ctx)</code> instead of <code>dep(ctx, &quot;cart&quot;)</code>, and a typo on the dep name is caught at startup by <code>validate(srv)</code> walking the factory closures. Type errors on USING the result are caught the moment you try to pass it to a function expecting the wrong shape.</p>
-<h2>What you GAIN over Java</h2>
-<ol><li>The <code>seal except</code> line is the constructor injection list. There is no</li></ol>
-<p><code>@Inject final Cart cart;</code>, no constructor, no field declaration, just the names on one line.</p>
-<ol><li><strong>The handler is a closure, not a class.</strong> No `new</li></ol>
-<p>CartAddHandler(deps...)<code> boilerplate, no class file per endpoint, no inheritance from </code>AbstractHandler`. The handler IS the trailing block.</p>
-<ol><li><strong>Compile-time enforced containment.</strong> Java&#x27;s DM is a convention,</li></ol>
-<p><code>Foo.INSTANCE</code> always wins. Aether&#x27;s <code>seal except</code> is enforced, the compiler refuses to resolve <code>Foo.INSTANCE</code> at all if it&#x27;s not whitelisted.</p>
-<ol><li><strong>Factories ARE closures.</strong> They capture their lexical scope at</li></ol>
-<p>registration time, so a factory that needs config can just close over it:</p>
-<p>``<code>aether load_config_first()    // returns a config object app_factory(&quot;db&quot;) callback { return open_db(config.db_url)   // closes over config } </code>``</p>
-<p>No <code>@ConfigurationProperties</code>, no <code>Environment</code> injection, no <code>@Value(&quot;${db.url}&quot;)</code>. Just a captured variable.</p>
-<ol><li><strong>Scopes are just maps in a parent chain.</strong> `request_cache →</li></ol>
-<p>session_cache → app_cache → null<code>. Resolution walks upward. Same shape as </code>SymbolTable<code>&#x27;s parent chain in the compiler&#x27;s </code>lookup_symbol()<code>. IoC here is name resolution at runtime, and </code>lookup_symbol` is name resolution at compile time; the same parent-chain pattern carries both.</p>
-<ol><li><strong>Lifetimes are explicit at the call site.</strong> <code>app_factory(...)</code></li></ol>
-<p>reads as &quot;this lives for the server&#x27;s life&quot;. <code>session_factory(...)</code> reads as &quot;this is per session&quot;. You don&#x27;t have to look up an annotation processor or a Spring config class to understand a component&#x27;s lifetime.</p>
-<h2>What it&#x27;d take to ship in <code>contrib/tinyweb/</code></h2>
+<pre><code>inventory(ctx) { <span class="kw">return</span> dep(ctx, <span class="str">"inventory"</span>) }   <span class="com">// returns ptr but named-as-inventory</span>
+cart(ctx)      { <span class="kw">return</span> dep(ctx, <span class="str">"cart"</span>) }
+db(ctx)        { <span class="kw">return</span> dep(ctx, <span class="str">"db"</span>) }</code></pre>
+<p>Now handlers say <code>cart(ctx)</code> instead of <code>dep(ctx, "cart")</code>, and a typo on the dep name is caught at startup by <code>validate(srv)</code> walking the factory closures. Type errors on USING the result are caught the moment you try to pass it to a function expecting the wrong shape.</p>
+<h2 id="what-you-gain-over-java">What you GAIN over Java</h2>
+<ol><li>The <code>seal except</code> line is the constructor injection list. There is no <code>@Inject final Cart cart;</code>, no constructor, no field declaration, just the names on one line.</li><li><strong>The handler is a closure, not a class.</strong> No <code>new CartAddHandler(deps...)</code> boilerplate, no class file per endpoint, no inheritance from <code>AbstractHandler</code>. The handler IS the trailing block.</li><li><strong>Compile-time enforced containment.</strong> Java's DM is a convention, <code>Foo.INSTANCE</code> always wins. Aether's <code>seal except</code> is enforced, the compiler refuses to resolve <code>Foo.INSTANCE</code> at all if it's not whitelisted.</li><li><strong>Factories ARE closures.</strong> They capture their lexical scope at registration time, so a factory that needs config can just close over it:</li></ol>
+<pre><code>   load_config_first()    <span class="com">// returns a config object</span>
+   app_factory(<span class="str">"db"</span>) <span class="kw">callback</span> {
+       <span class="kw">return</span> open_db(config.db_url)   <span class="com">// closes over config</span>
+   }</code></pre>
+<p>No <code>@ConfigurationProperties</code>, no <code>Environment</code> injection, no <code>@Value("${db.url}")</code>. Just a captured variable.</p>
+<ol><li><strong>Scopes are just maps in a parent chain.</strong> <code>request_cache → session_cache → app_cache → null</code>. Resolution walks upward. Same shape as <code>SymbolTable</code>'s parent chain in the compiler's <code>lookup_symbol()</code>. IoC here is name resolution at runtime, and <code>lookup_symbol</code> is name resolution at compile time; the same parent-chain pattern carries both.</li><li><strong>Lifetimes are explicit at the call site.</strong> <code>app_factory(...)</code> reads as "this lives for the server's life". <code>session_factory(...)</code> reads as "this is per session". You don't have to look up an annotation processor or a Spring config class to understand a component's lifetime.</li></ol>
+<h2 id="what-itd-take-to-ship-in-contribtinyweb">What it'd take to ship in <code>contrib/tinyweb/</code></h2>
 <p>Roughly <strong>80 lines</strong> of additions to <code>module.ae</code>:</p>
-<ul><li><code>app_factory(_ctx, name, factory_fn)</code> register at server scope</li></ul>
-<p>(uses the <code>_ctx</code> builder context that <code>web_server { … }</code> creates)</p>
-<ul><li><code>session_factory(_ctx, name, factory_fn)</code> same</li><li><code>request_factory(_ctx, name, factory_fn)</code> same</li><li><code>dep(ctx, name)</code> walk request → session → app, build via factory</li></ul>
-<p>if not cached, store in the right cache, return</p>
-<ul><li>cycle detection, small set on the resolution stack</li><li><code>validate(srv)</code> optional: walk all factory closures looking for</li></ul>
-<p><code>dep(ctx, …)</code> calls and assert each name resolves to a registered factory</p>
-<p>Plus session-cache lifecycle hooks on the WebSocket / cookie session id. That&#x27;s another ~20 lines, and most of it is already implied by TinyWeb&#x27;s existing session handling (which it doesn&#x27;t yet expose, but the hooks are there).</p>
-<h2>Solid alternative, verdict</h2>
+<ul><li><code>app_factory(_ctx, name, factory_fn)</code> register at server scope (uses the <code>_ctx</code> builder context that <code>web_server { … }</code> creates)</li><li><code>session_factory(_ctx, name, factory_fn)</code> same</li><li><code>request_factory(_ctx, name, factory_fn)</code> same</li><li><code>dep(ctx, name)</code> walk request → session → app, build via factory if not cached, store in the right cache, return</li><li>cycle detection, small set on the resolution stack</li><li><code>validate(srv)</code> optional: walk all factory closures looking for <code>dep(ctx, …)</code> calls and assert each name resolves to a registered factory</li></ul>
+<p>Plus session-cache lifecycle hooks on the WebSocket / cookie session id. That's another ~20 lines, and most of it is already implied by TinyWeb's existing session handling (which it doesn't yet expose, but the hooks are there).</p>
+<h2 id="solid-alternative-verdict">Solid alternative, verdict</h2>
 <p><strong>Yes, solidly.</strong> The combination of:</p>
 <ol><li><code>seal except</code> enforced at compile time = real containment</li><li><code>app_factory</code> / <code>session_factory</code> / <code>request_factory</code> = explicit lifetimes</li><li><code>dep(ctx, name)</code> walking a parent chain of maps = trivial runtime resolution</li><li>Optional <code>validate(srv)</code> at startup = catches most type-safety regressions</li><li>Optional one-line typed wrappers per dep name = restore most Java-like ergonomics</li></ol>
-<p>…gets you everything Java&#x27;s DM gives you, <strong>plus enforcement</strong>, <strong>minus the framework</strong>. The <code>DependencyManager</code> / <code>ComponentCache</code> / <code>UseOnceComponentCache</code> / <code>DefaultComponentCache</code> four-class hierarchy in Java collapses into a map and a function that walks a parent chain.</p>
-<p>The Java version was load-bearing because Java needed it. Aether doesn&#x27;t, it has <code>seal except</code> in the language, which is the load-bearing primitive. Everything else is sugar.</p>
-<h2>Test coverage that would ship with the implementation</h2>
-<p>When this lands in <code>contrib/tinyweb/</code>, the test coverage should be comparable in shape to the <code>hide</code> / <code>seal except</code> implementation (though smaller, it&#x27;s all userland Aether, no compiler changes):</p>
-<ul><li>The six-cell matrix of (scope × created-on-first-touch /</li></ul>
-<p>cached-thereafter / cleared-on-session-expiry):</p>
-<ul><li>app: created on first dep call, cached for server lifetime</li><li>session: created on first dep call within a session, cached per</li></ul>
-<p>session id, cleared when the session expires</p>
-<ul><li>request: created on first dep call within a request, cleared at</li></ul>
-<p>response end</p>
-<ul><li>&quot;Compile-time enforcement of dependency surface&quot; tests showing that</li></ul>
-<p>an <code>end_point</code> with <code>seal except req, res, dep</code> literally cannot reach an unfactored global (these reuse the existing <code>tests/integration/hide_seal_directives/</code> reject-test pattern introduced with the <code>hide</code> / <code>seal except</code> PR).</p>
-<ul><li>Cycle detection: <code>factory A</code> calls <code>dep(ctx, &quot;B&quot;)</code>, <code>factory B</code> calls</li></ul>
-<p><code>dep(ctx, &quot;A&quot;)</code>, resolution should fail at first attempt rather than stack-overflow.</p>
-<ul><li><code>validate(srv)</code> startup pass: a server with a missing factory should</li></ul>
-<p>fail to start with a clear error pointing at the factory closure that asked for the missing name, not silently succeed and fail at first request.</p>
-<ul><li>Closure-captured config: a factory that reads a <code>let config = …</code></li></ul>
-<p>defined before it should still resolve <code>config</code> at factory-call time even though many requests have happened in between.</p>
+<p>…gets you everything Java's DM gives you, <strong>plus enforcement</strong>, <strong>minus the framework</strong>. The <code>DependencyManager</code> / <code>ComponentCache</code> / <code>UseOnceComponentCache</code> / <code>DefaultComponentCache</code> four-class hierarchy in Java collapses into a map and a function that walks a parent chain.</p>
+<p>The Java version was load-bearing because Java needed it. Aether doesn't, it has <code>seal except</code> in the language, which is the load-bearing primitive. Everything else is sugar.</p>
+<h2 id="test-coverage-that-would-ship-with-the-implementation">Test coverage that would ship with the implementation</h2>
+<p>When this lands in <code>contrib/tinyweb/</code>, the test coverage should be comparable in shape to the <code>hide</code> / <code>seal except</code> implementation (though smaller, it's all userland Aether, no compiler changes):</p>
+<ul><li>The six-cell matrix of (scope × created-on-first-touch / cached-thereafter / cleared-on-session-expiry):<ul><li>app: created on first dep call, cached for server lifetime</li><li>session: created on first dep call within a session, cached per session id, cleared when the session expires</li><li>request: created on first dep call within a request, cleared at response end</li></ul></li><li>"Compile-time enforcement of dependency surface" tests showing that an <code>end_point</code> with <code>seal except req, res, dep</code> literally cannot reach an unfactored global (these reuse the existing <code>tests/integration/hide_seal_directives/</code> reject-test pattern introduced with the <code>hide</code> / <code>seal except</code> PR).</li><li>Cycle detection: <code>factory A</code> calls <code>dep(ctx, "B")</code>, <code>factory B</code> calls <code>dep(ctx, "A")</code>, resolution should fail at first attempt rather than stack-overflow.</li><li><code>validate(srv)</code> startup pass: a server with a missing factory should fail to start with a clear error pointing at the factory closure that asked for the missing name, not silently succeed and fail at first request.</li><li>Closure-captured config: a factory that reads a <code>let config = …</code> defined before it should still resolve <code>config</code> at factory-call time even though many requests have happened in between.</li></ul>
       </article>
     </main>
+    <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#the-two-forms" class="l2" data-id="the-two-forms">The two forms</a><a href="#hide-blacklist" class="l3" data-id="hide-blacklist">hide blacklist</a><a href="#seal-except-whitelist" class="l3" data-id="seal-except-whitelist">seal except whitelist</a><a href="#semantics" class="l2" data-id="semantics">Semantics</a><a href="#scope-level-not-statement-level" class="l3" data-id="scope-level-not-statement-level">Scope-level, not statement-level</a><a href="#reads-and-writes-both-blocked" class="l3" data-id="reads-and-writes-both-blocked">Reads AND writes both blocked</a><a href="#propagates-to-all-nested-blocks" class="l3" data-id="propagates-to-all-nested-blocks">Propagates to all nested blocks</a><a href="#does-not-reach-through-call-boundaries" class="l3" data-id="does-not-reach-through-call-boundaries">Does NOT reach through call boundaries</a><a href="#applies-to-qualified-dotted-names" class="l3" data-id="applies-to-qualified-dotted-names">Applies to qualified (dotted) names</a><a href="#works-inside-actor-receive-arms" class="l3" data-id="works-inside-actor-receive-arms">Works inside actor receive arms</a><a href="#local-bindings-are-always-visible" class="l3" data-id="local-bindings-are-always-visible">Local bindings are always visible</a><a href="#what-hide-is-not" class="l2" data-id="what-hide-is-not">What hide is NOT</a><a href="#what-hide-is-for" class="l2" data-id="what-hide-is-for">What hide IS for</a><a href="#errors" class="l2" data-id="errors">Errors</a><a href="#interaction-with-shadowing" class="l2" data-id="interaction-with-shadowing">Interaction with shadowing</a><a href="#minimal-reference-card" class="l2" data-id="minimal-reference-card">Minimal reference card</a><a href="#implementation-note" class="l2" data-id="implementation-note">Implementation note</a><a href="#q-do-we-now-have-a-solid-ioc-alternative-to-java-style-di" class="l2" data-id="q-do-we-now-have-a-solid-ioc-alternative-to-java-style-di">Q. Do we now have a solid IoC alternative to Java-style DI?</a><a href="#the-key-insight" class="l2" data-id="the-key-insight">The key insight</a><a href="#what-it-looks-like" class="l2" data-id="what-it-looks-like">What it looks like</a><a href="#what-you-give-up-vs-java" class="l2" data-id="what-you-give-up-vs-java">What you give up vs. Java</a><a href="#what-you-gain-over-java" class="l2" data-id="what-you-gain-over-java">What you GAIN over Java</a><a href="#what-itd-take-to-ship-in-contribtinyweb" class="l2" data-id="what-itd-take-to-ship-in-contribtinyweb">What it'd take to ship in contrib/tinyweb/</a><a href="#solid-alternative-verdict" class="l2" data-id="solid-alternative-verdict">Solid alternative, verdict</a><a href="#test-coverage-that-would-ship-with-the-implementation" class="l2" data-id="test-coverage-that-would-ship-with-the-implementation">Test coverage that would ship with the implementation</a></nav>
   </div>
 </div>
+<script src="/docs.js" defer></script>
 <footer class="site-foot">
   <div class="wrap foot">
     <span class="ae">ae</span>
-    <span class="m">MIT licensed · compiles to C · v0.454</span>
+    <span class="m">MIT licensed · compiles to C · v0.462</span>
     <nav><a href="/Docs/getting-started.html">Docs</a><a href="/repl.html">Playground</a><a href="https://github.com/aether-lang-org/aether">GitHub</a></nav>
   </div>
 </footer>

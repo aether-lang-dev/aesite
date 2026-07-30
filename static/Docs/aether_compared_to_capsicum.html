@@ -4,27 +4,38 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Aether Sandbox Model vs. BSD Capsicum: Architecture, Parallels, and FreeBSD Integration · Aether</title>
-<meta name="description" content="Aether Sandbox Model vs. BSD Capsicum: Architecture, Parallels, and FreeBSD Integration — Aether language documentation.">
+<meta name="description" content="Aether and BSD Capsicum are two fundamentally different approaches to capability-based sandboxing:">
+<link rel="canonical" href="https://aether-lang.dev/Docs/aether_compared_to_capsicum.html">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Aether Sandbox Model vs. BSD Capsicum: Architecture, Parallels, and FreeBSD Integration · Aether">
+<meta property="og:description" content="Aether and BSD Capsicum are two fundamentally different approaches to capability-based sandboxing:">
+<meta property="og:url" content="https://aether-lang.dev/Docs/aether_compared_to_capsicum.html">
+<meta property="og:image" content="https://aether-lang.dev/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="/favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/aether.css">
 </head>
 <body>
+<a class="skip" href="#doc">Skip to content</a>
 <header class="site-head">
   <div class="wrap bar">
     <a class="brand" href="/" aria-label="Aether"><span class="ae">ae</span><span class="nm">aether</span></a>
     <nav>
       <a href="/repl.html">Playground</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
-      <a href="https://github.com/aether-lang-org/aether">Source</a>
-      <span class="vtag">v0.454</span>
+      <a class="src" href="https://github.com/aether-lang-org/aether">Source</a>
+      <span class="vtag">v0.462</span>
     </nav>
   </div>
 </header>
 <div class="wrap">
   <div class="doc-shell">
-    <nav class="doc-nav"><div class="grp">Start</div>
+    <nav class="doc-nav" aria-label="Documentation">
+      <div class="docsearch"><input id="ds" type="search" placeholder="Search the docs" aria-label="Search documentation" autocomplete="off" spellcheck="false"><kbd>/</kbd><div class="ds-res" id="dsres" role="listbox"></div></div>
+<div class="grp">Start</div>
 <a href="/Docs/getting-started.html">Getting Started with Aether</a>
 <a href="/Docs/tutorial.html">Aether Language Tutorial</a>
 <a href="/Docs/next-steps.html">Next Steps</a>
@@ -34,7 +45,7 @@
 <a href="/Docs/type-annotation-style-guide.html">Aether Type Annotation Style Guide</a>
 <a href="/Docs/type-inference-multi-value-returns.html">Multi-Value Return Type Inference</a>
 <a href="/Docs/distinct-types.html">Distinct Types</a>
-<a href="/Docs/sequences.html">Sequences (`*StringSeq`)</a>
+<a href="/Docs/sequences.html">Sequences (*StringSeq)</a>
 <a href="/Docs/named-args-and-select.html">Named Arguments and select()</a>
 <a href="/Docs/closures-and-builder-dsl.html">Closures and Builder-Style DSL in Aether</a>
 <a href="/Docs/closures-and-lifetimes.html">Closures and Environment Lifetimes</a>
@@ -50,23 +61,23 @@
 <div class="grp">Interop</div>
 <a href="/Docs/c-interop.html">C Interoperability</a>
 <a href="/Docs/c-embedding.html">Embedding Aether Actors in C Applications</a>
-<a href="/Docs/emit-lib.html">Embedding Aether as a Shared Library (`--emit=lib`)</a>
+<a href="/Docs/emit-lib.html">Embedding Aether as a Shared Library (--emit=lib)</a>
 <a href="/Docs/embedded-namespaces-and-host-bindings.html">Aether as a Configuration Language, v2: Namespaces and Generated Bindings</a>
 <a href="/Docs/aether-embedded-in-host-applications.html">Aether as a Configuration Language for Other Languages</a>
-<a href="/Docs/lib-caller-info.html">`--emit=lib` caller-info channel</a>
+<a href="/Docs/lib-caller-info.html">--emit=lib caller-info channel</a>
 <div class="grp">Stdlib</div>
 <a href="/Docs/stdlib-reference.html">Aether Standard Library Reference</a>
 <a href="/Docs/stdlib-api.html">Aether Standard Library Guide</a>
 <a href="/Docs/stdlib-module-pattern.html">Aether Stdlib Module Pattern</a>
-<a href="/Docs/stdlib-vs-contrib.html">`std/` vs `contrib/` placement decisions</a>
-<a href="/Docs/http-server.html">`std.http` HTTP Server</a>
-<a href="/Docs/http-reverse-proxy.html">`std.http.proxy` reverse proxy</a>
+<a href="/Docs/stdlib-vs-contrib.html">std/ vs contrib/ placement decisions</a>
+<a href="/Docs/http-server.html">std.http HTTP Server</a>
+<a href="/Docs/http-reverse-proxy.html">std.http.proxy reverse proxy</a>
 <a href="/Docs/http-handler-context.html">HTTP handlers with per-server / per-route state</a>
 <a href="/Docs/http-vcr.html">HTTP Record/Replay (VCR), moved out of Aether</a>
-<a href="/Docs/json-parser-design.html">`std.json` Design Notes</a>
+<a href="/Docs/json-parser-design.html">std.json Design Notes</a>
 <div class="grp">Safety</div>
 <a href="/Docs/containment-sandbox.html">Containment and Sandboxing in Aether</a>
-<a href="/Docs/hide-and-seal.html">`hide` and `seal except` scope-level capability denial</a>
+<a href="/Docs/hide-and-seal.html">hide and seal except scope-level capability denial</a>
 <a href="/Docs/compiler-trust-boundary.html">The Compiler Trust Boundary</a>
 <a href="/Docs/config-is-code.html">Config IS Code</a>
 <a href="/Docs/aether_compared_to_capsicum.html" class="on">Aether Sandbox Model vs. BSD Capsicum: Architecture, Parallels, and FreeBSD Integration</a>
@@ -76,207 +87,207 @@
 <a href="/Docs/install-layout.html">Aether install layout</a>
 <a href="/Docs/runtime-config.html">Runtime Configuration - Quick Reference</a>
 <a href="/Docs/per-process-config.html">Per-process configuration in Aether</a>
-<a href="/Docs/cic-help.html">`ae help &lt;script&gt;` Offline diagnostics for config-IS-code</a>
+<a href="/Docs/cic-help.html">ae help &lt;script&gt; Offline diagnostics for config-IS-code</a>
 <div class="grp">More</div>
-<a href="/Docs/bindgen-consts.html">`ae bindgen consts`, importing C macro constants</a>
-<a href="/Docs/formatter.html">`ae fmt`, the source formatter</a>
-<a href="/Docs/isolated.html">`Isolated[T]`: move-only actor message payloads (#479)</a>
-<a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
-<a href="/Docs/profiling-guide.html">Aether Runtime Profiling Guide</a>
 <a href="/Docs/allocators.html">Allocators</a>
-<a href="/Docs/when-static-if.html">Compile-time `when` / static-if</a>
+<a href="/Docs/bindgen-consts.html">ae bindgen consts, importing C macro constants</a>
 <a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
 <a href="/Docs/contract-folding.html">Compile-time contract folding — costed design</a>
-<a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn&#x27;t need `macro_rules!`</a>
+<a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn't need macro_rules!</a>
+<a href="/Docs/error-unification.html">Unifying T? and (value, err) — costed design</a>
+<a href="/Docs/formatter.html">ae fmt, the source formatter</a>
+<a href="/Docs/isolated.html">Isolated[T]: move-only actor message payloads (#479)</a>
+<a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
+<a href="/Docs/profiling-guide.html">Aether Runtime Profiling Guide</a>
 <a href="/Docs/release-glibc-portability.html">Release binary portability across glibc versions</a>
-<a href="/Docs/error-unification.html">Unifying `T?` and `(value, err)` — costed design</a></nav>
+<a href="/Docs/when-static-if.html">Compile-time when / static-if</a></nav>
     <main class="doc-main">
-      <article class="doc-body">
-        <div class="bc">docs / safety</div>
-<h1>Aether Sandbox Model vs. BSD Capsicum: Architecture, Parallels, and FreeBSD Integration</h1>
-<h2>Executive Summary</h2>
+      <article class="doc-body" id="doc">
+        <div class="bc"><span class="prompt">$</span>docs / safety</div>
+<h1 id="aether-sandbox-model-vs-bsd-capsicum-architecture-parallels-and-freebsd-integration">Aether Sandbox Model vs. BSD Capsicum: Architecture, Parallels, and FreeBSD Integration</h1>
+<h2 id="executive-summary">Executive Summary</h2>
 <p>Aether and BSD Capsicum are two fundamentally different approaches to capability-based sandboxing:</p>
 <ul><li><strong>Capsicum</strong> is an OS-level security framework (FreeBSD kernel + POSIX extensions) that restricts processes via file descriptor capabilities and capability mode.</li><li><strong>Aether</strong> is a language-level sandbox model (implemented in the compiler and runtime) that uses closures, permission contexts, and scope hygiene to restrict what code can access.</li></ul>
-<p>Despite the difference in scope (OS vs. language), Aether&#x27;s closure-based isolation and permission hierarchy are <strong>conceptually aligned with Capsicum&#x27;s principles</strong>. This document explores the parallels, gaps, and opportunities for Aether on FreeBSD, including the possibility of an Aether runtime that leverages Capsicum for OS-enforced containment of sandboxed actors.</p>
-<blockquote><strong>Status (current):</strong><br>- Aether&#x27;s existing runtime sandbox, the <code>libaether_sandbox.so</code><br>LD_PRELOAD layer and <code>spawn_sandboxed</code> builds and runs on FreeBSD<br>at parity with Linux.<br>- <strong>Phase 1 done:</strong> the <code>std.capsicum</code> module (Part 3.2) gives<br>hand-written Aether code direct access to <code>cap_enter</code> /<br><code>cap_rights_limit</code> / <code>cap_fcntls_limit</code>.<br>- <strong>Phase 2 done:</strong> an Aether process can self-sandbox at startup via<br><code>AETHER_CAPSICUM=1</code>, and <code>spawn_sandboxed</code> sets that for its<br>children, so a spawned Aether child gets kernel-enforced Capsicum<br>containment transparently. The originally-planned &quot;parent<br><code>cap_enter</code>s the child&quot; model turned out to be impossible for<br>dynamic binaries; Part 3.2 records why and what shipped instead.<br>- <strong>Phase 3 done:</strong> the in-process permission layer has an audit<br>trail, a live <code>AETHER_SANDBOX_AUDIT</code> sink and a queryable<br><code>std.audit</code> ring buffer.<br>- <strong>Casper delegation done:</strong> <code>std.casper</code> binds the DNS, passwd and<br>sysctl Casper services, so a capability-mode process can still<br>resolve hostnames and read sysctls via the casper daemon.<br>- Still ahead: jail/RCTL integration (a separate, sysadmin-facing<br>axis) and wiring the grant list into pre-opened<br><code>cap_rights_limit</code>&#x27;d fds.</blockquote>
+<p>Despite the difference in scope (OS vs. language), Aether's closure-based isolation and permission hierarchy are <strong>conceptually aligned with Capsicum's principles</strong>. This document explores the parallels, gaps, and opportunities for Aether on FreeBSD, including the possibility of an Aether runtime that leverages Capsicum for OS-enforced containment of sandboxed actors.</p>
+<blockquote><strong>Status (current):</strong> - Aether's existing runtime sandbox, the <code>libaether_sandbox.so</code> LD_PRELOAD layer and <code>spawn_sandboxed</code> builds and runs on FreeBSD at parity with Linux. - <strong>Phase 1 done:</strong> the <code>std.capsicum</code> module (Part 3.2) gives hand-written Aether code direct access to <code>cap_enter</code> / <code>cap_rights_limit</code> / <code>cap_fcntls_limit</code>. - <strong>Phase 2 done:</strong> an Aether process can self-sandbox at startup via <code>AETHER_CAPSICUM=1</code>, and <code>spawn_sandboxed</code> sets that for its children, so a spawned Aether child gets kernel-enforced Capsicum containment transparently. The originally-planned "parent <code>cap_enter</code>s the child" model turned out to be impossible for dynamic binaries; Part 3.2 records why and what shipped instead. - <strong>Phase 3 done:</strong> the in-process permission layer has an audit trail, a live <code>AETHER_SANDBOX_AUDIT</code> sink and a queryable <code>std.audit</code> ring buffer. - <strong>Casper delegation done:</strong> <code>std.casper</code> binds the DNS, passwd and sysctl Casper services, so a capability-mode process can still resolve hostnames and read sysctls via the casper daemon. - Still ahead: jail/RCTL integration (a separate, sysadmin-facing axis) and wiring the grant list into pre-opened <code>cap_rights_limit</code>'d fds.</blockquote>
 <hr>
-<h2>Part 1: Sandbox Models Compared</h2>
-<h3>1.1 Capsicum: OS-Level Capability Restrictions</h3>
-<h4>Design Principles</h4>
+<h2 id="part-1-sandbox-models-compared">Part 1: Sandbox Models Compared</h2>
+<h3 id="11-capsicum-os-level-capability-restrictions">1.1 Capsicum: OS-Level Capability Restrictions</h3>
+<h4 id="design-principles">Design Principles</h4>
 <p>Capsicum extends the POSIX API with capability-based security primitives. The key insight: <strong>treat file descriptors as capabilities</strong> with fine-grained rights.</p>
 <p><strong>Core concepts:</strong></p>
-<table><thead><tr><th>Concept</th><th>Meaning</th></tr></thead><tbody><tr><td><strong>Capability</strong></td><td>A file descriptor with restricted rights (e.g., read-only, seek-only, ioctl-restricted)</td></tr><tr><td><strong>Capability mode</strong></td><td>A process state where global namespace access is denied; all I/O must derive from passed-in fds</td></tr><tr><td><strong>Capability rights</strong></td><td>Bitmask of allowed operations (CAP_READ, CAP_WRITE, CAP_SEEK, CAP_IOCTL, CAP_FCNTL, etc.)</td></tr><tr><td><strong>Process descriptor</strong></td><td>A handle to another process; can be used to query its state or revoke its capabilities</td></tr><tr><td><strong>Casper daemon</strong></td><td>A privileged service that sandboxed processes delegate to (e.g., for DNS, syslog)</td></tr></tbody></table>
-<h4>How Capsicum Works</h4>
-<ol><li><strong>Start privileged</strong>, A process begins with all capabilities (or a default set).</li><li><strong>Enter capability mode</strong>, Call <code>cap_enter()</code>. This is <strong>irreversible</strong>; the process can never access global namespaces again.</li><li><strong>Restrict file descriptors</strong>, Use <code>cap_rights_limit(fd, rights)</code> to reduce a fd&#x27;s rights. This restriction is <strong>hereditary</strong>, child processes inherit the restricted fds.</li><li><strong>Delegate via fd-passing</strong>, Pass restricted fds to other processes via IPC. They get only the rights you granted.</li><li><strong>Fail securely</strong>, Attempts to access denied resources fail with ENOTCAPABLE (a new errno).</li></ol>
-<h4>Example: tcpdump under Capsicum</h4>
-<pre><code>// Original tcpdump runs privileged, has access to everything
-int main() {
-    // ... capture packets, write to file ...
+<div class="tw"><table><thead><tr><th>Concept</th><th>Meaning</th></tr></thead><tbody><tr><td><strong>Capability</strong></td><td>A file descriptor with restricted rights (e.g., read-only, seek-only, ioctl-restricted)</td></tr><tr><td><strong>Capability mode</strong></td><td>A process state where global namespace access is denied; all I/O must derive from passed-in fds</td></tr><tr><td><strong>Capability rights</strong></td><td>Bitmask of allowed operations (CAP_READ, CAP_WRITE, CAP_SEEK, CAP_IOCTL, CAP_FCNTL, etc.)</td></tr><tr><td><strong>Process descriptor</strong></td><td>A handle to another process; can be used to query its state or revoke its capabilities</td></tr><tr><td><strong>Casper daemon</strong></td><td>A privileged service that sandboxed processes delegate to (e.g., for DNS, syslog)</td></tr></tbody></table></div>
+<h4 id="how-capsicum-works">How Capsicum Works</h4>
+<ol><li><strong>Start privileged</strong>, A process begins with all capabilities (or a default set).</li><li><strong>Enter capability mode</strong>, Call <code>cap_enter()</code>. This is <strong>irreversible</strong>; the process can never access global namespaces again.</li><li><strong>Restrict file descriptors</strong>, Use <code>cap_rights_limit(fd, rights)</code> to reduce a fd's rights. This restriction is <strong>hereditary</strong>, child processes inherit the restricted fds.</li><li><strong>Delegate via fd-passing</strong>, Pass restricted fds to other processes via IPC. They get only the rights you granted.</li><li><strong>Fail securely</strong>, Attempts to access denied resources fail with ENOTCAPABLE (a new errno).</li></ol>
+<h4 id="example-tcpdump-under-capsicum">Example: tcpdump under Capsicum</h4>
+<pre><code><span class="com">// Original tcpdump runs privileged, has access to everything</span>
+<span class="kw">int</span> main() {
+    <span class="com">// ... capture packets, write to file ...</span>
 }
 
-// Capsicum version: restrict early
-int main() {
-    // Open packet device and output file while privileged
-    int pcap_fd = open_live(...);
-    int out_fd = open(&quot;capture.pcap&quot;, O_WRONLY | O_CREAT);
+<span class="com">// Capsicum version: restrict early</span>
+<span class="kw">int</span> main() {
+    <span class="com">// Open packet device and output file while privileged</span>
+    <span class="kw">int</span> pcap_fd = open_live(...);
+    <span class="kw">int</span> out_fd = open(<span class="str">"capture.pcap"</span>, O_WRONLY | O_CREAT);
     
-    // Restrict both fds to their needed rights
+    <span class="com">// Restrict both fds to their needed rights</span>
     cap_rights_init(&amp;rights, CAP_READ);
     cap_rights_limit(pcap_fd, &amp;rights);
     
     cap_rights_init(&amp;rights, CAP_WRITE);
     cap_rights_limit(out_fd, &amp;rights);
     
-    // Enter capability mode, can no longer open new files or access global state
+    <span class="com">// Enter capability mode, can no longer open new files or access global state</span>
     cap_enter();
     
-    // Now run the packet capture loop with only pcap_fd and out_fd
-    // ... capture packets, write to out_fd ...
+    <span class="com">// Now run the packet capture loop with only pcap_fd and out_fd</span>
+    <span class="com">// ... capture packets, write to out_fd ...</span>
     
-    return 0;
+    <span class="kw">return</span> <span class="num">0</span>;
 }</code></pre>
 <p><strong>Key property:</strong> Even if tcpdump is compromised, it cannot:</p>
 <ul><li>Open new files (no access to <code>open()</code>)</li><li>Bind to ports (no <code>socket()</code>)</li><li>Execute commands (no <code>execve()</code>)</li><li>Access network beyond the pcap fd</li></ul>
-<h4>Capsicum in Practice</h4>
+<h4 id="capsicum-in-practice">Capsicum in Practice</h4>
 <p><strong>Real-world Capsicum users:</strong></p>
 <ul><li>tcpdump, dhclient, hastd, kdump, rwhod, ctld, iscsid (FreeBSD base system)</li><li>Chromium sandboxing (with Google collaboration)</li><li>Firefox (experimental)</li><li>PostgreSQL (libpq sandboxing proposal)</li></ul>
-<p><strong>Why it&#x27;s effective:</strong></p>
+<p><strong>Why it's effective:</strong></p>
 <ol><li>OS-enforced, kernel checks rights on every system call</li><li>Fail-safe, denied operations return ENOTCAPABLE, not a silent failure</li><li>No performance overhead for allowed operations</li><li>Composable, can chain restricted fds arbitrarily deep</li><li>Casper daemon pattern, delegates privilege to a trusted service</li></ol>
 <hr>
-<h3>1.2 Aether: Language-Level Scope-Based Isolation</h3>
-<h4>Design Principles</h4>
-<p>Aether&#x27;s sandbox model uses <strong>three language features</strong> to achieve isolation:</p>
+<h3 id="12-aether-language-level-scope-based-isolation">1.2 Aether: Language-Level Scope-Based Isolation</h3>
+<h4 id="design-principles">Design Principles</h4>
+<p>Aether's sandbox model uses <strong>three language features</strong> to achieve isolation:</p>
 <ol><li><strong>Closures</strong>, hoisted functions that cannot reach parent locals unless explicitly passed</li><li><strong>Permission contexts</strong>, a data structure (list/map) representing granted capabilities</li><li><strong>Scope hygiene</strong>, <code>hide</code> and <code>seal except</code> declarations that prevent name lookup in outer scopes</li></ol>
 <p><strong>Core concepts:</strong></p>
-<table><thead><tr><th>Concept</th><th>Meaning</th></tr></thead><tbody><tr><td><strong>Closure</strong></td><td>A function value that captures a subset of variables; hoisted away from its declaration scope</td></tr><tr><td><strong>Permission context</strong></td><td>A list/map of (category, resource_pattern) tuples representing what a scope can do</td></tr><tr><td><strong>Permission category</strong></td><td>A string like &quot;tcp&quot;, &quot;fs_read&quot;, &quot;fs_write&quot;, &quot;exec&quot;, &quot;env&quot;</td></tr><tr><td><strong>Resource pattern</strong></td><td>A glob or exact match for a resource (e.g., &quot;db.internal:5432&quot;, &quot;/tmp/*&quot;)</td></tr><tr><td><strong>Hide</strong></td><td>A declaration that the enclosing scope cannot see names from outer scopes</td></tr><tr><td><strong>Seal except</strong></td><td>A declaration that the enclosing scope cannot see names except the ones listed</td></tr><tr><td><strong>Containment principle</strong></td><td>The container can see the contained, but the contained cannot reach the container</td></tr></tbody></table>
-<h4>How Aether&#x27;s Sandbox Works</h4>
-<ol><li><strong>Create a permissions context</strong>, Allocate a list to hold permission tuples.</li><li><strong>Grant permissions</strong>, Call <code>grant_tcp(ctx, &quot;host&quot;, port)</code>, <code>grant_fs_read(ctx, path)</code>, etc.</li><li><strong>Wrap code in a closure</strong>, The sandboxed code is a closure that receives the context as its only input.</li><li><strong>Run contained code</strong>, Call <code>call(closure, ctx)</code>. The closure cannot reach parent locals.</li><li><strong>Check permissions</strong>, Sandboxed code calls <code>sandboxed_tcp_connect(ctx, host, port)</code> which checks the context before operating.</li><li><strong>Fail gracefully</strong>, Permission check fails, returns 0 (or throws, depending on implementation).</li></ol>
-<h4>Example: Aether Sandboxed Worker</h4>
-<pre><code>import std.list
+<div class="tw"><table><thead><tr><th>Concept</th><th>Meaning</th></tr></thead><tbody><tr><td><strong>Closure</strong></td><td>A function value that captures a subset of variables; hoisted away from its declaration scope</td></tr><tr><td><strong>Permission context</strong></td><td>A list/map of (category, resource_pattern) tuples representing what a scope can do</td></tr><tr><td><strong>Permission category</strong></td><td>A string like "tcp", "fs_read", "fs_write", "exec", "env"</td></tr><tr><td><strong>Resource pattern</strong></td><td>A glob or exact match for a resource (e.g., "db.internal:5432", "/tmp/*")</td></tr><tr><td><strong>Hide</strong></td><td>A declaration that the enclosing scope cannot see names from outer scopes</td></tr><tr><td><strong>Seal except</strong></td><td>A declaration that the enclosing scope cannot see names except the ones listed</td></tr><tr><td><strong>Containment principle</strong></td><td>The container can see the contained, but the contained cannot reach the container</td></tr></tbody></table></div>
+<h4 id="how-aethers-sandbox-works">How Aether's Sandbox Works</h4>
+<ol><li><strong>Create a permissions context</strong>, Allocate a list to hold permission tuples.</li><li><strong>Grant permissions</strong>, Call <code>grant_tcp(ctx, "host", port)</code>, <code>grant_fs_read(ctx, path)</code>, etc.</li><li><strong>Wrap code in a closure</strong>, The sandboxed code is a closure that receives the context as its only input.</li><li><strong>Run contained code</strong>, Call <code>call(closure, ctx)</code>. The closure cannot reach parent locals.</li><li><strong>Check permissions</strong>, Sandboxed code calls <code>sandboxed_tcp_connect(ctx, host, port)</code> which checks the context before operating.</li><li><strong>Fail gracefully</strong>, Permission check fails, returns 0 (or throws, depending on implementation).</li></ol>
+<h4 id="example-aether-sandboxed-worker">Example: Aether Sandboxed Worker</h4>
+<pre><code><span class="kw">import</span> std.list
 
-// Permission check
-check_permission(perms: ptr, category: string, resource: string) {
+<span class="com">// Permission check</span>
+check_permission(perms: <span class="fn">ptr</span>, category: <span class="fn">string</span>, resource: <span class="fn">string</span>) {
     n = list.size(perms)
-    for (i = 0; i &lt; n; i = i + 2) {
+    <span class="kw">for</span> (i = <span class="num">0</span>; i &lt; n; i = i + <span class="num">2</span>) {
         cat, _ = list.get(perms, i)
-        pat, _ = list.get(perms, i + 1)
-        if str_eq(cat, &quot;*&quot;) == 1 &amp;&amp; str_eq(pat, &quot;*&quot;) == 1 { return 1 }
-        if str_eq(cat, category) == 1 {
-            if str_eq(pat, &quot;*&quot;) == 1 { return 1 }
-            if str_eq(pat, resource) == 1 { return 1 }
+        pat, _ = list.get(perms, i + <span class="num">1</span>)
+        <span class="kw">if</span> str_eq(cat, <span class="str">"*"</span>) == <span class="num">1</span> &amp;&amp; str_eq(pat, <span class="str">"*"</span>) == <span class="num">1</span> { <span class="kw">return</span> <span class="num">1</span> }
+        <span class="kw">if</span> str_eq(cat, category) == <span class="num">1</span> {
+            <span class="kw">if</span> str_eq(pat, <span class="str">"*"</span>) == <span class="num">1</span> { <span class="kw">return</span> <span class="num">1</span> }
+            <span class="kw">if</span> str_eq(pat, resource) == <span class="num">1</span> { <span class="kw">return</span> <span class="num">1</span> }
         }
     }
-    return 0
+    <span class="kw">return</span> <span class="num">0</span>
 }
 
-// Sandboxed operation wrapper
-sandboxed_tcp_connect(perms: ptr, host: string, port: int) {
-    if check_permission(perms, &quot;tcp&quot;, host) == 1 {
-        // Real code: tcp.connect(host, port)
-        return 1
+<span class="com">// Sandboxed operation wrapper</span>
+sandboxed_tcp_connect(perms: <span class="fn">ptr</span>, host: <span class="fn">string</span>, port: <span class="fn">int</span>) {
+    <span class="kw">if</span> check_permission(perms, <span class="str">"tcp"</span>, host) == <span class="num">1</span> {
+        <span class="com">// Real code: tcp.connect(host, port)</span>
+        <span class="kw">return</span> <span class="num">1</span>
     }
-    return 0  // Denied
+    <span class="kw">return</span> <span class="num">0</span>  <span class="com">// Denied</span>
 }
 
-// Create, grant permissions, and run the contained code
+<span class="com">// Create, grant permissions, and run the contained code</span>
 main() {
     db_worker = list.new()
-    list.add(db_worker, &quot;tcp&quot;)
-    list.add(db_worker, &quot;db.internal&quot;)
+    list.add(db_worker, <span class="str">"tcp"</span>)
+    list.add(db_worker, <span class="str">"db.internal"</span>)
 
-    // Contained code as a closure. Closures bind inside a function body,
-    // and the captured param is typed so the list passes as a ptr.
-    worker_code = |perms: ptr| {
-        if sandboxed_tcp_connect(perms, &quot;db.internal&quot;, 5432) == 1 {
-            println(&quot;Connected to DB&quot;)
-        } else {
-            println(&quot;Connection denied&quot;)
+    <span class="com">// Contained code as a closure. Closures bind inside a function body,</span>
+    <span class="com">// and the captured param is typed so the list passes as a ptr.</span>
+    worker_code = |perms: <span class="fn">ptr</span>| {
+        <span class="kw">if</span> sandboxed_tcp_connect(perms, <span class="str">"db.internal"</span>, <span class="num">5432</span>) == <span class="num">1</span> {
+            println(<span class="str">"Connected to DB"</span>)
+        } <span class="kw">else</span> {
+            println(<span class="str">"Connection denied"</span>)
         }
     }
 
-    // Run the closure with the restricted context
+    <span class="com">// Run the closure with the restricted context</span>
     call(worker_code, db_worker)
 
-    // worker_code cannot access globals, files, or anything else
-    // It can only do what the permissions context allows
+    <span class="com">// worker_code cannot access globals, files, or anything else</span>
+    <span class="com">// It can only do what the permissions context allows</span>
 }</code></pre>
 <p><strong>Key properties:</strong></p>
-<ol><li><strong>Language-enforced</strong>, The compiler ensures closures can&#x27;t reach parent locals.</li><li><strong>Type-safe</strong>, Closure signatures are checked at compile time.</li><li><strong>Transparent</strong>, Permission checks are just function calls; can be optimized away for fully-trusted code.</li><li><strong>Composable</strong>, Actors can nest, each with its own permission context.</li><li><strong>Portable</strong>, Works on any OS; no OS-specific APIs needed.</li></ol>
+<ol><li><strong>Language-enforced</strong>, The compiler ensures closures can't reach parent locals.</li><li><strong>Type-safe</strong>, Closure signatures are checked at compile time.</li><li><strong>Transparent</strong>, Permission checks are just function calls; can be optimized away for fully-trusted code.</li><li><strong>Composable</strong>, Actors can nest, each with its own permission context.</li><li><strong>Portable</strong>, Works on any OS; no OS-specific APIs needed.</li></ol>
 <hr>
-<h3>1.3 Side-by-Side Comparison</h3>
-<table><thead><tr><th>Aspect</th><th>Capsicum</th><th>Aether</th></tr></thead><tbody><tr><td><strong>Enforcement layer</strong></td><td>OS kernel (syscall-level)</td><td>Language runtime (function-call level)</td></tr><tr><td><strong>Isolation mechanism</strong></td><td>File descriptor restrictions + capability mode</td><td>Closure scope + permission lists</td></tr><tr><td><strong>Granularity</strong></td><td>Per-fd rights (CAP_READ, CAP_WRITE, etc.)</td><td>Per-category patterns (tcp, fs_read, etc.)</td></tr><tr><td><strong>Revocation</strong></td><td>Implicit (close the fd)</td><td>Implicit (actor dies, context goes away)</td></tr><tr><td><strong>Nested restrictions</strong></td><td>Process forking; each child inherits restricted fds</td><td>Lexical nesting; each closure inherits parent&#x27;s context</td></tr><tr><td><strong>Overhead</strong></td><td>Zero for allowed ops; syscall overhead for denied ops</td><td>Function-call overhead for permission checks</td></tr><tr><td><strong>Failure mode</strong></td><td>ENOTCAPABLE errno</td><td>Return code / exception (language-defined)</td></tr><tr><td><strong>OS coupling</strong></td><td>Tightly coupled to FreeBSD/POSIX</td><td>OS-agnostic</td></tr><tr><td><strong>Privilege separation</strong></td><td>Casper daemon (separate process)</td><td>Actor delegation (same actor model)</td></tr><tr><td><strong>Audit trail</strong></td><td>Not built-in; requires additional instrumentation</td><td>Not built-in; requires explicit logging</td></tr></tbody></table>
+<h3 id="13-side-by-side-comparison">1.3 Side-by-Side Comparison</h3>
+<div class="tw"><table><thead><tr><th>Aspect</th><th>Capsicum</th><th>Aether</th></tr></thead><tbody><tr><td><strong>Enforcement layer</strong></td><td>OS kernel (syscall-level)</td><td>Language runtime (function-call level)</td></tr><tr><td><strong>Isolation mechanism</strong></td><td>File descriptor restrictions + capability mode</td><td>Closure scope + permission lists</td></tr><tr><td><strong>Granularity</strong></td><td>Per-fd rights (CAP_READ, CAP_WRITE, etc.)</td><td>Per-category patterns (tcp, fs_read, etc.)</td></tr><tr><td><strong>Revocation</strong></td><td>Implicit (close the fd)</td><td>Implicit (actor dies, context goes away)</td></tr><tr><td><strong>Nested restrictions</strong></td><td>Process forking; each child inherits restricted fds</td><td>Lexical nesting; each closure inherits parent's context</td></tr><tr><td><strong>Overhead</strong></td><td>Zero for allowed ops; syscall overhead for denied ops</td><td>Function-call overhead for permission checks</td></tr><tr><td><strong>Failure mode</strong></td><td>ENOTCAPABLE errno</td><td>Return code / exception (language-defined)</td></tr><tr><td><strong>OS coupling</strong></td><td>Tightly coupled to FreeBSD/POSIX</td><td>OS-agnostic</td></tr><tr><td><strong>Privilege separation</strong></td><td>Casper daemon (separate process)</td><td>Actor delegation (same actor model)</td></tr><tr><td><strong>Audit trail</strong></td><td>Not built-in; requires additional instrumentation</td><td>Not built-in; requires explicit logging</td></tr></tbody></table></div>
 <hr>
-<h2>Part 1.4 Closing the Gap: What LD_PRELOAD Needs to Match Capsicum on Linux</h2>
-<h4>Current LD_PRELOAD Capabilities</h4>
-<p>Aether&#x27;s LD_PRELOAD layer (<code>libaether_sandbox_preload.so</code>) currently intercepts:</p>
-<table><thead><tr><th>Category</th><th>Syscalls Intercepted</th><th>Status</th></tr></thead><tbody><tr><td><strong>File I/O (read)</strong></td><td><code>open()</code>, <code>openat()</code>, <code>open64()</code>, <code>openat64()</code>, <code>fopen()</code>, <code>fopen64()</code></td><td>✓ Full</td></tr><tr><td><strong>File I/O (write)</strong></td><td>Same as above with write-flag detection</td><td>✓ Full</td></tr><tr><td><strong>TCP outbound</strong></td><td><code>connect()</code> (IPv4, IPv6 with normalization)</td><td>✓ Full</td></tr><tr><td><strong>TCP inbound</strong></td><td><code>bind()</code>, <code>listen()</code>, <code>accept()</code>, <code>accept4()</code></td><td>✓ Full</td></tr><tr><td><strong>Process control</strong></td><td><code>fork()</code>, <code>vfork()</code>, <code>clone3()</code></td><td>✓ Full</td></tr><tr><td><strong>Program execution</strong></td><td><code>execve()</code></td><td>✓ Full</td></tr><tr><td><strong>Environment</strong></td><td><code>getenv()</code></td><td>✓ Full</td></tr></tbody></table>
-<h4>Current Limitations vs. Capsicum</h4>
-<table><thead><tr><th>Gap</th><th>Capsicum</th><th>LD_PRELOAD</th><th>Impact</th></tr></thead><tbody><tr><td><strong>stat/access bypass</strong></td><td>Blocked by kernel</td><td>Not intercepted (glibc inlines as asm)</td><td>Can stat() files without permission check</td></tr><tr><td><strong>Metadata access</strong></td><td>CAP_FSTAT denied</td><td>Uncontrolled</td><td>Can learn file size, permissions, inode</td></tr><tr><td><strong>Memory protection</strong></td><td>CAP_MMAP denied</td><td>Not intercepted</td><td>Can mmap() arbitrary files</td></tr><tr><td><strong>Irreversible isolation</strong></td><td><code>cap_enter()</code> is irreversible</td><td>Sandboxing can be disabled (LD_PRELOAD unloaded at runtime)</td><td>No guarantee against circumvention</td></tr><tr><td><strong>File descriptor leaks</strong></td><td>Only passed fds exist</td><td>All inherited fds remain open</td><td>Inherited sockets, files still accessible</td></tr><tr><td><strong>Signal handling</strong></td><td>CAP_SIGNAL restricted</td><td>Not intercepted</td><td>Can send signals outside sandbox</td></tr><tr><td><strong>Device access</strong></td><td>All /dev/* access denied</td><td>Only open() is checked</td><td>Can access /dev/zero, /dev/random</td></tr><tr><td><strong>Socket options</strong></td><td>CAP_SETSOCKOPT denied</td><td>Not intercepted</td><td>Can set socket options (SO_REUSEADDR, etc.)</td></tr><tr><td><strong>Resource limits</strong></td><td>CAP_FCNTL denied</td><td>Not intercepted</td><td>Unlimited file descriptors, etc.</td></tr><tr><td><strong>ptrace() access</strong></td><td>Not permitted</td><td>Not intercepted</td><td>Can ptrace() sibling processes</td></tr><tr><td><strong>Process accounting</strong></td><td>Hidden from sandboxed process</td><td>Still visible in /proc</td><td>Can enumerate other processes</td></tr></tbody></table>
-<h4>What LD_PRELOAD Would Need</h4>
-<p>To match Capsicum&#x27;s <strong>bulletproof guarantee</strong>, LD_PRELOAD would need:</p>
-<h5>1. <strong>Kernel Collaboration (Most Critical)</strong></h5>
-<p>Capsicum&#x27;s strength comes from the <strong>kernel enforcing restrictions</strong>. LD_PRELOAD cannot match this without kernel support:</p>
-<pre><code>// Capsicum: irreversible, kernel-enforced
-cap_enter();  // No code can ever undo this
+<h2 id="part-14-closing-the-gap-what-ld_preload-needs-to-match-capsicum-on-linux">Part 1.4 Closing the Gap: What LD_PRELOAD Needs to Match Capsicum on Linux</h2>
+<h4 id="current-ld_preload-capabilities">Current LD_PRELOAD Capabilities</h4>
+<p>Aether's LD_PRELOAD layer (<code>libaether_sandbox_preload.so</code>) currently intercepts:</p>
+<div class="tw"><table><thead><tr><th>Category</th><th>Syscalls Intercepted</th><th>Status</th></tr></thead><tbody><tr><td><strong>File I/O (read)</strong></td><td><code>open()</code>, <code>openat()</code>, <code>open64()</code>, <code>openat64()</code>, <code>fopen()</code>, <code>fopen64()</code></td><td>✓ Full</td></tr><tr><td><strong>File I/O (write)</strong></td><td>Same as above with write-flag detection</td><td>✓ Full</td></tr><tr><td><strong>TCP outbound</strong></td><td><code>connect()</code> (IPv4, IPv6 with normalization)</td><td>✓ Full</td></tr><tr><td><strong>TCP inbound</strong></td><td><code>bind()</code>, <code>listen()</code>, <code>accept()</code>, <code>accept4()</code></td><td>✓ Full</td></tr><tr><td><strong>Process control</strong></td><td><code>fork()</code>, <code>vfork()</code>, <code>clone3()</code></td><td>✓ Full</td></tr><tr><td><strong>Program execution</strong></td><td><code>execve()</code></td><td>✓ Full</td></tr><tr><td><strong>Environment</strong></td><td><code>getenv()</code></td><td>✓ Full</td></tr></tbody></table></div>
+<h4 id="current-limitations-vs-capsicum">Current Limitations vs. Capsicum</h4>
+<div class="tw"><table><thead><tr><th>Gap</th><th>Capsicum</th><th>LD_PRELOAD</th><th>Impact</th></tr></thead><tbody><tr><td><strong>stat/access bypass</strong></td><td>Blocked by kernel</td><td>Not intercepted (glibc inlines as asm)</td><td>Can stat() files without permission check</td></tr><tr><td><strong>Metadata access</strong></td><td>CAP_FSTAT denied</td><td>Uncontrolled</td><td>Can learn file size, permissions, inode</td></tr><tr><td><strong>Memory protection</strong></td><td>CAP_MMAP denied</td><td>Not intercepted</td><td>Can mmap() arbitrary files</td></tr><tr><td><strong>Irreversible isolation</strong></td><td><code>cap_enter()</code> is irreversible</td><td>Sandboxing can be disabled (LD_PRELOAD unloaded at runtime)</td><td>No guarantee against circumvention</td></tr><tr><td><strong>File descriptor leaks</strong></td><td>Only passed fds exist</td><td>All inherited fds remain open</td><td>Inherited sockets, files still accessible</td></tr><tr><td><strong>Signal handling</strong></td><td>CAP_SIGNAL restricted</td><td>Not intercepted</td><td>Can send signals outside sandbox</td></tr><tr><td><strong>Device access</strong></td><td>All /dev/* access denied</td><td>Only open() is checked</td><td>Can access /dev/zero, /dev/random</td></tr><tr><td><strong>Socket options</strong></td><td>CAP_SETSOCKOPT denied</td><td>Not intercepted</td><td>Can set socket options (SO_REUSEADDR, etc.)</td></tr><tr><td><strong>Resource limits</strong></td><td>CAP_FCNTL denied</td><td>Not intercepted</td><td>Unlimited file descriptors, etc.</td></tr><tr><td><strong>ptrace() access</strong></td><td>Not permitted</td><td>Not intercepted</td><td>Can ptrace() sibling processes</td></tr><tr><td><strong>Process accounting</strong></td><td>Hidden from sandboxed process</td><td>Still visible in /proc</td><td>Can enumerate other processes</td></tr></tbody></table></div>
+<h4 id="what-ld_preload-would-need">What LD_PRELOAD Would Need</h4>
+<p>To match Capsicum's <strong>bulletproof guarantee</strong>, LD_PRELOAD would need:</p>
+<h5 id="1-kernel-collaboration-most-critical">1. <strong>Kernel Collaboration (Most Critical)</strong></h5>
+<p>Capsicum's strength comes from the <strong>kernel enforcing restrictions</strong>. LD_PRELOAD cannot match this without kernel support:</p>
+<pre><code><span class="com">// Capsicum: irreversible, kernel-enforced</span>
+cap_enter();  <span class="com">// No code can ever undo this</span>
 
-// LD_PRELOAD: can be unloaded at runtime
-dlclose(sandbox_handle);  // Sandbox disappears</code></pre>
+<span class="com">// LD_PRELOAD: can be unloaded at runtime</span>
+dlclose(sandbox_handle);  <span class="com">// Sandbox disappears</span></code></pre>
 <p><strong>Needed for Linux:</strong> A capability mode like Capsicum (patch to the kernel itself):</p>
 <ul><li><code>prctl(PR_ENTER_CAPMODE)</code> irreversible mode that denies all global namespace access</li><li>Kernel-enforced checks on every syscall</li><li>ENOTCAPABLE errno for denied operations</li></ul>
-<h5>2. <strong>Mandatory Interception of All Syscalls</strong></h5>
+<h5 id="2-mandatory-interception-of-all-syscalls">2. <strong>Mandatory Interception of All Syscalls</strong></h5>
 <p>Some syscalls bypass LD_PRELOAD because glibc inlines them as direct asm:</p>
-<pre><code>// These bypass LD_PRELOAD entirely
-stat(path, &amp;sb);       // glibc inlines this
-access(path, X_OK);    // kernel call, no libc wrapper</code></pre>
+<pre><code><span class="com">// These bypass LD_PRELOAD entirely</span>
+stat(path, &amp;sb);       <span class="com">// glibc inlines this</span>
+access(path, X_OK);    <span class="com">// kernel call, no libc wrapper</span></code></pre>
 <p><strong>Needed for Linux:</strong> Either:</p>
 <ul><li><strong>seccomp + BPF (Secure Computing)</strong>, filter all syscalls at kernel level</li><li><strong>ptrace (Tracer process)</strong>, intercept ALL syscalls, including inlined ones</li><li><strong>eBPF (extended Berkeley Packet Filter)</strong>, hook syscalls before kernel processing</li></ul>
-<h5>3. <strong>File Descriptor Tracking &amp; Enforcement</strong></h5>
+<h5 id="3-file-descriptor-tracking--enforcement">3. <strong>File Descriptor Tracking &amp; Enforcement</strong></h5>
 <p>Capsicum tracks which fds a process can access. LD_PRELOAD cannot:</p>
-<pre><code>// Capsicum: only fds passed are accessible
-// Process cannot open new ones even if code tries
+<pre><code><span class="com">// Capsicum: only fds passed are accessible</span>
+<span class="com">// Process cannot open new ones even if code tries</span>
 
-// LD_PRELOAD: inherited fds are accessible, untracked
-// All open fds from parent are available</code></pre>
+<span class="com">// LD_PRELOAD: inherited fds are accessible, untracked</span>
+<span class="com">// All open fds from parent are available</span></code></pre>
 <p><strong>Needed for Linux:</strong></p>
 <ul><li>Kernel tracking of fd capabilities (fd → rights mapping)</li><li>Deny operations on fds without proper capabilities</li><li>Revoke fds when capabilities change</li></ul>
-<h5>4. <strong>Metadata Access Control</strong></h5>
+<h5 id="4-metadata-access-control">4. <strong>Metadata Access Control</strong></h5>
 <p>Capsicum prevents even <strong>reading</strong> metadata (size, permissions, etc.). LD_PRELOAD allows this:</p>
-<pre><code>// Capsicum: stat() on restricted path fails with ENOTCAPABLE
-stat(&quot;/etc/passwd&quot;, &amp;sb);  // DENIED
+<pre><code><span class="com">// Capsicum: stat() on restricted path fails with ENOTCAPABLE</span>
+stat(<span class="str">"/etc/passwd"</span>, &amp;sb);  <span class="com">// DENIED</span>
 
-// LD_PRELOAD: stat() succeeds (no hook)
-stat(&quot;/etc/passwd&quot;, &amp;sb);  // ALLOWED (information leak)</code></pre>
+<span class="com">// LD_PRELOAD: stat() succeeds (no hook)</span>
+stat(<span class="str">"/etc/passwd"</span>, &amp;sb);  <span class="com">// ALLOWED (information leak)</span></code></pre>
 <p><strong>Needed for Linux:</strong></p>
 <ul><li>Hook all stat/lstat/fstat/statx variants</li><li>Deny metadata access for restricted paths</li><li>Prevent information leaks</li></ul>
-<h5>5. <strong>Irreversible Sandboxing</strong></h5>
-<p>Capsicum&#x27;s <code>cap_enter()</code> is <strong>permanent</strong>. LD_PRELOAD can be circumvented:</p>
-<pre><code>// Capsicum: impossible to escape
+<h5 id="5-irreversible-sandboxing">5. <strong>Irreversible Sandboxing</strong></h5>
+<p>Capsicum's <code>cap_enter()</code> is <strong>permanent</strong>. LD_PRELOAD can be circumvented:</p>
+<pre><code><span class="com">// Capsicum: impossible to escape</span>
 cap_enter();
-// No dlopen, no dlsym, no libc tricks, blocked forever
+<span class="com">// No dlopen, no dlsym, no libc tricks, blocked forever</span>
 
-// LD_PRELOAD: can be unloaded
-if (dlopen(&quot;/lib64/ld-linux.so&quot;, RTLD_NOW)) {
-    // Manually reload libc without interception
-    // Sandbox bypassed
+<span class="com">// LD_PRELOAD: can be unloaded</span>
+<span class="kw">if</span> (dlopen(<span class="str">"/lib64/ld-linux.so"</span>, RTLD_NOW)) {
+    <span class="com">// Manually reload libc without interception</span>
+    <span class="com">// Sandbox bypassed</span>
 }</code></pre>
 <p><strong>Needed for Linux:</strong></p>
 <ul><li>Kernel prevents loading additional libraries after sandboxing</li><li>Deny dlopen/dlsym syscalls in capability mode</li><li>Lock down LD_PRELOAD at kernel level</li></ul>
-<h5>6. <strong>Signal &amp; IPC Restrictions</strong></h5>
-<p>Capsicum denies signal operations to processes outside the sandbox. LD_PRELOAD doesn&#x27;t:</p>
-<pre><code>// Capsicum: kill() of arbitrary processes fails
-kill(victim_pid, SIGTERM);  // ENOTCAPABLE if victim outside sandbox
+<h5 id="6-signal--ipc-restrictions">6. <strong>Signal &amp; IPC Restrictions</strong></h5>
+<p>Capsicum denies signal operations to processes outside the sandbox. LD_PRELOAD doesn't:</p>
+<pre><code><span class="com">// Capsicum: kill() of arbitrary processes fails</span>
+kill(victim_pid, SIGTERM);  <span class="com">// ENOTCAPABLE if victim outside sandbox</span>
 
-// LD_PRELOAD: no hook for kill()
-kill(victim_pid, SIGTERM);  // ALLOWED</code></pre>
+<span class="com">// LD_PRELOAD: no hook for kill()</span>
+kill(victim_pid, SIGTERM);  <span class="com">// ALLOWED</span></code></pre>
 <p><strong>Needed for Linux:</strong></p>
 <ul><li>Hook kill/sigqueue/pidfd_send_signal</li><li>Check if target is outside sandbox</li><li>Deny inter-sandbox signaling</li></ul>
-<h4>The Fundamental Limitation</h4>
+<h4 id="the-fundamental-limitation">The Fundamental Limitation</h4>
 <p><strong>LD_PRELOAD is a userspace enforcement layer.</strong> It cannot provide the same guarantees as Capsicum because:</p>
-<ol><li><strong>Userspace can be patched</strong>, Compiled-in LD_PRELOAD hooks can be circumvented with asm tricks, dlopen of alternative libc, or ptrace self-modification.</li><li><strong>Inlined syscalls bypass interception</strong>, glibc optimizes common syscalls to direct asm, avoiding the libc wrapper that LD_PRELOAD hooks.</li><li><strong>Inherited resources leak</strong>, All file descriptors, signals, memory pages are inherited and accessible; LD_PRELOAD can&#x27;t revoke them.</li><li><strong>Kernel doesn&#x27;t enforce</strong>, The kernel doesn&#x27;t know about sandbox policies; it just executes syscalls.</li></ol>
-<h4>Closest Approximation on Linux: seccomp + BPF</h4>
-<p>To get <strong>close to</strong> Capsicum&#x27;s guarantees on Linux, use <strong>seccomp with Berkley Packet Filter (BPF)</strong>:</p>
-<pre><code>// Instead of LD_PRELOAD, use seccomp to block syscalls
-prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0);
+<ol><li><strong>Userspace can be patched</strong>, Compiled-in LD_PRELOAD hooks can be circumvented with asm tricks, dlopen of alternative libc, or ptrace self-modification.</li><li><strong>Inlined syscalls bypass interception</strong>, glibc optimizes common syscalls to direct asm, avoiding the libc wrapper that LD_PRELOAD hooks.</li><li><strong>Inherited resources leak</strong>, All file descriptors, signals, memory pages are inherited and accessible; LD_PRELOAD can't revoke them.</li><li><strong>Kernel doesn't enforce</strong>, The kernel doesn't know about sandbox policies; it just executes syscalls.</li></ol>
+<h4 id="closest-approximation-on-linux-seccomp--bpf">Closest Approximation on Linux: seccomp + BPF</h4>
+<p>To get <strong>close to</strong> Capsicum's guarantees on Linux, use <strong>seccomp with Berkley Packet Filter (BPF)</strong>:</p>
+<pre><code><span class="com">// Instead of LD_PRELOAD, use seccomp to block syscalls</span>
+prctl(PR_SET_NO_NEW_PRIVS, <span class="num">1</span>, <span class="num">0</span>, <span class="num">0</span>, <span class="num">0</span>);
 scmp_filter_ctx ctx = seccomp_init(SCMP_ACT_ALLOW);
 seccomp_rule_add(ctx, SCMP_ACT_ERRNO(EACCES), SCMP_SYS(open), ...);
 seccomp_rule_add(ctx, SCMP_ACT_ERRNO(EPERM), SCMP_SYS(clone), ...);
@@ -284,45 +295,45 @@ seccomp_load(ctx);</code></pre>
 <p><strong>Benefits over LD_PRELOAD:</strong></p>
 <ul><li>✓ Kernel-enforced (cannot be bypassed from userspace)</li><li>✓ Intercepts all syscalls (including inlined ones)</li><li>✓ BPF programs run in the kernel (efficient)</li><li>✓ Supports parameter inspection (fd numbers, path arguments)</li></ul>
 <p><strong>Still not equivalent to Capsicum:</strong></p>
-<ul><li>✗ Per-fd capability rights not available (seccomp operates at syscall level, not fd level)</li><li>✗ No irreversible &quot;capability mode&quot; (can disable seccomp with CAP_SYS_ADMIN)</li><li>✗ File descriptor tracking is manual (need to track fds yourself)</li><li>✗ No Casper-style privilege delegation</li></ul>
-<h4>Recommendation</h4>
+<ul><li>✗ Per-fd capability rights not available (seccomp operates at syscall level, not fd level)</li><li>✗ No irreversible "capability mode" (can disable seccomp with CAP_SYS_ADMIN)</li><li>✗ File descriptor tracking is manual (need to track fds yourself)</li><li>✗ No Casper-style privilege delegation</li></ul>
+<h4 id="recommendation">Recommendation</h4>
 <p><strong>On Linux without Capsicum:</strong></p>
 <ol><li><strong>For maximum security:</strong> Use <code>seccomp + BPF</code> (kernel-enforced) + language-level checks</li><li><strong>For ease of use:</strong> Use LD_PRELOAD + language-level checks (accept inherent limitations)</li><li><strong>For production:</strong> Use both LD_PRELOAD + seccomp + language checks (defense in depth)</li></ol>
-<p><strong>On FreeBSD today:</strong> the LD_PRELOAD layer (<code>libaether_sandbox.so</code> + <code>spawn_sandboxed</code>) builds and runs, FreeBSD&#x27;s <code>rtld-elf</code> honours <code>LD_PRELOAD</code> and <code>dlsym(RTLD_NEXT, ...)</code> exactly as glibc&#x27;s loader does, so FreeBSD has the same cooperative-containment story as Linux. It has the same userspace limitations (raw <code>syscall()</code>, statically linked binaries, etc.).</p>
+<p><strong>On FreeBSD today:</strong> the LD_PRELOAD layer (<code>libaether_sandbox.so</code> + <code>spawn_sandboxed</code>) builds and runs, FreeBSD's <code>rtld-elf</code> honours <code>LD_PRELOAD</code> and <code>dlsym(RTLD_NEXT, ...)</code> exactly as glibc's loader does, so FreeBSD has the same cooperative-containment story as Linux. It has the same userspace limitations (raw <code>syscall()</code>, statically linked binaries, etc.).</p>
 <p><strong>On FreeBSD, the goal:</strong> add Capsicum as a layer-4 backend, which is <strong>ironclad</strong> and requires no workarounds. This is not yet implemented, the roadmap below (<code>std.capsicum</code> bindings, then Capsicum-backed <code>spawn_sandboxed</code>) is the path to it.</p>
 <hr>
-<h2>Part 2: Architectural Parallels</h2>
-<h3>2.1 Common Principles</h3>
+<h2 id="part-2-architectural-parallels">Part 2: Architectural Parallels</h2>
+<h3 id="21-common-principles">2.1 Common Principles</h3>
 <p>Both systems are built on <strong>three shared insights:</strong></p>
-<h4>1. Capabilities over Permissions</h4>
+<h4 id="1-capabilities-over-permissions">1. Capabilities over Permissions</h4>
 <p>Both Capsicum and Aether use <strong>capability-based access control</strong> instead of traditional role-based access control (RBAC):</p>
-<ul><li><strong>RBAC</strong> (Unix permissions): Check the caller&#x27;s identity/role. &quot;User alice is in group developers, so she can read /home/projects/*&quot;</li><li><strong>Capability</strong> (Capsicum/Aether): Check what the caller has been given. &quot;This process has a read-only fd to /home/projects/foo; it can read that one file, nothing else.&quot;</li></ul>
-<p>The capability model is <strong>more restrictive and composable</strong>. You can hand off a capability without expanding the recipient&#x27;s overall privileges.</p>
-<h4>2. Containment Boundaries</h4>
+<ul><li><strong>RBAC</strong> (Unix permissions): Check the caller's identity/role. "User alice is in group developers, so she can read /home/projects/*"</li><li><strong>Capability</strong> (Capsicum/Aether): Check what the caller has been given. "This process has a read-only fd to /home/projects/foo; it can read that one file, nothing else."</li></ul>
+<p>The capability model is <strong>more restrictive and composable</strong>. You can hand off a capability without expanding the recipient's overall privileges.</p>
+<h4 id="2-containment-boundaries">2. Containment Boundaries</h4>
 <p>Both systems enforce a <strong>container/contained boundary</strong>: The container can see the contained, but the contained cannot reach the container.</p>
-<ul><li><strong>Capsicum:</strong> A privileged parent process starts, opens fds, restricts them, and enters capability mode. The restricted process can&#x27;t open new fds or break back out.</li><li><strong>Aether:</strong> A parent function creates a permission context, passes it to a closure. The closure can&#x27;t reach parent locals or dynamically add permissions.</li></ul>
+<ul><li><strong>Capsicum:</strong> A privileged parent process starts, opens fds, restricts them, and enters capability mode. The restricted process can't open new fds or break back out.</li><li><strong>Aether:</strong> A parent function creates a permission context, passes it to a closure. The closure can't reach parent locals or dynamically add permissions.</li></ul>
 <p>This principle appears in:</p>
-<ul><li>Virtual machines (hypervisor sees guest, guest can&#x27;t see hypervisor)</li><li>Docker (host sees container, container can&#x27;t see host)</li><li>Java ClassLoader hierarchies (parent loader visible to children, not vice versa)</li></ul>
-<h4>3. Fail-Safe Defaults</h4>
+<ul><li>Virtual machines (hypervisor sees guest, guest can't see hypervisor)</li><li>Docker (host sees container, container can't see host)</li><li>Java ClassLoader hierarchies (parent loader visible to children, not vice versa)</li></ul>
+<h4 id="3-fail-safe-defaults">3. Fail-Safe Defaults</h4>
 <p>Both default to <strong>deny</strong> rather than <strong>allow</strong>:</p>
 <ul><li><strong>Capsicum:</strong> Capability mode denies all global namespace access. You must explicitly pass fds.</li><li><strong>Aether:</strong> When embedded in a host application (hosted modules), capabilities are <strong>empty by default</strong>. You must explicitly grant them.</li></ul>
 <p>This inverts the traditional Unix model (allow by default, explicitly restrict), making security the default rather than an afterthought.</p>
 <hr>
-<h3>2.2 Where They Differ</h3>
-<h4>1. Scope of Enforcement</h4>
-<ul><li><strong>Capsicum:</strong> Enforces at the <strong>OS boundary</strong> (syscall interface). A compromised process can&#x27;t call <code>open()</code>, <code>socket()</code>, or <code>execve()</code> regardless of what code it&#x27;s running.</li><li><strong>Aether:</strong> Enforces at the <strong>language boundary</strong> (compiler + runtime). A compromised actor can still call C externs or skip permission checks if the code is malicious.</li></ul>
+<h3 id="22-where-they-differ">2.2 Where They Differ</h3>
+<h4 id="1-scope-of-enforcement">1. Scope of Enforcement</h4>
+<ul><li><strong>Capsicum:</strong> Enforces at the <strong>OS boundary</strong> (syscall interface). A compromised process can't call <code>open()</code>, <code>socket()</code>, or <code>execve()</code> regardless of what code it's running.</li><li><strong>Aether:</strong> Enforces at the <strong>language boundary</strong> (compiler + runtime). A compromised actor can still call C externs or skip permission checks if the code is malicious.</li></ul>
 <p><strong>Implication:</strong> Aether is better for <em>controlled</em> environments (DSL scripts, plugin systems, hosted configs); Capsicum is better for <em>untrusted</em> code (third-party binaries, legacy applications).</p>
-<h4>2. Granularity</h4>
-<ul><li><strong>Capsicum:</strong> File descriptors are the unit of isolation. Restricted rights apply to one fd.</li><li><strong>Aether:</strong> Categories and patterns are the unit. &quot;tcp&quot;, &quot;fs_read:<em>/tmp/</em>&quot;, &quot;exec:bash&quot; are examples.</li></ul>
+<h4 id="2-granularity">2. Granularity</h4>
+<ul><li><strong>Capsicum:</strong> File descriptors are the unit of isolation. Restricted rights apply to one fd.</li><li><strong>Aether:</strong> Categories and patterns are the unit. "tcp", "fs_read:<em>/tmp/</em>", "exec:bash" are examples.</li></ul>
 <p><strong>Implication:</strong> Capsicum is finer-grained for file I/O; Aether is simpler for abstract resources.</p>
-<h4>3. Performance</h4>
+<h4 id="3-performance">3. Performance</h4>
 <ul><li><strong>Capsicum:</strong> Zero overhead for allowed operations. Denied operations are caught by the kernel.</li><li><strong>Aether:</strong> Permission checks are function calls. Not free, but not expensive (cache-friendly).</li></ul>
 <p><strong>Implication:</strong> Capsicum is suitable for performance-critical code (tcpdump, database servers); Aether is fine for configuration/wiring code.</p>
 <hr>
-<h2>Part 3: Opportunities for Aether on FreeBSD</h2>
-<h3>3.1 A Hybrid Approach: Aether + Capsicum</h3>
+<h2 id="part-3-opportunities-for-aether-on-freebsd">Part 3: Opportunities for Aether on FreeBSD</h2>
+<h3 id="31-a-hybrid-approach-aether--capsicum">3.1 A Hybrid Approach: Aether + Capsicum</h3>
 <p><strong>Vision:</strong> An Aether runtime that can optionally leverage Capsicum for OS-enforced containment of sandboxed actors.</p>
-<h4>Design</h4>
+<h4 id="design">Design</h4>
 <pre><code>+------------------+
 |   Aether Code    |
 |  (untrusted      |
@@ -344,130 +355,118 @@ seccomp_load(ctx);</code></pre>
         v
   [ Kernel ]</code></pre>
 <p><strong>How it works:</strong></p>
-<ol><li><strong>Aether compiler</strong> generates actors with permission contexts (as it does today).</li><li><strong>Aether runtime</strong> (new feature) detects if it&#x27;s running on FreeBSD.</li><li><strong>If Capsicum is available:</strong></li><li>When an actor is spawned with a permission context, the runtime:</li><li>Opens the minimal set of file descriptors needed for that context</li><li>Uses <code>cap_rights_limit()</code> to restrict each fd to only the rights needed</li><li>Calls <code>cap_enter()</code> to enter capability mode</li><li>Spawns the actor in a child process with only those fds</li><li>The actor&#x27;s language-level permission checks become an optional defense-in-depth layer.</li><li><strong>If Capsicum is not available:</strong></li><li>Fall back to language-level checks (as today).</li></ol>
-<h4>Benefits</h4>
-<ol><li><strong>Defense in depth</strong>, Even if an actor is malicious and bypasses language-level checks, Capsicum blocks the syscall.</li><li><strong>Incremental</strong>, Doesn&#x27;t require rewriting Aether code; works with existing programs.</li><li><strong>Transparent</strong>, Aether code doesn&#x27;t need to know about Capsicum.</li><li><strong>Portable</strong>, On non-FreeBSD systems, the language-level checks still work.</li></ol>
-<h4>Example Flow</h4>
-<pre><code>// Untrusted plugin (could be malicious)
+<ol><li><strong>Aether compiler</strong> generates actors with permission contexts (as it does today).</li><li><strong>Aether runtime</strong> (new feature) detects if it's running on FreeBSD.</li><li><strong>If Capsicum is available:</strong><ul><li>When an actor is spawned with a permission context, the runtime:<ul><li>Opens the minimal set of file descriptors needed for that context</li><li>Uses <code>cap_rights_limit()</code> to restrict each fd to only the rights needed</li><li>Calls <code>cap_enter()</code> to enter capability mode</li><li>Spawns the actor in a child process with only those fds</li></ul></li><li>The actor's language-level permission checks become an optional defense-in-depth layer.</li></ul></li><li><strong>If Capsicum is not available:</strong><ul><li>Fall back to language-level checks (as today).</li></ul></li></ol>
+<h4 id="benefits">Benefits</h4>
+<ol><li><strong>Defense in depth</strong>, Even if an actor is malicious and bypasses language-level checks, Capsicum blocks the syscall.</li><li><strong>Incremental</strong>, Doesn't require rewriting Aether code; works with existing programs.</li><li><strong>Transparent</strong>, Aether code doesn't need to know about Capsicum.</li><li><strong>Portable</strong>, On non-FreeBSD systems, the language-level checks still work.</li></ol>
+<h4 id="example-flow">Example Flow</h4>
+<pre><code><span class="com">// Untrusted plugin (could be malicious)</span>
 plugin = |ctx| {
-    // This is sandboxed: permission checks will deny it
-    sandboxed_tcp_connect(ctx, &quot;evil.com&quot;, 443)  // Denied by language check
+    <span class="com">// This is sandboxed: permission checks will deny it</span>
+    sandboxed_tcp_connect(ctx, <span class="str">"evil.com"</span>, <span class="num">443</span>)  <span class="com">// Denied by language check</span>
     
-    // But even if malicious, on FreeBSD with Capsicum:
-    // direct_syscall_socket()  // Would be caught by Capsicum; ENOTCAPABLE
+    <span class="com">// But even if malicious, on FreeBSD with Capsicum:</span>
+    <span class="com">// direct_syscall_socket()  // Would be caught by Capsicum; ENOTCAPABLE</span>
 }
 
 main() {
     trusted_ctx = list.new()
-    list.add(trusted_ctx, &quot;tcp&quot;)
-    list.add(trusted_ctx, &quot;db.internal&quot;)
+    list.add(trusted_ctx, <span class="str">"tcp"</span>)
+    list.add(trusted_ctx, <span class="str">"db.internal"</span>)
     
-    // On FreeBSD with Capsicum:
-    // - Aether runtime opens TCP socket to db.internal
-    // - Restricts fd with CAP_READ | CAP_WRITE
-    // - Enters capability mode in a child process
-    // - Spawns the actor with only that fd
+    <span class="com">// On FreeBSD with Capsicum:</span>
+    <span class="com">// - Aether runtime opens TCP socket to db.internal</span>
+    <span class="com">// - Restricts fd with CAP_READ | CAP_WRITE</span>
+    <span class="com">// - Enters capability mode in a child process</span>
+    <span class="com">// - Spawns the actor with only that fd</span>
     
     spawn_with_context(plugin, trusted_ctx)
 }</code></pre>
 <hr>
-<h3>3.2 Concrete Implementation Roadmap</h3>
-<h4>Phase 1: Capsicum Detection &amp; API Bindings, <strong>DONE</strong></h4>
+<h3 id="32-concrete-implementation-roadmap">3.2 Concrete Implementation Roadmap</h3>
+<h4 id="phase-1-capsicum-detection--api-bindings-done">Phase 1: Capsicum Detection &amp; API Bindings, <strong>DONE</strong></h4>
 <p>The <code>std.capsicum</code> module ships these bindings (FreeBSD-enforced, no-op stubs elsewhere):</p>
-<pre><code>import std.capsicum
+<pre><code><span class="kw">import</span> std.capsicum
 
-capsicum.available()              // 1 if the kernel enforces Capsicum
-capsicum.enter()                  // enter capability mode, irreversible
-capsicum.in_mode()                // 1 if already sandboxed
-capsicum.rights_limit(fd, mask)   // narrow an fd to R_* rights
-capsicum.fcntls_limit(fd, mask)   // narrow allowed fcntl commands</code></pre>
-<p>Rights are an integer bitmask (<code>capsicum.R_READ | capsicum.R_SEEK | ...</code>) the kernel&#x27;s <code>cap_rights_t</code> is an opaque struct, so the C wrapper translates the mask into <code>cap_rights_set()</code> calls internally. Worked example: <code>examples/capsicum-demo.ae</code> (read a file, <code>enter()</code>, watch the next <code>open</code> get refused by the kernel).</p>
+capsicum.available()              <span class="com">// 1 if the kernel enforces Capsicum</span>
+capsicum.enter()                  <span class="com">// enter capability mode, irreversible</span>
+capsicum.in_mode()                <span class="com">// 1 if already sandboxed</span>
+capsicum.rights_limit(fd, mask)   <span class="com">// narrow an fd to R_* rights</span>
+capsicum.fcntls_limit(fd, mask)   <span class="com">// narrow allowed fcntl commands</span></code></pre>
+<p>Rights are an integer bitmask (<code>capsicum.R_READ | capsicum.R_SEEK | ...</code>) the kernel's <code>cap_rights_t</code> is an opaque struct, so the C wrapper translates the mask into <code>cap_rights_set()</code> calls internally. Worked example: <code>examples/capsicum-demo.ae</code> (read a file, <code>enter()</code>, watch the next <code>open</code> get refused by the kernel).</p>
 <p>Not yet bound: process descriptors (<code>pdfork</code>/<code>pdwait</code>) and Casper service delegation, additive, can land without disturbing the above.</p>
 <p><strong>Benefit:</strong> hand-written Aether code can leverage Capsicum today.</p>
-<h4>Phase 2: Runtime Integration, <strong>DONE (self-sandbox model)</strong></h4>
-<blockquote><strong>A correction to the original plan.</strong> Earlier drafts of this section<br>proposed: parent opens the granted fds, <code>fork()</code>s, the child calls<br><code>cap_rights_limit()</code> + <code>cap_enter()</code>, then execs the sandboxed<br>program. <strong>That cannot work for the general case</strong>, and the reason is<br>worth recording so nobody re-attempts it:<br><br><code>cap_enter()</code> is irreversible and forbids reaching the global<br>filesystem namespace. A <code>cap_enter()</code>&#x27;d process can no longer <code>open()</code><br>a path. Path-based <code>execve(2)</code> is therefore denied (<code>ECAPMODE</code>). The<br>escape hatch is <code>fexecve(2)</code> exec from a pre-opened fd, but that<br>only solves the <em>binary&#x27;s own</em> path lookup. A <strong>dynamically linked</strong><br>binary still needs its runtime linker (<code>ld-elf.so.1</code>) and shared<br>libraries (<code>libc</code>, ...) loaded at exec time, and those are <code>open()</code><br>calls on paths. In capability mode they fail. So<br><code>fexecve()</code>-after-<code>cap_enter()</code> works only for <strong>statically linked</strong><br>binaries, which <code>python3</code>, <code>bash</code>, and a default <code>ae</code>-built program<br>are not.<br><br>The model that <em>does</em> work is <strong>self-sandboxing</strong>: the child execs<br>normally (rtld loads every library while still unconfined), and then<br>the program itself calls <code>cap_enter()</code> at the top of its own<br><code>main()</code>, before any user code. This is what shipped.</blockquote>
-<p>What&#x27;s implemented:</p>
-<ul><li><strong><code>capsicum_autosandbox.c</code></strong>, a runtime startup hook. The</li></ul>
-<p>compiler-emitted <code>main()</code> calls <code>aether_capsicum_autosandbox()</code> immediately after <code>aether_args_init()</code> (so: after rtld has finished, before user code). If <code>AETHER_CAPSICUM=1</code> is set in the environment, the hook calls <code>cap_enter()</code>. If the variable is set but the kernel can&#x27;t honour it, the process exits rather than run unconfined, a requested sandbox never silently downgrades.</p>
-<ul><li><strong><code>spawn_sandboxed</code> on FreeBSD</strong> sets <code>AETHER_CAPSICUM=1</code> in every</li></ul>
-<p>child&#x27;s environment. Containment is then two-layered:</p>
-<ol><li><strong>LD_PRELOAD</strong>, intercepts libc for <em>any</em> child, Aether or not</li></ol>
-<p>(python3, bash). Userspace, cooperative, bypassable.</p>
-<ol><li><strong>Capsicum self-sandbox</strong>, if the child is an Aether binary it</li></ol>
-<p>reads <code>AETHER_CAPSICUM</code> and <code>cap_enter()</code>s itself. Kernel-enforced, unbypassable. A non-Aether child just ignores the variable and is left with layer 1.</p>
-<ul><li>The preload library exempts the <code>AETHER_*</code> env namespace from its</li></ul>
-<p><code>getenv</code> interception, so a sandboxed Aether child can still read its own <code>AETHER_CAPSICUM</code> control variable.</p>
+<h4 id="phase-2-runtime-integration-done-self-sandbox-model">Phase 2: Runtime Integration, <strong>DONE (self-sandbox model)</strong></h4>
+<blockquote><strong>A correction to the original plan.</strong> Earlier drafts of this section proposed: parent opens the granted fds, <code>fork()</code>s, the child calls <code>cap_rights_limit()</code> + <code>cap_enter()</code>, then execs the sandboxed program. <strong>That cannot work for the general case</strong>, and the reason is worth recording so nobody re-attempts it:  <code>cap_enter()</code> is irreversible and forbids reaching the global filesystem namespace. A <code>cap_enter()</code>'d process can no longer <code>open()</code> a path. Path-based <code>execve(2)</code> is therefore denied (<code>ECAPMODE</code>). The escape hatch is <code>fexecve(2)</code> exec from a pre-opened fd, but that only solves the <em>binary's own</em> path lookup. A <strong>dynamically linked</strong> binary still needs its runtime linker (<code>ld-elf.so.1</code>) and shared libraries (<code>libc</code>, ...) loaded at exec time, and those are <code>open()</code> calls on paths. In capability mode they fail. So <code>fexecve()</code>-after-<code>cap_enter()</code> works only for <strong>statically linked</strong> binaries, which <code>python3</code>, <code>bash</code>, and a default <code>ae</code>-built program are not.  The model that <em>does</em> work is <strong>self-sandboxing</strong>: the child execs normally (rtld loads every library while still unconfined), and then the program itself calls <code>cap_enter()</code> at the top of its own <code>main()</code>, before any user code. This is what shipped.</blockquote>
+<p>What's implemented:</p>
+<ul><li><strong><code>capsicum_autosandbox.c</code></strong>, a runtime startup hook. The compiler-emitted <code>main()</code> calls <code>aether_capsicum_autosandbox()</code> immediately after <code>aether_args_init()</code> (so: after rtld has finished, before user code). If <code>AETHER_CAPSICUM=1</code> is set in the environment, the hook calls <code>cap_enter()</code>. If the variable is set but the kernel can't honour it, the process exits rather than run unconfined, a requested sandbox never silently downgrades.</li><li><strong><code>spawn_sandboxed</code> on FreeBSD</strong> sets <code>AETHER_CAPSICUM=1</code> in every child's environment. Containment is then two-layered:<ol><li><strong>LD_PRELOAD</strong>, intercepts libc for <em>any</em> child, Aether or not (python3, bash). Userspace, cooperative, bypassable.</li><li><strong>Capsicum self-sandbox</strong>, if the child is an Aether binary it reads <code>AETHER_CAPSICUM</code> and <code>cap_enter()</code>s itself. Kernel-enforced, unbypassable. A non-Aether child just ignores the variable and is left with layer 1.</li></ol></li><li>The preload library exempts the <code>AETHER_*</code> env namespace from its <code>getenv</code> interception, so a sandboxed Aether child can still read its own <code>AETHER_CAPSICUM</code> control variable.</li></ul>
 <p><strong>Benefit:</strong> a spawned Aether child gets OS-enforced containment with no change to its source. Note Capsicum is strictly the harder ceiling, in capability mode <em>no</em> path-based open succeeds, grant list or not; the LD_PRELOAD grants only matter for the operations Capsicum would otherwise still allow (acting on already-open fds) and for non-Aether children.</p>
-<p><strong>Limitation:</strong> a self-sandboxed program must open everything it needs <em>before</em> <code>main()</code> runs, or accept that path access is gone. Wiring the grant list into pre-opened, <code>cap_rights_limit()</code>&#x27;d fds handed to the child is the remaining refinement. Its prerequisite landed with issue #1003: the stdlib handle types now expose their descriptors — <code>file.fd(handle)</code> / <code>fs.fd(handle)</code> for files, <code>tcp.fd(sock)</code> / <code>tcp.server_fd(server)</code> for sockets — so a program can open through the stdlib and narrow each descriptor with <code>capsicum.rights_limit()</code> before <code>capsicum.enter()</code> (exercised by <code>tests/freebsd/rights_limit_stdlib_fd.ae</code>).</p>
-<h4>Phase 3: Audit Logging, <strong>DONE</strong></h4>
+<p><strong>Limitation:</strong> a self-sandboxed program must open everything it needs <em>before</em> <code>main()</code> runs, or accept that path access is gone. Wiring the grant list into pre-opened, <code>cap_rights_limit()</code>'d fds handed to the child is the remaining refinement. Its prerequisite landed with issue #1003: the stdlib handle types now expose their descriptors — <code>file.fd(handle)</code> / <code>fs.fd(handle)</code> for files, <code>tcp.fd(sock)</code> / <code>tcp.server_fd(server)</code> for sockets — so a program can open through the stdlib and narrow each descriptor with <code>capsicum.rights_limit()</code> before <code>capsicum.enter()</code> (exercised by <code>tests/freebsd/rights_limit_stdlib_fd.ae</code>).</p>
+<h4 id="phase-3-audit-logging-done">Phase 3: Audit Logging, <strong>DONE</strong></h4>
 <p>The in-process permission layer now records every grant check, allowed and denied, with two faces (<code>runtime/sandbox/aether_audit.c</code>, <code>std/audit/module.ae</code>):</p>
-<ul><li><strong>Live sink</strong>, <code>AETHER_SANDBOX_AUDIT=none|stderr|file</code> (default</li></ul>
-<p><code>none</code>), mirroring the existing <code>AETHER_SANDBOX_LOG</code> convention. Emits <code>AETHER_ALLOWED:</code> / <code>AETHER_DENIED:</code> lines.</p>
-<ul><li><strong>Queryable log</strong>, a 256-entry in-memory ring buffer read back via</li></ul>
-<p><code>std.audit</code>: <code>audit.count()</code>, <code>audit.entry(i)</code> → <code>(category, resource, allowed)</code>, <code>audit.denied_count()</code>, <code>audit.clear()</code>.</p>
-<pre><code>import std.audit
+<ul><li><strong>Live sink</strong>, <code>AETHER_SANDBOX_AUDIT=none|stderr|file</code> (default <code>none</code>), mirroring the existing <code>AETHER_SANDBOX_LOG</code> convention. Emits <code>AETHER_ALLOWED:</code> / <code>AETHER_DENIED:</code> lines.</li><li><strong>Queryable log</strong>, a 256-entry in-memory ring buffer read back via <code>std.audit</code>: <code>audit.count()</code>, <code>audit.entry(i)</code> → <code>(category, resource, allowed)</code>, <code>audit.denied_count()</code>, <code>audit.clear()</code>.</li></ul>
+<pre><code><span class="kw">import</span> std.audit
 n = audit.count()
-for (i = 0; i &lt; n; i = i + 1) {
+<span class="kw">for</span> (i = <span class="num">0</span>; i &lt; n; i = i + <span class="num">1</span>) {
     cat, res, allowed = audit.entry(i)
-    // ...
+    <span class="com">// ...</span>
 }</code></pre>
 <p>The hook lives in the compiler-emitted in-process checker, so it fires for any <code>sandbox { }</code> block and for embedded/hosted plugins. Worked example: <code>examples/audit-demo.ae</code>. Per-actor attribution (the <code>actor_id</code> argument the original sketch imagined) is not wired, the checker sees category + resource, not the calling actor; adding it would need the actor identity threaded into the check, an additive follow-up. <strong>Benefit:</strong> forensics and debugging without external instrumentation.</p>
-<h4>Phase 4: Cross-Language Capsicum Callbacks (High effort, speculative)</h4>
+<h4 id="phase-4-cross-language-capsicum-callbacks-high-effort-speculative">Phase 4: Cross-Language Capsicum Callbacks (High effort, speculative)</h4>
 <p>Allow hosted modules (Java, Python, Go) to declare Capsicum requirements:</p>
-<pre><code>// Aether code compiled to library, embedded in Java
+<pre><code><span class="com">// Aether code compiled to library, embedded in Java</span>
 config = |ctx| {
-    grant_tcp(ctx, &quot;api.example.com&quot;, 443)
-    grant_fs_read(ctx, &quot;/etc/app/config&quot;)
+    grant_tcp(ctx, <span class="str">"api.example.com"</span>, <span class="num">443</span>)
+    grant_fs_read(ctx, <span class="str">"/etc/app/config"</span>)
     
-    // Metadata for host to understand Capsicum needs
-    // (requires new compiler emit mode)
+    <span class="com">// Metadata for host to understand Capsicum needs</span>
+    <span class="com">// (requires new compiler emit mode)</span>
 }</code></pre>
 <p>The Java host could:</p>
-<ol><li>Parse the Aether library&#x27;s metadata.</li><li>Understand that this Aether config needs tcp + fs_read.</li><li>Fork a child process, open those fds, apply Capsicum restrictions.</li><li>Load the Aether library in the restricted child.</li></ol>
+<ol><li>Parse the Aether library's metadata.</li><li>Understand that this Aether config needs tcp + fs_read.</li><li>Fork a child process, open those fds, apply Capsicum restrictions.</li><li>Load the Aether library in the restricted child.</li></ol>
 <p><strong>Benefit:</strong> Aether configs run under OS-enforced sandboxing when embedded.</p>
 <hr>
-<h3>3.3 FreeBSD-Specific Optimizations</h3>
-<h4>1. Casper Daemon Integration, <strong>DONE (DNS, pwd, sysctl)</strong></h4>
+<h3 id="33-freebsd-specific-optimizations">3.3 FreeBSD-Specific Optimizations</h3>
+<h4 id="1-casper-daemon-integration-done-dns-pwd-sysctl">1. Casper Daemon Integration, <strong>DONE (DNS, pwd, sysctl)</strong></h4>
 <p>FreeBSD includes Casper, a daemon that performs operations a capability-mode process can no longer do for itself, DNS resolution, passwd lookups, sysctl, over a channel opened <em>before</em> <code>cap_enter()</code>.</p>
 <p>The <code>std.casper</code> module binds it (<code>std/casper/</code>):</p>
-<pre><code>import std.casper
-import std.capsicum
+<pre><code><span class="kw">import</span> std.casper
+<span class="kw">import</span> std.capsicum
 
-// Phase 1, open channels while still unconfined
+<span class="com">// Phase 1, open channels while still unconfined</span>
 c   = casper.init()
-net = casper.service(c, &quot;system.net&quot;)
+net = casper.service(c, <span class="str">"system.net"</span>)
 casper.close(c)
 
-// Phase 2, lock down
+<span class="com">// Phase 2, lock down</span>
 capsicum.enter()
 
-// Phase 3, the channel still works, sandboxed
-ip, err = casper.dns_resolve(net, &quot;example.com&quot;)</code></pre>
+<span class="com">// Phase 3, the channel still works, sandboxed</span>
+ip, err = casper.dns_resolve(net, <span class="str">"example.com"</span>)</code></pre>
 <p>Three services are bound: <code>system.net</code> (DNS, <code>casper.dns_resolve</code>), <code>system.pwd</code> (<code>casper.pwd_uid</code> / <code>casper.pwd_home</code>) and <code>system.sysctl</code> (<code>casper.sysctl</code>). The C wrapper flattens the service result structs (<code>addrinfo</code>, <code>passwd</code>) to Aether strings/ints. Off FreeBSD every call fails cleanly and <code>casper.available()</code> returns 0. Worked example: <code>examples/casper-demo.ae</code> resolves a hostname <em>inside</em> capability mode, which would otherwise be impossible. <code>syslog</code> and <code>grp</code> services are unbound but additive. Note this build vendors the Casper prototypes inline (the dev headers are absent on some installs, e.g. GhostBSD; the base runtime <code>.so</code> files satisfy the link).</p>
-<h4>2. Jail Integration</h4>
+<h4 id="2-jail-integration">2. Jail Integration</h4>
 <p>FreeBSD jails are lightweight OS-level containers. An Aether actor could be spawned in a jail with:</p>
-<ul><li>Restricted filesystem (chroot)</li><li>Network isolation (no access to host network stack)</li><li>Process isolation (can&#x27;t see other jails)</li></ul>
+<ul><li>Restricted filesystem (chroot)</li><li>Network isolation (no access to host network stack)</li><li>Process isolation (can't see other jails)</li></ul>
 <p><strong>Opportunity:</strong> Aether runtime could optionally spawn actors in jails for maximum isolation.</p>
-<h4>3. RCTL (Resource Control)</h4>
-<p>FreeBSD&#x27;s RCTL allows resource limits (CPU, memory, file descriptors) per process.</p>
-<p><strong>Opportunity:</strong> Aether&#x27;s permission context could map to RCTL rules:</p>
-<pre><code>grant_memory(ctx, 100)     // 100 MB limit
-grant_cpu(ctx, 500)        // 500 ms per second
-grant_fds(ctx, 10)         // Max 10 open fds</code></pre>
+<h4 id="3-rctl-resource-control">3. RCTL (Resource Control)</h4>
+<p>FreeBSD's RCTL allows resource limits (CPU, memory, file descriptors) per process.</p>
+<p><strong>Opportunity:</strong> Aether's permission context could map to RCTL rules:</p>
+<pre><code>grant_memory(ctx, <span class="num">100</span>)     <span class="com">// 100 MB limit</span>
+grant_cpu(ctx, <span class="num">500</span>)        <span class="com">// 500 ms per second</span>
+grant_fds(ctx, <span class="num">10</span>)         <span class="com">// Max 10 open fds</span></code></pre>
 <p>The runtime would apply RCTL rules when spawning the actor.</p>
 <hr>
-<h2>Part 4: Real-World Use Cases for Aether on FreeBSD</h2>
-<h3>4.1 Secure Configuration Management</h3>
+<h2 id="part-4-real-world-use-cases-for-aether-on-freebsd">Part 4: Real-World Use Cases for Aether on FreeBSD</h2>
+<h3 id="41-secure-configuration-management">4.1 Secure Configuration Management</h3>
 <p><strong>Scenario:</strong> A system administration tool (like Ansible or Puppet) uses Aether for configuration logic.</p>
-<pre><code>// Untrusted configuration script
+<pre><code><span class="com">// Untrusted configuration script</span>
 config = |ctx| {
-    // Script can only access /etc/myapp/ and connect to config.internal
-    grant_fs_read(ctx, &quot;/etc/myapp/*&quot;)
-    grant_tcp(ctx, &quot;config.internal&quot;, 8080)
+    <span class="com">// Script can only access /etc/myapp/ and connect to config.internal</span>
+    grant_fs_read(ctx, <span class="str">"/etc/myapp/*"</span>)
+    grant_tcp(ctx, <span class="str">"config.internal"</span>, <span class="num">8080</span>)
     
-    // Run the configuration logic
-    fetch_config(&quot;config.internal:8080&quot;)
-    parse_and_apply(&quot;/etc/myapp/app.conf&quot;)
+    <span class="com">// Run the configuration logic</span>
+    fetch_config(<span class="str">"config.internal:8080"</span>)
+    parse_and_apply(<span class="str">"/etc/myapp/app.conf"</span>)
 }
 
 main() {
@@ -475,37 +474,37 @@ main() {
 }</code></pre>
 <p><strong>FreeBSD benefit:</strong> Aether runtime spawns the config actor in:</p>
 <ul><li>Capability mode (no access to /etc/passwd, /etc/shadow, network sockets)</li><li>A chroot jail (filesystem isolation)</li><li>RCTL limits (max memory, CPU)</li></ul>
-<p>Even if the config script is malicious or compromised, it can&#x27;t escape its sandbox.</p>
-<h3>4.2 Plugin System for Services</h3>
+<p>Even if the config script is malicious or compromised, it can't escape its sandbox.</p>
+<h3 id="42-plugin-system-for-services">4.2 Plugin System for Services</h3>
 <p><strong>Scenario:</strong> A database server or web server allows plugins written in Aether.</p>
-<pre><code>// User-supplied plugin
+<pre><code><span class="com">// User-supplied plugin</span>
 plugin = |ctx| {
-    // Plugin can query the database and read data files
-    grant_tcp(ctx, &quot;db.internal&quot;, 5432)
-    grant_fs_read(ctx, &quot;/var/lib/myapp/data/*&quot;)
+    <span class="com">// Plugin can query the database and read data files</span>
+    grant_tcp(ctx, <span class="str">"db.internal"</span>, <span class="num">5432</span>)
+    grant_fs_read(ctx, <span class="str">"/var/lib/myapp/data/*"</span>)
     
-    // Cannot write, execute, or access other resources
-    // ...plugin code...
+    <span class="com">// Cannot write, execute, or access other resources</span>
+    <span class="com">// ...plugin code...</span>
 }
 
 main() {
     spawn_sandboxed(plugin)
 }</code></pre>
-<p><strong>FreeBSD benefit:</strong> Plugins run under Capsicum restrictions. A malicious plugin can&#x27;t:</p>
+<p><strong>FreeBSD benefit:</strong> Plugins run under Capsicum restrictions. A malicious plugin can't:</p>
 <ul><li>Write to the filesystem (open file is read-only)</li><li>Execute commands (no /bin/sh fd)</li><li>Access the database beyond the allowed connection (socket fd is restricted)</li><li>Fork (in capability mode)</li></ul>
-<h3>4.3 Secure Scripting in System Tools</h3>
+<h3 id="43-secure-scripting-in-system-tools">4.3 Secure Scripting in System Tools</h3>
 <p><strong>Scenario:</strong> A DevOps tool (like Terraform or Nomad) uses Aether for provisioning scripts.</p>
-<pre><code>// Provisioning script
+<pre><code><span class="com">// Provisioning script</span>
 script = |ctx| {
-    grant_tcp(ctx, &quot;*.cloud.provider&quot;, 443)        // Only to cloud provider
-    grant_fs_read(ctx, &quot;/var/lib/provisioning/*&quot;)
-    grant_fs_write(ctx, &quot;/tmp/provision-*&quot;)         // Scratch space
-    grant_exec(ctx, &quot;/usr/sbin/pw&quot;)                 // User management only
+    grant_tcp(ctx, <span class="str">"*.cloud.provider"</span>, <span class="num">443</span>)        <span class="com">// Only to cloud provider</span>
+    grant_fs_read(ctx, <span class="str">"/var/lib/provisioning/*"</span>)
+    grant_fs_write(ctx, <span class="str">"/tmp/provision-*"</span>)         <span class="com">// Scratch space</span>
+    grant_exec(ctx, <span class="str">"/usr/sbin/pw"</span>)                 <span class="com">// User management only</span>
     
-    // Create users, deploy services, etc.
-    // Cannot access network outside cloud provider
-    // Cannot read system files
-    // Cannot execute arbitrary commands
+    <span class="com">// Create users, deploy services, etc.</span>
+    <span class="com">// Cannot access network outside cloud provider</span>
+    <span class="com">// Cannot read system files</span>
+    <span class="com">// Cannot execute arbitrary commands</span>
 }
 
 main() {
@@ -513,55 +512,46 @@ main() {
 }</code></pre>
 <p><strong>FreeBSD benefit:</strong> Multiple scripts can run concurrently, each in its own jail with its own RCTL limits, completely isolated.</p>
 <hr>
-<h2>Part 5: Challenges and Limitations</h2>
-<h3>5.1 Capsicum Limitations</h3>
-<ol><li><strong>Process-based only</strong>, Capsicum sandboxing is per-process. Aether actors are lightweight; spawning a process per actor is heavy.</li><li><strong>Solution:</strong> Use thread-based actors with Capsicum process boundaries only at higher levels (e.g., one process per actor pool).</li></ol>
-<ol><li><strong>Syscall overhead</strong>, Every syscall in capability mode is checked by the kernel. High-syscall-rate code might see overhead.</li><li><strong>Solution:</strong> Batch operations, use sendfile/splice for zero-copy I/O, avoid per-request syscalls.</li></ol>
-<ol><li><strong>Not portable</strong>, Capsicum is FreeBSD-specific. Code needs to fall back gracefully on Linux/macOS/Windows.</li><li><strong>Solution:</strong> Aether&#x27;s language-level checks always work; Capsicum is opt-in and transparent.</li></ol>
-<ol><li><strong>Complexity</strong>, Understanding fd rights, capability mode, and Casper requires FreeBSD knowledge.</li><li><strong>Solution:</strong> Wrap Capsicum in Aether std library; users write portable Aether code, runtime handles OS differences.</li></ol>
-<h3>5.2 Aether Limitations</h3>
-<ol><li><strong>Untrusted code can still bypass checks</strong>, If an actor is malicious and compiled with the Aether code, it can skip permission checks.</li><li><strong>Mitigation:</strong> On FreeBSD, use Capsicum for ultimate enforcement. Don&#x27;t rely on language-level checks alone for untrusted code.</li></ol>
-<ol><li><strong>Audit trail</strong>, the in-process permission layer records every</li></ol>
-<p>check (allowed and denied) to an optional <code>AETHER_SANDBOX_AUDIT</code> sink and a queryable <code>std.audit</code> ring buffer (Phase 3, done). Per-actor attribution is not yet wired.</p>
-<ol><li><strong>No resource limits</strong>, Aether can restrict <em>what</em>, not <em>how much</em> (bandwidth, memory, CPU).</li><li><strong>Mitigation:</strong> On FreeBSD, use RCTL for resource limits.</li></ol>
+<h2 id="part-5-challenges-and-limitations">Part 5: Challenges and Limitations</h2>
+<h3 id="51-capsicum-limitations">5.1 Capsicum Limitations</h3>
+<ol><li><strong>Process-based only</strong>, Capsicum sandboxing is per-process. Aether actors are lightweight; spawning a process per actor is heavy.<ul><li><strong>Solution:</strong> Use thread-based actors with Capsicum process boundaries only at higher levels (e.g., one process per actor pool).</li></ul></li><li><strong>Syscall overhead</strong>, Every syscall in capability mode is checked by the kernel. High-syscall-rate code might see overhead.<ul><li><strong>Solution:</strong> Batch operations, use sendfile/splice for zero-copy I/O, avoid per-request syscalls.</li></ul></li><li><strong>Not portable</strong>, Capsicum is FreeBSD-specific. Code needs to fall back gracefully on Linux/macOS/Windows.<ul><li><strong>Solution:</strong> Aether's language-level checks always work; Capsicum is opt-in and transparent.</li></ul></li><li><strong>Complexity</strong>, Understanding fd rights, capability mode, and Casper requires FreeBSD knowledge.<ul><li><strong>Solution:</strong> Wrap Capsicum in Aether std library; users write portable Aether code, runtime handles OS differences.</li></ul></li></ol>
+<h3 id="52-aether-limitations">5.2 Aether Limitations</h3>
+<ol><li><strong>Untrusted code can still bypass checks</strong>, If an actor is malicious and compiled with the Aether code, it can skip permission checks.<ul><li><strong>Mitigation:</strong> On FreeBSD, use Capsicum for ultimate enforcement. Don't rely on language-level checks alone for untrusted code.</li></ul></li><li><strong>Audit trail</strong>, the in-process permission layer records every check (allowed and denied) to an optional <code>AETHER_SANDBOX_AUDIT</code> sink and a queryable <code>std.audit</code> ring buffer (Phase 3, done). Per-actor attribution is not yet wired.</li><li><strong>No resource limits</strong>, Aether can restrict <em>what</em>, not <em>how much</em> (bandwidth, memory, CPU).<ul><li><strong>Mitigation:</strong> On FreeBSD, use RCTL for resource limits.</li></ul></li></ol>
 <hr>
-<h2>Part 6: Roadmap for Aether on FreeBSD</h2>
-<h3>Short Term (2-3 months)</h3>
+<h2 id="part-6-roadmap-for-aether-on-freebsd">Part 6: Roadmap for Aether on FreeBSD</h2>
+<h3 id="short-term-2-3-months">Short Term (2-3 months)</h3>
 <ol><li><strong>Add <code>std.capsicum</code> module</strong> with basic bindings.</li><li><strong>Documentation</strong> explaining how to use Capsicum from Aether.</li><li><strong>Examples</strong> showing Capsicum-enabled plugins and sandboxed actors.</li></ol>
-<h3>Medium Term (3-6 months)</h3>
+<h3 id="medium-term-3-6-months">Medium Term (3-6 months)</h3>
 <ol><li><strong>Runtime integration</strong>, <code>spawn_with_context()</code> optionally uses Capsicum.</li><li><strong>Automatic fd management</strong>, Runtime maps permission contexts to fds and rights.</li><li><strong>CI on FreeBSD</strong>, Test suite runs on FreeBSD; catch OS-specific bugs.</li></ol>
-<h3>Long Term (6+ months)</h3>
-<ol><li>~~<strong>Audit logging</strong>, Built-in forensics.~~ Done, <code>std.audit</code>.</li><li>~~<strong>Casper integration</strong>, delegation to the Casper daemon.~~ Done,</li></ol>
-<p><code>std.casper</code> (DNS, pwd, sysctl).</p>
-<ol><li><strong>Jail + RCTL support</strong>, Multi-level sandboxing. Still ahead.</li><li><strong>Cross-language Capsicum metadata</strong>, Hosted modules declare Capsicum needs. Still ahead.</li></ol>
+<h3 id="long-term-6-months">Long Term (6+ months)</h3>
+<ol><li>~~<strong>Audit logging</strong>, Built-in forensics.~~ Done, <code>std.audit</code>.</li><li>~~<strong>Casper integration</strong>, delegation to the Casper daemon.~~ Done, <code>std.casper</code> (DNS, pwd, sysctl).</li><li><strong>Jail + RCTL support</strong>, Multi-level sandboxing. Still ahead.</li><li><strong>Cross-language Capsicum metadata</strong>, Hosted modules declare Capsicum needs. Still ahead.</li></ol>
 <hr>
-<h2>Part 7: Conclusion</h2>
+<h2 id="part-7-conclusion">Part 7: Conclusion</h2>
 <p><strong>Capsicum and Aether are orthogonal strengths:</strong></p>
 <ul><li><strong>Capsicum</strong> is OS-enforced, fine-grained, and ironclad, but process-heavy and OS-specific.</li><li><strong>Aether</strong> is language-level, portable, and lightweight, but relies on code-level enforcement.</li></ul>
 <p><strong>A hybrid approach</strong> (Aether code + Capsicum enforcement on FreeBSD) combines the best of both:</p>
 <ol><li><strong>Portability</strong>, Aether code runs on any OS.</li><li><strong>Simplicity</strong>, Users write high-level permission contexts; the runtime handles the details.</li><li><strong>Security depth</strong>, Language-level checks catch bugs; Capsicum catches malice.</li><li><strong>Performance</strong>, Fast path on allowed operations; Capsicum only on denied syscalls.</li></ol>
 <p><strong>For Aether to become a credible sandboxing platform on FreeBSD</strong>, the roadmap is:</p>
-<ol><li>~~<strong>Phase 1:</strong> Capsicum bindings~~, done, <code>std.capsicum</code>.</li><li>~~<strong>Phase 2:</strong> Runtime integration~~, done, Capsicum self-sandbox</li></ol>
-<p>(<code>AETHER_CAPSICUM=1</code>); the transparent-for-actors form turned out impossible for dynamic binaries (see Part 3.2).</p>
-<ol><li>~~<strong>Phase 3:</strong> Audit logging~~, done, <code>std.audit</code>.</li><li><strong>Phase 4:</strong> Ecosystem integration, Casper delegation done</li></ol>
-<p>(<code>std.casper</code>); jail/RCTL and cross-language Capsicum metadata still ahead.</p>
+<ol><li>~~<strong>Phase 1:</strong> Capsicum bindings~~, done, <code>std.capsicum</code>.</li><li>~~<strong>Phase 2:</strong> Runtime integration~~, done, Capsicum self-sandbox (<code>AETHER_CAPSICUM=1</code>); the transparent-for-actors form turned out impossible for dynamic binaries (see Part 3.2).</li><li>~~<strong>Phase 3:</strong> Audit logging~~, done, <code>std.audit</code>.</li><li><strong>Phase 4:</strong> Ecosystem integration, Casper delegation done (<code>std.casper</code>); jail/RCTL and cross-language Capsicum metadata still ahead.</li></ol>
 <p>The result is a language-level sandbox model that can fall back to OS-level enforcement (Capsicum) where the platform provides it.</p>
 <hr>
-<h2>References</h2>
-<h3>Capsicum Documentation</h3>
+<h2 id="references">References</h2>
+<h3 id="capsicum-documentation">Capsicum Documentation</h3>
 <ul><li><a href="https://www.cl.cam.ac.uk/research/security/capsicum/">Capsicum: practical capabilities for UNIX</a>, Original research</li><li><a href="https://www.freebsd.org/cgi/man.cgi?capsicum">FreeBSD Capsicum man pages</a>, <code>cap_enter(2)</code>, <code>cap_rights_limit(2)</code>, etc.</li><li><a href="https://www.freebsd.org/cgi/man.cgi?casper">Casper daemon documentation</a>, Inter-process privilege delegation</li><li><a href="https://www.chromium.org/">Chromium Capsicum integration</a>, Production use case</li></ul>
-<h3>Aether Documentation</h3>
-<ul><li><a href="/Docs/containment-sandbox.html"><code>docs/containment-sandbox.md</code></a>, Aether&#x27;s permission model and examples</li><li><a href="/Docs/aether-embedded-in-host-applications.html"><code>docs/aether-embedded-in-host-applications.md</code></a>, Hosted modules and capability-empty defaults</li><li><a href="/Docs/closures-and-builder-dsl.html"><code>docs/closures-and-builder-dsl.md</code></a>, Closure isolation and scope hygiene</li><li><a href="/Docs/emit-lib.html"><code>docs/emit-lib.md</code></a>, Embedding Aether as a library in host applications</li></ul>
-<h3>Related Security Research</h3>
+<h3 id="aether-documentation">Aether Documentation</h3>
+<ul><li><a href="/Docs/containment-sandbox.html"><code>docs/containment-sandbox.md</code></a>, Aether's permission model and examples</li><li><a href="/Docs/aether-embedded-in-host-applications.html"><code>docs/aether-embedded-in-host-applications.md</code></a>, Hosted modules and capability-empty defaults</li><li><a href="/Docs/closures-and-builder-dsl.html"><code>docs/closures-and-builder-dsl.md</code></a>, Closure isolation and scope hygiene</li><li><a href="/Docs/emit-lib.html"><code>docs/emit-lib.md</code></a>, Embedding Aether as a library in host applications</li></ul>
+<h3 id="related-security-research">Related Security Research</h3>
 <ul><li><a href="http://www.trustedbsd.org/2010usenix-security-capsicum-website.pdf">USENIX Security 2010: Capsicum paper</a></li><li><a href="https://www.bsdcan.org/2014/schedule/track/Security/486.en.html">BSDCan 2014: Capsicum and Casper</a></li><li><a href="https://www.engr.mun.ca/~anderson/publications/2017/towards-oblivious-sandboxing.pdf">Oblivious Sandboxing with Capsicum</a></li></ul>
       </article>
     </main>
+    <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#executive-summary" class="l2" data-id="executive-summary">Executive Summary</a><a href="#part-1-sandbox-models-compared" class="l2" data-id="part-1-sandbox-models-compared">Part 1: Sandbox Models Compared</a><a href="#11-capsicum-os-level-capability-restrictions" class="l3" data-id="11-capsicum-os-level-capability-restrictions">1.1 Capsicum: OS-Level Capability Restrictions</a><a href="#12-aether-language-level-scope-based-isolation" class="l3" data-id="12-aether-language-level-scope-based-isolation">1.2 Aether: Language-Level Scope-Based Isolation</a><a href="#13-side-by-side-comparison" class="l3" data-id="13-side-by-side-comparison">1.3 Side-by-Side Comparison</a><a href="#part-14-closing-the-gap-what-ld_preload-needs-to-match-capsicum-on-linux" class="l2" data-id="part-14-closing-the-gap-what-ld_preload-needs-to-match-capsicum-on-linux">Part 1.4 Closing the Gap: What LD_PRELOAD Needs to Match Capsicum on Linux</a><a href="#part-2-architectural-parallels" class="l2" data-id="part-2-architectural-parallels">Part 2: Architectural Parallels</a><a href="#21-common-principles" class="l3" data-id="21-common-principles">2.1 Common Principles</a><a href="#22-where-they-differ" class="l3" data-id="22-where-they-differ">2.2 Where They Differ</a><a href="#part-3-opportunities-for-aether-on-freebsd" class="l2" data-id="part-3-opportunities-for-aether-on-freebsd">Part 3: Opportunities for Aether on FreeBSD</a><a href="#31-a-hybrid-approach-aether--capsicum" class="l3" data-id="31-a-hybrid-approach-aether--capsicum">3.1 A Hybrid Approach: Aether + Capsicum</a><a href="#32-concrete-implementation-roadmap" class="l3" data-id="32-concrete-implementation-roadmap">3.2 Concrete Implementation Roadmap</a><a href="#33-freebsd-specific-optimizations" class="l3" data-id="33-freebsd-specific-optimizations">3.3 FreeBSD-Specific Optimizations</a><a href="#part-4-real-world-use-cases-for-aether-on-freebsd" class="l2" data-id="part-4-real-world-use-cases-for-aether-on-freebsd">Part 4: Real-World Use Cases for Aether on FreeBSD</a><a href="#41-secure-configuration-management" class="l3" data-id="41-secure-configuration-management">4.1 Secure Configuration Management</a><a href="#42-plugin-system-for-services" class="l3" data-id="42-plugin-system-for-services">4.2 Plugin System for Services</a><a href="#43-secure-scripting-in-system-tools" class="l3" data-id="43-secure-scripting-in-system-tools">4.3 Secure Scripting in System Tools</a><a href="#part-5-challenges-and-limitations" class="l2" data-id="part-5-challenges-and-limitations">Part 5: Challenges and Limitations</a><a href="#51-capsicum-limitations" class="l3" data-id="51-capsicum-limitations">5.1 Capsicum Limitations</a><a href="#52-aether-limitations" class="l3" data-id="52-aether-limitations">5.2 Aether Limitations</a><a href="#part-6-roadmap-for-aether-on-freebsd" class="l2" data-id="part-6-roadmap-for-aether-on-freebsd">Part 6: Roadmap for Aether on FreeBSD</a><a href="#short-term-2-3-months" class="l3" data-id="short-term-2-3-months">Short Term (2-3 months)</a><a href="#medium-term-3-6-months" class="l3" data-id="medium-term-3-6-months">Medium Term (3-6 months)</a><a href="#long-term-6-months" class="l3" data-id="long-term-6-months">Long Term (6+ months)</a><a href="#part-7-conclusion" class="l2" data-id="part-7-conclusion">Part 7: Conclusion</a><a href="#references" class="l2" data-id="references">References</a><a href="#capsicum-documentation" class="l3" data-id="capsicum-documentation">Capsicum Documentation</a><a href="#aether-documentation" class="l3" data-id="aether-documentation">Aether Documentation</a><a href="#related-security-research" class="l3" data-id="related-security-research">Related Security Research</a></nav>
   </div>
 </div>
+<script src="/docs.js" defer></script>
 <footer class="site-foot">
   <div class="wrap foot">
     <span class="ae">ae</span>
-    <span class="m">MIT licensed · compiles to C · v0.454</span>
+    <span class="m">MIT licensed · compiles to C · v0.462</span>
     <nav><a href="/Docs/getting-started.html">Docs</a><a href="/repl.html">Playground</a><a href="https://github.com/aether-lang-org/aether">GitHub</a></nav>
   </div>
 </footer>

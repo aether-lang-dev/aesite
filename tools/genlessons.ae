@@ -1,0 +1,56 @@
+// Bake resources/lessons/<n>/ into static/lessons.json, in Aether.
+//
+// Reads each lesson's title, theory, and code, runs the code with `ae run`
+// to capture its real output, and writes an ordered JSON array of
+// { title, theory, starter_code, expected_output }.
+//
+// Run from the repository root:  ae run tools/genlessons.ae
+
+import std.io
+import std.os
+import std.json
+import std.string
+
+main() {
+    lessons = json.arr()
+    n = 1
+
+    while true {
+        dir = "resources/lessons/${n}"
+
+        code, cerr = io.read_file("${dir}/code.ae")
+        if cerr != "" {
+            break
+        }
+        title, terr = io.read_file("${dir}/title.txt")
+        if terr != "" {
+            title = "Lesson ${n}"
+        }
+        theory, _ = io.read_file("${dir}/content.html")
+
+        // Run the lesson; capture stdout only (stderr carries linker noise).
+        out, _ = os.exec("ae run '${dir}/code.ae' 2>/dev/null")
+
+        obj = json.obj()
+        json.set(obj, "title", json.str(string.trim(title)))
+        json.set(obj, "theory", json.str(string.trim(theory)))
+        json.set(obj, "starter_code", json.str("${string.trim(code)}\n"))
+        json.set(obj, "expected_output", json.str(string.trim(out)))
+        _ = json.push(lessons, obj)
+
+        println("  lesson ${n}: ${string.trim(title)}")
+        n = n + 1
+    }
+
+    body, eerr = json.encode(lessons)
+    if eerr != "" {
+        println("encode failed: ${eerr}")
+        return
+    }
+    werr = io.write_file("static/lessons.json", body)
+    if werr != "" {
+        println("write failed: ${werr}")
+        return
+    }
+    println("wrote ${n - 1} lessons -> static/lessons.json")
+}

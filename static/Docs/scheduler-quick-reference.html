@@ -4,27 +4,38 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Aether Scheduler - Quick Reference · Aether</title>
-<meta name="description" content="Aether Scheduler - Quick Reference — Aether language documentation.">
+<meta name="description" content="Single-actor programs bypass the scheduler entirely. When only one actor exists and all messages originate from the main thread, the runtime processes m...">
+<link rel="canonical" href="https://aether-lang.dev/Docs/scheduler-quick-reference.html">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Aether Scheduler - Quick Reference · Aether">
+<meta property="og:description" content="Single-actor programs bypass the scheduler entirely. When only one actor exists and all messages originate from the main thread, the runtime processes m...">
+<meta property="og:url" content="https://aether-lang.dev/Docs/scheduler-quick-reference.html">
+<meta property="og:image" content="https://aether-lang.dev/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="/favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/aether.css">
 </head>
 <body>
+<a class="skip" href="#doc">Skip to content</a>
 <header class="site-head">
   <div class="wrap bar">
     <a class="brand" href="/" aria-label="Aether"><span class="ae">ae</span><span class="nm">aether</span></a>
     <nav>
       <a href="/repl.html">Playground</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
-      <a href="https://github.com/aether-lang-org/aether">Source</a>
-      <span class="vtag">v0.454</span>
+      <a class="src" href="https://github.com/aether-lang-org/aether">Source</a>
+      <span class="vtag">v0.462</span>
     </nav>
   </div>
 </header>
 <div class="wrap">
   <div class="doc-shell">
-    <nav class="doc-nav"><div class="grp">Start</div>
+    <nav class="doc-nav" aria-label="Documentation">
+      <div class="docsearch"><input id="ds" type="search" placeholder="Search the docs" aria-label="Search documentation" autocomplete="off" spellcheck="false"><kbd>/</kbd><div class="ds-res" id="dsres" role="listbox"></div></div>
+<div class="grp">Start</div>
 <a href="/Docs/getting-started.html">Getting Started with Aether</a>
 <a href="/Docs/tutorial.html">Aether Language Tutorial</a>
 <a href="/Docs/next-steps.html">Next Steps</a>
@@ -34,7 +45,7 @@
 <a href="/Docs/type-annotation-style-guide.html">Aether Type Annotation Style Guide</a>
 <a href="/Docs/type-inference-multi-value-returns.html">Multi-Value Return Type Inference</a>
 <a href="/Docs/distinct-types.html">Distinct Types</a>
-<a href="/Docs/sequences.html">Sequences (`*StringSeq`)</a>
+<a href="/Docs/sequences.html">Sequences (*StringSeq)</a>
 <a href="/Docs/named-args-and-select.html">Named Arguments and select()</a>
 <a href="/Docs/closures-and-builder-dsl.html">Closures and Builder-Style DSL in Aether</a>
 <a href="/Docs/closures-and-lifetimes.html">Closures and Environment Lifetimes</a>
@@ -50,23 +61,23 @@
 <div class="grp">Interop</div>
 <a href="/Docs/c-interop.html">C Interoperability</a>
 <a href="/Docs/c-embedding.html">Embedding Aether Actors in C Applications</a>
-<a href="/Docs/emit-lib.html">Embedding Aether as a Shared Library (`--emit=lib`)</a>
+<a href="/Docs/emit-lib.html">Embedding Aether as a Shared Library (--emit=lib)</a>
 <a href="/Docs/embedded-namespaces-and-host-bindings.html">Aether as a Configuration Language, v2: Namespaces and Generated Bindings</a>
 <a href="/Docs/aether-embedded-in-host-applications.html">Aether as a Configuration Language for Other Languages</a>
-<a href="/Docs/lib-caller-info.html">`--emit=lib` caller-info channel</a>
+<a href="/Docs/lib-caller-info.html">--emit=lib caller-info channel</a>
 <div class="grp">Stdlib</div>
 <a href="/Docs/stdlib-reference.html">Aether Standard Library Reference</a>
 <a href="/Docs/stdlib-api.html">Aether Standard Library Guide</a>
 <a href="/Docs/stdlib-module-pattern.html">Aether Stdlib Module Pattern</a>
-<a href="/Docs/stdlib-vs-contrib.html">`std/` vs `contrib/` placement decisions</a>
-<a href="/Docs/http-server.html">`std.http` HTTP Server</a>
-<a href="/Docs/http-reverse-proxy.html">`std.http.proxy` reverse proxy</a>
+<a href="/Docs/stdlib-vs-contrib.html">std/ vs contrib/ placement decisions</a>
+<a href="/Docs/http-server.html">std.http HTTP Server</a>
+<a href="/Docs/http-reverse-proxy.html">std.http.proxy reverse proxy</a>
 <a href="/Docs/http-handler-context.html">HTTP handlers with per-server / per-route state</a>
 <a href="/Docs/http-vcr.html">HTTP Record/Replay (VCR), moved out of Aether</a>
-<a href="/Docs/json-parser-design.html">`std.json` Design Notes</a>
+<a href="/Docs/json-parser-design.html">std.json Design Notes</a>
 <div class="grp">Safety</div>
 <a href="/Docs/containment-sandbox.html">Containment and Sandboxing in Aether</a>
-<a href="/Docs/hide-and-seal.html">`hide` and `seal except` scope-level capability denial</a>
+<a href="/Docs/hide-and-seal.html">hide and seal except scope-level capability denial</a>
 <a href="/Docs/compiler-trust-boundary.html">The Compiler Trust Boundary</a>
 <a href="/Docs/config-is-code.html">Config IS Code</a>
 <a href="/Docs/aether_compared_to_capsicum.html">Aether Sandbox Model vs. BSD Capsicum: Architecture, Parallels, and FreeBSD Integration</a>
@@ -76,155 +87,157 @@
 <a href="/Docs/install-layout.html">Aether install layout</a>
 <a href="/Docs/runtime-config.html">Runtime Configuration - Quick Reference</a>
 <a href="/Docs/per-process-config.html">Per-process configuration in Aether</a>
-<a href="/Docs/cic-help.html">`ae help &lt;script&gt;` Offline diagnostics for config-IS-code</a>
+<a href="/Docs/cic-help.html">ae help &lt;script&gt; Offline diagnostics for config-IS-code</a>
 <div class="grp">More</div>
-<a href="/Docs/bindgen-consts.html">`ae bindgen consts`, importing C macro constants</a>
-<a href="/Docs/formatter.html">`ae fmt`, the source formatter</a>
-<a href="/Docs/isolated.html">`Isolated[T]`: move-only actor message payloads (#479)</a>
-<a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
-<a href="/Docs/profiling-guide.html">Aether Runtime Profiling Guide</a>
 <a href="/Docs/allocators.html">Allocators</a>
-<a href="/Docs/when-static-if.html">Compile-time `when` / static-if</a>
+<a href="/Docs/bindgen-consts.html">ae bindgen consts, importing C macro constants</a>
 <a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
 <a href="/Docs/contract-folding.html">Compile-time contract folding — costed design</a>
-<a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn&#x27;t need `macro_rules!`</a>
+<a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn't need macro_rules!</a>
+<a href="/Docs/error-unification.html">Unifying T? and (value, err) — costed design</a>
+<a href="/Docs/formatter.html">ae fmt, the source formatter</a>
+<a href="/Docs/isolated.html">Isolated[T]: move-only actor message payloads (#479)</a>
+<a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
+<a href="/Docs/profiling-guide.html">Aether Runtime Profiling Guide</a>
 <a href="/Docs/release-glibc-portability.html">Release binary portability across glibc versions</a>
-<a href="/Docs/error-unification.html">Unifying `T?` and `(value, err)` — costed design</a></nav>
+<a href="/Docs/when-static-if.html">Compile-time when / static-if</a></nav>
     <main class="doc-main">
-      <article class="doc-body">
-        <div class="bc">docs / runtime</div>
-<h1>Aether Scheduler - Quick Reference</h1>
-<h2>Main Thread Mode</h2>
+      <article class="doc-body" id="doc">
+        <div class="bc"><span class="prompt">$</span>docs / runtime</div>
+<h1 id="aether-scheduler---quick-reference">Aether Scheduler - Quick Reference</h1>
+<h2 id="main-thread-mode">Main Thread Mode</h2>
 <p>Single-actor programs bypass the scheduler entirely. When only one actor exists and all messages originate from the main thread, the runtime processes messages synchronously without spawning scheduler threads.</p>
 <p><strong>Activation:</strong></p>
 <ul><li>Automatic: Enabled when the first actor spawns, disabled when a second actor spawns</li><li>Manual disable: Set <code>AETHER_NO_INLINE=1</code> environment variable</li></ul>
 <p><strong>Mechanism:</strong></p>
-<ul><li><code>scheduler_start()</code> returns immediately</li><li><code>scheduler_wait()</code> returns immediately (non-destructive; does not stop threads)</li><li><code>aether_send_message</code> processes synchronously via <code>aether_send_message_sync</code></li><li><strong>Threaded mode:</strong> Zero-copy, message data passed directly from caller&#x27;s stack</li><li><strong>Cooperative mode:</strong> Heap-copy, message data is <code>malloc</code>&#x27;d because mailbox FIFO order means the sent message may not be consumed by the immediate <code>step()</code> call</li></ul>
+<ul><li><code>scheduler_start()</code> returns immediately</li><li><code>scheduler_wait()</code> returns immediately (non-destructive; does not stop threads)</li><li><code>aether_send_message</code> processes synchronously via <code>aether_send_message_sync</code></li><li><strong>Threaded mode:</strong> Zero-copy, message data passed directly from caller's stack</li><li><strong>Cooperative mode:</strong> Heap-copy, message data is <code>malloc</code>'d because mailbox FIFO order means the sent message may not be consumed by the immediate <code>step()</code> call</li></ul>
 <p><strong>Per-actor flag:</strong> The <code>main_thread_only</code> field on <code>ActorBase</code> signals scheduler threads to skip processing this actor. When a second actor spawns, the flag is cleared on the first actor. In cooperative mode, this flag stays set for all actors.</p>
 <hr>
-<h2>Cooperative Scheduler</h2>
+<h2 id="cooperative-scheduler">Cooperative Scheduler</h2>
 <p>On platforms without pthreads (WebAssembly, embedded) or when threading is explicitly disabled (<code>-DAETHER_NO_THREADING</code>), the cooperative scheduler (<code>aether_scheduler_coop.c</code>) provides the same API as the multi-core scheduler but runs everything on a single thread.</p>
 <p><strong>Key differences:</strong></p>
 <ul><li><code>scheduler_init()</code> forces <code>num_cores = 1</code>, <code>main_thread_mode = true</code></li><li><code>scheduler_start()</code> / <code>scheduler_stop()</code> are no-ops</li><li><code>scheduler_wait()</code> polls all actors via <code>aether_scheduler_poll()</code> until no messages remain</li><li>All sends go to local mailbox (no cross-core routing)</li><li>Ask/reply is synchronous (poll until <code>reply_ready</code>)</li></ul>
 <p><strong>Selection:</strong> Controlled by <code>PLATFORM=wasm|embedded</code> or auto-detected from <code>EXTRA_CFLAGS</code> containing <code>AETHER_NO_THREADING</code>. Only one scheduler .c file is compiled.</p>
-<pre><code># Test cooperative mode on native
+<pre><code><span class="com"># Test cooperative mode on native</span>
 make ci-coop
 
-# Build for WASM via CLI
+<span class="com"># Build for WASM via CLI</span>
 ae build --target wasm hello.ae
 
-# Build for WASM via Makefile
+<span class="com"># Build for WASM via Makefile</span>
 make stdlib PLATFORM=wasm</code></pre>
 <hr>
-<h2>Actor Timeouts</h2>
+<h2 id="actor-timeouts">Actor Timeouts</h2>
 <p>Actors with a <code>receive ... after N</code> clause have <code>timeout_ns</code> and <code>last_activity_ns</code> fields in <code>ActorBase</code>. The generated step function checks the clock via <code>_aether_clock_ns()</code> before <code>mailbox_receive()</code>:</p>
 <ol><li>If the mailbox is empty and <code>timeout_ns &gt; 0</code>, <code>last_activity_ns</code> is set to the current time (start countdown)</li><li>On the next poll, if <code>(now - last_activity_ns) &gt;= timeout_ns</code>, the timeout handler fires and the timeout is disabled (one-shot)</li><li>If a message arrives, both <code>timeout_ns</code> and <code>last_activity_ns</code> are reset to 0 (cancelled)</li></ol>
 <p>Both the multicore and cooperative schedulers poll actors with active timeouts even when their mailbox is empty.</p>
 <hr>
-<h2>Cooperative Preemption</h2>
+<h2 id="cooperative-preemption">Cooperative Preemption</h2>
 <p>Opt-in, zero cost when disabled. Two independent levels:</p>
 <p><strong>Scheduler-side</strong> (<code>AETHER_PREEMPT=1</code>): After each <code>actor-&gt;step()</code> call in the drain loop, the scheduler checks elapsed time via <code>aether_now_ns()</code>. If the batch exceeds the threshold (default 1ms, configurable via <code>AETHER_PREEMPT_MS</code>), it breaks out and moves to the next actor. Cost when disabled: zero (branch skipped).</p>
 <p><strong>Codegen-side</strong> (<code>aetherc --preempt</code>): Inserts <code>sched_yield()</code> at the top of every <code>while</code> and <code>for</code> loop body. A <code>static int _aether_reductions</code> counter (initialized to 10000) controls frequency, yields only when the counter hits zero. Note this counter is a single file-scope global, not thread-local, so in a multi-threaded actor program it is shared across all threads. Cost when <code>--preempt</code> is not passed: zero (code not generated).</p>
 <hr>
-<h2>Scheduler Usage</h2>
-<pre><code>// Initialize with N cores (auto-detects hardware if 0)
-scheduler_init(4);
+<h2 id="scheduler-usage">Scheduler Usage</h2>
+<pre><code><span class="com">// Initialize with N cores (auto-detects hardware if 0)</span>
+scheduler_init(<span class="num">4</span>);
 
-// Register actors (assigned to preferred core)
+<span class="com">// Register actors (assigned to preferred core)</span>
 scheduler_register_actor((ActorBase*)actor, preferred_core);
 
-// Start processing
+<span class="com">// Start processing</span>
 scheduler_start();
 
-// Send messages (routed automatically)
-for (int i = 0; i &lt; 10000; i++) {
-    Message msg = message_create_simple(1, 0, i);
+<span class="com">// Send messages (routed automatically)</span>
+<span class="kw">for</span> (<span class="kw">int</span> i = <span class="num">0</span>; i &lt; <span class="num">10000</span>; i++) {
+    Message msg = message_create_simple(<span class="num">1</span>, <span class="num">0</span>, i);
     scheduler_send_remote(actor, msg, current_core_id);
 }
 
-// Wait for quiescence (non-destructive, can be called multiple times)
+<span class="com">// Wait for quiescence (non-destructive, can be called multiple times)</span>
 scheduler_wait();
 
-// Can send more messages and wait again
-for (int i = 0; i &lt; 5000; i++) {
-    Message msg = message_create_simple(1, 0, i);
+<span class="com">// Can send more messages and wait again</span>
+<span class="kw">for</span> (<span class="kw">int</span> i = <span class="num">0</span>; i &lt; <span class="num">5000</span>; i++) {
+    Message msg = message_create_simple(<span class="num">1</span>, <span class="num">0</span>, i);
     scheduler_send_remote(actor, msg, current_core_id);
 }
 scheduler_wait();
 
-// At program exit: wait for quiescence, stop and join scheduler threads
+<span class="com">// At program exit: wait for quiescence, stop and join scheduler threads</span>
 scheduler_shutdown();</code></pre>
-<h2>Actor Allocation</h2>
-<pre><code>// NUMA-aware allocation with correct derived-struct size
-ActorBase* actor = scheduler_spawn_pooled(preferred_core, step_fn, sizeof(MyActor));
-if (!actor) {
-    // Fallback to manual allocation
-    actor = aligned_alloc(64, sizeof(MyActor));
-    memset(actor, 0, sizeof(MyActor));
+<h2 id="actor-allocation">Actor Allocation</h2>
+<pre><code><span class="com">// NUMA-aware allocation with correct derived-struct size</span>
+ActorBase* actor = scheduler_spawn_actor(preferred_core, step_fn, <span class="kw">sizeof</span>(MyActor));
+<span class="kw">if</span> (!actor) {
+    <span class="com">// Fallback to manual allocation</span>
+    actor = aligned_alloc(<span class="num">64</span>, <span class="kw">sizeof</span>(MyActor));
+    memset(actor, <span class="num">0</span>, <span class="kw">sizeof</span>(MyActor));
     mailbox_init(&amp;actor-&gt;mailbox);
     spsc_queue_init(&amp;actor-&gt;spsc_queue);
 }</code></pre>
-<h2>Message Flow</h2>
+<h2 id="message-flow">Message Flow</h2>
 <pre><code>sender -&gt; scheduler_send_remote -&gt; lock-free queue -&gt; batch dequeue
        -&gt; coalesce buffer -&gt; redirect/deliver -&gt; mailbox -&gt; actor step</code></pre>
 <p><strong>Same-core fast path:</strong></p>
 <pre><code>sender -&gt; scheduler_send_local -&gt; mailbox (direct) -&gt; actor step</code></pre>
-<h2>Configuration</h2>
-<h3>Message Coalescing</h3>
-<pre><code>#define COALESCE_THRESHOLD 512  // In multicore_scheduler.h</code></pre>
-<h3>Adaptive Batch Size</h3>
-<pre><code>#define MIN_BATCH_SIZE 64    // In aether_adaptive_batch.h
-#define MAX_BATCH_SIZE 1024</code></pre>
-<h3>Mailbox Size</h3>
-<pre><code>#define MAILBOX_SIZE 32   // In actor_state_machine.h (must be power of 2)</code></pre>
-<h3>Message Pool</h3>
-<pre><code>#define MSG_PAYLOAD_POOL_SIZE 256  // In aether_send_message.c
-#define MSG_PAYLOAD_MAX_SIZE 256   // Max pooled message size</code></pre>
-<h3>Cross-Core Queue</h3>
-<pre><code>#define QUEUE_SIZE 1024  // In lockfree_queue.h</code></pre>
-<h2>Idle Detection</h2>
+<h2 id="configuration">Configuration</h2>
+<h3 id="message-coalescing">Message Coalescing</h3>
+<pre><code>#define COALESCE_THRESHOLD <span class="num">512</span>  <span class="com">// In multicore_scheduler.h</span></code></pre>
+<h3 id="adaptive-batch-size">Adaptive Batch Size</h3>
+<pre><code>#define MIN_BATCH_SIZE <span class="num">64</span>    <span class="com">// In aether_adaptive_batch.h</span>
+#define MAX_BATCH_SIZE <span class="num">1024</span></code></pre>
+<h3 id="mailbox-size">Mailbox Size</h3>
+<pre><code>#define MAILBOX_SIZE <span class="num">32</span>   <span class="com">// In actor_state_machine.h (must be power of 2)</span></code></pre>
+<h3 id="message-pool">Message Pool</h3>
+<pre><code>#define MSG_PAYLOAD_POOL_SIZE <span class="num">256</span>  <span class="com">// In aether_send_message.c</span>
+#define MSG_PAYLOAD_MAX_SIZE <span class="num">256</span>   <span class="com">// Max pooled message size</span></code></pre>
+<h3 id="cross-core-queue">Cross-Core Queue</h3>
+<pre><code>#define QUEUE_SIZE <span class="num">1024</span>  <span class="com">// In lockfree_queue.h</span></code></pre>
+<h2 id="idle-detection">Idle Detection</h2>
 <p><code>scheduler_wait()</code> blocks until all messages have been processed (quiescence). It is <strong>non-destructive</strong>: scheduler threads continue running after it returns, so it can be called multiple times in a program (e.g., between test phases or message bursts). It uses per-core counters to detect idle state without atomic contention on the message-passing hot path:</p>
 <p><code>scheduler_shutdown()</code> calls <code>scheduler_wait()</code> internally, then stops scheduler threads and joins them. Call it once at program exit.</p>
-<pre><code>// Per-core counters in Scheduler struct
-uint64_t messages_sent;      // Incremented on send (no atomic)
-uint64_t messages_processed; // Incremented on process (no atomic)
+<pre><code><span class="com">// Per-core counters in Scheduler struct</span>
+<span class="kw">uint64_t</span> messages_sent;      <span class="com">// Incremented on send (no atomic)</span>
+<span class="kw">uint64_t</span> messages_processed; <span class="com">// Incremented on process (no atomic)</span>
 
-// scheduler_wait() sums across cores
-while (total_sent != total_processed) {
-    // spin-wait
+<span class="com">// scheduler_wait() sums across cores</span>
+<span class="kw">while</span> (total_sent != total_processed) {
+    <span class="com">// spin-wait</span>
 }</code></pre>
 <p>Messages sent from the main thread (before scheduler threads start) use a separate atomic counter. This path is infrequent.</p>
-<h2>Core Assignment and Migration</h2>
-<p>Actors are assigned to cores at spawn time using locality-aware placement: the runtime places each actor on the caller&#x27;s core so that parent-child messaging stays local. Actors spawned from the main thread default to core 0, keeping all top-level actors co-located for efficient intra-group messaging. Actors spawned from within actor handlers (on scheduler threads) inherit the parent&#x27;s core.</p>
-<p>During operation, cross-core senders set a <code>migrate_to</code> hint on the target actor. The owning scheduler checks migration hints after processing messages in the coalesce buffer and migrates the actor to the sender&#x27;s core. This co-locates communicating actors regardless of their initial placement.</p>
+<h2 id="core-assignment-and-migration">Core Assignment and Migration</h2>
+<p>Actors are assigned to cores at spawn time using locality-aware placement: the runtime places each actor on the caller's core so that parent-child messaging stays local. Actors spawned from the main thread default to core 0, keeping all top-level actors co-located for efficient intra-group messaging. Actors spawned from within actor handlers (on scheduler threads) inherit the parent's core.</p>
+<p>During operation, cross-core senders set a <code>migrate_to</code> hint on the target actor. The owning scheduler checks migration hints after processing messages in the coalesce buffer and migrates the actor to the sender's core. This co-locates communicating actors regardless of their initial placement.</p>
 <p>Both migration and work stealing use ascending core-id lock ordering to prevent deadlock.</p>
-<h2>Best Practices</h2>
+<h2 id="best-practices">Best Practices</h2>
 <p><strong>Do:</strong></p>
 <ul><li>Let the scheduler handle core assignment and migration</li><li>Use <code>scheduler_send_remote</code> for all cross-core messages</li><li>Initialize <code>migrate_to = -1</code> when creating actors manually</li><li>Ensure test actor structs match <code>ActorBase</code> field layout exactly</li></ul>
 <p><strong>Do not:</strong></p>
-<ul><li>Access an actor&#x27;s mailbox from a thread other than its owning scheduler thread</li><li>Call <code>mailbox_send</code> directly on actors owned by other cores</li><li>Omit <code>migrate_to</code> from custom actor structs (causes struct layout mismatch)</li></ul>
-<h2>Troubleshooting</h2>
-<h3>Low Throughput</h3>
+<ul><li>Access an actor's mailbox from a thread other than its owning scheduler thread</li><li>Call <code>mailbox_send</code> directly on actors owned by other cores</li><li>Omit <code>migrate_to</code> from custom actor structs (causes struct layout mismatch)</li></ul>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<h3 id="low-throughput">Low Throughput</h3>
 <ul><li>Verify compiler flags include <code>-O3 -march=native -flto</code></li><li>Check that message pool is active (pool stats via <code>aether_message_pool_stats</code>)</li><li>Ensure batch size is appropriate for workload</li><li>Verify core count matches available hardware</li></ul>
-<h3>High Latency</h3>
+<h3 id="high-latency">High Latency</h3>
 <ul><li>Tune <code>COALESCE_THRESHOLD</code> for latency-sensitive workloads (lower = less batching delay)</li><li>Check progressive backoff thresholds</li><li>Avoid blocking operations in actor step functions</li></ul>
-<h3>Crashes</h3>
+<h3 id="crashes">Crashes</h3>
 <ul><li>Verify all actor structs match <code>ActorBase</code> layout (fields, in order: <code>active</code>, <code>id</code>, <code>mailbox</code>, <code>step</code>, <code>thread</code>, <code>auto_process</code>, <code>assigned_core</code>, <code>migrate_to</code>, <code>main_thread_only</code>, <code>spsc_queue</code>, <code>reply_slot</code>, <code>step_lock</code>, <code>timeout_ns</code>, <code>last_activity_ns</code>, <code>dead</code>)</li><li>Initialize <code>migrate_to = -1</code> after actor creation</li><li>Use <code>scheduler_send_remote</code> instead of direct mailbox writes for cross-core messages</li><li>Call <code>scheduler_shutdown()</code> before process exit (waits for quiescence, stops and joins threads)</li></ul>
-<h2>Files Reference</h2>
-<h3>Headers</h3>
+<h2 id="files-reference">Files Reference</h2>
+<h3 id="headers">Headers</h3>
 <ul><li><code>runtime/actors/actor_state_machine.h</code> - Message struct, mailbox</li><li><code>runtime/scheduler/multicore_scheduler.h</code> - Scheduler API, ActorBase, spinlock</li><li><code>runtime/scheduler/lockfree_queue.h</code> - Cross-core message queue</li><li><code>runtime/actors/aether_spsc_queue.h</code> - Same-core SPSC queue</li><li><code>runtime/actors/aether_adaptive_batch.h</code> - Adaptive batch sizing</li></ul>
-<h3>Implementation</h3>
+<h3 id="implementation">Implementation</h3>
 <ul><li><code>runtime/scheduler/multicore_scheduler.c</code> - Multi-core scheduler: coalescing, migration, work stealing</li><li><code>runtime/scheduler/aether_scheduler_coop.c</code> - Cooperative single-threaded scheduler (WASM, embedded)</li><li><code>runtime/config/aether_optimization_config.h</code> - Platform detection (Tier 0 <code>AETHER_HAS_*</code> flags)</li><li><code>runtime/actors/aether_send_message.c</code> - Message sending, thread-local pools</li><li><code>runtime/actors/aether_actor_thread.c</code> - Actor-owned thread loop</li><li><code>runtime/utils/aether_thread.h</code> - Portable thread primitives (POSIX/Win32/no-op stubs)</li><li><code>runtime/aether_numa.c</code> - NUMA topology detection and allocation</li></ul>
-<h3>Tests</h3>
+<h3 id="tests">Tests</h3>
 <ul><li><code>tests/runtime/test_scheduler.c</code> - Scheduler correctness tests</li><li><code>tests/runtime/test_scheduler_stress.c</code> - Concurrency stress tests</li><li><code>tests/runtime/test_scheduler_optimizations.c</code> - Optimization validation</li></ul>
       </article>
     </main>
+    <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#main-thread-mode" class="l2" data-id="main-thread-mode">Main Thread Mode</a><a href="#cooperative-scheduler" class="l2" data-id="cooperative-scheduler">Cooperative Scheduler</a><a href="#actor-timeouts" class="l2" data-id="actor-timeouts">Actor Timeouts</a><a href="#cooperative-preemption" class="l2" data-id="cooperative-preemption">Cooperative Preemption</a><a href="#scheduler-usage" class="l2" data-id="scheduler-usage">Scheduler Usage</a><a href="#actor-allocation" class="l2" data-id="actor-allocation">Actor Allocation</a><a href="#message-flow" class="l2" data-id="message-flow">Message Flow</a><a href="#configuration" class="l2" data-id="configuration">Configuration</a><a href="#message-coalescing" class="l3" data-id="message-coalescing">Message Coalescing</a><a href="#adaptive-batch-size" class="l3" data-id="adaptive-batch-size">Adaptive Batch Size</a><a href="#mailbox-size" class="l3" data-id="mailbox-size">Mailbox Size</a><a href="#message-pool" class="l3" data-id="message-pool">Message Pool</a><a href="#cross-core-queue" class="l3" data-id="cross-core-queue">Cross-Core Queue</a><a href="#idle-detection" class="l2" data-id="idle-detection">Idle Detection</a><a href="#core-assignment-and-migration" class="l2" data-id="core-assignment-and-migration">Core Assignment and Migration</a><a href="#best-practices" class="l2" data-id="best-practices">Best Practices</a><a href="#troubleshooting" class="l2" data-id="troubleshooting">Troubleshooting</a><a href="#low-throughput" class="l3" data-id="low-throughput">Low Throughput</a><a href="#high-latency" class="l3" data-id="high-latency">High Latency</a><a href="#crashes" class="l3" data-id="crashes">Crashes</a><a href="#files-reference" class="l2" data-id="files-reference">Files Reference</a><a href="#headers" class="l3" data-id="headers">Headers</a><a href="#implementation" class="l3" data-id="implementation">Implementation</a><a href="#tests" class="l3" data-id="tests">Tests</a></nav>
   </div>
 </div>
+<script src="/docs.js" defer></script>
 <footer class="site-foot">
   <div class="wrap foot">
     <span class="ae">ae</span>
-    <span class="m">MIT licensed · compiles to C · v0.454</span>
+    <span class="m">MIT licensed · compiles to C · v0.462</span>
     <nav><a href="/Docs/getting-started.html">Docs</a><a href="/repl.html">Playground</a><a href="https://github.com/aether-lang-org/aether">GitHub</a></nav>
   </div>
 </footer>

@@ -1,0 +1,18 @@
+safe_divide(a: int, b: int) -> {
+    if b == 0 {
+        return 0, "division by zero"
+    }
+    return a / b, ""
+}
+
+main() {
+    q, err = safe_divide(42, 6)
+    if err != "" {
+        println("error: ${err}")
+        return
+    }
+    println("42 / 6 = ${q}")
+
+    _, err2 = safe_divide(1, 0)
+    println("1 / 0 -> ${err2}")
+}

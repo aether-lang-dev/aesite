@@ -12,6 +12,7 @@ import std.http.middleware
 import std.io
 import std.json
 import std.os
+import std.string
 
 const PORT = 1323
 const STATIC_DIR = "static"
@@ -65,42 +66,70 @@ handle_lesson(req: ptr, res: ptr, ud: ptr) {
 // The request body is raw Aether source. It is staged to a temp file and
 // executed with `ae run`, stderr merged so compile errors are visible.
 //
-// SECURITY: this runs arbitrary submitted code. It is safe only for a
-// local/trusted playground. A public deployment MUST run this inside an
-// aeo-contained sandbox (deny-default, resource-capped) before exposing it.
+// SECURITY: this compiles and runs ARBITRARY submitted code, i.e. arbitrary
+// native code on the host. The hardening below (private network namespace,
+// ulimits, timeout, per-request temp dir, output cap) is a baseline, NOT a
+// full sandbox. Aether's containment model is language-level and does not
+// constrain untrusted external programs. A public deployment MUST add real
+// OS isolation: a disposable, non-root, resource-capped VM/container with no
+// secrets and no writable host mounts. Run it somewhere disposable.
+exec_reply(res: ptr, status: int, out_s: string, err_s: string) {
+    root = json.obj()
+    json.set(root, "stdout", json.str(out_s))
+    json.set(root, "stderr", json.str(err_s))
+    body, eerr = json.encode(root)
+    json.free(root)
+    http.response_set_status(res, status)
+    http.response_set_header(res, "Content-Type", "application/json")
+    http.response_set_body(res, body)
+}
+
 handle_exec(req: ptr, res: ptr, ud: ptr) {
     code = http.request_body(req)
     if code == null {
         code = ""
     }
 
-    werr = io.write_file("/tmp/aesite_repl.ae", code)
+    // A unique working directory per request keeps concurrent runs isolated.
+    mkout, mkerr = os.exec("mktemp -d 2>/dev/null")
+    dir = string.trim(mkout)
+    if mkerr != "" || dir == "" {
+        exec_reply(res, 500, "", "cannot stage code")
+        return
+    }
+    werr = io.write_file("${dir}/main.ae", code)
     if werr != "" {
-        http.response_set_status(res, 500)
-        http.response_set_header(res, "Content-Type", "application/json")
-        http.response_set_body(res, "{\"stdout\":\"\",\"stderr\":\"cannot stage code\"}")
+        _ = os.os_system("rm -rf '${dir}'")
+        exec_reply(res, 500, "", "cannot stage code")
         return
     }
 
-    _ = os.os_system("ae run /tmp/aesite_repl.ae 2>&1 | grep -v 'ld: warning' > /tmp/aesite_repl.out")
-    output, oerr = io.read_file("/tmp/aesite_repl.out")
+    // Compile first (capture build errors), then run the resulting binary
+    // under OS isolation: a private network namespace (no outbound access),
+    // ulimits (CPU, file size, process count), and a wall-clock timeout.
+    // unshare/timeout are used only when available; a public host must still
+    // provide VM/container isolation (see README).
+    _ = os.os_system("cd '${dir}'; ae build main.ae -o app > build.txt 2>&1; if [ -x app ]; then SBX=''; if command -v unshare >/dev/null 2>&1 && unshare -rn true >/dev/null 2>&1; then SBX='unshare -rn'; fi; TO=''; if command -v timeout >/dev/null 2>&1; then TO='timeout 10'; elif command -v gtimeout >/dev/null 2>&1; then TO='gtimeout 10'; fi; ( ulimit -t 10 -f 16384 2>/dev/null; $TO $SBX ./app ) > run.txt 2>&1; cat run.txt; else cat build.txt; fi | grep -vE 'ld: warning|newer .macOS.' | head -c 65536 > out.txt")
+    output, oerr = io.read_file("${dir}/out.txt")
     if oerr != "" {
         output = ""
     }
+    _ = os.os_system("rm -rf '${dir}'")
 
-    root = json.obj()
-    json.set(root, "stdout", json.str(output))
-    json.set(root, "stderr", json.str(""))
-    body, eerr = json.encode(root)
-    json.free(root)
-
-    http.response_set_status(res, 200)
-    http.response_set_header(res, "Content-Type", "application/json")
-    http.response_set_body(res, body)
+    exec_reply(res, 200, output, "")
 }
 
 main() {
-    server = http.server_create(PORT)
+    port = PORT
+    penv = io.getenv("PORT")
+    if penv != null {
+        p, perr = string.to_int(string.trim(penv))
+        if perr == "" && p > 0 {
+            port = p
+        }
+    }
+
+    server = http.server_create(port)
     if server == 0 {
         println("server_create failed")
         return
@@ -112,6 +141,11 @@ main() {
         return
     }
     middleware.use_gzip(server, 1024, 6)
+    cors_err = middleware.use_cors(server, "*", "GET,POST,PUT,OPTIONS", "Content-Type", 0, 600)
+    if cors_err != "" {
+        println("cors: ${cors_err}")
+        return
+    }
     http.server_set_access_log(server, "combined", "-")
 
     // Routes are matched last-registered-first: catch-all first, specifics after.
@@ -121,7 +155,7 @@ main() {
     http.server_get(server, "/api/lesson/:nbr", handle_lesson, 0)
     http.server_put(server, "/api/exec", handle_exec, 0)
 
-    println("aesite listening on http://localhost:${PORT}/")
+    println("aesite listening on http://localhost:${port}/")
     err = http.server_start(server)
     if err != "" {
         println("server_start: ${err}")

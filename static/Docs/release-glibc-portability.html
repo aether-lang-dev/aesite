@@ -4,27 +4,38 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Release binary portability across glibc versions · Aether</title>
-<meta name="description" content="Release binary portability across glibc versions — Aether language documentation.">
+<meta name="description" content="The prebuilt Linux ae / aetherc binaries published to GitHub Releases are">
+<link rel="canonical" href="https://aether-lang.dev/Docs/release-glibc-portability.html">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Release binary portability across glibc versions · Aether">
+<meta property="og:description" content="The prebuilt Linux ae / aetherc binaries published to GitHub Releases are">
+<meta property="og:url" content="https://aether-lang.dev/Docs/release-glibc-portability.html">
+<meta property="og:image" content="https://aether-lang.dev/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="/favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/aether.css">
 </head>
 <body>
+<a class="skip" href="#doc">Skip to content</a>
 <header class="site-head">
   <div class="wrap bar">
     <a class="brand" href="/" aria-label="Aether"><span class="ae">ae</span><span class="nm">aether</span></a>
     <nav>
       <a href="/repl.html">Playground</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
-      <a href="https://github.com/aether-lang-org/aether">Source</a>
-      <span class="vtag">v0.454</span>
+      <a class="src" href="https://github.com/aether-lang-org/aether">Source</a>
+      <span class="vtag">v0.462</span>
     </nav>
   </div>
 </header>
 <div class="wrap">
   <div class="doc-shell">
-    <nav class="doc-nav"><div class="grp">Start</div>
+    <nav class="doc-nav" aria-label="Documentation">
+      <div class="docsearch"><input id="ds" type="search" placeholder="Search the docs" aria-label="Search documentation" autocomplete="off" spellcheck="false"><kbd>/</kbd><div class="ds-res" id="dsres" role="listbox"></div></div>
+<div class="grp">Start</div>
 <a href="/Docs/getting-started.html">Getting Started with Aether</a>
 <a href="/Docs/tutorial.html">Aether Language Tutorial</a>
 <a href="/Docs/next-steps.html">Next Steps</a>
@@ -34,7 +45,7 @@
 <a href="/Docs/type-annotation-style-guide.html">Aether Type Annotation Style Guide</a>
 <a href="/Docs/type-inference-multi-value-returns.html">Multi-Value Return Type Inference</a>
 <a href="/Docs/distinct-types.html">Distinct Types</a>
-<a href="/Docs/sequences.html">Sequences (`*StringSeq`)</a>
+<a href="/Docs/sequences.html">Sequences (*StringSeq)</a>
 <a href="/Docs/named-args-and-select.html">Named Arguments and select()</a>
 <a href="/Docs/closures-and-builder-dsl.html">Closures and Builder-Style DSL in Aether</a>
 <a href="/Docs/closures-and-lifetimes.html">Closures and Environment Lifetimes</a>
@@ -50,23 +61,23 @@
 <div class="grp">Interop</div>
 <a href="/Docs/c-interop.html">C Interoperability</a>
 <a href="/Docs/c-embedding.html">Embedding Aether Actors in C Applications</a>
-<a href="/Docs/emit-lib.html">Embedding Aether as a Shared Library (`--emit=lib`)</a>
+<a href="/Docs/emit-lib.html">Embedding Aether as a Shared Library (--emit=lib)</a>
 <a href="/Docs/embedded-namespaces-and-host-bindings.html">Aether as a Configuration Language, v2: Namespaces and Generated Bindings</a>
 <a href="/Docs/aether-embedded-in-host-applications.html">Aether as a Configuration Language for Other Languages</a>
-<a href="/Docs/lib-caller-info.html">`--emit=lib` caller-info channel</a>
+<a href="/Docs/lib-caller-info.html">--emit=lib caller-info channel</a>
 <div class="grp">Stdlib</div>
 <a href="/Docs/stdlib-reference.html">Aether Standard Library Reference</a>
 <a href="/Docs/stdlib-api.html">Aether Standard Library Guide</a>
 <a href="/Docs/stdlib-module-pattern.html">Aether Stdlib Module Pattern</a>
-<a href="/Docs/stdlib-vs-contrib.html">`std/` vs `contrib/` placement decisions</a>
-<a href="/Docs/http-server.html">`std.http` HTTP Server</a>
-<a href="/Docs/http-reverse-proxy.html">`std.http.proxy` reverse proxy</a>
+<a href="/Docs/stdlib-vs-contrib.html">std/ vs contrib/ placement decisions</a>
+<a href="/Docs/http-server.html">std.http HTTP Server</a>
+<a href="/Docs/http-reverse-proxy.html">std.http.proxy reverse proxy</a>
 <a href="/Docs/http-handler-context.html">HTTP handlers with per-server / per-route state</a>
 <a href="/Docs/http-vcr.html">HTTP Record/Replay (VCR), moved out of Aether</a>
-<a href="/Docs/json-parser-design.html">`std.json` Design Notes</a>
+<a href="/Docs/json-parser-design.html">std.json Design Notes</a>
 <div class="grp">Safety</div>
 <a href="/Docs/containment-sandbox.html">Containment and Sandboxing in Aether</a>
-<a href="/Docs/hide-and-seal.html">`hide` and `seal except` scope-level capability denial</a>
+<a href="/Docs/hide-and-seal.html">hide and seal except scope-level capability denial</a>
 <a href="/Docs/compiler-trust-boundary.html">The Compiler Trust Boundary</a>
 <a href="/Docs/config-is-code.html">Config IS Code</a>
 <a href="/Docs/aether_compared_to_capsicum.html">Aether Sandbox Model vs. BSD Capsicum: Architecture, Parallels, and FreeBSD Integration</a>
@@ -76,81 +87,63 @@
 <a href="/Docs/install-layout.html">Aether install layout</a>
 <a href="/Docs/runtime-config.html">Runtime Configuration - Quick Reference</a>
 <a href="/Docs/per-process-config.html">Per-process configuration in Aether</a>
-<a href="/Docs/cic-help.html">`ae help &lt;script&gt;` Offline diagnostics for config-IS-code</a>
+<a href="/Docs/cic-help.html">ae help &lt;script&gt; Offline diagnostics for config-IS-code</a>
 <div class="grp">More</div>
-<a href="/Docs/bindgen-consts.html">`ae bindgen consts`, importing C macro constants</a>
-<a href="/Docs/formatter.html">`ae fmt`, the source formatter</a>
-<a href="/Docs/isolated.html">`Isolated[T]`: move-only actor message payloads (#479)</a>
-<a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
-<a href="/Docs/profiling-guide.html">Aether Runtime Profiling Guide</a>
 <a href="/Docs/allocators.html">Allocators</a>
-<a href="/Docs/when-static-if.html">Compile-time `when` / static-if</a>
+<a href="/Docs/bindgen-consts.html">ae bindgen consts, importing C macro constants</a>
 <a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
 <a href="/Docs/contract-folding.html">Compile-time contract folding — costed design</a>
-<a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn&#x27;t need `macro_rules!`</a>
+<a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn't need macro_rules!</a>
+<a href="/Docs/error-unification.html">Unifying T? and (value, err) — costed design</a>
+<a href="/Docs/formatter.html">ae fmt, the source formatter</a>
+<a href="/Docs/isolated.html">Isolated[T]: move-only actor message payloads (#479)</a>
+<a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
+<a href="/Docs/profiling-guide.html">Aether Runtime Profiling Guide</a>
 <a href="/Docs/release-glibc-portability.html" class="on">Release binary portability across glibc versions</a>
-<a href="/Docs/error-unification.html">Unifying `T?` and `(value, err)` — costed design</a></nav>
+<a href="/Docs/when-static-if.html">Compile-time when / static-if</a></nav>
     <main class="doc-main">
-      <article class="doc-body">
-        <div class="bc">docs / more</div>
-<h1>Release binary portability across glibc versions</h1>
-<h2>The problem</h2>
+      <article class="doc-body" id="doc">
+        <div class="bc"><span class="prompt">$</span>docs / more</div>
+<h1 id="release-binary-portability-across-glibc-versions">Release binary portability across glibc versions</h1>
+<h2 id="the-problem">The problem</h2>
 <p>The prebuilt Linux <code>ae</code> / <code>aetherc</code> binaries published to GitHub Releases are dynamically-linked glibc PIEs. glibc uses <strong>forward-only symbol versioning</strong>: a binary linked on a machine with glibc <em>N</em> references versioned symbols like <code>GLIBC_2.38</code>, and a target machine whose glibc is <strong>older</strong> than <em>N</em> cannot satisfy them — the loader aborts at startup with:</p>
-<pre><code>./ae: /lib/x86_64-linux-gnu/libc.so.6: version `GLIBC_2.38&#x27; not found (required by ./ae)</code></pre>
+<pre><code>./ae: /lib/x86_64-linux-gnu/libc.so.6: version `GLIBC_2.38' not found (required by ./ae)</code></pre>
 <p>The release workflow historically built the Linux artifact on <code>ubuntu-latest</code>. That label tracks the newest Ubuntu image — as of this writing Ubuntu 24.04, which ships <strong>glibc 2.39</strong>. The resulting binary therefore demanded glibc ≥2.38 and failed to load on still-current distributions, e.g. Debian 12 (glibc 2.36), which is how this surfaced.</p>
 <p>Empirically the drift is entirely a build-host artifact, not a source issue: the <em>same</em> compiler source built on a glibc-2.36 box references only up to <code>GLIBC_2.34</code>; built on glibc-2.39 it pulls <code>GLIBC_2.38</code>. The linker binds to whatever the host provides.</p>
-<h2>The crucial narrowing: only two binaries are affected</h2>
+<h2 id="the-crucial-narrowing-only-two-binaries-are-affected">The crucial narrowing: only two binaries are affected</h2>
 <p>Aether compiles by <strong>emitting C and invoking a C compiler</strong>. The <code>ae</code> driver resolves that compiler at runtime (<code>AE_CC</code> → <code>CC</code> → <code>gcc</code>; see <code>tools/ae.c</code>), and cross-compilation goes through <code>zig cc</code> via <code>--target</code>. So <strong>every machine that runs Aether already has a working C toolchain and its own glibc</strong> — Aether cannot function without one.</p>
-<p>The consequence is important for scoping the fix: <strong>the glibc-version hazard is confined to the <code>ae</code> and <code>aetherc</code> executables themselves.</strong> Once <code>ae</code> runs, it builds the user&#x27;s program with the <em>target&#x27;s</em> <code>cc</code> against the <em>target&#x27;s</em> glibc, so the programs Aether produces are automatically compatible with the machine they were built on. We do <strong>not</strong> need to solve &quot;portable output&quot;; we only need the two shipped binaries to <em>load</em> on an old-glibc host. This is what makes the cheap fixes viable.</p>
-<h2>Current fix (shipped)</h2>
+<p>The consequence is important for scoping the fix: <strong>the glibc-version hazard is confined to the <code>ae</code> and <code>aetherc</code> executables themselves.</strong> Once <code>ae</code> runs, it builds the user's program with the <em>target's</em> <code>cc</code> against the <em>target's</em> glibc, so the programs Aether produces are automatically compatible with the machine they were built on. We do <strong>not</strong> need to solve "portable output"; we only need the two shipped binaries to <em>load</em> on an old-glibc host. This is what makes the cheap fixes viable.</p>
+<h2 id="current-fix-shipped">Current fix (shipped)</h2>
 <p>Pin the Linux release build to the <strong>oldest glibc we intend to support</strong> instead of <code>ubuntu-latest</code>. The build matrix in <code>.github/workflows/release.yml</code> uses <code>ubuntu-22.04</code> (glibc 2.35). A binary linked against 2.35 loads on anything with glibc ≥2.35: Debian 12 (2.36), Ubuntu 22.04+, current Fedora, recent RHEL/derived distros, etc.</p>
 <p>This is a one-line change (plus the matching <code>if: matrix.os ==</code> setup guard) with no downside for the covered distros. Its limits are what motivate the longer-term plan below.</p>
-<h3>Immediate workaround for anyone still hitting it</h3>
+<h3 id="immediate-workaround-for-anyone-still-hitting-it">Immediate workaround for anyone still hitting it</h3>
 <p>The release tarball bundles the full <code>runtime/</code> and <code>std/</code> sources, and the target already has <code>gcc</code>. So a too-new-glibc failure is always recoverable in seconds by rebuilding the two binaries locally against the host glibc:</p>
-<pre><code># from an extracted release tree, or a clone checked out at the release tag
+<pre><code><span class="com"># from an extracted release tree, or a clone checked out at the release tag</span>
 make compiler ae</code></pre>
-<p>The rebuilt <code>ae</code>/<code>aetherc</code> reference only the local glibc&#x27;s symbols and run fine. This is the escape hatch regardless of what baseline the release is pinned to.</p>
-<h2>Longer-term plan</h2>
-<h3>Rationale</h3>
+<p>The rebuilt <code>ae</code>/<code>aetherc</code> reference only the local glibc's symbols and run fine. This is the escape hatch regardless of what baseline the release is pinned to.</p>
+<h2 id="longer-term-plan">Longer-term plan</h2>
+<h3 id="rationale">Rationale</h3>
 <p><code>ubuntu-22.04</code> is a floor, not a solution:</p>
-<ol><li><strong>The floor keeps rising.</strong> GitHub deprecates old runner images; when</li></ol>
-<p><code>ubuntu-22.04</code> ages out we are forced onto a newer glibc and the floor jumps again. This is a recurring maintenance tax, not a fixed decision.</p>
-<ol><li><strong>2.35 still excludes long-lived enterprise/embedded targets.</strong> RHEL 8 /</li></ol>
-<p>Amazon Linux 2 (glibc 2.28/2.26), older Debian, and musl distros (Alpine, common in containers) are all out. For a systems language that markets itself for constrained and cross-built targets, &quot;runs on Alpine&quot; and &quot;runs on the LTS server distro in the datacenter&quot; are reasonable expectations.</p>
+<ol><li><strong>The floor keeps rising.</strong> GitHub deprecates old runner images; when <code>ubuntu-22.04</code> ages out we are forced onto a newer glibc and the floor jumps again. This is a recurring maintenance tax, not a fixed decision.</li><li><strong>2.35 still excludes long-lived enterprise/embedded targets.</strong> RHEL 8 / Amazon Linux 2 (glibc 2.28/2.26), older Debian, and musl distros (Alpine, common in containers) are all out. For a systems language that markets itself for constrained and cross-built targets, "runs on Alpine" and "runs on the LTS server distro in the datacenter" are reasonable expectations.</li></ol>
 <p>The durable answer is to make the Linux release binary <strong>not depend on the host glibc at all</strong>. Two established techniques:</p>
-<ul><li><strong>musl static (preferred).</strong> Link <code>ae</code>/<code>aetherc</code> fully statically against musl</li></ul>
-<p>libc: <code>zig cc -target x86_64-linux-musl</code> (Aether already carries the zig-cc cross backend used by <code>ae --target</code> and <code>test-cross</code>; Windows releases already link <code>-static</code>). A static-musl binary has <strong>zero</strong> dynamic libc dependency and runs on every x86-64 Linux — glibc distros, Alpine, containers, old and new alike. This is what Go ships and what portable CLI tools converge on.</p>
-<ul><li><strong>manylinux-style old-glibc container.</strong> Build inside</li></ul>
-<p><code>quay.io/pypa/manylinux_2_28</code> (glibc 2.28) or <code>manylinux2014</code> (glibc 2.17). Still a glibc binary, but pinned to a baseline old enough (2.17/2.28) to cover essentially everything in service. This is the Python-wheel strategy.</p>
+<ul><li><strong>musl static (preferred).</strong> Link <code>ae</code>/<code>aetherc</code> fully statically against musl libc: <code>zig cc -target x86_64-linux-musl</code> (Aether already carries the zig-cc cross backend used by <code>ae --target</code> and <code>test-cross</code>; Windows releases already link <code>-static</code>). A static-musl binary has <strong>zero</strong> dynamic libc dependency and runs on every x86-64 Linux — glibc distros, Alpine, containers, old and new alike. This is what Go ships and what portable CLI tools converge on.</li><li><strong>manylinux-style old-glibc container.</strong> Build inside <code>quay.io/pypa/manylinux_2_28</code> (glibc 2.28) or <code>manylinux2014</code> (glibc 2.17). Still a glibc binary, but pinned to a baseline old enough (2.17/2.28) to cover essentially everything in service. This is the Python-wheel strategy.</li></ul>
 <p>Recommended direction: <strong>static-musl</strong>, because it is the only option that also covers musl distros and never needs re-pinning as runner images age. The manylinux route is the fallback if a static-musl link surfaces blocking issues (see the quandary).</p>
-<h3>The quandary</h3>
+<h3 id="the-quandary">The quandary</h3>
 <p>Static-musl is not free, and the trade-offs are why this is a plan rather than a same-day change:</p>
-<ol><li><strong>Optional native dependencies.</strong> The release binary bakes in OpenSSL, zlib,</li></ol>
-<p>PCRE2, and (via std) other C libraries so <code>std.net</code> TLS, <code>std.zlib</code>, <code>std.regex</code> etc. work out of the box. Under a static-musl link each of these must be available as a <strong>musl-built static archive</strong>, or the corresponding feature silently drops to its &quot;unavailable&quot; stub in the shipped binary — a regression for downstream users who currently get TLS/zlib/regex for free. zig cc can build these from source, but it is real per-dependency work and must be verified feature-by-feature, not assumed.</p>
-<ol><li><strong>Runtime behavior differences.</strong> musl is not glibc. Differences that can</li></ol>
-<p>bite: NSS / <code>getaddrinfo</code> (musl&#x27;s resolver is simpler and has historically differed on <code>/etc/hosts</code>, search domains, and IPv6 ordering — relevant to <code>std.net</code>), locale handling, DNS, and dlopen (a fully static binary cannot <code>dlopen</code> — check whether <code>std.dl</code> or any plugin path needs it). The full <code>make test</code> / <code>make test-ae</code> suite must pass <strong>when run as the static-musl binary</strong>, not merely compile.</p>
-<ol><li><strong>The toolchain-at-runtime interaction.</strong> Because <code>ae</code> shells out to the</li></ol>
-<p>host <code>cc</code>, a static-musl <code>ae</code> on a glibc host will invoke the host&#x27;s <em>glibc</em> gcc to build the user&#x27;s program — which is correct and desirable (the user&#x27;s program matches the user&#x27;s system). But it means the shipped <code>ae</code> being musl does <strong>not</strong> make user output musl; the two are independent. This is fine, but it must be documented so nobody assumes a musl <code>ae</code> produces musl programs.</p>
-<ol><li><strong>Cost vs. benefit sizing.</strong> The <code>ubuntu-22.04</code> pin already covers the large</li></ol>
-<p>majority of real reports at ~zero cost and ~zero risk. Static-musl buys the long tail (Alpine, RHEL 8, Amazon Linux 2, future-proofing against runner deprecation) at the cost of a meaningful CI + dependency-packaging + testing effort. It should be scheduled deliberately, with the dependency matrix (item 1) and the musl test pass (item 2) as explicit acceptance criteria — not bolted on reactively.</p>
-<h3>Acceptance criteria for the static-musl release (when scheduled)</h3>
-<ul><li><code>ae</code>/<code>aetherc</code> link fully static against musl (<code>ldd</code> reports &quot;not a dynamic</li></ul>
-<p>executable&quot;); the binary loads and runs on a glibc distro, on Alpine, and in a <code>scratch</code>/<code>distroless</code> container.</p>
-<ul><li><code>AETHER_HAS_OPENSSL</code>, <code>AETHER_HAS_ZLIB</code>, <code>AETHER_HAS_PCRE2</code> (and any other</li></ul>
-<p>baked-in feature flags) are <strong>defined</strong> in the shipped binary — verified by a smoke test that exercises TLS, zlib round-trip, and a regex match, not just by the flags being set at build time.</p>
-<ul><li><code>make test</code> + <code>make test-ae</code> pass <strong>executed as the static-musl binary</strong>,</li></ul>
-<p>including the <code>std.net</code> / DNS / resolver tests.</p>
-<ul><li>Docs state plainly that a musl <code>ae</code> still builds user programs with the host</li></ul>
-<p><code>cc</code> against the host libc (item 3).</p>
-<p>Until then, the <code>ubuntu-22.04</code> pin plus the &quot;rebuild from bundled source&quot; workaround is the supported story.</p>
+<ol><li><strong>Optional native dependencies.</strong> The release binary bakes in OpenSSL, zlib, PCRE2, and (via std) other C libraries so <code>std.net</code> TLS, <code>std.zlib</code>, <code>std.regex</code> etc. work out of the box. Under a static-musl link each of these must be available as a <strong>musl-built static archive</strong>, or the corresponding feature silently drops to its "unavailable" stub in the shipped binary — a regression for downstream users who currently get TLS/zlib/regex for free. zig cc can build these from source, but it is real per-dependency work and must be verified feature-by-feature, not assumed.</li><li><strong>Runtime behavior differences.</strong> musl is not glibc. Differences that can bite: NSS / <code>getaddrinfo</code> (musl's resolver is simpler and has historically differed on <code>/etc/hosts</code>, search domains, and IPv6 ordering — relevant to <code>std.net</code>), locale handling, DNS, and dlopen (a fully static binary cannot <code>dlopen</code> — check whether <code>std.dl</code> or any plugin path needs it). The full <code>make test</code> / <code>make test-ae</code> suite must pass <strong>when run as the static-musl binary</strong>, not merely compile.</li><li><strong>The toolchain-at-runtime interaction.</strong> Because <code>ae</code> shells out to the host <code>cc</code>, a static-musl <code>ae</code> on a glibc host will invoke the host's <em>glibc</em> gcc to build the user's program — which is correct and desirable (the user's program matches the user's system). But it means the shipped <code>ae</code> being musl does <strong>not</strong> make user output musl; the two are independent. This is fine, but it must be documented so nobody assumes a musl <code>ae</code> produces musl programs.</li><li><strong>Cost vs. benefit sizing.</strong> The <code>ubuntu-22.04</code> pin already covers the large majority of real reports at ~zero cost and ~zero risk. Static-musl buys the long tail (Alpine, RHEL 8, Amazon Linux 2, future-proofing against runner deprecation) at the cost of a meaningful CI + dependency-packaging + testing effort. It should be scheduled deliberately, with the dependency matrix (item 1) and the musl test pass (item 2) as explicit acceptance criteria — not bolted on reactively.</li></ol>
+<h3 id="acceptance-criteria-for-the-static-musl-release-when-scheduled">Acceptance criteria for the static-musl release (when scheduled)</h3>
+<ul><li><code>ae</code>/<code>aetherc</code> link fully static against musl (<code>ldd</code> reports "not a dynamic executable"); the binary loads and runs on a glibc distro, on Alpine, and in a <code>scratch</code>/<code>distroless</code> container.</li><li><code>AETHER_HAS_OPENSSL</code>, <code>AETHER_HAS_ZLIB</code>, <code>AETHER_HAS_PCRE2</code> (and any other baked-in feature flags) are <strong>defined</strong> in the shipped binary — verified by a smoke test that exercises TLS, zlib round-trip, and a regex match, not just by the flags being set at build time.</li><li><code>make test</code> + <code>make test-ae</code> pass <strong>executed as the static-musl binary</strong>, including the <code>std.net</code> / DNS / resolver tests.</li><li>Docs state plainly that a musl <code>ae</code> still builds user programs with the host <code>cc</code> against the host libc (item 3).</li></ul>
+<p>Until then, the <code>ubuntu-22.04</code> pin plus the "rebuild from bundled source" workaround is the supported story.</p>
       </article>
     </main>
+    <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#the-problem" class="l2" data-id="the-problem">The problem</a><a href="#the-crucial-narrowing-only-two-binaries-are-affected" class="l2" data-id="the-crucial-narrowing-only-two-binaries-are-affected">The crucial narrowing: only two binaries are affected</a><a href="#current-fix-shipped" class="l2" data-id="current-fix-shipped">Current fix (shipped)</a><a href="#immediate-workaround-for-anyone-still-hitting-it" class="l3" data-id="immediate-workaround-for-anyone-still-hitting-it">Immediate workaround for anyone still hitting it</a><a href="#longer-term-plan" class="l2" data-id="longer-term-plan">Longer-term plan</a><a href="#rationale" class="l3" data-id="rationale">Rationale</a><a href="#the-quandary" class="l3" data-id="the-quandary">The quandary</a><a href="#acceptance-criteria-for-the-static-musl-release-when-scheduled" class="l3" data-id="acceptance-criteria-for-the-static-musl-release-when-scheduled">Acceptance criteria for the static-musl release (when scheduled)</a></nav>
   </div>
 </div>
+<script src="/docs.js" defer></script>
 <footer class="site-foot">
   <div class="wrap foot">
     <span class="ae">ae</span>
-    <span class="m">MIT licensed · compiles to C · v0.454</span>
+    <span class="m">MIT licensed · compiles to C · v0.462</span>
     <nav><a href="/Docs/getting-started.html">Docs</a><a href="/repl.html">Playground</a><a href="https://github.com/aether-lang-org/aether">GitHub</a></nav>
   </div>
 </footer>

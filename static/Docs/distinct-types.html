@@ -4,27 +4,38 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Distinct Types · Aether</title>
-<meta name="description" content="Distinct Types — Aether language documentation.">
+<meta name="description" content="A zero-cost nominal wrapper over a scalar / string / ptr base:">
+<link rel="canonical" href="https://aether-lang.dev/Docs/distinct-types.html">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Distinct Types · Aether">
+<meta property="og:description" content="A zero-cost nominal wrapper over a scalar / string / ptr base:">
+<meta property="og:url" content="https://aether-lang.dev/Docs/distinct-types.html">
+<meta property="og:image" content="https://aether-lang.dev/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="/favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/aether.css">
 </head>
 <body>
+<a class="skip" href="#doc">Skip to content</a>
 <header class="site-head">
   <div class="wrap bar">
     <a class="brand" href="/" aria-label="Aether"><span class="ae">ae</span><span class="nm">aether</span></a>
     <nav>
       <a href="/repl.html">Playground</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
-      <a href="https://github.com/aether-lang-org/aether">Source</a>
-      <span class="vtag">v0.454</span>
+      <a class="src" href="https://github.com/aether-lang-org/aether">Source</a>
+      <span class="vtag">v0.462</span>
     </nav>
   </div>
 </header>
 <div class="wrap">
   <div class="doc-shell">
-    <nav class="doc-nav"><div class="grp">Start</div>
+    <nav class="doc-nav" aria-label="Documentation">
+      <div class="docsearch"><input id="ds" type="search" placeholder="Search the docs" aria-label="Search documentation" autocomplete="off" spellcheck="false"><kbd>/</kbd><div class="ds-res" id="dsres" role="listbox"></div></div>
+<div class="grp">Start</div>
 <a href="/Docs/getting-started.html">Getting Started with Aether</a>
 <a href="/Docs/tutorial.html">Aether Language Tutorial</a>
 <a href="/Docs/next-steps.html">Next Steps</a>
@@ -34,7 +45,7 @@
 <a href="/Docs/type-annotation-style-guide.html">Aether Type Annotation Style Guide</a>
 <a href="/Docs/type-inference-multi-value-returns.html">Multi-Value Return Type Inference</a>
 <a href="/Docs/distinct-types.html" class="on">Distinct Types</a>
-<a href="/Docs/sequences.html">Sequences (`*StringSeq`)</a>
+<a href="/Docs/sequences.html">Sequences (*StringSeq)</a>
 <a href="/Docs/named-args-and-select.html">Named Arguments and select()</a>
 <a href="/Docs/closures-and-builder-dsl.html">Closures and Builder-Style DSL in Aether</a>
 <a href="/Docs/closures-and-lifetimes.html">Closures and Environment Lifetimes</a>
@@ -50,23 +61,23 @@
 <div class="grp">Interop</div>
 <a href="/Docs/c-interop.html">C Interoperability</a>
 <a href="/Docs/c-embedding.html">Embedding Aether Actors in C Applications</a>
-<a href="/Docs/emit-lib.html">Embedding Aether as a Shared Library (`--emit=lib`)</a>
+<a href="/Docs/emit-lib.html">Embedding Aether as a Shared Library (--emit=lib)</a>
 <a href="/Docs/embedded-namespaces-and-host-bindings.html">Aether as a Configuration Language, v2: Namespaces and Generated Bindings</a>
 <a href="/Docs/aether-embedded-in-host-applications.html">Aether as a Configuration Language for Other Languages</a>
-<a href="/Docs/lib-caller-info.html">`--emit=lib` caller-info channel</a>
+<a href="/Docs/lib-caller-info.html">--emit=lib caller-info channel</a>
 <div class="grp">Stdlib</div>
 <a href="/Docs/stdlib-reference.html">Aether Standard Library Reference</a>
 <a href="/Docs/stdlib-api.html">Aether Standard Library Guide</a>
 <a href="/Docs/stdlib-module-pattern.html">Aether Stdlib Module Pattern</a>
-<a href="/Docs/stdlib-vs-contrib.html">`std/` vs `contrib/` placement decisions</a>
-<a href="/Docs/http-server.html">`std.http` HTTP Server</a>
-<a href="/Docs/http-reverse-proxy.html">`std.http.proxy` reverse proxy</a>
+<a href="/Docs/stdlib-vs-contrib.html">std/ vs contrib/ placement decisions</a>
+<a href="/Docs/http-server.html">std.http HTTP Server</a>
+<a href="/Docs/http-reverse-proxy.html">std.http.proxy reverse proxy</a>
 <a href="/Docs/http-handler-context.html">HTTP handlers with per-server / per-route state</a>
 <a href="/Docs/http-vcr.html">HTTP Record/Replay (VCR), moved out of Aether</a>
-<a href="/Docs/json-parser-design.html">`std.json` Design Notes</a>
+<a href="/Docs/json-parser-design.html">std.json Design Notes</a>
 <div class="grp">Safety</div>
 <a href="/Docs/containment-sandbox.html">Containment and Sandboxing in Aether</a>
-<a href="/Docs/hide-and-seal.html">`hide` and `seal except` scope-level capability denial</a>
+<a href="/Docs/hide-and-seal.html">hide and seal except scope-level capability denial</a>
 <a href="/Docs/compiler-trust-boundary.html">The Compiler Trust Boundary</a>
 <a href="/Docs/config-is-code.html">Config IS Code</a>
 <a href="/Docs/aether_compared_to_capsicum.html">Aether Sandbox Model vs. BSD Capsicum: Architecture, Parallels, and FreeBSD Integration</a>
@@ -76,151 +87,119 @@
 <a href="/Docs/install-layout.html">Aether install layout</a>
 <a href="/Docs/runtime-config.html">Runtime Configuration - Quick Reference</a>
 <a href="/Docs/per-process-config.html">Per-process configuration in Aether</a>
-<a href="/Docs/cic-help.html">`ae help &lt;script&gt;` Offline diagnostics for config-IS-code</a>
+<a href="/Docs/cic-help.html">ae help &lt;script&gt; Offline diagnostics for config-IS-code</a>
 <div class="grp">More</div>
-<a href="/Docs/bindgen-consts.html">`ae bindgen consts`, importing C macro constants</a>
-<a href="/Docs/formatter.html">`ae fmt`, the source formatter</a>
-<a href="/Docs/isolated.html">`Isolated[T]`: move-only actor message payloads (#479)</a>
-<a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
-<a href="/Docs/profiling-guide.html">Aether Runtime Profiling Guide</a>
 <a href="/Docs/allocators.html">Allocators</a>
-<a href="/Docs/when-static-if.html">Compile-time `when` / static-if</a>
+<a href="/Docs/bindgen-consts.html">ae bindgen consts, importing C macro constants</a>
 <a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
 <a href="/Docs/contract-folding.html">Compile-time contract folding — costed design</a>
-<a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn&#x27;t need `macro_rules!`</a>
+<a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn't need macro_rules!</a>
+<a href="/Docs/error-unification.html">Unifying T? and (value, err) — costed design</a>
+<a href="/Docs/formatter.html">ae fmt, the source formatter</a>
+<a href="/Docs/isolated.html">Isolated[T]: move-only actor message payloads (#479)</a>
+<a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
+<a href="/Docs/profiling-guide.html">Aether Runtime Profiling Guide</a>
 <a href="/Docs/release-glibc-portability.html">Release binary portability across glibc versions</a>
-<a href="/Docs/error-unification.html">Unifying `T?` and `(value, err)` — costed design</a></nav>
+<a href="/Docs/when-static-if.html">Compile-time when / static-if</a></nav>
     <main class="doc-main">
-      <article class="doc-body">
-        <div class="bc">docs / language</div>
-<h1>Distinct Types</h1>
-<blockquote><strong>Status:</strong> implemented (#480). The first cut below is live; the rest of this<br>document keeps the original design rationale and the remaining <strong>TBD</strong> items<br>for future refinement.</blockquote>
-<h2>Implemented</h2>
+      <article class="doc-body" id="doc">
+        <div class="bc"><span class="prompt">$</span>docs / language</div>
+<h1 id="distinct-types">Distinct Types</h1>
+<blockquote><strong>Status:</strong> implemented (#480). The first cut below is live; the rest of this document keeps the original design rationale and the remaining <strong>TBD</strong> items for future refinement.</blockquote>
+<h2 id="implemented">Implemented</h2>
 <p>A zero-cost nominal wrapper over a scalar / <code>string</code> / <code>ptr</code> base:</p>
-<pre><code>type USD = distinct float
-type Fd  = distinct int
+<pre><code>type USD = distinct <span class="fn">float</span>
+type Fd  = distinct <span class="fn">int</span>
 
-charge(amount: USD) -&gt; USD { return (amount as float * 1.1) as USD }
+charge(amount: USD) -&gt; USD { <span class="kw">return</span> (amount <span class="kw">as</span> <span class="fn">float</span> * <span class="num">1.1</span>) <span class="kw">as</span> USD }
 
 main() {
-    let price = 9.99 as USD          // wrap: base -&gt; distinct (explicit `as`)
-    let total = charge(price)
-    let cents = total as float       // unwrap: distinct -&gt; base (explicit `as`)
+    <span class="kw">let</span> price = <span class="num">9.99</span> <span class="kw">as</span> USD          <span class="com">// wrap: base -&gt; distinct (explicit `as`)</span>
+    <span class="kw">let</span> total = charge(price)
+    <span class="kw">let</span> cents = total <span class="kw">as</span> <span class="fn">float</span>       <span class="com">// unwrap: distinct -&gt; base (explicit `as`)</span>
 }</code></pre>
-<ul><li><strong>Declaration:</strong> <code>type Name = distinct Base</code> at top level. <code>type</code> and</li></ul>
-<p><code>distinct</code> are contextual identifiers (usable as names elsewhere).</p>
-<ul><li><strong>Zero cost:</strong> a distinct type lowers to its base C type, no boxing, no</li></ul>
-<p>vtable. <code>USD</code> is a C <code>double</code>, <code>Fd</code> a C <code>int</code>.</p>
-<ul><li><strong>Nominal identity:</strong> the type checker treats <code>USD</code> as separate from <code>float</code></li></ul>
-<p>and from any other distinct type. Crossing the boundary requires an explicit cast: <code>value as USD</code> (wrap), <code>usd as float</code> (unwrap). The same <code>as</code> form also does ordinary numeric conversions.</p>
-<ul><li><strong>Enforced at:</strong> variable declarations / assignments (a raw <code>float</code> cannot</li></ul>
-<p>initialise a <code>USD</code>, and vice-versa) <strong>and</strong> call-argument boundaries (a function taking <code>Fd</code> cannot be passed a raw <code>int</code>, nor an <code>EUR</code> where <code>USD</code> is wanted), the capability-token discipline the design below describes. (Aether&#x27;s argument checking is otherwise lenient; the distinct check is scoped to distinct types.)</p>
-<ul><li><strong>Base kinds:</strong> scalars (<code>int</code>/<code>long</code>/<code>uint64</code>/<code>float</code>/<code>byte</code>/<code>bool</code>),</li></ul>
-<p><code>string</code>, and <code>ptr</code>.</p>
+<ul><li><strong>Declaration:</strong> <code>type Name = distinct Base</code> at top level. <code>type</code> and <code>distinct</code> are contextual identifiers (usable as names elsewhere).</li><li><strong>Zero cost:</strong> a distinct type lowers to its base C type, no boxing, no vtable. <code>USD</code> is a C <code>double</code>, <code>Fd</code> a C <code>int</code>.</li><li><strong>Nominal identity:</strong> the type checker treats <code>USD</code> as separate from <code>float</code> and from any other distinct type. Crossing the boundary requires an explicit cast: <code>value as USD</code> (wrap), <code>usd as float</code> (unwrap). The same <code>as</code> form also does ordinary numeric conversions.</li><li><strong>Enforced at:</strong> variable declarations / assignments (a raw <code>float</code> cannot initialise a <code>USD</code>, and vice-versa) <strong>and</strong> call-argument boundaries (a function taking <code>Fd</code> cannot be passed a raw <code>int</code>, nor an <code>EUR</code> where <code>USD</code> is wanted), the capability-token discipline the design below describes. (Aether's argument checking is otherwise lenient; the distinct check is scoped to distinct types.)</li><li><strong>Base kinds:</strong> scalars (<code>int</code>/<code>long</code>/<code>uint64</code>/<code>float</code>/<code>byte</code>/<code>bool</code>), <code>string</code>, and <code>ptr</code>.</li></ul>
 <p>Original design rationale and open questions follow.</p>
-<h2>Goal</h2>
-<p>A zero-runtime-cost way to give Aether&#x27;s structurally-typed primitives nominal identity. The motivating example:</p>
-<pre><code>type Path = distinct string
-type ConfigK = distinct string
-type Port = distinct int
-type FD = distinct int
+<h2 id="goal">Goal</h2>
+<p>A zero-runtime-cost way to give Aether's structurally-typed primitives nominal identity. The motivating example:</p>
+<pre><code>type Path = distinct <span class="fn">string</span>
+type ConfigK = distinct <span class="fn">string</span>
+type Port = distinct <span class="fn">int</span>
+type FD = distinct <span class="fn">int</span>
 
-open(p: Path) -&gt; (FD, string) { ... }</code></pre>
+open(p: Path) -&gt; (FD, <span class="fn">string</span>) { ... }</code></pre>
 <p>A function declared <code>open(p: Path)</code> accepts only values whose static type is <code>Path</code>. A bare <code>string</code> argument is a type error at the call site; an explicit unwrap-and-rewrap is required. The C codegen sees <code>Path</code> as <code>const char*</code> (no wrapper struct, no tag, no boxing); the distinction is entirely in the type checker.</p>
-<h2>Why this matters for Aether</h2>
+<h2 id="why-this-matters-for-aether">Why this matters for Aether</h2>
 <p>Four pulls, in order of how directly the language design touches each:</p>
-<ol><li><strong>Capability discipline.</strong> A <code>GrantedFD = distinct int</code> lets the</li></ol>
-<p>sandbox grant-list contract (<code>docs/containment-sandbox.md</code>) be expressed in types. Today the contract is doc-prose; the compiler can&#x27;t enforce that a function expecting a granted FD didn&#x27;t get handed an arbitrary <code>int</code>. Distinct types make the narrowing point, where an <code>int</code> becomes a <code>GrantedFD</code> the obvious place to validate the grant.</p>
-<ol><li><strong>Composes with <code>Isolated[T]</code></strong> (sibling issue #479). An</li></ol>
-<p><code>Isolated[GrantedFD]</code> is a non-aliasable one-shot capability token. The two features stack cleanly.</p>
-<ol><li><strong>Helps the <code>(value, err)</code> convention.</strong> A</li></ol>
-<p><code>Sanitized = distinct string</code> return from <code>validate_input(...)</code> makes it a type error to forward an unvalidated string to a sink that requires validation. The Go-style return convention stays; distinct types add a nuance that the type checker can see.</p>
-<ol><li><strong>Stdlib internal hygiene.</strong> <code>*StringSeq</code> vs. <code>string[]</code> is</li></ol>
-<p>already a documented footgun in <code>LLM.md</code>. A pair of distinct types over the underlying representations would let the compiler diagnose the mistake with a clear message rather than a lowering-time C compile error.</p>
-<p>Two downstream projects (<code>avn / svn-aether</code>, <code>aether-ui</code>) have asked for this in spec form (per <code>LLM.md</code> § &quot;Working with downstream users&quot;).</p>
-<h2>Sketch</h2>
-<pre><code>type Path = distinct string
-type Port = distinct int
+<ol><li><strong>Capability discipline.</strong> A <code>GrantedFD = distinct int</code> lets the sandbox grant-list contract (<code>docs/containment-sandbox.md</code>) be expressed in types. Today the contract is doc-prose; the compiler can't enforce that a function expecting a granted FD didn't get handed an arbitrary <code>int</code>. Distinct types make the narrowing point, where an <code>int</code> becomes a <code>GrantedFD</code> the obvious place to validate the grant.</li><li><strong>Composes with <code>Isolated[T]</code></strong> (sibling issue #479). An <code>Isolated[GrantedFD]</code> is a non-aliasable one-shot capability token. The two features stack cleanly.</li><li><strong>Helps the <code>(value, err)</code> convention.</strong> A <code>Sanitized = distinct string</code> return from <code>validate_input(...)</code> makes it a type error to forward an unvalidated string to a sink that requires validation. The Go-style return convention stays; distinct types add a nuance that the type checker can see.</li><li><strong>Stdlib internal hygiene.</strong> <code>*StringSeq</code> vs. <code>string[]</code> is already a documented footgun in <code>LLM.md</code>. A pair of distinct types over the underlying representations would let the compiler diagnose the mistake with a clear message rather than a lowering-time C compile error.</li></ol>
+<p>Two downstream projects (<code>avn / svn-aether</code>, <code>aether-ui</code>) have asked for this in spec form (per <code>LLM.md</code> § "Working with downstream users").</p>
+<h2 id="sketch">Sketch</h2>
+<pre><code>type Path = distinct <span class="fn">string</span>
+type Port = distinct <span class="fn">int</span>
 
 main() {
-    p: Path = Path(&quot;/etc/foo&quot;)              // explicit wrap, ok
-    bad: Path = &quot;/etc/foo&quot;                  // type error: string ≠ Path
+    p: Path = Path(<span class="str">"/etc/foo"</span>)              <span class="com">// explicit wrap, ok</span>
+    bad: Path = <span class="str">"/etc/foo"</span>                  <span class="com">// type error: string ≠ Path</span>
 
-    raw: string = p                         // type error: Path ≠ string
-    raw: string = p.string                  // explicit unwrap, ok
-                                            // (or `string(p)`, see TBD-1)
+    raw: <span class="fn">string</span> = p                         <span class="com">// type error: Path ≠ string</span>
+    raw: <span class="fn">string</span> = p.<span class="fn">string</span>                  <span class="com">// explicit unwrap, ok</span>
+                                            <span class="com">// (or `string(p)`, see TBD-1)</span>
 
-    port: Port = Port(8080)
-    n: int = port                           // type error
-    n: int = port.int                       // ok
+    port: Port = Port(<span class="num">8080</span>)
+    n: <span class="fn">int</span> = port                           <span class="com">// type error</span>
+    n: <span class="fn">int</span> = port.<span class="fn">int</span>                       <span class="com">// ok</span>
 }</code></pre>
 <p>C lowering: <code>Path</code> emits as <code>const char*</code>, <code>Port</code> as <code>int</code>. No tag, no struct wrapper. The same ABI as the underlying type.</p>
-<h2>Lowering, confirmed (not TBD)</h2>
+<h2 id="lowering-confirmed-not-tbd">Lowering, confirmed (not TBD)</h2>
 <p>A <code>type X = distinct Y</code> does <strong>not</strong> generate a new C type. It is a compile-time-only nominal layer over <code>Y</code>. The <code>aether_&lt;name&gt;</code> ABI across <code>--emit=lib</code> exposes the underlying C type (the consumer in C / Python / Java sees <code>const char*</code>, not an opaque <code>Path</code>).</p>
-<p>This matches Aether&#x27;s &quot;compiles to C&quot; mandate and matches the <code>Duration</code> lowering precedent (issue #524: <code>Duration</code> lowers to <code>int64_t</code> ns; the nominal <code>Duration</code> distinction is type-checker- only). Distinct types are the generalisation: the same trick without the unit-conversion machinery.</p>
-<h2>Surface, confirmed (not TBD)</h2>
+<p>This matches Aether's "compiles to C" mandate and matches the <code>Duration</code> lowering precedent (issue #524: <code>Duration</code> lowers to <code>int64_t</code> ns; the nominal <code>Duration</code> distinction is type-checker- only). Distinct types are the generalisation: the same trick without the unit-conversion machinery.</p>
+<h2 id="surface-confirmed-not-tbd">Surface, confirmed (not TBD)</h2>
 <p>Declaration syntax:</p>
 <pre><code>type Name = distinct Underlying</code></pre>
-<p><code>Underlying</code> is any existing type (a primitive, a struct, a typedef, another distinct type). The result is a new type that shares <code>Underlying</code>&#x27;s storage but is nominally separate.</p>
-<p>This matches the issue&#x27;s proposed shape and matches Nim&#x27;s <code>type X = distinct Y</code> precedent.</p>
-<h2>Open design questions, TBD</h2>
+<p><code>Underlying</code> is any existing type (a primitive, a struct, a typedef, another distinct type). The result is a new type that shares <code>Underlying</code>'s storage but is nominally separate.</p>
+<p>This matches the issue's proposed shape and matches Nim's <code>type X = distinct Y</code> precedent.</p>
+<h2 id="open-design-questions-tbd">Open design questions, TBD</h2>
 <p>The remaining decisions need to land before implementation can start. Each option lists what the choice implies for users and for the type checker.</p>
-<h3>TBD-1: Cast spelling</h3>
+<h3 id="tbd-1-cast-spelling">TBD-1: Cast spelling</h3>
 <p>How does a user explicitly convert between a distinct type and its underlying type?</p>
-<table><thead><tr><th>Option</th><th>Wrap</th><th>Unwrap</th><th>Pros</th><th>Cons</th></tr></thead><tbody><tr><td><strong>A. Nim-style postfix</strong></td><td><code>Path(&quot;/etc/foo&quot;)</code></td><td><code>p.string</code></td><td>familiar from Nim; reads left-to-right</td><td>postfix <code>.string</code> looks like a field/method access; could surprise readers</td></tr><tr><td><strong>B. Constructor-style both ways</strong></td><td><code>Path(&quot;/etc/foo&quot;)</code></td><td><code>string(p)</code></td><td>uniform syntax</td><td>conflicts with constructor syntax for structs / actors</td></tr><tr><td><strong>C. C-style cast</strong></td><td><code>(Path)&quot;/etc/foo&quot;</code></td><td><code>(string)p</code></td><td>matches the C mental model</td><td>Aether elsewhere rejects C-style casts</td></tr><tr><td><strong>D. Mixed (issue&#x27;s sketch)</strong></td><td><code>Path(&quot;/etc/foo&quot;)</code></td><td><code>p.string</code> (postfix only)</td><td>matches the issue body</td><td>only one direction is symmetric</td></tr></tbody></table>
+<div class="tw"><table><thead><tr><th>Option</th><th>Wrap</th><th>Unwrap</th><th>Pros</th><th>Cons</th></tr></thead><tbody><tr><td><strong>A. Nim-style postfix</strong></td><td><code>Path("/etc/foo")</code></td><td><code>p.string</code></td><td>familiar from Nim; reads left-to-right</td><td>postfix <code>.string</code> looks like a field/method access; could surprise readers</td></tr><tr><td><strong>B. Constructor-style both ways</strong></td><td><code>Path("/etc/foo")</code></td><td><code>string(p)</code></td><td>uniform syntax</td><td>conflicts with constructor syntax for structs / actors</td></tr><tr><td><strong>C. C-style cast</strong></td><td><code>(Path)"/etc/foo"</code></td><td><code>(string)p</code></td><td>matches the C mental model</td><td>Aether elsewhere rejects C-style casts</td></tr><tr><td><strong>D. Mixed (issue's sketch)</strong></td><td><code>Path("/etc/foo")</code></td><td><code>p.string</code> (postfix only)</td><td>matches the issue body</td><td>only one direction is symmetric</td></tr></tbody></table></div>
 <p><strong>Maintainer call.</strong> Once chosen, the parser, type checker, and the section-1 examples above need to update to reflect the chosen spelling.</p>
-<h3>TBD-2: Operator inheritance</h3>
+<h3 id="tbd-2-operator-inheritance">TBD-2: Operator inheritance</h3>
 <p>If <code>Port = distinct int</code>, does <code>port1 + port2</code> typecheck? Does <code>port + 5</code>? What about <code>port &lt; other_port</code>?</p>
-<table><thead><tr><th>Option</th><th>Semantics</th></tr></thead><tbody><tr><td><strong>A. No operator inheritance by default</strong></td><td><code>Port + Port</code> is a type error. Each operator must be explicitly opted into per distinct type. Strictest; matches Aether&#x27;s stance on tagged-int parameter passing (issue #586) where a bare int passed to a Duration param errors.</td></tr><tr><td><strong>B. All operators inherited by default</strong></td><td><code>Port + Port</code> works, gives <code>Port</code>. <code>Port + int</code> errors. Matches users&#x27; intuition; matches what <code>Duration + Duration</code> already does today.</td></tr><tr><td><strong>C. Nim&#x27;s <code>borrow</code> opt-in</strong></td><td>No operators by default; opt in with <code>type Port = distinct int with borrow(+, -, &lt;, ==)</code>. Per-type fine-grained control.</td></tr><tr><td><strong>D. All-or-nothing per declaration</strong></td><td><code>type Port = distinct int with borrow</code> borrows everything; bare <code>distinct int</code> borrows nothing. Half-step between B and C.</td></tr></tbody></table>
-<p><strong>Maintainer call.</strong> The Duration precedent (issue #524) chose option <strong>B</strong> behaviour (<code>Duration + Duration</code> → <code>Duration</code>, <code>Duration * scalar</code> → <code>Duration</code>, mixed comparisons rejected). Consistency suggests this is the default to extend; the question is whether to also offer C&#x27;s per-operator opt-in for cases that want stricter control.</p>
-<h3>TBD-3: Extern signature interaction</h3>
+<div class="tw"><table><thead><tr><th>Option</th><th>Semantics</th></tr></thead><tbody><tr><td><strong>A. No operator inheritance by default</strong></td><td><code>Port + Port</code> is a type error. Each operator must be explicitly opted into per distinct type. Strictest; matches Aether's stance on tagged-int parameter passing (issue #586) where a bare int passed to a Duration param errors.</td></tr><tr><td><strong>B. All operators inherited by default</strong></td><td><code>Port + Port</code> works, gives <code>Port</code>. <code>Port + int</code> errors. Matches users' intuition; matches what <code>Duration + Duration</code> already does today.</td></tr><tr><td><strong>C. Nim's <code>borrow</code> opt-in</strong></td><td>No operators by default; opt in with <code>type Port = distinct int with borrow(+, -, &lt;, ==)</code>. Per-type fine-grained control.</td></tr><tr><td><strong>D. All-or-nothing per declaration</strong></td><td><code>type Port = distinct int with borrow</code> borrows everything; bare <code>distinct int</code> borrows nothing. Half-step between B and C.</td></tr></tbody></table></div>
+<p><strong>Maintainer call.</strong> The Duration precedent (issue #524) chose option <strong>B</strong> behaviour (<code>Duration + Duration</code> → <code>Duration</code>, <code>Duration * scalar</code> → <code>Duration</code>, mixed comparisons rejected). Consistency suggests this is the default to extend; the question is whether to also offer C's per-operator opt-in for cases that want stricter control.</p>
+<h3 id="tbd-3-extern-signature-interaction">TBD-3: Extern signature interaction</h3>
 <p>An extern declares a raw C type. What types can it carry?</p>
-<table><thead><tr><th>Option</th><th>Where the distinct wrapping happens</th></tr></thead><tbody><tr><td><strong>A. Extern carries underlying only; wrapper does the cast</strong></td><td>Matches the existing <code>_raw</code> / wrapper-suffix pattern. <code>extern foo_raw(p: string) -&gt; int</code> + <code>foo(p: Path) -&gt; int { return foo_raw(p.string) }</code>. Keeps externs C-literal; the distinct discipline is an Aether-side layer.</td></tr><tr><td><strong>B. Extern can mention the distinct type</strong></td><td><code>extern foo(p: Path) -&gt; FD</code>. Type checker unwraps for codegen. Reads more naturally; risks erasing the boundary between Aether-side and C-side type discipline.</td></tr></tbody></table>
+<div class="tw"><table><thead><tr><th>Option</th><th>Where the distinct wrapping happens</th></tr></thead><tbody><tr><td><strong>A. Extern carries underlying only; wrapper does the cast</strong></td><td>Matches the existing <code>_raw</code> / wrapper-suffix pattern. <code>extern foo_raw(p: string) -&gt; int</code> + <code>foo(p: Path) -&gt; int { return foo_raw(p.string) }</code>. Keeps externs C-literal; the distinct discipline is an Aether-side layer.</td></tr><tr><td><strong>B. Extern can mention the distinct type</strong></td><td><code>extern foo(p: Path) -&gt; FD</code>. Type checker unwraps for codegen. Reads more naturally; risks erasing the boundary between Aether-side and C-side type discipline.</td></tr></tbody></table></div>
 <p><strong>Maintainer call.</strong> Option A matches existing stdlib conventions (<code>_raw</code> pattern). Option B would be slightly nicer at call sites but muddles the trust boundary at the FFI.</p>
-<h3>TBD-4: Pattern matching destructure</h3>
+<h3 id="tbd-4-pattern-matching-destructure">TBD-4: Pattern matching destructure</h3>
 <p>Should <code>match p { Path(s) =&gt; ... }</code> work as a destructuring form, or should users go through the cast?</p>
-<table><thead><tr><th>Option</th><th>Spelling</th></tr></thead><tbody><tr><td><strong>A. Implicit deref in match arms</strong></td><td><code>match p { Path(s) =&gt; println(s) }</code></td></tr><tr><td><strong>B. Explicit cast inside the arm body</strong></td><td><code>match p { Path =&gt; println(p.string) }</code> (only the type matches; user unwraps if needed)</td></tr><tr><td><strong>C. No pattern support at all</strong></td><td>Distinct types can&#x27;t be matched. Users go through <code>if</code>-on-type or explicit casts.</td></tr></tbody></table>
-<p><strong>Maintainer call.</strong> Option A is the most ergonomic but introduces a new syntactic form. Option C is the most conservative, Aether&#x27;s pattern matching is currently struct-focused (<code>docs/...</code>), and adding distinct-type arms is a parser+typechecker change.</p>
-<h3>TBD-5: Format-string / interpolation behaviour</h3>
-<p>Does <code>&quot;path: ${p}&quot;</code> work when <code>p: Path = distinct string</code>? Or does it need <code>&quot;${p.string}&quot;</code> (explicit unwrap)?</p>
-<table><thead><tr><th>Option</th><th>Behaviour</th></tr></thead><tbody><tr><td><strong>A. Implicit unwrap in interpolation</strong></td><td><code>&quot;${p}&quot;</code> prints the underlying value. Treats <code>${...}</code> as &quot;display me&quot; rather than &quot;preserve nominal identity&quot;.</td></tr><tr><td><strong>B. Require explicit unwrap</strong></td><td><code>&quot;${p}&quot;</code> is a type error; <code>&quot;${p.string}&quot;</code> works. Forces the user to acknowledge they&#x27;re flattening the distinction.</td></tr></tbody></table>
+<div class="tw"><table><thead><tr><th>Option</th><th>Spelling</th></tr></thead><tbody><tr><td><strong>A. Implicit deref in match arms</strong></td><td><code>match p { Path(s) =&gt; println(s) }</code></td></tr><tr><td><strong>B. Explicit cast inside the arm body</strong></td><td><code>match p { Path =&gt; println(p.string) }</code> (only the type matches; user unwraps if needed)</td></tr><tr><td><strong>C. No pattern support at all</strong></td><td>Distinct types can't be matched. Users go through <code>if</code>-on-type or explicit casts.</td></tr></tbody></table></div>
+<p><strong>Maintainer call.</strong> Option A is the most ergonomic but introduces a new syntactic form. Option C is the most conservative, Aether's pattern matching is currently struct-focused (<code>docs/...</code>), and adding distinct-type arms is a parser+typechecker change.</p>
+<h3 id="tbd-5-format-string--interpolation-behaviour">TBD-5: Format-string / interpolation behaviour</h3>
+<p>Does <code>"path: ${p}"</code> work when <code>p: Path = distinct string</code>? Or does it need <code>"${p.string}"</code> (explicit unwrap)?</p>
+<div class="tw"><table><thead><tr><th>Option</th><th>Behaviour</th></tr></thead><tbody><tr><td><strong>A. Implicit unwrap in interpolation</strong></td><td><code>"${p}"</code> prints the underlying value. Treats <code>${...}</code> as "display me" rather than "preserve nominal identity".</td></tr><tr><td><strong>B. Require explicit unwrap</strong></td><td><code>"${p}"</code> is a type error; <code>"${p.string}"</code> works. Forces the user to acknowledge they're flattening the distinction.</td></tr></tbody></table></div>
 <p><strong>Maintainer call.</strong> Option A is friendlier; option B is more in line with the strictness option B suggests for parameter passing. The choice may track TBD-2 (operator inheritance), if operators are inherited by default, interpolation probably should be too.</p>
-<h3>TBD-6: Layered distinct (distinct over distinct)</h3>
+<h3 id="tbd-6-layered-distinct-distinct-over-distinct">TBD-6: Layered distinct (distinct over distinct)</h3>
 <p>Is <code>type Inner = distinct Path</code> legal where <code>Path = distinct string</code>? If so, does <code>Inner</code> need to unwrap through <code>Path</code> first, or can it go directly to <code>string</code>?</p>
-<table><thead><tr><th>Option</th><th>Unwrap path</th></tr></thead><tbody><tr><td><strong>A. Single-step unwrap</strong></td><td><code>Inner.string</code> works directly (skips <code>Path</code> layer).</td></tr><tr><td><strong>B. Layer-by-layer unwrap</strong></td><td>Must write <code>inner.Path.string</code>.</td></tr><tr><td><strong>C. Disallow layered distinct entirely</strong></td><td>A distinct type&#x27;s underlying must be a non-distinct type.</td></tr></tbody></table>
+<div class="tw"><table><thead><tr><th>Option</th><th>Unwrap path</th></tr></thead><tbody><tr><td><strong>A. Single-step unwrap</strong></td><td><code>Inner.string</code> works directly (skips <code>Path</code> layer).</td></tr><tr><td><strong>B. Layer-by-layer unwrap</strong></td><td>Must write <code>inner.Path.string</code>.</td></tr><tr><td><strong>C. Disallow layered distinct entirely</strong></td><td>A distinct type's underlying must be a non-distinct type.</td></tr></tbody></table></div>
 <p><strong>Maintainer call.</strong> Option A is what Nim does. Option C is the simplest implementation. Option B is the most pedantic.</p>
-<h2>Implementation phasing</h2>
+<h2 id="implementation-phasing">Implementation phasing</h2>
 <p>Once the TBDs are resolved, the implementation can sequence as:</p>
-<ol><li><strong>Parser</strong>: <code>type X = distinct Y</code> syntax. New AST node or</li></ol>
-<p>annotation on the existing <code>type</code> declaration node.</p>
-<ol><li><strong>Type checker</strong>: nominal-inequality rule. The cast surface from</li></ol>
-<p>TBD-1. The operator-inheritance rule from TBD-2.</p>
-<ol><li><strong>Codegen</strong>: confirm zero-cost lowering. <code>Path</code> should emit</li></ol>
-<p>identical C to a bare <code>string</code> at every use site (variable decls, function params, return slots, ABI <code>--emit=lib</code> boundary).</p>
-<ol><li><strong>Stdlib pilot</strong>: introduce <code>Path</code>, <code>FD</code>, <code>Port</code> (or some</li></ol>
-<p>subset) once the language feature lands.</p>
+<ol><li><strong>Parser</strong>: <code>type X = distinct Y</code> syntax. New AST node or annotation on the existing <code>type</code> declaration node.</li><li><strong>Type checker</strong>: nominal-inequality rule. The cast surface from TBD-1. The operator-inheritance rule from TBD-2.</li><li><strong>Codegen</strong>: confirm zero-cost lowering. <code>Path</code> should emit identical C to a bare <code>string</code> at every use site (variable decls, function params, return slots, ABI <code>--emit=lib</code> boundary).</li><li><strong>Stdlib pilot</strong>: introduce <code>Path</code>, <code>FD</code>, <code>Port</code> (or some subset) once the language feature lands.</li></ol>
 <p>Each phase gets its own follow-up issue.</p>
-<h2>References</h2>
-<ul><li>Issue #480, this design&#x27;s umbrella issue.</li><li>Sibling issue #479, <code>Isolated[T]</code>, composes with distinct types.</li><li>Issue #524, <code>Duration</code>, the first tagged-int type in Aether;</li></ul>
-<p>serves as the operator-inheritance precedent (see TBD-2).</p>
-<ul><li>Issue #586, bare-int → Duration at parameter-passing rejected;</li></ul>
-<p>the strictness precedent for distinct types at call sites.</p>
-<ul><li><code>LLM.md</code> § &quot;Runtime sequence of strings → <code>*StringSeq</code>, not</li></ul>
-<p><code>string[]</code>&quot;, exactly the class of mistake distinct types diagnose.</p>
-<ul><li><code>LLM.md</code> § &quot;Ownership of <code>ptr</code>-typed returns&quot;,</li></ul>
-<p>borrowed-vs-ref-counted is another candidate distinction.</p>
-<ul><li><code>docs/containment-sandbox.md</code> capability tokens, the prime use</li></ul>
-<p>case.</p>
-<ul><li>Nim manual § &quot;Distinct type&quot;, reference design including the</li></ul>
-<p><code>borrow</code> annotation (TBD-2 option C / D).</p>
+<h2 id="references">References</h2>
+<ul><li>Issue #480, this design's umbrella issue.</li><li>Sibling issue #479, <code>Isolated[T]</code>, composes with distinct types.</li><li>Issue #524, <code>Duration</code>, the first tagged-int type in Aether; serves as the operator-inheritance precedent (see TBD-2).</li><li>Issue #586, bare-int → Duration at parameter-passing rejected; the strictness precedent for distinct types at call sites.</li><li><code>LLM.md</code> § "Runtime sequence of strings → <code>*StringSeq</code>, not <code>string[]</code>", exactly the class of mistake distinct types diagnose.</li><li><code>LLM.md</code> § "Ownership of <code>ptr</code>-typed returns", borrowed-vs-ref-counted is another candidate distinction.</li><li><code>docs/containment-sandbox.md</code> capability tokens, the prime use case.</li><li>Nim manual § "Distinct type", reference design including the <code>borrow</code> annotation (TBD-2 option C / D).</li></ul>
       </article>
     </main>
+    <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#implemented" class="l2" data-id="implemented">Implemented</a><a href="#goal" class="l2" data-id="goal">Goal</a><a href="#why-this-matters-for-aether" class="l2" data-id="why-this-matters-for-aether">Why this matters for Aether</a><a href="#sketch" class="l2" data-id="sketch">Sketch</a><a href="#lowering-confirmed-not-tbd" class="l2" data-id="lowering-confirmed-not-tbd">Lowering, confirmed (not TBD)</a><a href="#surface-confirmed-not-tbd" class="l2" data-id="surface-confirmed-not-tbd">Surface, confirmed (not TBD)</a><a href="#open-design-questions-tbd" class="l2" data-id="open-design-questions-tbd">Open design questions, TBD</a><a href="#tbd-1-cast-spelling" class="l3" data-id="tbd-1-cast-spelling">TBD-1: Cast spelling</a><a href="#tbd-2-operator-inheritance" class="l3" data-id="tbd-2-operator-inheritance">TBD-2: Operator inheritance</a><a href="#tbd-3-extern-signature-interaction" class="l3" data-id="tbd-3-extern-signature-interaction">TBD-3: Extern signature interaction</a><a href="#tbd-4-pattern-matching-destructure" class="l3" data-id="tbd-4-pattern-matching-destructure">TBD-4: Pattern matching destructure</a><a href="#tbd-5-format-string--interpolation-behaviour" class="l3" data-id="tbd-5-format-string--interpolation-behaviour">TBD-5: Format-string / interpolation behaviour</a><a href="#tbd-6-layered-distinct-distinct-over-distinct" class="l3" data-id="tbd-6-layered-distinct-distinct-over-distinct">TBD-6: Layered distinct (distinct over distinct)</a><a href="#implementation-phasing" class="l2" data-id="implementation-phasing">Implementation phasing</a><a href="#references" class="l2" data-id="references">References</a></nav>
   </div>
 </div>
+<script src="/docs.js" defer></script>
 <footer class="site-foot">
   <div class="wrap foot">
     <span class="ae">ae</span>
-    <span class="m">MIT licensed · compiles to C · v0.454</span>
+    <span class="m">MIT licensed · compiles to C · v0.462</span>
     <nav><a href="/Docs/getting-started.html">Docs</a><a href="/repl.html">Playground</a><a href="https://github.com/aether-lang-org/aether">GitHub</a></nav>
   </div>
 </footer>

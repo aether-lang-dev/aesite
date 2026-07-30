@@ -1,0 +1,23 @@
+# Fly.io config for the Aether playground backend.
+#   fly launch --no-deploy   # once, to create the app
+#   fly deploy
+app = "aether-playground"
+primary_region = "iad"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  PORT = "8080"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory = "512mb"

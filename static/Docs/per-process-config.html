@@ -4,27 +4,38 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Per-process configuration in Aether · Aether</title>
-<meta name="description" content="Per-process configuration in Aether — Aether language documentation.">
+<meta name="description" content="Many CLI tools and servers need a per-process key/value: parse it once at startup (from --flag X args, an env var, or a config file), then read it from ...">
+<link rel="canonical" href="https://aether-lang.dev/Docs/per-process-config.html">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Per-process configuration in Aether · Aether">
+<meta property="og:description" content="Many CLI tools and servers need a per-process key/value: parse it once at startup (from --flag X args, an env var, or a config file), then read it from ...">
+<meta property="og:url" content="https://aether-lang.dev/Docs/per-process-config.html">
+<meta property="og:image" content="https://aether-lang.dev/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="/favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/aether.css">
 </head>
 <body>
+<a class="skip" href="#doc">Skip to content</a>
 <header class="site-head">
   <div class="wrap bar">
     <a class="brand" href="/" aria-label="Aether"><span class="ae">ae</span><span class="nm">aether</span></a>
     <nav>
       <a href="/repl.html">Playground</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
-      <a href="https://github.com/aether-lang-org/aether">Source</a>
-      <span class="vtag">v0.454</span>
+      <a class="src" href="https://github.com/aether-lang-org/aether">Source</a>
+      <span class="vtag">v0.462</span>
     </nav>
   </div>
 </header>
 <div class="wrap">
   <div class="doc-shell">
-    <nav class="doc-nav"><div class="grp">Start</div>
+    <nav class="doc-nav" aria-label="Documentation">
+      <div class="docsearch"><input id="ds" type="search" placeholder="Search the docs" aria-label="Search documentation" autocomplete="off" spellcheck="false"><kbd>/</kbd><div class="ds-res" id="dsres" role="listbox"></div></div>
+<div class="grp">Start</div>
 <a href="/Docs/getting-started.html">Getting Started with Aether</a>
 <a href="/Docs/tutorial.html">Aether Language Tutorial</a>
 <a href="/Docs/next-steps.html">Next Steps</a>
@@ -34,7 +45,7 @@
 <a href="/Docs/type-annotation-style-guide.html">Aether Type Annotation Style Guide</a>
 <a href="/Docs/type-inference-multi-value-returns.html">Multi-Value Return Type Inference</a>
 <a href="/Docs/distinct-types.html">Distinct Types</a>
-<a href="/Docs/sequences.html">Sequences (`*StringSeq`)</a>
+<a href="/Docs/sequences.html">Sequences (*StringSeq)</a>
 <a href="/Docs/named-args-and-select.html">Named Arguments and select()</a>
 <a href="/Docs/closures-and-builder-dsl.html">Closures and Builder-Style DSL in Aether</a>
 <a href="/Docs/closures-and-lifetimes.html">Closures and Environment Lifetimes</a>
@@ -50,23 +61,23 @@
 <div class="grp">Interop</div>
 <a href="/Docs/c-interop.html">C Interoperability</a>
 <a href="/Docs/c-embedding.html">Embedding Aether Actors in C Applications</a>
-<a href="/Docs/emit-lib.html">Embedding Aether as a Shared Library (`--emit=lib`)</a>
+<a href="/Docs/emit-lib.html">Embedding Aether as a Shared Library (--emit=lib)</a>
 <a href="/Docs/embedded-namespaces-and-host-bindings.html">Aether as a Configuration Language, v2: Namespaces and Generated Bindings</a>
 <a href="/Docs/aether-embedded-in-host-applications.html">Aether as a Configuration Language for Other Languages</a>
-<a href="/Docs/lib-caller-info.html">`--emit=lib` caller-info channel</a>
+<a href="/Docs/lib-caller-info.html">--emit=lib caller-info channel</a>
 <div class="grp">Stdlib</div>
 <a href="/Docs/stdlib-reference.html">Aether Standard Library Reference</a>
 <a href="/Docs/stdlib-api.html">Aether Standard Library Guide</a>
 <a href="/Docs/stdlib-module-pattern.html">Aether Stdlib Module Pattern</a>
-<a href="/Docs/stdlib-vs-contrib.html">`std/` vs `contrib/` placement decisions</a>
-<a href="/Docs/http-server.html">`std.http` HTTP Server</a>
-<a href="/Docs/http-reverse-proxy.html">`std.http.proxy` reverse proxy</a>
+<a href="/Docs/stdlib-vs-contrib.html">std/ vs contrib/ placement decisions</a>
+<a href="/Docs/http-server.html">std.http HTTP Server</a>
+<a href="/Docs/http-reverse-proxy.html">std.http.proxy reverse proxy</a>
 <a href="/Docs/http-handler-context.html">HTTP handlers with per-server / per-route state</a>
 <a href="/Docs/http-vcr.html">HTTP Record/Replay (VCR), moved out of Aether</a>
-<a href="/Docs/json-parser-design.html">`std.json` Design Notes</a>
+<a href="/Docs/json-parser-design.html">std.json Design Notes</a>
 <div class="grp">Safety</div>
 <a href="/Docs/containment-sandbox.html">Containment and Sandboxing in Aether</a>
-<a href="/Docs/hide-and-seal.html">`hide` and `seal except` scope-level capability denial</a>
+<a href="/Docs/hide-and-seal.html">hide and seal except scope-level capability denial</a>
 <a href="/Docs/compiler-trust-boundary.html">The Compiler Trust Boundary</a>
 <a href="/Docs/config-is-code.html">Config IS Code</a>
 <a href="/Docs/aether_compared_to_capsicum.html">Aether Sandbox Model vs. BSD Capsicum: Architecture, Parallels, and FreeBSD Integration</a>
@@ -76,84 +87,87 @@
 <a href="/Docs/install-layout.html">Aether install layout</a>
 <a href="/Docs/runtime-config.html">Runtime Configuration - Quick Reference</a>
 <a href="/Docs/per-process-config.html" class="on">Per-process configuration in Aether</a>
-<a href="/Docs/cic-help.html">`ae help &lt;script&gt;` Offline diagnostics for config-IS-code</a>
+<a href="/Docs/cic-help.html">ae help &lt;script&gt; Offline diagnostics for config-IS-code</a>
 <div class="grp">More</div>
-<a href="/Docs/bindgen-consts.html">`ae bindgen consts`, importing C macro constants</a>
-<a href="/Docs/formatter.html">`ae fmt`, the source formatter</a>
-<a href="/Docs/isolated.html">`Isolated[T]`: move-only actor message payloads (#479)</a>
-<a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
-<a href="/Docs/profiling-guide.html">Aether Runtime Profiling Guide</a>
 <a href="/Docs/allocators.html">Allocators</a>
-<a href="/Docs/when-static-if.html">Compile-time `when` / static-if</a>
+<a href="/Docs/bindgen-consts.html">ae bindgen consts, importing C macro constants</a>
 <a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
 <a href="/Docs/contract-folding.html">Compile-time contract folding — costed design</a>
-<a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn&#x27;t need `macro_rules!`</a>
+<a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn't need macro_rules!</a>
+<a href="/Docs/error-unification.html">Unifying T? and (value, err) — costed design</a>
+<a href="/Docs/formatter.html">ae fmt, the source formatter</a>
+<a href="/Docs/isolated.html">Isolated[T]: move-only actor message payloads (#479)</a>
+<a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
+<a href="/Docs/profiling-guide.html">Aether Runtime Profiling Guide</a>
 <a href="/Docs/release-glibc-portability.html">Release binary portability across glibc versions</a>
-<a href="/Docs/error-unification.html">Unifying `T?` and `(value, err)` — costed design</a></nav>
+<a href="/Docs/when-static-if.html">Compile-time when / static-if</a></nav>
     <main class="doc-main">
-      <article class="doc-body">
-        <div class="bc">docs / build</div>
-<h1>Per-process configuration in Aether</h1>
-<p>Many CLI tools and servers need a per-process key/value: parse it once at startup (from <code>--flag X</code> args, an env var, or a config file), then read it from many call sites for the rest of the process&#x27;s life. Examples:</p>
+      <article class="doc-body" id="doc">
+        <div class="bc"><span class="prompt">$</span>docs / build</div>
+<h1 id="per-process-configuration-in-aether">Per-process configuration in Aether</h1>
+<p>Many CLI tools and servers need a per-process key/value: parse it once at startup (from <code>--flag X</code> args, an env var, or a config file), then read it from many call sites for the rest of the process's life. Examples:</p>
 <ul><li><code>--superuser-token X</code> parsed at CLI entry, checked on every HTTP request handler.</li><li><code>--log-level debug</code> set once, consulted by every log call.</li><li><code>--data-dir /var/lib/myapp</code> baked in at startup, used by every filesystem op.</li><li>API keys, tenant IDs, current-user identity stashed by an auth middleware.</li></ul>
-<p>In C this is a <code>static int g_thing = …;</code> plus <code>set_thing(n)</code> / <code>get_thing(void)</code> helpers. Aether transcribes this shape directly with a <strong>module-level <code>var</code></strong> (added in [#701]): <code>var</code> at module scope lowers to a file-scope C <code>static</code>, and same-module functions read and write it as a plain identifier, a real lvalue, so a setter genuinely updates it and every reader sees the new value. That&#x27;s the simplest answer for scalar per-process config (a log-level enum, a numeric limit, a feature flag, a pointer handle).</p>
+<p>In C this is a <code>static int g_thing = …;</code> plus <code>set_thing(n)</code> / <code>get_thing(void)</code> helpers. Aether transcribes this shape directly with a <strong>module-level <code>var</code></strong> (added in [#701]): <code>var</code> at module scope lowers to a file-scope C <code>static</code>, and same-module functions read and write it as a plain identifier, a real lvalue, so a setter genuinely updates it and every reader sees the new value. That's the simplest answer for scalar per-process config (a log-level enum, a numeric limit, a feature flag, a pointer handle).</p>
 <p>For state that must be shared <strong>across actors / threads</strong>, or that owns a resource it should free, the <strong>actor-as-singleton</strong> is the better tool: spawn one actor at startup, set values via messages, read via messages, the mailbox serialises access for you. Both patterns are below; pick by whether the value is process-local scalar config (<code>var</code>) or concurrently-shared/owned state (actor).</p>
-<p>This page is the worked example. It&#x27;s a doc, not a stdlib feature, there&#x27;s nothing to import beyond the language primitives.</p>
+<p>This page is the worked example. It's a doc, not a stdlib feature, there's nothing to import beyond the language primitives.</p>
 <p>[#701]: https://github.com/aether-lang-org/aether/issues/701</p>
-<h2>The simple case: a module-level <code>var</code></h2>
+<h2 id="the-simple-case-a-module-level-var">The simple case: a module-level <code>var</code></h2>
 <p>For a scalar config value parsed once at startup and read from many call sites, declare a module-level <code>var</code> and write the parsed value through a setter:</p>
-<pre><code>import std.io
+<pre><code><span class="kw">import</span> std.io
 
-// Parsed once at startup, read everywhere for the rest of the process.
-// The INITIALISER must be a compile-time constant (it lowers to a C
-// `static`, which the C standard requires to have a constant
-// initialiser), so seed it with a constant and assign the real,
-// CLI-parsed value from a setter at startup, not in the initialiser.
-var log_level = 0          // 0=info, 1=debug, 2=trace (inferred int)
-var max_conns: long = 100  // explicitly typed numeric limit
+<span class="com">// Parsed once at startup, read everywhere for the rest of the process.</span>
+<span class="com">// The INITIALISER must be a compile-time constant (it lowers to a C</span>
+<span class="com">// `static`, which the C standard requires to have a constant</span>
+<span class="com">// initialiser), so seed it with a constant and assign the real,</span>
+<span class="com">// CLI-parsed value from a setter at startup, not in the initialiser.</span>
+<span class="kw">var</span> log_level = <span class="num">0</span>          <span class="com">// 0=info, 1=debug, 2=trace (inferred int)</span>
+<span class="kw">var</span> max_conns: <span class="fn">long</span> = <span class="num">100</span>  <span class="com">// explicitly typed numeric limit</span>
 
-set_log_level(n: int) {
-    log_level = n          // writes the module-level static, not a local
+set_log_level(n: <span class="fn">int</span>) {
+    log_level = n          <span class="com">// writes the module-level static, not a local</span>
 }
 
-should_log(level: int) -&gt; bool {
-    return level &lt;= log_level   // every reader sees the setter&#x27;s value
+should_log(level: <span class="fn">int</span>) -&gt; <span class="fn">bool</span> {
+    <span class="kw">return</span> level &lt;= log_level   <span class="com">// every reader sees the setter's value</span>
 }
 
 main() {
-    set_log_level(2)            // e.g. value from `--log-level trace`
-    if should_log(1) {
-        println(&quot;debug visible&quot;)
+    set_log_level(<span class="num">2</span>)            <span class="com">// e.g. value from `--log-level trace`</span>
+    <span class="kw">if</span> should_log(<span class="num">1</span>) {
+        println(<span class="str">"debug visible"</span>)
     }
     println(max_conns)
 }</code></pre>
 <p>This is the <code>static int g_thing; set_thing(n)</code> shape, one-to-one. <code>set_log_level</code> mutates the same storage <code>should_log</code> reads, no actor, no message round-trip, no accessor indirection.</p>
 <p>Two constraints to know:</p>
-<ul><li><strong>The initialiser must be a compile-time constant.</strong> <code>var limit = compute_default()</code> is rejected, you can&#x27;t seed a module-level <code>var</code> with a runtime or CLI-parsed value in the initialiser. The compiler says so explicitly:</li></ul>
-<p>``<code> error[E0200]: module-level </code>var<code> initializer must be a compile-time constant expression, it lowers to a file-scope </code>static<code>, which C requires to have a constant initializer. Initialize it to a constant here and assign the computed value from a function at startup instead. </code>``</p>
+<ul><li><strong>The initialiser must be a compile-time constant.</strong> <code>var limit = compute_default()</code> is rejected, you can't seed a module-level <code>var</code> with a runtime or CLI-parsed value in the initialiser. The compiler says so explicitly:</li></ul>
+<pre><code>  error[E0200]: module-level `var` initializer must be a compile-time constant
+  expression, it lowers to a file-scope `static`, which C requires to have a
+  constant initializer. Initialize it to a constant here and assign the
+  computed value from a function at startup instead.</code></pre>
 <p>Seed it with a constant (<code>var limit = 0</code>) and write the computed value from a setter called at startup, exactly as <code>set_log_level</code> does above.</p>
-<ul><li><strong>It&#x27;s module-private and best for scalar/pointer values.</strong> A module-level <code>var</code> is not exported across modules, and the direct-static lowering is the right fit for scalars and pointers (<code>int</code>, <code>long</code>, <code>uint64</code>, <code>ptr</code>, …). For a <strong>string-valued</strong> process config (an auth token, a data-dir path, a current-user name) reach for the actor singleton below, a string is heap-managed and an owned, freed resource is exactly the &quot;shared/owned state&quot; case the actor pattern is built for.</li></ul>
-<h2>The shared/owned case: an actor singleton</h2>
-<p>When the value is a string (or any heap-owned resource), or must be visible across actor boundaries, model it as a one-actor singleton: spawn it at startup, set values via messages, read via reply-bearing messages. The mailbox serialises writes against reads, so concurrent setters and getters can&#x27;t interleave incorrectly.</p>
-<pre><code>import std.string
+<ul><li><strong>It's module-private and best for scalar/pointer values.</strong> A module-level <code>var</code> is not exported across modules, and the direct-static lowering is the right fit for scalars and pointers (<code>int</code>, <code>long</code>, <code>uint64</code>, <code>ptr</code>, …). For a <strong>string-valued</strong> process config (an auth token, a data-dir path, a current-user name) reach for the actor singleton below, a string is heap-managed and an owned, freed resource is exactly the "shared/owned state" case the actor pattern is built for.</li></ul>
+<h2 id="the-sharedowned-case-an-actor-singleton">The shared/owned case: an actor singleton</h2>
+<p>When the value is a string (or any heap-owned resource), or must be visible across actor boundaries, model it as a one-actor singleton: spawn it at startup, set values via messages, read via reply-bearing messages. The mailbox serialises writes against reads, so concurrent setters and getters can't interleave incorrectly.</p>
+<pre><code><span class="kw">import</span> std.<span class="fn">string</span>
 
-// Messages that drive the config actor.
-message SetUser   { name: string }
-message SetToken  { value: string }
-// Reads route through a reply-bearing message: include a reply
-// actor_ref so the config actor can send the value back.
-message GetUser   { to: actor_ref }
-message GetToken  { to: actor_ref }
-message UserReply { value: string }
-message TokenReply { value: string }
+<span class="com">// Messages that drive the config actor.</span>
+<span class="kw">message</span> SetUser   { name: <span class="fn">string</span> }
+<span class="kw">message</span> SetToken  { value: <span class="fn">string</span> }
+<span class="com">// Reads route through a reply-bearing message: include a reply</span>
+<span class="com">// actor_ref so the config actor can send the value back.</span>
+<span class="kw">message</span> GetUser   { to: <span class="fn">actor_ref</span> }
+<span class="kw">message</span> GetToken  { to: <span class="fn">actor_ref</span> }
+<span class="kw">message</span> UserReply { value: <span class="fn">string</span> }
+<span class="kw">message</span> TokenReply { value: <span class="fn">string</span> }
 
-// The singleton. State-only, no business logic, just a key/value
-// holder. Spawn exactly one of these.
-actor ConfigActor {
-    state user  = &quot;&quot;
-    state token = &quot;&quot;
+<span class="com">// The singleton. State-only, no business logic, just a key/value</span>
+<span class="com">// holder. Spawn exactly one of these.</span>
+<span class="kw">actor</span> ConfigActor {
+    <span class="kw">state</span> user  = <span class="str">""</span>
+    <span class="kw">state</span> token = <span class="str">""</span>
 
-    receive {
+    <span class="kw">receive</span> {
         SetUser(name)   -&gt; { user = name }
         SetToken(value) -&gt; { token = value }
         GetUser(to)     -&gt; { to ! UserReply  { value: user  } }
@@ -162,73 +176,73 @@ actor ConfigActor {
 }
 
 main() {
-    cfg = spawn(ConfigActor())
+    cfg = <span class="kw">spawn</span>(ConfigActor())
 
-    // Write-once at startup.
-    cfg ! SetUser  { name: &quot;alice&quot; }
-    cfg ! SetToken { value: &quot;secret-xyz&quot; }
+    <span class="com">// Write-once at startup.</span>
+    cfg ! SetUser  { name: <span class="str">"alice"</span> }
+    cfg ! SetToken { value: <span class="str">"secret-xyz"</span> }
 
-    // … later, in a request handler that holds an `actor_ref` to its
-    // own reply target …
-    // cfg ! GetUser { to: self_ref }
-    // receive { UserReply(value) -&gt; { … use value … } }
+    <span class="com">// … later, in a request handler that holds an `actor_ref` to its</span>
+    <span class="com">// own reply target …</span>
+    <span class="com">// cfg ! GetUser { to: self_ref }</span>
+    <span class="com">// receive { UserReply(value) -&gt; { … use value … } }</span>
 }</code></pre>
-<p>The reply pattern (caller sends a <code>Get*</code> message containing its own actor_ref, then <code>receive</code>s the matching <code>*Reply</code>) is the same ergonomics Erlang&#x27;s <code>gen_server:call</code> provides under the hood. It&#x27;s verbose for one-shot reads; if you only need writes, drop the <code>Get*</code> / <code>*Reply</code> half and design your readers to take the value from a message they were sent at startup.</p>
-<h2>Variants</h2>
+<p>The reply pattern (caller sends a <code>Get*</code> message containing its own actor_ref, then <code>receive</code>s the matching <code>*Reply</code>) is the same ergonomics Erlang's <code>gen_server:call</code> provides under the hood. It's verbose for one-shot reads; if you only need writes, drop the <code>Get*</code> / <code>*Reply</code> half and design your readers to take the value from a message they were sent at startup.</p>
+<h2 id="variants">Variants</h2>
 <p><strong>Write-once, read-many string config</strong> (auth token, data-dir path, current-user name):</p>
-<p>The actor singleton above is what you want. The mailbox serialises writes with reads, so concurrent setters and getters can&#x27;t interleave incorrectly. If you only set at startup and never again, the cost is one message round-trip per read.</p>
+<p>The actor singleton above is what you want. The mailbox serialises writes with reads, so concurrent setters and getters can't interleave incorrectly. If you only set at startup and never again, the cost is one message round-trip per read.</p>
 <p><strong>Scalar config (log level, numeric limit, feature flag, pointer)</strong>:</p>
 <p>Use a module-level <code>var</code> (see <a href="#the-simple-case-a-module-level-var">The simple case</a>). A setter writes the parsed value at startup; reads are direct loads from the static, no round-trip, no message ceremony.</p>
 <p><strong>Hot-path reads where actor message overhead is too much</strong>:</p>
-<p>Measure first. A same-core actor message bypasses the incoming queue and writes directly to the target&#x27;s mailbox or SPSC queue (see <a href="/Docs/runtime-optimizations.html">runtime-optimizations.md</a>, &quot;SPSC Queue for Same-Core Messaging&quot;), so the round-trip is cheap. For a per-HTTP-request auth-token check it is in the noise compared to the cost of the request itself.</p>
-<p>If you&#x27;ve measured and the round-trip really is too expensive (e.g. an inner loop reading the value 10⁹ times), the alternatives in order of preference:</p>
-<ol><li><strong>Pass the config value through your call chain.</strong> Plumb it as a parameter from the place that has the singleton&#x27;s value to the place that needs it. This is the &quot;explicit dependency&quot; approach and is usually the right answer.</li></ol>
-<ol><li><strong>Cache the value in a local actor&#x27;s state.</strong> A worker actor that handles requests can ask the config actor once on startup and store the value in its own <code>state token = &quot;…&quot;</code>. Each subsequent handler invocation reads the local state, no round-trip. The trade-off is staleness if the config can change after the worker initialized.</li></ol>
-<ol><li><strong>Use a <code>const</code> if the value is genuinely immutable across the process&#x27;s life.</strong> <code>const TOKEN = &quot;secret-xyz&quot;</code> lowers to a <code>#define</code> and reads are zero-cost. Unlike a module-level <code>var</code>, a <code>const</code> can&#x27;t be a setter&#x27;s target, so it only works when the value is known at compile time (not for CLI-parsed config).</li></ol>
+<p>Measure first. A same-core actor message bypasses the incoming queue and writes directly to the target's mailbox or SPSC queue (see <a href="/Docs/runtime-optimizations.html">runtime-optimizations.md</a>, "SPSC Queue for Same-Core Messaging"), so the round-trip is cheap. For a per-HTTP-request auth-token check it is in the noise compared to the cost of the request itself.</p>
+<p>If you've measured and the round-trip really is too expensive (e.g. an inner loop reading the value 10⁹ times), the alternatives in order of preference:</p>
+<ol><li><strong>Pass the config value through your call chain.</strong> Plumb it as a parameter from the place that has the singleton's value to the place that needs it. This is the "explicit dependency" approach and is usually the right answer.</li><li><strong>Cache the value in a local actor's state.</strong> A worker actor that handles requests can ask the config actor once on startup and store the value in its own <code>state token = "…"</code>. Each subsequent handler invocation reads the local state, no round-trip. The trade-off is staleness if the config can change after the worker initialized.</li><li><strong>Use a <code>const</code> if the value is genuinely immutable across the process's life.</strong> <code>const TOKEN = "secret-xyz"</code> lowers to a <code>#define</code> and reads are zero-cost. Unlike a module-level <code>var</code>, a <code>const</code> can't be a setter's target, so it only works when the value is known at compile time (not for CLI-parsed config).</li></ol>
 <p><strong>Multi-tenant / per-request state</strong>:</p>
 <p>Per-process config is the wrong shape for things that vary per request (current user, tenant ID, request ID). For those, use thread-local state (TLS) or pass the value explicitly through your handler chain, the actor singleton would serialize all handlers behind one mailbox, which defeats parallelism.</p>
-<h2>Module-level <code>var</code> vs an actor singleton</h2>
+<h2 id="module-level-var-vs-an-actor-singleton">Module-level <code>var</code> vs an actor singleton</h2>
 <p>Both are first-class; choose by what the state is and who touches it.</p>
-<p><strong>Reach for a module-level <code>var</code></strong> when the config is a process-local scalar, a log level, a numeric limit, a feature flag, a pointer handle, set once at startup and read from many call sites. It&#x27;s the least machinery: a <code>static</code> plus a setter, reads compile to a direct load. Keep these caveats in mind:</p>
-<ul><li><strong>It&#x27;s not synchronised.</strong> A module-level <code>var</code> is a plain <code>static</code>; concurrent writers need their own discipline (set it once at startup, before you spawn workers, and treat it as read-only thereafter). If multiple actors must <em>write</em> it during the run, that&#x27;s the actor singleton&#x27;s job, the mailbox gives you the synchronisation for free.</li><li><strong>It&#x27;s process-global, so mind tests.</strong> Two test cases sharing one process see the same <code>var</code>; reset it explicitly between cases, or isolate by process. Actor state, by contrast, resets cleanly by re-spawning.</li></ul>
-<p><strong>Reach for an actor singleton</strong> when the value is a string or other heap-owned resource (the actor owns it and frees it on its own terms), or when it must be read and written across actor boundaries with the runtime handling synchronisation. This is also the answer when you&#x27;d otherwise be tempted to reach for a <code>static char *g_user;</code> in a multi-threaded server, that bare global is a TOCTOU bug waiting to bite, and the actor model closes the hole.</p>
+<p><strong>Reach for a module-level <code>var</code></strong> when the config is a process-local scalar, a log level, a numeric limit, a feature flag, a pointer handle, set once at startup and read from many call sites. It's the least machinery: a <code>static</code> plus a setter, reads compile to a direct load. Keep these caveats in mind:</p>
+<ul><li><strong>It's not synchronised.</strong> A module-level <code>var</code> is a plain <code>static</code>; concurrent writers need their own discipline (set it once at startup, before you spawn workers, and treat it as read-only thereafter). If multiple actors must <em>write</em> it during the run, that's the actor singleton's job, the mailbox gives you the synchronisation for free.</li><li><strong>It's process-global, so mind tests.</strong> Two test cases sharing one process see the same <code>var</code>; reset it explicitly between cases, or isolate by process. Actor state, by contrast, resets cleanly by re-spawning.</li></ul>
+<p><strong>Reach for an actor singleton</strong> when the value is a string or other heap-owned resource (the actor owns it and frees it on its own terms), or when it must be read and written across actor boundaries with the runtime handling synchronisation. This is also the answer when you'd otherwise be tempted to reach for a <code>static char *g_user;</code> in a multi-threaded server, that bare global is a TOCTOU bug waiting to bite, and the actor model closes the hole.</p>
 <p>The question to ask: is this process-local scalar config, or shared/owned state? The first is a <code>var</code>; the second is an actor.</p>
-<h2>Worked example: replacing a C global-state shim</h2>
+<h2 id="worked-example-replacing-a-c-global-state-shim">Worked example: replacing a C global-state shim</h2>
 <p>The svn-aether port has this in <code>subversion/ae/ra/shim.c</code>:</p>
-<pre><code>static char *g_client_user = NULL;
+<pre><code><span class="kw">static</span> <span class="kw">char</span> *g_client_user = NULL;
 
-void svnae_ra_set_user(const char *user) {
+<span class="kw">void</span> svnae_ra_set_user(<span class="kw">const</span> <span class="kw">char</span> *user) {
     free(g_client_user);
     g_client_user = user &amp;&amp; *user ? strdup(user) : NULL;
 }
 
-const char *aether_ra_get_user(void) {
-    return g_client_user ? g_client_user : &quot;&quot;;
+<span class="kw">const</span> <span class="kw">char</span> *aether_ra_get_user(<span class="kw">void</span>) {
+    <span class="kw">return</span> g_client_user ? g_client_user : <span class="str">""</span>;
 }</code></pre>
 <p>This shim stores a <strong>string</strong> (<code>char *</code>) and owns it (<code>free</code> / <code>strdup</code>), so it maps onto the actor singleton above rather than a module-level <code>var</code>. Set on CLI parse:</p>
 <pre><code>cfg ! SetUser { name: parsed_user_arg }</code></pre>
-<p>(A scalar C shim, say a <code>static int g_log_level;</code> with a <code>set</code>/<code>get</code> pair, maps the other way: it&#x27;s a module-level <code>var log_level = 0</code> plus a <code>set_log_level</code> setter, exactly the <a href="#the-simple-case-a-module-level-var">simple case</a> above. The string shim here needs the actor because the value is heap-owned.)</p>
+<p>(A scalar C shim, say a <code>static int g_log_level;</code> with a <code>set</code>/<code>get</code> pair, maps the other way: it's a module-level <code>var log_level = 0</code> plus a <code>set_log_level</code> setter, exactly the <a href="#the-simple-case-a-module-level-var">simple case</a> above. The string shim here needs the actor because the value is heap-owned.)</p>
 <p>Read in the request handler, slightly more involved than a function call because the handler needs an actor_ref to receive the reply. The natural place to plumb that is through whatever spawns the handler:</p>
-<pre><code>// At handler-spawn time:
-worker = spawn(RequestHandler())
-cfg ! GetUser { to: worker }   // worker stashes the reply when it arrives
+<pre><code><span class="com">// At handler-spawn time:</span>
+worker = <span class="kw">spawn</span>(RequestHandler())
+cfg ! GetUser { to: worker }   <span class="com">// worker stashes the reply when it arrives</span>
 
-// In the worker&#x27;s receive block:
-receive {
+<span class="com">// In the worker's receive block:</span>
+<span class="kw">receive</span> {
     UserReply(value) -&gt; { current_user = value }
     HttpRequest(req) -&gt; { handle_request(req, current_user) }
 }</code></pre>
-<p>This is more code than the C version, but it&#x27;s also testable, thread-safe by construction, and amenable to &quot;swap the config actor for a mock&quot; in tests.</p>
-<h2>See also</h2>
-<ul><li><a href="/Docs/actor-concurrency.html">actor-concurrency.md</a>, runtime details on the scheduler, mailboxes, and message delivery</li><li><a href="/Docs/runtime-optimizations.html">runtime-optimizations.md</a>, the scheduler&#x27;s message-passing optimizations, including same-core SPSC delivery</li><li><code>tests/integration/test_http_client_v2.ae</code> uses an actor singleton (<code>SrvActor</code>) for an in-process HTTP server&#x27;s lifecycle</li></ul>
+<p>This is more code than the C version, but it's also testable, thread-safe by construction, and amenable to "swap the config actor for a mock" in tests.</p>
+<h2 id="see-also">See also</h2>
+<ul><li><a href="/Docs/actor-concurrency.html">actor-concurrency.md</a>, runtime details on the scheduler, mailboxes, and message delivery</li><li><a href="/Docs/runtime-optimizations.html">runtime-optimizations.md</a>, the scheduler's message-passing optimizations, including same-core SPSC delivery</li><li><code>tests/integration/test_http_client_v2.ae</code> uses an actor singleton (<code>SrvActor</code>) for an in-process HTTP server's lifecycle</li></ul>
       </article>
     </main>
+    <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#the-simple-case-a-module-level-var" class="l2" data-id="the-simple-case-a-module-level-var">The simple case: a module-level var</a><a href="#the-sharedowned-case-an-actor-singleton" class="l2" data-id="the-sharedowned-case-an-actor-singleton">The shared/owned case: an actor singleton</a><a href="#variants" class="l2" data-id="variants">Variants</a><a href="#module-level-var-vs-an-actor-singleton" class="l2" data-id="module-level-var-vs-an-actor-singleton">Module-level var vs an actor singleton</a><a href="#worked-example-replacing-a-c-global-state-shim" class="l2" data-id="worked-example-replacing-a-c-global-state-shim">Worked example: replacing a C global-state shim</a><a href="#see-also" class="l2" data-id="see-also">See also</a></nav>
   </div>
 </div>
+<script src="/docs.js" defer></script>
 <footer class="site-foot">
   <div class="wrap foot">
     <span class="ae">ae</span>
-    <span class="m">MIT licensed · compiles to C · v0.454</span>
+    <span class="m">MIT licensed · compiles to C · v0.462</span>
     <nav><a href="/Docs/getting-started.html">Docs</a><a href="/repl.html">Playground</a><a href="https://github.com/aether-lang-org/aether">GitHub</a></nav>
   </div>
 </footer>
