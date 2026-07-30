@@ -27,7 +27,7 @@
       <a href="/repl.html">Playground</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-org/aether">Source</a>
-      <span class="vtag">v0.462</span>
+      <span class="vtag">v0.464</span>
     </nav>
   </div>
 </header>
@@ -92,9 +92,9 @@
 <a href="/Docs/allocators.html">Allocators</a>
 <a href="/Docs/bindgen-consts.html">ae bindgen consts, importing C macro constants</a>
 <a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
-<a href="/Docs/contract-folding.html">Compile-time contract folding — costed design</a>
+<a href="/Docs/contract-folding.html">Compile-time contract folding, costed design</a>
 <a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn't need macro_rules!</a>
-<a href="/Docs/error-unification.html">Unifying T? and (value, err) — costed design</a>
+<a href="/Docs/error-unification.html">Unifying T? and (value, err), costed design</a>
 <a href="/Docs/formatter.html">ae fmt, the source formatter</a>
 <a href="/Docs/isolated.html">Isolated[T]: move-only actor message payloads (#479)</a>
 <a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
@@ -141,7 +141,7 @@ build_config(env: <span class="fn">string</span>, port: <span class="fn">int</sp
 <h2 id="the-flag-matrix">The flag matrix</h2>
 <div class="tw"><table><thead><tr><th>Flag</th><th>Effect</th></tr></thead><tbody><tr><td><code>--emit=exe</code> <em>(default)</em></td><td>Current behaviour, produces an executable.</td></tr><tr><td><code>--emit=lib</code></td><td>No <code>main()</code> in the output; every top-level Aether function gets an <code>aether_&lt;name&gt;()</code> C-ABI alias; built with <code>-fPIC -shared</code>.</td></tr><tr><td><code>--emit=both</code></td><td>Produces both an executable AND a shared library from one source. <code>ae build --emit=both foo.ae -o foo</code> writes <code>foo</code> (the exe) and <code>foo.dylib</code> / <code>foo.so</code> (the lib) side by side. With no <code>-o</code>, defaults are <code>&lt;base&gt;</code> (exe) and <code>lib&lt;base&gt;.&lt;ext&gt;</code> (lib). Internally dispatches <code>cmd_build</code> twice (once per emit mode); the lib pass appends the platform lib extension to the user's <code>-o</code> so the second pass doesn't overwrite the first.</td></tr><tr><td><code>--emit=csrc</code></td><td>Emits the <strong>portable generated C source</strong> (<code>foo.c</code>), a <strong>catalog header</strong> (<code>foo.h</code>, the <code>aether_&lt;name&gt;()</code> prototypes), and a <strong>machine-readable catalog</strong> (<code>foo.catalog.json</code>), and stops. No <code>gcc</code>, no native artifact. Same catalog codegen as <code>--emit=lib</code>; the difference is you get <em>source</em> plus a describable ABI surface, not a host <code>.so</code>.</td></tr></tbody></table></div>
 <h2 id="--emitcsrc-distribute-source-not-n-native-libs-996"><code>--emit=csrc</code>: distribute source, not N native libs (#996)</h2>
-<p>A single <strong>native</strong> lib can't be universal across OSes — ELF vs Mach-O vs PE/COFF are different loader formats. But the <strong>pre-native</strong> artifact can be: the generated C is portable, so <code>--emit=csrc</code> moves the "which platform" decision from <em>distribution time</em> (ship 6 natives) to the consumer's build:</p>
+<p>A single <strong>native</strong> lib can't be universal across OSes, ELF vs Mach-O vs PE/COFF are different loader formats. But the <strong>pre-native</strong> artifact can be: the generated C is portable, so <code>--emit=csrc</code> moves the "which platform" decision from <em>distribution time</em> (ship 6 natives) to the consumer's build:</p>
 <pre><code>ae build --emit=csrc mylib.ae -o mylib
 <span class="com"># writes mylib.c (portable C) + mylib.h (aether_&lt;name&gt; prototypes)</span>
 <span class="com">#      + mylib.catalog.json (the describable ABI surface)</span>
@@ -399,11 +399,34 @@ for i in range(meta.function_count):
 </div>
 <script src="/docs.js" defer></script>
 <footer class="site-foot">
-  <div class="wrap foot">
-    <span class="ae">ae</span>
-    <span class="m">MIT licensed · compiles to C · v0.462</span>
-    <nav><a href="/Docs/getting-started.html">Docs</a><a href="/repl.html">Playground</a><a href="https://github.com/aether-lang-org/aether">GitHub</a></nav>
+  <div class="wrap foot-grid">
+    <div class="foot-brand">
+      <span class="ae">ae</span>
+      <p class="foot-tag">A compiled systems language built on actors.</p>
+      <p class="foot-status">v0.464 &middot; pre-1.0, actively developed</p>
+    </div>
+    <div class="foot-col">
+      <h4>Docs</h4>
+      <a href="/Docs/getting-started.html">Getting Started</a>
+      <a href="/Docs/tutorial.html">Tutorial</a>
+      <a href="/Docs/language-reference.html">Language Reference</a>
+      <a href="/Docs/stdlib-reference.html">Standard Library</a>
+    </div>
+    <div class="foot-col">
+      <h4>Project</h4>
+      <a href="https://github.com/aether-lang-org/aether">GitHub</a>
+      <a href="https://github.com/aether-lang-org/aether/issues">Issues</a>
+      <a href="https://github.com/aether-lang-org/aether/blob/main/CHANGELOG.md">Changelog</a>
+      <a href="https://github.com/sponsors/nicolasmd87">Sponsor</a>
+    </div>
+    <div class="foot-col">
+      <h4>Try</h4>
+      <a href="/repl.html">Playground</a>
+      <a href="/Docs/getting-started.html">Install</a>
+      <a href="/Docs/architecture.html">Architecture</a>
+    </div>
   </div>
+  <div class="wrap foot-legal"><span>MIT licensed &middot; compiles to C</span><span>aether-lang.dev</span></div>
 </footer>
 </body>
 </html>

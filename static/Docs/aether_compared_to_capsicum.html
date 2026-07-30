@@ -27,7 +27,7 @@
       <a href="/repl.html">Playground</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-org/aether">Source</a>
-      <span class="vtag">v0.462</span>
+      <span class="vtag">v0.464</span>
     </nav>
   </div>
 </header>
@@ -92,9 +92,9 @@
 <a href="/Docs/allocators.html">Allocators</a>
 <a href="/Docs/bindgen-consts.html">ae bindgen consts, importing C macro constants</a>
 <a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
-<a href="/Docs/contract-folding.html">Compile-time contract folding — costed design</a>
+<a href="/Docs/contract-folding.html">Compile-time contract folding, costed design</a>
 <a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn't need macro_rules!</a>
-<a href="/Docs/error-unification.html">Unifying T? and (value, err) — costed design</a>
+<a href="/Docs/error-unification.html">Unifying T? and (value, err), costed design</a>
 <a href="/Docs/formatter.html">ae fmt, the source formatter</a>
 <a href="/Docs/isolated.html">Isolated[T]: move-only actor message payloads (#479)</a>
 <a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
@@ -400,7 +400,7 @@ capsicum.fcntls_limit(fd, mask)   <span class="com">// narrow allowed fcntl comm
 <p>What's implemented:</p>
 <ul><li><strong><code>capsicum_autosandbox.c</code></strong>, a runtime startup hook. The compiler-emitted <code>main()</code> calls <code>aether_capsicum_autosandbox()</code> immediately after <code>aether_args_init()</code> (so: after rtld has finished, before user code). If <code>AETHER_CAPSICUM=1</code> is set in the environment, the hook calls <code>cap_enter()</code>. If the variable is set but the kernel can't honour it, the process exits rather than run unconfined, a requested sandbox never silently downgrades.</li><li><strong><code>spawn_sandboxed</code> on FreeBSD</strong> sets <code>AETHER_CAPSICUM=1</code> in every child's environment. Containment is then two-layered:<ol><li><strong>LD_PRELOAD</strong>, intercepts libc for <em>any</em> child, Aether or not (python3, bash). Userspace, cooperative, bypassable.</li><li><strong>Capsicum self-sandbox</strong>, if the child is an Aether binary it reads <code>AETHER_CAPSICUM</code> and <code>cap_enter()</code>s itself. Kernel-enforced, unbypassable. A non-Aether child just ignores the variable and is left with layer 1.</li></ol></li><li>The preload library exempts the <code>AETHER_*</code> env namespace from its <code>getenv</code> interception, so a sandboxed Aether child can still read its own <code>AETHER_CAPSICUM</code> control variable.</li></ul>
 <p><strong>Benefit:</strong> a spawned Aether child gets OS-enforced containment with no change to its source. Note Capsicum is strictly the harder ceiling, in capability mode <em>no</em> path-based open succeeds, grant list or not; the LD_PRELOAD grants only matter for the operations Capsicum would otherwise still allow (acting on already-open fds) and for non-Aether children.</p>
-<p><strong>Limitation:</strong> a self-sandboxed program must open everything it needs <em>before</em> <code>main()</code> runs, or accept that path access is gone. Wiring the grant list into pre-opened, <code>cap_rights_limit()</code>'d fds handed to the child is the remaining refinement. Its prerequisite landed with issue #1003: the stdlib handle types now expose their descriptors — <code>file.fd(handle)</code> / <code>fs.fd(handle)</code> for files, <code>tcp.fd(sock)</code> / <code>tcp.server_fd(server)</code> for sockets — so a program can open through the stdlib and narrow each descriptor with <code>capsicum.rights_limit()</code> before <code>capsicum.enter()</code> (exercised by <code>tests/freebsd/rights_limit_stdlib_fd.ae</code>).</p>
+<p><strong>Limitation:</strong> a self-sandboxed program must open everything it needs <em>before</em> <code>main()</code> runs, or accept that path access is gone. Wiring the grant list into pre-opened, <code>cap_rights_limit()</code>'d fds handed to the child is the remaining refinement. Its prerequisite landed with issue #1003: the stdlib handle types now expose their descriptors, <code>file.fd(handle)</code> / <code>fs.fd(handle)</code> for files, <code>tcp.fd(sock)</code> / <code>tcp.server_fd(server)</code> for sockets, so a program can open through the stdlib and narrow each descriptor with <code>capsicum.rights_limit()</code> before <code>capsicum.enter()</code> (exercised by <code>tests/freebsd/rights_limit_stdlib_fd.ae</code>).</p>
 <h4 id="phase-3-audit-logging-done">Phase 3: Audit Logging, <strong>DONE</strong></h4>
 <p>The in-process permission layer now records every grant check, allowed and denied, with two faces (<code>runtime/sandbox/aether_audit.c</code>, <code>std/audit/module.ae</code>):</p>
 <ul><li><strong>Live sink</strong>, <code>AETHER_SANDBOX_AUDIT=none|stderr|file</code> (default <code>none</code>), mirroring the existing <code>AETHER_SANDBOX_LOG</code> convention. Emits <code>AETHER_ALLOWED:</code> / <code>AETHER_DENIED:</code> lines.</li><li><strong>Queryable log</strong>, a 256-entry in-memory ring buffer read back via <code>std.audit</code>: <code>audit.count()</code>, <code>audit.entry(i)</code> → <code>(category, resource, allowed)</code>, <code>audit.denied_count()</code>, <code>audit.clear()</code>.</li></ul>
@@ -549,11 +549,34 @@ main() {
 </div>
 <script src="/docs.js" defer></script>
 <footer class="site-foot">
-  <div class="wrap foot">
-    <span class="ae">ae</span>
-    <span class="m">MIT licensed · compiles to C · v0.462</span>
-    <nav><a href="/Docs/getting-started.html">Docs</a><a href="/repl.html">Playground</a><a href="https://github.com/aether-lang-org/aether">GitHub</a></nav>
+  <div class="wrap foot-grid">
+    <div class="foot-brand">
+      <span class="ae">ae</span>
+      <p class="foot-tag">A compiled systems language built on actors.</p>
+      <p class="foot-status">v0.464 &middot; pre-1.0, actively developed</p>
+    </div>
+    <div class="foot-col">
+      <h4>Docs</h4>
+      <a href="/Docs/getting-started.html">Getting Started</a>
+      <a href="/Docs/tutorial.html">Tutorial</a>
+      <a href="/Docs/language-reference.html">Language Reference</a>
+      <a href="/Docs/stdlib-reference.html">Standard Library</a>
+    </div>
+    <div class="foot-col">
+      <h4>Project</h4>
+      <a href="https://github.com/aether-lang-org/aether">GitHub</a>
+      <a href="https://github.com/aether-lang-org/aether/issues">Issues</a>
+      <a href="https://github.com/aether-lang-org/aether/blob/main/CHANGELOG.md">Changelog</a>
+      <a href="https://github.com/sponsors/nicolasmd87">Sponsor</a>
+    </div>
+    <div class="foot-col">
+      <h4>Try</h4>
+      <a href="/repl.html">Playground</a>
+      <a href="/Docs/getting-started.html">Install</a>
+      <a href="/Docs/architecture.html">Architecture</a>
+    </div>
   </div>
+  <div class="wrap foot-legal"><span>MIT licensed &middot; compiles to C</span><span>aether-lang.dev</span></div>
 </footer>
 </body>
 </html>

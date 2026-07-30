@@ -27,7 +27,7 @@
       <a href="/repl.html">Playground</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-org/aether">Source</a>
-      <span class="vtag">v0.462</span>
+      <span class="vtag">v0.464</span>
     </nav>
   </div>
 </header>
@@ -92,9 +92,9 @@
 <a href="/Docs/allocators.html">Allocators</a>
 <a href="/Docs/bindgen-consts.html">ae bindgen consts, importing C macro constants</a>
 <a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
-<a href="/Docs/contract-folding.html">Compile-time contract folding — costed design</a>
+<a href="/Docs/contract-folding.html">Compile-time contract folding, costed design</a>
 <a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn't need macro_rules!</a>
-<a href="/Docs/error-unification.html">Unifying T? and (value, err) — costed design</a>
+<a href="/Docs/error-unification.html">Unifying T? and (value, err), costed design</a>
 <a href="/Docs/formatter.html">ae fmt, the source formatter</a>
 <a href="/Docs/isolated.html">Isolated[T]: move-only actor message payloads (#479)</a>
 <a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
@@ -112,7 +112,7 @@
 <ol><li><strong>Is this something a typical Aether project expects to find in the standard library?</strong> The bar is what a developer coming from Go, Rust, Python, or Node would consider "batteries included". File I/O, HTTP, hashing, compression, yes. A database driver, a JSON schema validator, a WebSocket framework, no.</li><li><strong>Does it have a single obvious API shape?</strong> <code>std/</code> modules don't have competing implementations. There is one way to hash with SHA-256; the Aether wrapper is a thin Go-style veneer over whatever library we picked. A database driver, by contrast, can reasonably expose a "prepared statement + bind + fetch" API, an "execute returning rows" API, or an ORM-ish builder. Not in <code>std/</code>.</li><li><strong>Are the dependencies minimal and well-scoped?</strong> A <code>std/</code> module adds to the baseline cost of building Aether. <code>OpenSSL</code> is already a dependency (auto-detected via <code>pkg-config</code>, linked through <code>$(OPENSSL_LDFLAGS)</code>), so <code>std.cryptography</code> is free. <code>zlib</code> is similarly ambient on every POSIX box. <code>libnghttp2</code> is auto-detected via <code>pkg-config</code>, present on every distro that ships HTTP-aware tools, gracefully stubbed out when absent. <code>SQLite</code> is a 4 MiB amalgamation, significant weight for projects that don't need it.</li><li><strong>Is the API surface stable and small?</strong> <code>std/</code> modules have a stability commitment, changes ripple to every Aether user. If the API has many knobs, many optional parameters, or many places where a "just use the library directly" escape hatch makes sense, that friction belongs in <code>contrib/</code> where the module can evolve without the stability constraint.</li></ol>
 <h2 id="modules-currently-in-std">Modules currently in <code>std/</code></h2>
 <p>Each clears all four rubric questions. Listed roughly by purpose:</p>
-<div class="tw"><table><thead><tr><th>Domain</th><th>Modules</th></tr></thead><tbody><tr><td>Strings + bytes</td><td><code>string</code>, <code>bytes</code>, <code>intarr</code>, <code>floatarr</code> (packed-double twin of <code>intarr</code>), <code>regex</code> (PCRE2), <code>url</code> (RFC 3986 percent-encoding), <code>xml</code></td></tr><tr><td>Identifiers</td><td><code>uuid</code> (UUID v4/v7, RFC 9562)</td></tr><tr><td>Collections</td><td><code>list</code>, <code>map</code>, <code>collections</code></td></tr><tr><td>File system + paths</td><td><code>file</code>, <code>dir</code>, <code>path</code>, <code>fs</code></td></tr><tr><td>Networking</td><td><code>net</code> (low-level TCP/HTTP client), <code>tcp</code>, <code>http</code> (high-level: <code>http.server</code>, <code>http.client</code>, <code>http.middleware</code>, <code>http.server.h2</code> for HTTP/2)</td></tr><tr><td>Numeric + time</td><td><code>math</code></td></tr><tr><td>Serialisation</td><td><code>json</code></td></tr><tr><td>Hashing + crypto primitives</td><td><code>cryptography</code> (SHA-1/256, MD4/MD5, HMAC-SHA256, Base64, CSPRNG, streaming digests, plus the public-key/cipher families — RSA, AES, ChaCha20-Poly1305, Ed25519, X25519, P-256/384/521, …)</td></tr><tr><td>Compression</td><td><code>zlib</code> (deflate/inflate, ambient on POSIX)</td></tr><tr><td>Process + env</td><td><code>os</code>, <code>io</code>, <code>dl</code> (dlopen)</td></tr><tr><td>Memory primitives</td><td><code>arena</code> (bulk allocator), <code>cas</code> (content-addressed store, sha256 + atomic-rename)</td></tr><tr><td>Concurrency</td><td><code>actors</code> (name → actor_ref registry)</td></tr><tr><td>Configuration</td><td><code>config</code> (process-wide string→string KV, <code>set-during-init</code>, <code>read-everywhere</code> shape)</td></tr><tr><td>Logging</td><td><code>log</code></td></tr><tr><td>Host integration</td><td><code>host</code> (event-emit primitives for <code>--emit=lib</code>)</td></tr></tbody></table></div>
+<div class="tw"><table><thead><tr><th>Domain</th><th>Modules</th></tr></thead><tbody><tr><td>Strings + bytes</td><td><code>string</code>, <code>bytes</code>, <code>intarr</code>, <code>floatarr</code> (packed-double twin of <code>intarr</code>), <code>regex</code> (PCRE2), <code>url</code> (RFC 3986 percent-encoding), <code>xml</code></td></tr><tr><td>Identifiers</td><td><code>uuid</code> (UUID v4/v7, RFC 9562)</td></tr><tr><td>Collections</td><td><code>list</code>, <code>map</code>, <code>collections</code></td></tr><tr><td>File system + paths</td><td><code>file</code>, <code>dir</code>, <code>path</code>, <code>fs</code></td></tr><tr><td>Networking</td><td><code>net</code> (low-level TCP/HTTP client), <code>tcp</code>, <code>http</code> (high-level: <code>http.server</code>, <code>http.client</code>, <code>http.middleware</code>, <code>http.server.h2</code> for HTTP/2)</td></tr><tr><td>Numeric + time</td><td><code>math</code></td></tr><tr><td>Serialisation</td><td><code>json</code></td></tr><tr><td>Hashing + crypto primitives</td><td><code>cryptography</code> (SHA-1/256, MD4/MD5, HMAC-SHA256, Base64, CSPRNG, streaming digests, plus the public-key/cipher families, RSA, AES, ChaCha20-Poly1305, Ed25519, X25519, P-256/384/521, …)</td></tr><tr><td>Compression</td><td><code>zlib</code> (deflate/inflate, ambient on POSIX)</td></tr><tr><td>Process + env</td><td><code>os</code>, <code>io</code>, <code>dl</code> (dlopen)</td></tr><tr><td>Memory primitives</td><td><code>arena</code> (bulk allocator), <code>cas</code> (content-addressed store, sha256 + atomic-rename)</td></tr><tr><td>Concurrency</td><td><code>actors</code> (name → actor_ref registry)</td></tr><tr><td>Configuration</td><td><code>config</code> (process-wide string→string KV, <code>set-during-init</code>, <code>read-everywhere</code> shape)</td></tr><tr><td>Logging</td><td><code>log</code></td></tr><tr><td>Host integration</td><td><code>host</code> (event-emit primitives for <code>--emit=lib</code>)</td></tr></tbody></table></div>
 <p>The <code>http</code> module is the canonical "single split done right" example of the rubric, when both client- and server-side became too large for one flat module, the split landed as <code>std.http.client</code>, <code>std.http.middleware</code>, <code>std.http.server.*</code> sub-namespaces, all under the same stability bar. The HTTP/2 surface (<code>std.http.server.h2</code>, issue #260) is built on libnghttp2 with <code>AETHER_HAS_NGHTTP2</code> auto-detection, same mechanism <code>cryptography</code> uses for OpenSSL and <code>zlib</code> uses for libz.</p>
 <h2 id="modules-currently-in-contrib">Modules currently in <code>contrib/</code></h2>
 <div class="tw"><table><thead><tr><th>Module</th><th>Reason for <code>contrib/</code></th></tr></thead><tbody><tr><td><code>contrib/sqlite/</code></td><td>DB driver, fails rubric Q1 (not universal) and Q3 (4 MiB amalgamation).</td></tr><tr><td><code>contrib/tinyweb/</code></td><td>Builder DSL for HTTP services, competes with <code>std.http.server</code>'s closure-config approach; opinionated shape that's better off evolving without the stability constraint.</td></tr><tr><td><code>contrib/templating/{native,liquid}/</code></td><td>Escape-correct output emission, <code>native</code> (Aether-as-template-language) and <code>liquid</code> (Shopify Liquid port). Opinionated template surfaces; fail Q2.</td></tr><tr><td><code>contrib/parsers/xml_expat/</code></td><td>Expat-backed streaming XML parser, third-party C dependency; fails Q3 (<code>std.xml</code> covers the in-tree case).</td></tr><tr><td><code>contrib/host/{python,lua,perl,ruby,js,tcl,go,java,factor,aether,…}/</code></td><td>Per-language embedding bridges, each one is a separate sub-decision that wouldn't share an API; fails Q2.</td></tr></tbody></table></div>
@@ -131,11 +131,34 @@
 </div>
 <script src="/docs.js" defer></script>
 <footer class="site-foot">
-  <div class="wrap foot">
-    <span class="ae">ae</span>
-    <span class="m">MIT licensed · compiles to C · v0.462</span>
-    <nav><a href="/Docs/getting-started.html">Docs</a><a href="/repl.html">Playground</a><a href="https://github.com/aether-lang-org/aether">GitHub</a></nav>
+  <div class="wrap foot-grid">
+    <div class="foot-brand">
+      <span class="ae">ae</span>
+      <p class="foot-tag">A compiled systems language built on actors.</p>
+      <p class="foot-status">v0.464 &middot; pre-1.0, actively developed</p>
+    </div>
+    <div class="foot-col">
+      <h4>Docs</h4>
+      <a href="/Docs/getting-started.html">Getting Started</a>
+      <a href="/Docs/tutorial.html">Tutorial</a>
+      <a href="/Docs/language-reference.html">Language Reference</a>
+      <a href="/Docs/stdlib-reference.html">Standard Library</a>
+    </div>
+    <div class="foot-col">
+      <h4>Project</h4>
+      <a href="https://github.com/aether-lang-org/aether">GitHub</a>
+      <a href="https://github.com/aether-lang-org/aether/issues">Issues</a>
+      <a href="https://github.com/aether-lang-org/aether/blob/main/CHANGELOG.md">Changelog</a>
+      <a href="https://github.com/sponsors/nicolasmd87">Sponsor</a>
+    </div>
+    <div class="foot-col">
+      <h4>Try</h4>
+      <a href="/repl.html">Playground</a>
+      <a href="/Docs/getting-started.html">Install</a>
+      <a href="/Docs/architecture.html">Architecture</a>
+    </div>
   </div>
+  <div class="wrap foot-legal"><span>MIT licensed &middot; compiles to C</span><span>aether-lang.dev</span></div>
 </footer>
 </body>
 </html>

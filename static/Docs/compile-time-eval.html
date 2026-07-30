@@ -27,7 +27,7 @@
       <a href="/repl.html">Playground</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-org/aether">Source</a>
-      <span class="vtag">v0.462</span>
+      <span class="vtag">v0.464</span>
     </nav>
   </div>
 </header>
@@ -92,9 +92,9 @@
 <a href="/Docs/allocators.html">Allocators</a>
 <a href="/Docs/bindgen-consts.html">ae bindgen consts, importing C macro constants</a>
 <a href="/Docs/compile-time-eval.html" class="on">Compile-time constant evaluation (phase-1)</a>
-<a href="/Docs/contract-folding.html">Compile-time contract folding — costed design</a>
+<a href="/Docs/contract-folding.html">Compile-time contract folding, costed design</a>
 <a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn't need macro_rules!</a>
-<a href="/Docs/error-unification.html">Unifying T? and (value, err) — costed design</a>
+<a href="/Docs/error-unification.html">Unifying T? and (value, err), costed design</a>
 <a href="/Docs/formatter.html">ae fmt, the source formatter</a>
 <a href="/Docs/isolated.html">Isolated[T]: move-only actor message payloads (#479)</a>
 <a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
@@ -113,7 +113,7 @@
 <p>These also work inside another const: <code>const HALF = MAX / 2</code> where <code>MAX</code> is itself a const.</p>
 <h2 id="what-does-not-fold-and-why">What does NOT fold (and why)</h2>
 <ul><li><strong>Any function call outside the whitelist</strong>, e.g. <code>string.upper(...)</code>, <code>string.trim(...)</code>, a user function, an <code>extern</code>, <code>malloc</code>. Even though some of these are pure, they are rejected in a const initializer with:</li></ul>
-<blockquote><code>const initializer must be a compile-time constant expression — …</code></blockquote>
+<blockquote><code>const initializer must be a compile-time constant expression, …</code></blockquote>
 <p>This is deliberate. A <em>general</em> compile-time evaluator would be able to synthesize <code>std.fs</code> / <code>std.net</code> calls and evaluate them at build time, which would run filesystem / network code <strong>past the <code>--emit=lib</code> capability gate</strong>, the gate that decides which side effects a compiled artifact is allowed to perform. By folding <em>only</em> an explicit, audited whitelist of pure value conversions, the build step performs no I/O and grants no capability it would not otherwise grant.</p>
 <ul><li><strong><code>string + string</code></strong>, the <code>+</code> operator is not defined for strings anywhere in Aether (it is rejected at typecheck with <code>'+' is not defined for strings</code>). Build a constant string with <code>string.concat(...)</code> instead. <code>const G = "a" + "b"</code> does <strong>not</strong> work by design; <code>const G = string.concat("a", "b")</code> does.</li><li><strong>Struct literals</strong>, <strong>member access</strong>, and <strong>non-constant array elements</strong>, rejected; each would either allocate fresh per use or is not a value the substitution model can inline.</li><li><strong>Out-of-range / undefined folds</strong>, a <code>string.from_int</code> argument that does not fit in 32 bits, or a division by zero, is <strong>not</strong> folded. The expression is left as-is rather than producing a silently-wrong literal. (For <code>from_int</code> the result would have been the runtime 32-bit-truncated call, so leaving it untouched preserves existing behaviour exactly.)</li></ul>
 <h2 id="where-it-lives">Where it lives</h2>
@@ -135,11 +135,34 @@
 </div>
 <script src="/docs.js" defer></script>
 <footer class="site-foot">
-  <div class="wrap foot">
-    <span class="ae">ae</span>
-    <span class="m">MIT licensed · compiles to C · v0.462</span>
-    <nav><a href="/Docs/getting-started.html">Docs</a><a href="/repl.html">Playground</a><a href="https://github.com/aether-lang-org/aether">GitHub</a></nav>
+  <div class="wrap foot-grid">
+    <div class="foot-brand">
+      <span class="ae">ae</span>
+      <p class="foot-tag">A compiled systems language built on actors.</p>
+      <p class="foot-status">v0.464 &middot; pre-1.0, actively developed</p>
+    </div>
+    <div class="foot-col">
+      <h4>Docs</h4>
+      <a href="/Docs/getting-started.html">Getting Started</a>
+      <a href="/Docs/tutorial.html">Tutorial</a>
+      <a href="/Docs/language-reference.html">Language Reference</a>
+      <a href="/Docs/stdlib-reference.html">Standard Library</a>
+    </div>
+    <div class="foot-col">
+      <h4>Project</h4>
+      <a href="https://github.com/aether-lang-org/aether">GitHub</a>
+      <a href="https://github.com/aether-lang-org/aether/issues">Issues</a>
+      <a href="https://github.com/aether-lang-org/aether/blob/main/CHANGELOG.md">Changelog</a>
+      <a href="https://github.com/sponsors/nicolasmd87">Sponsor</a>
+    </div>
+    <div class="foot-col">
+      <h4>Try</h4>
+      <a href="/repl.html">Playground</a>
+      <a href="/Docs/getting-started.html">Install</a>
+      <a href="/Docs/architecture.html">Architecture</a>
+    </div>
   </div>
+  <div class="wrap foot-legal"><span>MIT licensed &middot; compiles to C</span><span>aether-lang.dev</span></div>
 </footer>
 </body>
 </html>

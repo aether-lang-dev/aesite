@@ -20,7 +20,7 @@ import os
 import re
 import sys
 
-VERSION = "0.462"
+VERSION = "0.464"
 GH = "https://github.com/aether-lang-org/aether"
 SITE = "Aether"
 DOMAIN = "https://aether-lang.dev"
@@ -491,11 +491,34 @@ PAGE = """<!doctype html>
 </div>
 <script src="/docs.js" defer></script>
 <footer class="site-foot">
-  <div class="wrap foot">
-    <span class="ae">ae</span>
-    <span class="m">MIT licensed · compiles to C · v{version}</span>
-    <nav><a href="/Docs/getting-started.html">Docs</a><a href="/repl.html">Playground</a><a href="{gh}">GitHub</a></nav>
+  <div class="wrap foot-grid">
+    <div class="foot-brand">
+      <span class="ae">ae</span>
+      <p class="foot-tag">A compiled systems language built on actors.</p>
+      <p class="foot-status">v0.464 &middot; pre-1.0, actively developed</p>
+    </div>
+    <div class="foot-col">
+      <h4>Docs</h4>
+      <a href="/Docs/getting-started.html">Getting Started</a>
+      <a href="/Docs/tutorial.html">Tutorial</a>
+      <a href="/Docs/language-reference.html">Language Reference</a>
+      <a href="/Docs/stdlib-reference.html">Standard Library</a>
+    </div>
+    <div class="foot-col">
+      <h4>Project</h4>
+      <a href="https://github.com/aether-lang-org/aether">GitHub</a>
+      <a href="https://github.com/aether-lang-org/aether/issues">Issues</a>
+      <a href="https://github.com/aether-lang-org/aether/blob/main/CHANGELOG.md">Changelog</a>
+      <a href="https://github.com/sponsors/nicolasmd87">Sponsor</a>
+    </div>
+    <div class="foot-col">
+      <h4>Try</h4>
+      <a href="/repl.html">Playground</a>
+      <a href="/Docs/getting-started.html">Install</a>
+      <a href="/Docs/architecture.html">Architecture</a>
+    </div>
   </div>
+  <div class="wrap foot-legal"><span>MIT licensed &middot; compiles to C</span><span>aether-lang.dev</span></div>
 </footer>
 </body>
 </html>
@@ -536,6 +559,8 @@ def main():
             canon="%s/Docs/%s.html" % (DOMAIN, slug),
             domain=DOMAIN,
         )
+        page = page.replace("github.com/nicolasmd87/aether", "github.com/aether-lang-org/aether")
+        page = re.sub(r"\s*\u2014\s*", ", ", page)   # no em-dashes (house style)
         with open(os.path.join(out, slug + ".html"), "w", encoding="utf-8") as fh:
             fh.write(page)
         index.append({
@@ -543,12 +568,14 @@ def main():
             "title": strip_ticks(titles[slug]),
             "group": group_of(order, slug),
             "headings": [{"id": hid, "text": txt} for _, hid, txt in headings],
-            "text": plaintext(body)[:6000],
+            "text": re.sub(r"\s*\u2014\s*", ", ", plaintext(body))[:6000],
         })
 
     import json
+    _sj = json.dumps(index, ensure_ascii=False, separators=(",", ":"))
+    _sj = re.sub(r"\s*\u2014\s*", ", ", _sj)   # no em-dashes anywhere
     with open(os.path.join(here, "static", "search.json"), "w", encoding="utf-8") as fh:
-        json.dump(index, fh, ensure_ascii=False, separators=(",", ":"))
+        fh.write(_sj)
 
     urls = ["%s/" % DOMAIN, "%s/repl.html" % DOMAIN]
     urls += ["%s/Docs/%s.html" % (DOMAIN, s) for s in sorted(docs)]

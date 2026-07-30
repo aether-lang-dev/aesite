@@ -27,7 +27,7 @@
       <a href="/repl.html">Playground</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-org/aether">Source</a>
-      <span class="vtag">v0.462</span>
+      <span class="vtag">v0.464</span>
     </nav>
   </div>
 </header>
@@ -92,9 +92,9 @@
 <a href="/Docs/allocators.html">Allocators</a>
 <a href="/Docs/bindgen-consts.html">ae bindgen consts, importing C macro constants</a>
 <a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
-<a href="/Docs/contract-folding.html">Compile-time contract folding — costed design</a>
+<a href="/Docs/contract-folding.html">Compile-time contract folding, costed design</a>
 <a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn't need macro_rules!</a>
-<a href="/Docs/error-unification.html">Unifying T? and (value, err) — costed design</a>
+<a href="/Docs/error-unification.html">Unifying T? and (value, err), costed design</a>
 <a href="/Docs/formatter.html">ae fmt, the source formatter</a>
 <a href="/Docs/isolated.html">Isolated[T]: move-only actor message payloads (#479)</a>
 <a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
@@ -212,7 +212,7 @@ main() {
     }
 }</code></pre>
 <h3 id="file-operations-go-style">File Operations (Go-style)</h3>
-<ul><li><code>file.read(path)</code> → <code>(string, string)</code> - Read entire file (opens, reads, closes). Handles <code>/proc</code>/<code>/sys</code> seq-files and unseekable fds via a read-to-EOF fallback (a size-0 <code>ftell</code> no longer silently returns <code>""</code>).</li><li><code>file.write(path, content)</code> → <code>string</code> - Write content, return error string</li><li><code>file.open(path, mode)</code> → <code>(ptr, string)</code> - Low-level open (caller must <code>file.close</code>)</li><li><code>file.close(handle)</code> - Close a file handle</li><li><code>file.size(path)</code> → <code>(int, string)</code> - Get file size in bytes</li><li><code>fs.statvfs(path)</code> → <code>(total, free, avail, err)</code> - Filesystem byte counts (POSIX <code>statvfs</code>) for the fs containing <code>path</code>. <code>avail</code> is space usable by a non-root process (<code>f_bavail</code>) — use it for "how much can I actually write" (<code>end = avail / file_size</code>). Portable Linux/macOS/BSD; Windows returns the error branch.</li><li><code>file.delete(path)</code> → <code>string</code> - Delete a file, return error string</li><li><code>file.exists(path)</code> → <code>int</code> - 1 if exists, 0 otherwise (infallible predicate)</li></ul>
+<ul><li><code>file.read(path)</code> → <code>(string, string)</code> - Read entire file (opens, reads, closes). Handles <code>/proc</code>/<code>/sys</code> seq-files and unseekable fds via a read-to-EOF fallback (a size-0 <code>ftell</code> no longer silently returns <code>""</code>).</li><li><code>file.write(path, content)</code> → <code>string</code> - Write content, return error string</li><li><code>file.open(path, mode)</code> → <code>(ptr, string)</code> - Low-level open (caller must <code>file.close</code>)</li><li><code>file.close(handle)</code> - Close a file handle</li><li><code>file.size(path)</code> → <code>(int, string)</code> - Get file size in bytes</li><li><code>fs.statvfs(path)</code> → <code>(total, free, avail, err)</code> - Filesystem byte counts (POSIX <code>statvfs</code>) for the fs containing <code>path</code>. <code>avail</code> is space usable by a non-root process (<code>f_bavail</code>), use it for "how much can I actually write" (<code>end = avail / file_size</code>). Portable Linux/macOS/BSD; Windows returns the error branch.</li><li><code>file.delete(path)</code> → <code>string</code> - Delete a file, return error string</li><li><code>file.exists(path)</code> → <code>int</code> - 1 if exists, 0 otherwise (infallible predicate)</li></ul>
 <p>Raw externs: <code>file_open_raw</code>, <code>file_read_all_raw</code>, <code>file_write_raw</code>, <code>file_delete_raw</code>, <code>file_size_raw</code>.</p>
 <h3 id="directory-operations-go-style">Directory Operations (Go-style)</h3>
 <ul><li><code>dir.create(path)</code> → <code>string</code> - Create directory, return error string</li><li><code>dir.delete(path)</code> → <code>string</code> - Delete empty directory, return error string</li><li><code>dir.list(path)</code> → <code>(ptr, string)</code> - List contents (caller must <code>dir.list_free</code>)</li><li><code>dir.exists(path)</code> → <code>int</code> - 1 if exists, 0 otherwise</li><li><code>dir.list_count(list)</code> / <code>dir.list_get(list, i)</code> / <code>dir.list_free(list)</code> - DirList accessors</li></ul>
@@ -270,7 +270,7 @@ main() {
 <p><strong>Synchronous, no streaming.</strong> The current API blocks until the child exits and returns the entire captured stdout / stderr. There is no streaming-stdin or incremental-stdout-read path today; if you need to feed input to a child, write your input to a temp file and have the child read from there, or pipe through a shell wrapper.</p>
 <h3 id="argv-discovery">Argv discovery</h3>
 <ul><li><code>aether_args_count()</code> → <code>int</code> Number of command-line arguments</li><li><code>aether_args_get(index)</code> → <code>string</code> Get the i-th argument; returns null if out of range</li><li><code>aether_argv0()</code> → <code>string</code> Path the OS launched the current process with (argv[0]); returns null before <code>aether_args_init</code> has run</li><li><code>os.argv0()</code> → <code>string</code> Convenience wrapper around <code>aether_argv0()</code> that returns <code>""</code> instead of null</li><li><code>os.args_count()</code> → <code>int</code> Ergonomic alias for <code>aether_args_count()</code> (#1035)</li><li><code>os.args_get(index)</code> → <code>string</code> Ergonomic wrapper: owned copy of argv[index], <code>""</code> when out of range / sealed (never null)</li></ul>
-<p>All four raw <code>aether_args_*</code> names also resolve qualified (<code>os.aether_args_count()</code> — the form the language reference shows) since #1035.</p>
+<p>All four raw <code>aether_args_*</code> names also resolve qualified (<code>os.aether_args_count()</code>, the form the language reference shows) since #1035.</p>
 <p>Typical use: a tool that needs to find its own binary (to locate sibling helpers next to itself, re-exec with different flags, or print a self-path in a diagnostic) can call <code>os.argv0()</code> and skip the argv-index bookkeeping.</p>
 <h3 id="process-replacement">Process replacement</h3>
 <ul><li><code>os_execv(prog, argv_list)</code> → <code>int</code> Replace the current process image with <code>prog</code>, passing an explicit argv list. <code>argv_list</code> is a <code>list&lt;ptr&gt;</code> of C strings (element 0 is argv[0] for the new program). On success this call <strong>never returns</strong>; on failure it returns <code>-1</code> and the current process keeps running. <code>prog</code> is looked up on <code>PATH</code> if it does not contain a slash. Not available on Windows, returns <code>-1</code>.</li></ul>
@@ -367,7 +367,7 @@ main() {
 <h3 id="base64-rfc-4648-4-standard-alphabet">Base64 (RFC 4648 §4 standard alphabet)</h3>
 <ul><li><code>cryptography.base64_encode(data, length)</code> → <code>(string, string)</code> - Encode <code>length</code> bytes, <strong>unpadded</strong> output.</li><li><code>cryptography.base64_encode_padded(data, length)</code> → <code>(string, string)</code> - Encode <code>length</code> bytes, <strong>with <code>=</code> padding</strong> to a multiple of 4. For wire formats (auth headers, JSON-encoded blobs) that require padded output.</li><li><code>cryptography.base64_decode(b64)</code> → <code>(string, int, string)</code> - Decode. Returns <code>(bytes, byte_count, "")</code> on success, <code>bytes</code> is an AetherString preserving embedded NULs. Accepts both padded and unpadded input.</li></ul>
 <h3 id="whats-not-in-stdcryptography">What's not in <code>std.cryptography</code></h3>
-<p>The public-key and cipher families (RSA, ECDSA, Ed25519, X25519, AES, ChaCha20-Poly1305, …) live under <code>std.cryptography</code> as explicitly-imported sub-modules (<code>std.cryptography.rsa</code>, <code>std.cryptography.x25519</code>, …) — pure-Aether, no OpenSSL. URL-safe Base64 (RFC 4648 §5) and constant-time comparison remain out of the top-level module. See <a href="/Docs/stdlib-reference.html">stdlib-reference.md</a> §"What <code>std.cryptography</code> doesn't do" for the rationale.</p>
+<p>The public-key and cipher families (RSA, ECDSA, Ed25519, X25519, AES, ChaCha20-Poly1305, …) live under <code>std.cryptography</code> as explicitly-imported sub-modules (<code>std.cryptography.rsa</code>, <code>std.cryptography.x25519</code>, …), pure-Aether, no OpenSSL. URL-safe Base64 (RFC 4648 §5) and constant-time comparison remain out of the top-level module. See <a href="/Docs/stdlib-reference.html">stdlib-reference.md</a> §"What <code>std.cryptography</code> doesn't do" for the rationale.</p>
 <hr>
 <h2 id="networking-library">Networking Library</h2>
 <h3 id="http-client-go-style">HTTP Client (Go-style)</h3>
@@ -438,7 +438,7 @@ main() {
 <p><strong>Builder + send:</strong></p>
 <ul><li><code>client.request(method, url)</code> → <code>ptr</code> - Build a request handle</li><li><code>client.set_header(req, name, value)</code> → <code>string</code> - Append a request header</li><li><code>client.set_body(req, body, length, content_type)</code> → <code>string</code> - Set request body (length explicit for binary safety)</li><li><code>client.set_timeout(req, timeout)</code> → <code>string</code> - <code>Duration</code> per-request timeout (<code>0ns</code> = block forever)</li><li><code>client.set_follow_redirects(req, max_hops)</code> → <code>string</code> - Follow up to <code>max_hops</code> redirects (<code>0</code> = don't follow, the default)</li><li><code>client.send_request(req)</code> → <code>(ptr, string)</code> - Fire it; <code>(resp, "")</code> on success, <code>(null, err)</code> on transport failure</li><li><code>client.request_free(req)</code> - Free the request handle</li></ul>
 <p><strong>TLS + proxy (per request):</strong></p>
-<ul><li><code>client.set_insecure(req, on)</code> → <code>string</code> - <code>1</code> skips TLS peer + hostname verification for this request only (<code>curl -k</code> / <code>--no-check-certificate</code>); relaxed per-connection, never on the shared <code>SSL_CTX</code>. Default <code>0</code> (verify). Use only against hosts you trust out-of-band.</li><li><code>client.set_cafile(req, path)</code> → <code>string</code> - pin a custom CA for this request: verify the peer against the PEM bundle at <code>path</code> instead of the system trust store, <strong>keeping peer + hostname verification on</strong>. Strictly stronger than <code>set_insecure</code> — for M2M calls to a host with a private/self-signed CA you've couriered out-of-band (e.g. a Proxmox VE API's <code>pve-root-ca.pem</code>). Per-connection (never touches the shared <code>SSL_CTX</code>); <code>""</code> clears the pin. A cert the pinned CA doesn't cover fails the handshake (fails closed, never open).</li><li><code>client.use_env_proxy(req, on)</code> → <code>string</code> - <code>1</code> follows <code>$HTTP_PROXY</code>/<code>$HTTPS_PROXY</code>/<code>$NO_PROXY</code>. <strong>Off by default</strong> — the client does not honour env proxies unless you opt in (the hardened inverse of the httpoxy/CVE-2016-5385 default-follow). Guarded: the CGI-injectable uppercase <code>HTTP_PROXY</code> is refused under <code>$REQUEST_METHOD</code>/<code>$GATEWAY_INTERFACE</code>, and a proxy at a loopback/link-local IP is rejected (SSRF).</li><li><code>client.use_http_proxy(req, "http://host:port")</code> → <code>string</code> - Pin an explicit forward proxy; env is ignored entirely (empty url = direct). A team-controlled proxy is immune to whatever the shell/CI set.</li><li><code>client.ignore_http_proxy(req)</code> → <code>string</code> - Force a direct connection regardless of env / any set proxy (determinism escape hatch, e.g. VCR record mode). Precedence: ignore &gt; explicit &gt; env &gt; direct.</li></ul>
+<ul><li><code>client.set_insecure(req, on)</code> → <code>string</code> - <code>1</code> skips TLS peer + hostname verification for this request only (<code>curl -k</code> / <code>--no-check-certificate</code>); relaxed per-connection, never on the shared <code>SSL_CTX</code>. Default <code>0</code> (verify). Use only against hosts you trust out-of-band.</li><li><code>client.set_cafile(req, path)</code> → <code>string</code> - pin a custom CA for this request: verify the peer against the PEM bundle at <code>path</code> instead of the system trust store, <strong>keeping peer + hostname verification on</strong>. Strictly stronger than <code>set_insecure</code>, for M2M calls to a host with a private/self-signed CA you've couriered out-of-band (e.g. a Proxmox VE API's <code>pve-root-ca.pem</code>). Per-connection (never touches the shared <code>SSL_CTX</code>); <code>""</code> clears the pin. A cert the pinned CA doesn't cover fails the handshake (fails closed, never open).</li><li><code>client.use_env_proxy(req, on)</code> → <code>string</code> - <code>1</code> follows <code>$HTTP_PROXY</code>/<code>$HTTPS_PROXY</code>/<code>$NO_PROXY</code>. <strong>Off by default</strong>, the client does not honour env proxies unless you opt in (the hardened inverse of the httpoxy/CVE-2016-5385 default-follow). Guarded: the CGI-injectable uppercase <code>HTTP_PROXY</code> is refused under <code>$REQUEST_METHOD</code>/<code>$GATEWAY_INTERFACE</code>, and a proxy at a loopback/link-local IP is rejected (SSRF).</li><li><code>client.use_http_proxy(req, "http://host:port")</code> → <code>string</code> - Pin an explicit forward proxy; env is ignored entirely (empty url = direct). A team-controlled proxy is immune to whatever the shell/CI set.</li><li><code>client.ignore_http_proxy(req)</code> → <code>string</code> - Force a direct connection regardless of env / any set proxy (determinism escape hatch, e.g. VCR record mode). Precedence: ignore &gt; explicit &gt; env &gt; direct.</li></ul>
 <p><strong>Response accessors:</strong></p>
 <ul><li><code>client.response_status(resp)</code> → <code>int</code></li><li><code>client.response_body(resp)</code> → <code>string</code> (binary-safe AetherString)</li><li><code>client.response_header(resp, name)</code> → <code>string</code> (case-insensitive)</li><li><code>client.response_headers(resp)</code> → <code>string</code> (raw header block)</li><li><code>client.response_error(resp)</code> → <code>string</code></li><li><code>client.response_free(resp)</code> - Free the response</li></ul>
 <p><strong>Sugar wrappers</strong> (pure Aether on top of the builder):</p>
@@ -670,11 +670,34 @@ main() {
 </div>
 <script src="/docs.js" defer></script>
 <footer class="site-foot">
-  <div class="wrap foot">
-    <span class="ae">ae</span>
-    <span class="m">MIT licensed · compiles to C · v0.462</span>
-    <nav><a href="/Docs/getting-started.html">Docs</a><a href="/repl.html">Playground</a><a href="https://github.com/aether-lang-org/aether">GitHub</a></nav>
+  <div class="wrap foot-grid">
+    <div class="foot-brand">
+      <span class="ae">ae</span>
+      <p class="foot-tag">A compiled systems language built on actors.</p>
+      <p class="foot-status">v0.464 &middot; pre-1.0, actively developed</p>
+    </div>
+    <div class="foot-col">
+      <h4>Docs</h4>
+      <a href="/Docs/getting-started.html">Getting Started</a>
+      <a href="/Docs/tutorial.html">Tutorial</a>
+      <a href="/Docs/language-reference.html">Language Reference</a>
+      <a href="/Docs/stdlib-reference.html">Standard Library</a>
+    </div>
+    <div class="foot-col">
+      <h4>Project</h4>
+      <a href="https://github.com/aether-lang-org/aether">GitHub</a>
+      <a href="https://github.com/aether-lang-org/aether/issues">Issues</a>
+      <a href="https://github.com/aether-lang-org/aether/blob/main/CHANGELOG.md">Changelog</a>
+      <a href="https://github.com/sponsors/nicolasmd87">Sponsor</a>
+    </div>
+    <div class="foot-col">
+      <h4>Try</h4>
+      <a href="/repl.html">Playground</a>
+      <a href="/Docs/getting-started.html">Install</a>
+      <a href="/Docs/architecture.html">Architecture</a>
+    </div>
   </div>
+  <div class="wrap foot-legal"><span>MIT licensed &middot; compiles to C</span><span>aether-lang.dev</span></div>
 </footer>
 </body>
 </html>
