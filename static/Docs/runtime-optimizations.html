@@ -417,6 +417,7 @@ total = <span class="num">0</span>
 <p><code>ActorBase</code> carries <code>timeout_ns</code> and <code>last_activity_ns</code>. The generated step function checks the nanosecond clock before <code>mailbox_receive()</code>. The scheduler polls timeout-active actors even when their mailbox is empty.</p>
 <h2 id="references">References</h2>
 <ul><li>Lock-Free Programming: Harris, "A Pragmatic Implementation of Non-Blocking Linked-Lists"</li><li>Cache Coherency: Intel 64 and IA-32 Architectures Optimization Reference Manual</li><li>Memory Ordering: C11 Atomic Operations and Memory Model</li><li>Actor Model: Hewitt, Bishop, Steiger (1973)</li></ul>
+<nav class="doc-prevnext" aria-label="Previous and next page"><a class="pn-prev" href="/Docs/memory-management.html"><span>Previous</span>Aether Memory Management</a><a class="pn-next" href="/Docs/numa-support.html"><span>Next</span>NUMA Support in Aether</a></nav>
       </article>
     </main>
     <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#overview" class="l2" data-id="overview">Overview</a><a href="#active-optimizations" class="l2" data-id="active-optimizations">Active Optimizations</a><a href="#main-thread-actor-mode" class="l3" data-id="main-thread-actor-mode">Main Thread Actor Mode</a><a href="#thread-local-message-payload-pools" class="l3" data-id="thread-local-message-payload-pools">Thread-Local Message Payload Pools</a><a href="#message-coalescing-with-batch-dequeue" class="l3" data-id="message-coalescing-with-batch-dequeue">Message Coalescing with Batch Dequeue</a><a href="#batch-send-for-fan-out-patterns" class="l3" data-id="batch-send-for-fan-out-patterns">Batch Send for Fan-Out Patterns</a><a href="#adaptive-batch-size" class="l3" data-id="adaptive-batch-size">Adaptive Batch Size</a><a href="#optimized-spinlock-with-platform-specific-yield" class="l3" data-id="optimized-spinlock-with-platform-specific-yield">Optimized Spinlock with Platform-Specific Yield</a><a href="#lock-free-cross-core-queue" class="l3" data-id="lock-free-cross-core-queue">Lock-Free Cross-Core Queue</a><a href="#spsc-queue-for-same-core-messaging" class="l3" data-id="spsc-queue-for-same-core-messaging">SPSC Queue for Same-Core Messaging</a><a href="#direct-mailbox-delivery" class="l3" data-id="direct-mailbox-delivery">Direct Mailbox Delivery</a><a href="#message-driven-actor-migration" class="l3" data-id="message-driven-actor-migration">Message-Driven Actor Migration</a><a href="#inline-single-field-messages" class="l3" data-id="inline-single-field-messages">Inline Single-Field Messages</a><a href="#computed-goto-dispatch" class="l3" data-id="computed-goto-dispatch">Computed Goto Dispatch</a><a href="#progressive-backoff-strategy" class="l3" data-id="progressive-backoff-strategy">Progressive Backoff Strategy</a><a href="#cache-line-alignment" class="l3" data-id="cache-line-alignment">Cache Line Alignment</a><a href="#power-of-2-buffer-sizing" class="l3" data-id="power-of-2-buffer-sizing">Power-of-2 Buffer Sizing</a><a href="#relaxed-atomic-memory-ordering" class="l3" data-id="relaxed-atomic-memory-ordering">Relaxed Atomic Memory Ordering</a><a href="#numa-aware-allocation" class="l3" data-id="numa-aware-allocation">NUMA-Aware Allocation</a><a href="#link-time-optimization" class="l3" data-id="link-time-optimization">Link-Time Optimization</a><a href="#cpu-detection-fallback" class="l3" data-id="cpu-detection-fallback">CPU Detection Fallback</a><a href="#apple-silicon-p-core-detection" class="l3" data-id="apple-silicon-p-core-detection">Apple Silicon P-Core Detection</a><a href="#per-core-message-counters" class="l3" data-id="per-core-message-counters">Per-Core Message Counters</a><a href="#rejected-optimizations" class="l2" data-id="rejected-optimizations">Rejected Optimizations</a><a href="#manual-prefetching" class="l3" data-id="manual-prefetching">Manual Prefetching</a><a href="#simd-message-processing" class="l3" data-id="simd-message-processing">SIMD Message Processing</a><a href="#opt-in-features" class="l2" data-id="opt-in-features">Opt-In Features</a><a href="#compiler-optimizations" class="l2" data-id="compiler-optimizations">Compiler Optimizations</a><a href="#hotcold-path-fixes-scheduler-level" class="l3" data-id="hotcold-path-fixes-scheduler-level">Hot/Cold Path Fixes (scheduler-level)</a><a href="#arithmetic-series-loop-collapse-compilercodegencodegen_stmtc" class="l3" data-id="arithmetic-series-loop-collapse-compilercodegencodegen_stmtc">Arithmetic Series Loop Collapse (compiler/codegen/codegen_stmt.c)</a><a href="#linear-counter-sum-compilercodegencodegen_stmtc" class="l3" data-id="linear-counter-sum-compilercodegencodegen_stmtc">Linear Counter Sum (compiler/codegen/codegen_stmt.c)</a><a href="#cooperative-preemption-opt-in" class="l3" data-id="cooperative-preemption-opt-in">Cooperative Preemption (Opt-In)</a><a href="#actor-timeouts" class="l3" data-id="actor-timeouts">Actor Timeouts</a><a href="#references" class="l2" data-id="references">References</a></nav>
@@ -431,21 +432,21 @@ total = <span class="num">0</span>
       <p class="foot-status">v0.467 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
-      <h4>Docs</h4>
+      <h3 class="foot-h">Docs</h3>
       <a href="/Docs/getting-started.html">Getting Started</a>
       <a href="/Docs/tutorial.html">Tutorial</a>
       <a href="/Docs/language-reference.html">Language Reference</a>
       <a href="/Docs/stdlib-reference.html">Standard Library</a>
     </div>
     <div class="foot-col">
-      <h4>Project</h4>
+      <h3 class="foot-h">Project</h3>
       <a href="https://github.com/aether-lang-org/aether">GitHub</a>
       <a href="https://github.com/aether-lang-org/aether/issues">Issues</a>
       <a href="https://github.com/aether-lang-org/aether/blob/main/CHANGELOG.md">Changelog</a>
       <a href="https://github.com/sponsors/nicolas-maman">Sponsor</a>
     </div>
     <div class="foot-col">
-      <h4>Try</h4>
+      <h3 class="foot-h">Try</h3>
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html">Install</a>
       <a href="/Docs/architecture.html">Architecture</a>

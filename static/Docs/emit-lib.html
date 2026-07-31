@@ -392,6 +392,7 @@ for i in range(meta.function_count):
 <div class="tw"><table><thead><tr><th>Test</th><th>What it proves</th></tr></thead><tbody><tr><td><code>emit_lib/</code></td><td>Primitive round-trip through <code>dlopen</code></td></tr><tr><td><code>emit_lib_composite/</code></td><td>Nested map + list round-trip via accessors</td></tr><tr><td><code>emit_lib_lists/</code></td><td>List-of-ints, list-of-strings, empty list, out-of-range</td></tr><tr><td><code>emit_lib_primitives/</code></td><td><code>long</code>, <code>bool</code>, <code>float</code> across the boundary</td></tr><tr><td><code>emit_lib_unsupported/</code></td><td>Unsupported param types warn + skip stub</td></tr><tr><td><code>emit_lib_banned/</code></td><td>All five capability-heavy imports rejected</td></tr><tr><td><code>emit_lib_dual_build/</code></td><td>Same source → exe AND lib via separate invocations</td></tr><tr><td><code>emit_lib_swig/</code></td><td>SWIG Python round-trip (skips if <code>swig</code> missing)</td></tr><tr><td><code>emit_lib_with_capability/</code></td><td><code>--with=fs,net,os</code> opt-ins; <code>--with=first-party</code> and <code>--with=all</code> aliases</td></tr><tr><td><code>lib_meta/</code></td><td><code>aether_lib_meta</code> + <code>ae lib-info</code> round-trip, schema, source, function count, three signatures, c_symbol gating, source refs</td></tr><tr><td><code>emit_lib_kind_safe/</code></td><td>Kind-discriminator predicates + deep-free safety, adversarial low-address probe (<code>(AetherValue*)42</code>) survives, kind correctly classifies map/list/scalar slots, deep-free walks nested map+list+scalars, magic-clear-on-free defends UAF probes</td></tr></tbody></table></div>
 <p>Run them with the standard <code>make test-ae</code> or individually:</p>
 <pre><code>tests/integration/emit_lib_composite/test_emit_lib_composite.sh</code></pre>
+<nav class="doc-prevnext" aria-label="Previous and next page"><a class="pn-prev" href="/Docs/c-embedding.html"><span>Previous</span>Embedding Aether Actors in C Applications</a><a class="pn-next" href="/Docs/embedded-namespaces-and-host-bindings.html"><span>Next</span>Aether as a Configuration Language, v2: Namespaces and Generated Bindings</a></nav>
       </article>
     </main>
     <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#quick-example" class="l2" data-id="quick-example">Quick example</a><a href="#the-flag-matrix" class="l2" data-id="the-flag-matrix">The flag matrix</a><a href="#--emitcsrc-distribute-source-not-n-native-libs" class="l2" data-id="--emitcsrc-distribute-source-not-n-native-libs">--emit=csrc: distribute source, not N native libs</a><a href="#the-json-catalog-namecatalogjson" class="l3" data-id="the-json-catalog-namecatalogjson">The JSON catalog (&lt;name&gt;.catalog.json)</a><a href="#naming" class="l2" data-id="naming">Naming</a><a href="#type-mapping" class="l2" data-id="type-mapping">Type mapping</a><a href="#the-aethervalue-accessor-api" class="l2" data-id="the-aethervalue-accessor-api">The AetherValue* accessor API</a><a href="#ownership" class="l3" data-id="ownership">Ownership</a><a href="#behaviour-of-missing-keys--out-of-range-indices" class="l3" data-id="behaviour-of-missing-keys--out-of-range-indices">Behaviour of missing keys / out-of-range indices</a><a href="#type-contract" class="l3" data-id="type-contract">Type contract</a><a href="#capability-empty-default" class="l2" data-id="capability-empty-default">Capability-empty default</a><a href="#opting-in---withcapabilities" class="l3" data-id="opting-in---withcapabilities">Opting in: --with=&lt;capabilities&gt;</a><a href="#symbol-visibility-matrix" class="l2" data-id="symbol-visibility-matrix">Symbol visibility matrix</a><a href="#using-swig-to-generate-javapythonrubygo-bindings" class="l2" data-id="using-swig-to-generate-javapythonrubygo-bindings">Using SWIG to generate Java/Python/Ruby/Go bindings</a><a href="#per-call-resource-caps" class="l2" data-id="per-call-resource-caps">Per-call resource caps</a><a href="#whats-out-of-scope-for-v1" class="l2" data-id="whats-out-of-scope-for-v1">What's out of scope for v1</a><a href="#kind-discrimination--deep-free-aether_value_kind-aether_config_free_deep" class="l2" data-id="kind-discrimination--deep-free-aether_value_kind-aether_config_free_deep">Kind discrimination + deep-free (aether_value_kind, aether_config_free_deep)</a><a href="#reflection-the-symbol-catalog-aether_lib_meta" class="l2" data-id="reflection-the-symbol-catalog-aether_lib_meta">Reflection: the symbol catalog (aether_lib_meta)</a><a href="#ae-lib-info-path-inspect-any-artifact" class="l3" data-id="ae-lib-info-path-inspect-any-artifact">ae lib-info &lt;path&gt; inspect any artifact</a><a href="#what-this-enables-for-ffi-hosts" class="l3" data-id="what-this-enables-for-ffi-hosts">What this enables for FFI hosts</a><a href="#working-tests" class="l2" data-id="working-tests">Working tests</a></nav>
@@ -406,21 +407,21 @@ for i in range(meta.function_count):
       <p class="foot-status">v0.467 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
-      <h4>Docs</h4>
+      <h3 class="foot-h">Docs</h3>
       <a href="/Docs/getting-started.html">Getting Started</a>
       <a href="/Docs/tutorial.html">Tutorial</a>
       <a href="/Docs/language-reference.html">Language Reference</a>
       <a href="/Docs/stdlib-reference.html">Standard Library</a>
     </div>
     <div class="foot-col">
-      <h4>Project</h4>
+      <h3 class="foot-h">Project</h3>
       <a href="https://github.com/aether-lang-org/aether">GitHub</a>
       <a href="https://github.com/aether-lang-org/aether/issues">Issues</a>
       <a href="https://github.com/aether-lang-org/aether/blob/main/CHANGELOG.md">Changelog</a>
       <a href="https://github.com/sponsors/nicolas-maman">Sponsor</a>
     </div>
     <div class="foot-col">
-      <h4>Try</h4>
+      <h3 class="foot-h">Try</h3>
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html">Install</a>
       <a href="/Docs/architecture.html">Architecture</a>

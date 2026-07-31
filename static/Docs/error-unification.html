@@ -171,6 +171,7 @@ data, err = fs.read(p)
 <ul><li><strong>P0:</strong> <code>or { -1 }</code> yields −1 on the error path (valgrind-clean); early return form unchanged; regression pinned against the uninitialized read.</li><li><strong>P1:</strong> full suite green with migrated signatures, the suite itself is the test, since callers are supposed to be unaffected; <code>defer catch</code> suites re-run unchanged.</li><li><strong>P2:</strong> reject: bare <code>fs.write(p, d)</code> statement errors; silence: all consumer forms accepted (<code>v,e =</code>, <code>!</code>, <code>or</code>, <code>_, _ =</code>); raw-tuple functions never flagged.</li><li><strong>P3:</strong> identity: <code>err == fs.NotFound</code> true on the fault, false on a same-text dynamic string?, <strong>No</strong>: content-equal strings compare equal by design (that is what makes it interning, not object identity). True on the fault, true on a strcmp-equal string, false otherwise; pointer path verified by inspecting emitted C; <strong>cross-<code>.so</code> identity via binary_import</strong>; presence tests and printing unchanged on fault values.</li></ul>
 <h2 id="10-recommendation">10. Recommendation</h2>
 <p>Ship Phase 0 (the <code>or {}</code> fix) immediately, it is a miscompile regardless of any design decision. Then phases 1–3 in order, one PR each, pausing after each for the same review this document got. The window argument from contract folding applies at larger scale: <code>std/</code> gains fallible signatures every release, every one written against the stringly convention, and <code>T!</code>'s opt-in enforcement bit means the migration can never be cheaper than now. The survey called §4 "the single biggest ergonomic + safety win available"; the tree says the win is real but the shape is not C3's, it is <code>T!</code>, which Aether already built and then never used.</p>
+<nav class="doc-prevnext" aria-label="Previous and next page"><a class="pn-prev" href="/Docs/contract-folding.html"><span>Previous</span>Compile-time contract folding, costed design</a><a class="pn-next" href="/Docs/compiler-trust-boundary.html"><span>Next</span>The Compiler Trust Boundary</a></nav>
       </article>
     </main>
     <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#0-summary-and-what-the-reconnaissance-changed" class="l2" data-id="0-summary-and-what-the-reconnaissance-changed">0. Summary, and what the reconnaissance changed</a><a href="#1-what-aether-already-owns-the-55-inventory" class="l2" data-id="1-what-aether-already-owns-the-55-inventory">1. What Aether already owns (the §5.5 inventory)</a><a href="#11-the-value-err-side" class="l3" data-id="11-the-value-err-side">1.1 The (value, err) side</a><a href="#12-the-t-side" class="l3" data-id="12-the-t-side">1.2 The T? side</a><a href="#13-the-compilation-model-this-decides-the-fault-mechanism" class="l3" data-id="13-the-compilation-model-this-decides-the-fault-mechanism">1.3 The compilation model (this decides the fault mechanism)</a><a href="#2-bugs-found-while-scoping-the-recurring-pattern" class="l2" data-id="2-bugs-found-while-scoping-the-recurring-pattern">2. Bugs found while scoping (the recurring pattern)</a><a href="#3-what-c3s-design-maps-to-here-and-what-doesnt" class="l2" data-id="3-what-c3s-design-maps-to-here-and-what-doesnt">3. What C3's design maps to here, and what doesn't</a><a href="#4-the-design-question-stated-plainly" class="l2" data-id="4-the-design-question-stated-plainly">4. The design question stated plainly</a><a href="#5-option-a-costed-and-declined" class="l2" data-id="5-option-a-costed-and-declined">5. Option A, costed and declined</a><a href="#6-option-b-recommended-t-as-the-fallible-spine" class="l2" data-id="6-option-b-recommended-t-as-the-fallible-spine">6. Option B (recommended): T! as the fallible spine</a><a href="#phase-1-repair-and-converge-no-new-semantics" class="l3" data-id="phase-1-repair-and-converge-no-new-semantics">Phase 1, repair and converge (no new semantics)</a><a href="#phase-2-enforcement-the-safety-payoff" class="l3" data-id="phase-2-enforcement-the-safety-payoff">Phase 2, enforcement (the safety payoff)</a><a href="#phase-3-identity-declared-faults-over-const-char" class="l3" data-id="phase-3-identity-declared-faults-over-const-char">Phase 3, identity: declared faults over const char*</a><a href="#what-option-b-never-touches" class="l3" data-id="what-option-b-never-touches">What Option B never touches</a><a href="#7-considered-and-declined-within-option-b" class="l2" data-id="7-considered-and-declined-within-option-b">7. Considered and declined within Option B</a><a href="#8-costing" class="l2" data-id="8-costing">8. Costing</a><a href="#9-test-plan-what-done-means-per-phase" class="l2" data-id="9-test-plan-what-done-means-per-phase">9. Test plan (what "done" means per phase)</a><a href="#10-recommendation" class="l2" data-id="10-recommendation">10. Recommendation</a></nav>
@@ -185,21 +186,21 @@ data, err = fs.read(p)
       <p class="foot-status">v0.467 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
-      <h4>Docs</h4>
+      <h3 class="foot-h">Docs</h3>
       <a href="/Docs/getting-started.html">Getting Started</a>
       <a href="/Docs/tutorial.html">Tutorial</a>
       <a href="/Docs/language-reference.html">Language Reference</a>
       <a href="/Docs/stdlib-reference.html">Standard Library</a>
     </div>
     <div class="foot-col">
-      <h4>Project</h4>
+      <h3 class="foot-h">Project</h3>
       <a href="https://github.com/aether-lang-org/aether">GitHub</a>
       <a href="https://github.com/aether-lang-org/aether/issues">Issues</a>
       <a href="https://github.com/aether-lang-org/aether/blob/main/CHANGELOG.md">Changelog</a>
       <a href="https://github.com/sponsors/nicolas-maman">Sponsor</a>
     </div>
     <div class="foot-col">
-      <h4>Try</h4>
+      <h3 class="foot-h">Try</h3>
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html">Install</a>
       <a href="/Docs/architecture.html">Architecture</a>

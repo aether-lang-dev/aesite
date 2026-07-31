@@ -279,6 +279,7 @@ make ae AETHER_ENABLE_LLM=<span class="num">1</span> \
 <p>The shim's surface is a single C function (<code>int ae_llm_run(const char* weights_path, const char* prompt, FILE* out)</code>); upstream API rotations in llama.cpp need touching only that one TU. See <a href="/Docs/cic-help.html"><code>docs/cic-help.md</code></a> for the full design.</p>
 <h2 id="references">References</h2>
 <ul><li>GCC Optimization Options: https://gcc.gnu.org/onlinedocs/gcc/Optimize-Options.html</li><li>LLVM PGO Guide: https://llvm.org/docs/HowToBuildWithPGO.html</li><li>llama.cpp (C API used by the LLM shim): https://github.com/ggerganov/llama.cpp</li></ul>
+<nav class="doc-prevnext" aria-label="Previous and next page"><a class="pn-prev" href="/Docs/config-is-code.html"><span>Previous</span>Config IS Code</a><a class="pn-next" href="/Docs/formatter.html"><span>Next</span>ae fmt, the source formatter</a></nav>
       </article>
     </main>
     <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#overview" class="l2" data-id="overview">Overview</a><a href="#project-configuration-aethertoml" class="l2" data-id="project-configuration-aethertoml">Project Configuration (aether.toml)</a><a href="#minimal-project" class="l3" data-id="minimal-project">Minimal project</a><a href="#full-configuration-reference" class="l3" data-id="full-configuration-reference">Full configuration reference</a><a href="#extra_sources-vs---extra" class="l3" data-id="extra_sources-vs---extra">extra_sources vs --extra</a><a href="#--quick-for-fast-iteration" class="l3" data-id="--quick-for-fast-iteration">--quick for fast iteration</a><a href="#resolving-the-build-target" class="l3" data-id="resolving-the-build-target">Resolving the build target</a><a href="#build-cache" class="l2" data-id="build-cache">Build Cache</a><a href="#build-tiers" class="l2" data-id="build-tiers">Build Tiers</a><a href="#development-build" class="l3" data-id="development-build">Development Build</a><a href="#testing-build" class="l3" data-id="testing-build">Testing Build</a><a href="#release-build" class="l3" data-id="release-build">Release Build</a><a href="#profile-guided-optimization" class="l3" data-id="profile-guided-optimization">Profile-Guided Optimization</a><a href="#incremental-compilation" class="l2" data-id="incremental-compilation">Incremental Compilation</a><a href="#parallel-compilation" class="l2" data-id="parallel-compilation">Parallel Compilation</a><a href="#cross-compilation-platform-variable" class="l2" data-id="cross-compilation-platform-variable">Cross-Compilation (PLATFORM variable)</a><a href="#docker-based-cross-compilation" class="l3" data-id="docker-based-cross-compilation">Docker-Based Cross-Compilation</a><a href="#risc-v-64-bit-ci-riscv64" class="l3" data-id="risc-v-64-bit-ci-riscv64">RISC-V 64-bit (ci-riscv64)</a><a href="#ae-build-with-an-alternate-or-cross-c-compiler-cc--ae_cc" class="l3" data-id="ae-build-with-an-alternate-or-cross-c-compiler-cc--ae_cc">ae build with an alternate or cross C compiler ($CC / $AE_CC)</a><a href="#ae-build---targettriple-cross-os-via-a-zig-cc-backend" class="l3" data-id="ae-build---targettriple-cross-os-via-a-zig-cc-backend">ae build --target=&lt;triple&gt; (cross-OS via a zig cc backend)</a><a href="#build-recommendations" class="l2" data-id="build-recommendations">Build Recommendations</a><a href="#hardening-harden1" class="l2" data-id="hardening-harden1">Hardening (HARDEN=1)</a><a href="#llm-diagnostics-aether_enable_llm1" class="l2" data-id="llm-diagnostics-aether_enable_llm1">LLM diagnostics (AETHER_ENABLE_LLM=1)</a><a href="#references" class="l2" data-id="references">References</a></nav>
@@ -293,21 +294,21 @@ make ae AETHER_ENABLE_LLM=<span class="num">1</span> \
       <p class="foot-status">v0.467 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
-      <h4>Docs</h4>
+      <h3 class="foot-h">Docs</h3>
       <a href="/Docs/getting-started.html">Getting Started</a>
       <a href="/Docs/tutorial.html">Tutorial</a>
       <a href="/Docs/language-reference.html">Language Reference</a>
       <a href="/Docs/stdlib-reference.html">Standard Library</a>
     </div>
     <div class="foot-col">
-      <h4>Project</h4>
+      <h3 class="foot-h">Project</h3>
       <a href="https://github.com/aether-lang-org/aether">GitHub</a>
       <a href="https://github.com/aether-lang-org/aether/issues">Issues</a>
       <a href="https://github.com/aether-lang-org/aether/blob/main/CHANGELOG.md">Changelog</a>
       <a href="https://github.com/sponsors/nicolas-maman">Sponsor</a>
     </div>
     <div class="foot-col">
-      <h4>Try</h4>
+      <h3 class="foot-h">Try</h3>
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html">Install</a>
       <a href="/Docs/architecture.html">Architecture</a>

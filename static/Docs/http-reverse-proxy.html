@@ -291,6 +291,7 @@ proxy.pool_metrics_text(pool) -&gt; <span class="fn">string</span>              
 <p>All <code>string</code>-returning functions are Go-style: <code>""</code> is success; non-empty is an error message.</p>
 <h2 id="see-also">See also</h2>
 <ul><li><a href="/Docs/http-server.html"><code>docs/http-server.md</code></a>, the inbound side (routes, middleware, TLS, h2, WS, SSE, health probes, metrics, graceful shutdown).</li><li><a href="https://github.com/aether-lang-org/aether/tree/main/examples/stdlib/http-reverse-proxy.ae"><code>examples/stdlib/http-reverse-proxy.ae</code></a> minimal single-upstream demo.</li><li><a href="https://github.com/aether-lang-org/aether/tree/main/examples/stdlib/http-reverse-proxy-pool.ae"><code>examples/stdlib/http-reverse-proxy-pool.ae</code></a> full enterprise stack: pool, health, breaker, cache, retry, rate limit, drain, trace-context, Prometheus metrics.</li></ul>
+<nav class="doc-prevnext" aria-label="Previous and next page"><a class="pn-prev" href="/Docs/http-server.html"><span>Previous</span>std.http HTTP Server</a><a class="pn-next" href="/Docs/http-handler-context.html"><span>Next</span>HTTP handlers with per-server / per-route state</a></nav>
       </article>
     </main>
     <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#quick-start-single-upstream" class="l2" data-id="quick-start-single-upstream">Quick start, single upstream</a><a href="#pool-form-load-balancing--health--cache--breaker" class="l2" data-id="pool-form-load-balancing--health--cache--breaker">Pool form, load balancing + health + cache + breaker</a><a href="#method-aware-routing" class="l2" data-id="method-aware-routing">Method-Aware Routing</a><a href="#load-balancing-algorithms" class="l2" data-id="load-balancing-algorithms">Load-balancing algorithms</a><a href="#health-checks" class="l2" data-id="health-checks">Health checks</a><a href="#circuit-breaker" class="l2" data-id="circuit-breaker">Circuit breaker</a><a href="#response-cache" class="l2" data-id="response-cache">Response cache</a><a href="#key-strategies" class="l3" data-id="key-strategies">Key strategies</a><a href="#idempotent-retry-proxy_next_upstream-semantics" class="l2" data-id="idempotent-retry-proxy_next_upstream-semantics">Idempotent retry, proxy_next_upstream semantics</a><a href="#per-upstream-rate-limit-token-bucket" class="l2" data-id="per-upstream-rate-limit-token-bucket">Per-upstream rate limit (token bucket)</a><a href="#active-drain" class="l2" data-id="active-drain">Active drain</a><a href="#w3c-trace-context-propagation" class="l2" data-id="w3c-trace-context-propagation">W3C Trace-Context propagation</a><a href="#prometheus-metrics" class="l2" data-id="prometheus-metrics">Prometheus metrics</a><a href="#hop-by-hop-headers-rfc-7230-61" class="l2" data-id="hop-by-hop-headers-rfc-7230-61">Hop-by-Hop headers (RFC 7230 §6.1)</a><a href="#headers-added-by-the-proxy" class="l2" data-id="headers-added-by-the-proxy">Headers added by the proxy</a><a href="#error-responses" class="l2" data-id="error-responses">Error responses</a><a href="#limitations-v1" class="l2" data-id="limitations-v1">Limitations (v1)</a><a href="#performance" class="l2" data-id="performance">Performance</a><a href="#reference" class="l2" data-id="reference">Reference</a><a href="#see-also" class="l2" data-id="see-also">See also</a></nav>
@@ -305,21 +306,21 @@ proxy.pool_metrics_text(pool) -&gt; <span class="fn">string</span>              
       <p class="foot-status">v0.467 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
-      <h4>Docs</h4>
+      <h3 class="foot-h">Docs</h3>
       <a href="/Docs/getting-started.html">Getting Started</a>
       <a href="/Docs/tutorial.html">Tutorial</a>
       <a href="/Docs/language-reference.html">Language Reference</a>
       <a href="/Docs/stdlib-reference.html">Standard Library</a>
     </div>
     <div class="foot-col">
-      <h4>Project</h4>
+      <h3 class="foot-h">Project</h3>
       <a href="https://github.com/aether-lang-org/aether">GitHub</a>
       <a href="https://github.com/aether-lang-org/aether/issues">Issues</a>
       <a href="https://github.com/aether-lang-org/aether/blob/main/CHANGELOG.md">Changelog</a>
       <a href="https://github.com/sponsors/nicolas-maman">Sponsor</a>
     </div>
     <div class="foot-col">
-      <h4>Try</h4>
+      <h3 class="foot-h">Try</h3>
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html">Install</a>
       <a href="/Docs/architecture.html">Architecture</a>

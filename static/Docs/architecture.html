@@ -283,6 +283,7 @@
 <ul><li><strong>Choice:</strong> Portable C11 code with platform-specific branches</li><li><strong>Implication:</strong> Platform-specific intrinsics guarded by <code>#if</code> directives</li><li><strong>Mitigation:</strong> Fallback paths for all platform-specific code</li></ul>
 <h2 id="references">References</h2>
 <ul><li>Type Inference: Pierce &amp; Turner (2000)</li><li>Michael-Scott Queue: Michael &amp; Scott (1996)</li><li>Work Stealing: Blumofe &amp; Leiserson (1999)</li><li>Actor Model: Hewitt, Bishop, Steiger (1973)</li><li>Arena Allocation: Hanson (1990)</li></ul>
+<nav class="doc-prevnext" aria-label="Previous and next page"><a class="pn-prev" href="/Docs/when-static-if.html"><span>Previous</span>Compile-time when / static-if</a><a class="pn-next" href="/Docs/actor-concurrency.html"><span>Next</span>Aether Runtime Guide</a></nav>
       </article>
     </main>
     <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#system-overview" class="l2" data-id="system-overview">System Overview</a><a href="#compiler-pipeline" class="l2" data-id="compiler-pipeline">Compiler Pipeline</a><a href="#1-lexer-compilerparserlexerc" class="l3" data-id="1-lexer-compilerparserlexerc">1. Lexer (compiler/parser/lexer.c)</a><a href="#2-parser-compilerparserparserc" class="l3" data-id="2-parser-compilerparserparserc">2. Parser (compiler/parser/parser.c)</a><a href="#25-module-orchestrator-compileraether_modulec" class="l3" data-id="25-module-orchestrator-compileraether_modulec">2.5 Module Orchestrator (compiler/aether_module.c)</a><a href="#3-type-checker-compileranalysistypecheckerc" class="l3" data-id="3-type-checker-compileranalysistypecheckerc">3. Type Checker (compiler/analysis/typechecker.c)</a><a href="#4-optimizer-compilercodegenoptimizerc" class="l3" data-id="4-optimizer-compilercodegenoptimizerc">4. Optimizer (compiler/codegen/optimizer.c)</a><a href="#5-code-generator-compilercodegencodegenc" class="l3" data-id="5-code-generator-compilercodegencodegenc">5. Code Generator (compiler/codegen/codegen.c)</a><a href="#runtime-architecture" class="l2" data-id="runtime-architecture">Runtime Architecture</a><a href="#actor-system" class="l3" data-id="actor-system">Actor System</a><a href="#scheduler" class="l3" data-id="scheduler">Scheduler</a><a href="#cooperative-scheduler-threadless-platforms" class="l3" data-id="cooperative-scheduler-threadless-platforms">Cooperative Scheduler (Threadless Platforms)</a><a href="#actor-timeouts" class="l3" data-id="actor-timeouts">Actor Timeouts</a><a href="#cooperative-preemption-opt-in" class="l3" data-id="cooperative-preemption-opt-in">Cooperative Preemption (Opt-In)</a><a href="#platform-detection-tier-0" class="l3" data-id="platform-detection-tier-0">Platform Detection (Tier 0)</a><a href="#memory-management" class="l3" data-id="memory-management">Memory Management</a><a href="#performance-optimizations" class="l3" data-id="performance-optimizations">Performance Optimizations</a><a href="#module-system" class="l2" data-id="module-system">Module System</a><a href="#design-decisions" class="l2" data-id="design-decisions">Design Decisions</a><a href="#why-compile-to-c" class="l3" data-id="why-compile-to-c">Why Compile to C?</a><a href="#why-work-stealing" class="l3" data-id="why-work-stealing">Why Work Stealing?</a><a href="#why-lock-free-queues" class="l3" data-id="why-lock-free-queues">Why Lock-Free Queues?</a><a href="#trade-offs" class="l2" data-id="trade-offs">Trade-Offs</a><a href="#compilation-speed-vs-runtime-performance" class="l3" data-id="compilation-speed-vs-runtime-performance">Compilation Speed vs Runtime Performance</a><a href="#memory-safety-vs-performance" class="l3" data-id="memory-safety-vs-performance">Memory Safety vs Performance</a><a href="#portability-vs-optimization" class="l3" data-id="portability-vs-optimization">Portability vs Optimization</a><a href="#references" class="l2" data-id="references">References</a></nav>
@@ -297,21 +298,21 @@
       <p class="foot-status">v0.467 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
-      <h4>Docs</h4>
+      <h3 class="foot-h">Docs</h3>
       <a href="/Docs/getting-started.html">Getting Started</a>
       <a href="/Docs/tutorial.html">Tutorial</a>
       <a href="/Docs/language-reference.html">Language Reference</a>
       <a href="/Docs/stdlib-reference.html">Standard Library</a>
     </div>
     <div class="foot-col">
-      <h4>Project</h4>
+      <h3 class="foot-h">Project</h3>
       <a href="https://github.com/aether-lang-org/aether">GitHub</a>
       <a href="https://github.com/aether-lang-org/aether/issues">Issues</a>
       <a href="https://github.com/aether-lang-org/aether/blob/main/CHANGELOG.md">Changelog</a>
       <a href="https://github.com/sponsors/nicolas-maman">Sponsor</a>
     </div>
     <div class="foot-col">
-      <h4>Try</h4>
+      <h3 class="foot-h">Try</h3>
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html">Install</a>
       <a href="/Docs/architecture.html">Architecture</a>

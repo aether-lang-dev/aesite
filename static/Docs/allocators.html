@@ -154,6 +154,7 @@ l = list_new_in(t)            <span class="com">// or alloc.raw(t, n), or any _i
 tracking.destroy(t)</code></pre>
 <div class="tw"><table><thead><tr><th>Function</th><th>Meaning</th></tr></thead><tbody><tr><td><code>tracking.wrap(inner)</code></td><td>Wrap <code>inner</code> (e.g. <code>alloc.system()</code>); returns an allocator handle.</td></tr><tr><td><code>tracking.count(t)</code></td><td>Live (allocated but not freed) block count.</td></tr><tr><td><code>tracking.bytes(t)</code></td><td>Total live bytes.</td></tr><tr><td><code>tracking.report(t)</code></td><td>Print each outstanding block to stderr; returns the live count.</td></tr><tr><td><code>tracking.destroy(t)</code></td><td>Free the tracker. Does not free the leaked blocks (those are the leaks).</td></tr></tbody></table></div>
 <p>The tracker allocates its own bookkeeping with the system allocator, so it never counts itself. <code>tracking.destroy</code> deliberately does not free the still-live blocks: they are exactly the leaks the code under test failed to release, and freeing them would hide the bug.</p>
+<nav class="doc-prevnext" aria-label="Previous and next page"><a class="pn-prev" href="/Docs/profiling-guide.html"><span>Previous</span>Aether Runtime Profiling Guide</a><a class="pn-next" href="/Docs/structured-concurrency.html"><span>Next</span>Structured Concurrency for Aether, Design Direction</a></nav>
       </article>
     </main>
     <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#the-convention-stdalloc" class="l2" data-id="the-convention-stdalloc">The convention (std.alloc)</a><a href="#arena-backed" class="l3" data-id="arena-backed">Arena-backed</a><a href="#collections-that-allocate-through-an-allocator" class="l2" data-id="collections-that-allocate-through-an-allocator">Collections that allocate through an allocator</a><a href="#leak-detection-in-tests-stdtracking" class="l2" data-id="leak-detection-in-tests-stdtracking">Leak detection in tests (std.tracking)</a></nav>
@@ -168,21 +169,21 @@ tracking.destroy(t)</code></pre>
       <p class="foot-status">v0.467 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
-      <h4>Docs</h4>
+      <h3 class="foot-h">Docs</h3>
       <a href="/Docs/getting-started.html">Getting Started</a>
       <a href="/Docs/tutorial.html">Tutorial</a>
       <a href="/Docs/language-reference.html">Language Reference</a>
       <a href="/Docs/stdlib-reference.html">Standard Library</a>
     </div>
     <div class="foot-col">
-      <h4>Project</h4>
+      <h3 class="foot-h">Project</h3>
       <a href="https://github.com/aether-lang-org/aether">GitHub</a>
       <a href="https://github.com/aether-lang-org/aether/issues">Issues</a>
       <a href="https://github.com/aether-lang-org/aether/blob/main/CHANGELOG.md">Changelog</a>
       <a href="https://github.com/sponsors/nicolas-maman">Sponsor</a>
     </div>
     <div class="foot-col">
-      <h4>Try</h4>
+      <h3 class="foot-h">Try</h3>
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html">Install</a>
       <a href="/Docs/architecture.html">Architecture</a>

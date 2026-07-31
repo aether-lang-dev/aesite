@@ -408,6 +408,7 @@ http.server_set_health_probes(server, <span class="str">"/healthz"</span>, <span
 <hr>
 <h2 id="performance-tuning-checklist">Performance tuning checklist</h2>
 <ul><li>TLS termination: <code>AETHER_HAS_OPENSSL</code> enables it; cert + key must be PEM. SNI / ALPN advertising for HTTP/2 lands in the follow-up HTTP/2 PR.</li><li>Keep-alive: turn it on for any server fronting a chatty client (browsers, internal microservices). <code>max_requests</code> of 100–1000 + <code>idle_ms</code> of 30–60s is the standard tuning.</li><li>Per-connection actor dispatch: only matters for keep-alive sessions and SSE/WebSocket. Default thread-pool path is fine for short-lived requests.</li><li>gzip: turn on for text responses ≥ 1KB. Skip for already-compressed content (images, video), the middleware skips automatically based on the absence of the <code>Content-Encoding</code> header from the handler.</li><li>Response transformer chain: keep transformers cheap. They run on every response; expensive transforms (template rendering, image manipulation) belong in route handlers, not transformers.</li></ul>
+<nav class="doc-prevnext" aria-label="Previous and next page"><a class="pn-prev" href="/Docs/stdlib-api.html"><span>Previous</span>Aether Standard Library Guide</a><a class="pn-next" href="/Docs/http-reverse-proxy.html"><span>Next</span>std.http.proxy reverse proxy</a></nav>
       </article>
     </main>
     <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#quickstart" class="l2" data-id="quickstart">Quickstart</a><a href="#routing" class="l2" data-id="routing">Routing</a><a href="#static-files" class="l2" data-id="static-files">Static files</a><a href="#tls-termination" class="l2" data-id="tls-termination">TLS termination</a><a href="#http2-h2--h2c" class="l2" data-id="http2-h2--h2c">HTTP/2 (h2 + h2c)</a><a href="#per-stream-concurrent-dispatch" class="l3" data-id="per-stream-concurrent-dispatch">Per-stream concurrent dispatch</a><a href="#http11-keep-alive" class="l2" data-id="http11-keep-alive">HTTP/1.1 keep-alive</a><a href="#per-connection-actor-dispatch" class="l2" data-id="per-connection-actor-dispatch">Per-connection actor dispatch</a><a href="#middleware" class="l2" data-id="middleware">Middleware</a><a href="#reverse-proxy" class="l2" data-id="reverse-proxy">Reverse proxy</a><a href="#connect-tunnels" class="l2" data-id="connect-tunnels">CONNECT Tunnels</a><a href="#websocket-rfc-6455" class="l2" data-id="websocket-rfc-6455">WebSocket (RFC 6455)</a><a href="#server-sent-events" class="l2" data-id="server-sent-events">Server-Sent Events</a><a href="#structured-access-logging" class="l2" data-id="structured-access-logging">Structured access logging</a><a href="#prometheus-metrics" class="l2" data-id="prometheus-metrics">Prometheus metrics</a><a href="#graceful-shutdown" class="l2" data-id="graceful-shutdown">Graceful shutdown</a><a href="#embedded--background-servers" class="l2" data-id="embedded--background-servers">Embedded / background servers</a><a href="#lifecycle-hooks" class="l2" data-id="lifecycle-hooks">Lifecycle hooks</a><a href="#health-probes" class="l2" data-id="health-probes">Health probes</a><a href="#performance-tuning-checklist" class="l2" data-id="performance-tuning-checklist">Performance tuning checklist</a></nav>
@@ -422,21 +423,21 @@ http.server_set_health_probes(server, <span class="str">"/healthz"</span>, <span
       <p class="foot-status">v0.467 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
-      <h4>Docs</h4>
+      <h3 class="foot-h">Docs</h3>
       <a href="/Docs/getting-started.html">Getting Started</a>
       <a href="/Docs/tutorial.html">Tutorial</a>
       <a href="/Docs/language-reference.html">Language Reference</a>
       <a href="/Docs/stdlib-reference.html">Standard Library</a>
     </div>
     <div class="foot-col">
-      <h4>Project</h4>
+      <h3 class="foot-h">Project</h3>
       <a href="https://github.com/aether-lang-org/aether">GitHub</a>
       <a href="https://github.com/aether-lang-org/aether/issues">Issues</a>
       <a href="https://github.com/aether-lang-org/aether/blob/main/CHANGELOG.md">Changelog</a>
       <a href="https://github.com/sponsors/nicolas-maman">Sponsor</a>
     </div>
     <div class="foot-col">
-      <h4>Try</h4>
+      <h3 class="foot-h">Try</h3>
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html">Install</a>
       <a href="/Docs/architecture.html">Architecture</a>

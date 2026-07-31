@@ -146,6 +146,7 @@
 <ul><li><strong><code>select()</code> is a <em>runtime</em> platform switch.</strong> It lowers to an <code>#ifdef</code> chain in the generated C, choosing a <em>value</em> per platform at the C-compile step (<code>select(linux: a, macos: b, other: c)</code>). Every arm of a <code>select()</code> must type-check, because the value is chosen in C, not in Aether. Use <code>select()</code> to pick a constant per platform; use <code>when</code> to fork <em>which code exists at all</em>, to gate an entire extern, function, or import that only makes sense on one platform. See <a href="/Docs/named-args-and-select.html"><code>named-args-and-select.md</code></a>.</li><li><strong><code>--emit=lib --with=</code></strong> governs which <em>capabilities</em> (fs / net / os) a compiled library is allowed to use. <code>when</code> operates one level up: it decides <em>which declarations are in the program</em> before the capability gate runs. The pruning pass runs before the <code>--emit=lib</code> import gate, so an <code>import std.net</code> gated behind a <code>when</code> arm that the target doesn't select is removed before the gate inspects the import set, a platform whose arm doesn't pull in <code>std.net</code> won't trip the net-capability check. See <a href="/Docs/emit-lib.html"><code>emit-lib.md</code></a>.</li><li><strong><code>const</code> / compile-time constant folding</strong> (<a href="/Docs/compile-time-eval.html"><code>compile-time-eval.md</code></a>) is the value-level analogue: it folds constant <em>expressions</em> to literals. <code>when</code> is the statement/declaration-level analogue: it folds a constant <em>condition</em> to a choice of arm. The same capability-gate discipline applies, the <code>when</code> condition evaluator is a small, audited folder (OS/arch strings, bool/numeric literals, <code>== != &amp;&amp; || !</code>), not a general interpreter, so resolving a <code>when</code> performs no I/O.</li></ul>
 <h2 id="where-it-lives">Where it lives</h2>
 <ul><li><strong>Parsing:</strong> <code>parse_when_statement</code> in <code>compiler/parser/parser.c</code>, reached from <code>parse_statement</code> (statement form) and <code>parse_top_level_decl</code> (top-level form). AST node kind <code>AST_WHEN_STATEMENT</code> (<code>compiler/ast.h</code>), laid out like <code>AST_IF_STATEMENT</code>: <code>children[0]</code> = condition, <code>children[1]</code> = then-arm, <code>children[2]</code> = optional else-arm.</li><li><strong>Condition evaluation + pruning:</strong> <code>when_eval_condition</code>, <code>target_os_string</code> / <code>target_arch_string</code>, and <code>resolve_when_statements</code> in <code>compiler/codegen/optimizer.c</code>.</li><li><strong>Driver wiring:</strong> <code>compiler/aetherc.c</code> calls <code>resolve_when_statements</code> after module merge and the <code>@derive</code> pass, and before the <code>--emit=lib</code> import gate and <code>typecheck_program</code>.</li></ul>
+<nav class="doc-prevnext" aria-label="Previous and next page"><a class="pn-prev" href="/Docs/module-system-design.html"><span>Previous</span>Aether Module System</a><a class="pn-next" href="/Docs/architecture.html"><span>Next</span>Aether Architecture</a></nav>
       </article>
     </main>
     <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#surface" class="l2" data-id="surface">Surface</a><a href="#supported-condition-forms" class="l2" data-id="supported-condition-forms">Supported condition forms</a><a href="#targetos-and-targetarch" class="l3" data-id="targetos-and-targetarch">target.os and target.arch</a><a href="#semantics-only-the-selected-arm-is-type-checked-and-emitted" class="l2" data-id="semantics-only-the-selected-arm-is-type-checked-and-emitted">Semantics: only the selected arm is type-checked and emitted</a><a href="#how-it-complements-select-and---emitlib---with" class="l2" data-id="how-it-complements-select-and---emitlib---with">How it complements select() and --emit=lib --with=</a><a href="#where-it-lives" class="l2" data-id="where-it-lives">Where it lives</a></nav>
@@ -160,21 +161,21 @@
       <p class="foot-status">v0.467 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
-      <h4>Docs</h4>
+      <h3 class="foot-h">Docs</h3>
       <a href="/Docs/getting-started.html">Getting Started</a>
       <a href="/Docs/tutorial.html">Tutorial</a>
       <a href="/Docs/language-reference.html">Language Reference</a>
       <a href="/Docs/stdlib-reference.html">Standard Library</a>
     </div>
     <div class="foot-col">
-      <h4>Project</h4>
+      <h3 class="foot-h">Project</h3>
       <a href="https://github.com/aether-lang-org/aether">GitHub</a>
       <a href="https://github.com/aether-lang-org/aether/issues">Issues</a>
       <a href="https://github.com/aether-lang-org/aether/blob/main/CHANGELOG.md">Changelog</a>
       <a href="https://github.com/sponsors/nicolas-maman">Sponsor</a>
     </div>
     <div class="foot-col">
-      <h4>Try</h4>
+      <h3 class="foot-h">Try</h3>
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html">Install</a>
       <a href="/Docs/architecture.html">Architecture</a>

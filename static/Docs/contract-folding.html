@@ -175,6 +175,7 @@ clamp(<span class="num">9</span>, n)          <span class="com">// runtime check
 <ol><li><strong>Reject:</strong> <code>divide(10, 0)</code> with <code>where b != 0</code>; <code>clamp(9, 3)</code> with <code>requires lo &lt;= hi</code>; const-through-<code>const N</code> staleness; <code>requires false</code> at definition; enum-member constant violating a range predicate.</li><li><strong>Silence (anti-false-positive):</strong> runtime-variable args; one-of-two const args on a two-param predicate; predicate containing a call / member access / array index; <code>divide(1, 0)</code> sited inside a pruned <code>when</code> arm (must not error on the non-selected platform); int64 edge <code>x == 9007199254740993</code> with the exact constant (must fold TRUE, not FALSE, the double-domain trap).</li><li><strong>Elision regression:</strong> <code>test_contract_const_fold.ae</code> stays green after the evaluator unification.</li><li><strong>Interaction:</strong> <code>--no-contracts</code> still produces the fold errors; <code>HARDEN=1 make ci</code> clean.</li></ol>
 <h2 id="9-recommendation">9. Recommendation</h2>
 <p>Ship Tiers 1+2 together in one PR, error-from-day-one (§5A), with the evaluator unification (§6) included. The window argument matters more than the feature's size: at 32 contract clauses in the entire tree, the compile-time-vs-runtime semantics of contracts can still be changed for free. Every release that adds contract-using code makes the flag-day more expensive. The C3 survey called this "a small change with real payoff"; the tree says it is even smaller than that, half of it shipped with the contracts work, and what remains is one carefully-tested pure function and its wiring.</p>
+<nav class="doc-prevnext" aria-label="Previous and next page"><a class="pn-prev" href="/Docs/structured-concurrency.html"><span>Previous</span>Structured Concurrency for Aether, Design Direction</a><a class="pn-next" href="/Docs/error-unification.html"><span>Next</span>Unifying T? and (value, err), costed design</a></nav>
       </article>
     </main>
     <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#0-summary-and-the-surprise" class="l2" data-id="0-summary-and-the-surprise">0. Summary and the surprise</a><a href="#1-what-aether-already-owns-the-55-check" class="l2" data-id="1-what-aether-already-owns-the-55-check">1. What Aether already owns (the §5.5 check)</a><a href="#2-two-prior-decisions-this-design-must-respect-or-overturn-explicitly" class="l2" data-id="2-two-prior-decisions-this-design-must-respect-or-overturn-explicitly">2. Two prior decisions this design must respect (or overturn explicitly)</a><a href="#3-tier-1-definition-site-constant-false--compile-error" class="l2" data-id="3-tier-1-definition-site-constant-false--compile-error">3. Tier 1, definition-site constant-false → compile error</a><a href="#4-tier-2-call-site-folding-the-actual-feature" class="l2" data-id="4-tier-2-call-site-folding-the-actual-feature">4. Tier 2, call-site folding (the actual feature)</a><a href="#41-behaviour" class="l3" data-id="41-behaviour">4.1 Behaviour</a><a href="#42-the-evaluator" class="l3" data-id="42-the-evaluator">4.2 The evaluator</a><a href="#43-the-hook" class="l3" data-id="43-the-hook">4.3 The hook</a><a href="#44-what-tier-2-does-not-do" class="l3" data-id="44-what-tier-2-does-not-do">4.4 What Tier 2 does not do</a><a href="#5-the-behavioural-change-stated-honestly" class="l2" data-id="5-the-behavioural-change-stated-honestly">5. The behavioural change, stated honestly</a><a href="#6-relationship-to-the-two-existing-evaluators" class="l2" data-id="6-relationship-to-the-two-existing-evaluators">6. Relationship to the two existing evaluators</a><a href="#7-costing" class="l2" data-id="7-costing">7. Costing</a><a href="#8-test-plan-what-done-means" class="l2" data-id="8-test-plan-what-done-means">8. Test plan (what "done" means)</a><a href="#9-recommendation" class="l2" data-id="9-recommendation">9. Recommendation</a></nav>
@@ -189,21 +190,21 @@ clamp(<span class="num">9</span>, n)          <span class="com">// runtime check
       <p class="foot-status">v0.467 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
-      <h4>Docs</h4>
+      <h3 class="foot-h">Docs</h3>
       <a href="/Docs/getting-started.html">Getting Started</a>
       <a href="/Docs/tutorial.html">Tutorial</a>
       <a href="/Docs/language-reference.html">Language Reference</a>
       <a href="/Docs/stdlib-reference.html">Standard Library</a>
     </div>
     <div class="foot-col">
-      <h4>Project</h4>
+      <h3 class="foot-h">Project</h3>
       <a href="https://github.com/aether-lang-org/aether">GitHub</a>
       <a href="https://github.com/aether-lang-org/aether/issues">Issues</a>
       <a href="https://github.com/aether-lang-org/aether/blob/main/CHANGELOG.md">Changelog</a>
       <a href="https://github.com/sponsors/nicolas-maman">Sponsor</a>
     </div>
     <div class="foot-col">
-      <h4>Try</h4>
+      <h3 class="foot-h">Try</h3>
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html">Install</a>
       <a href="/Docs/architecture.html">Architecture</a>

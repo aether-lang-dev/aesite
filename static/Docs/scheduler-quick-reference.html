@@ -228,6 +228,7 @@ ActorBase* actor = scheduler_spawn_actor(preferred_core, step_fn, <span class="k
 <ul><li><code>runtime/scheduler/multicore_scheduler.c</code> - Multi-core scheduler: coalescing, migration, work stealing</li><li><code>runtime/scheduler/aether_scheduler_coop.c</code> - Cooperative single-threaded scheduler (WASM, embedded)</li><li><code>runtime/config/aether_optimization_config.h</code> - Platform detection (Tier 0 <code>AETHER_HAS_*</code> flags)</li><li><code>runtime/actors/aether_send_message.c</code> - Message sending, thread-local pools</li><li><code>runtime/actors/aether_actor_thread.c</code> - Actor-owned thread loop</li><li><code>runtime/utils/aether_thread.h</code> - Portable thread primitives (POSIX/Win32/no-op stubs)</li><li><code>runtime/aether_numa.c</code> - NUMA topology detection and allocation</li></ul>
 <h3 id="tests">Tests</h3>
 <ul><li><code>tests/runtime/test_scheduler.c</code> - Scheduler correctness tests</li><li><code>tests/runtime/test_scheduler_stress.c</code> - Concurrency stress tests</li><li><code>tests/runtime/test_scheduler_optimizations.c</code> - Optimization validation</li></ul>
+<nav class="doc-prevnext" aria-label="Previous and next page"><a class="pn-prev" href="/Docs/actor-concurrency.html"><span>Previous</span>Aether Runtime Guide</a><a class="pn-next" href="/Docs/memory-management.html"><span>Next</span>Aether Memory Management</a></nav>
       </article>
     </main>
     <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#main-thread-mode" class="l2" data-id="main-thread-mode">Main Thread Mode</a><a href="#cooperative-scheduler" class="l2" data-id="cooperative-scheduler">Cooperative Scheduler</a><a href="#actor-timeouts" class="l2" data-id="actor-timeouts">Actor Timeouts</a><a href="#cooperative-preemption" class="l2" data-id="cooperative-preemption">Cooperative Preemption</a><a href="#scheduler-usage" class="l2" data-id="scheduler-usage">Scheduler Usage</a><a href="#actor-allocation" class="l2" data-id="actor-allocation">Actor Allocation</a><a href="#message-flow" class="l2" data-id="message-flow">Message Flow</a><a href="#configuration" class="l2" data-id="configuration">Configuration</a><a href="#message-coalescing" class="l3" data-id="message-coalescing">Message Coalescing</a><a href="#adaptive-batch-size" class="l3" data-id="adaptive-batch-size">Adaptive Batch Size</a><a href="#mailbox-size" class="l3" data-id="mailbox-size">Mailbox Size</a><a href="#message-pool" class="l3" data-id="message-pool">Message Pool</a><a href="#cross-core-queue" class="l3" data-id="cross-core-queue">Cross-Core Queue</a><a href="#idle-detection" class="l2" data-id="idle-detection">Idle Detection</a><a href="#core-assignment-and-migration" class="l2" data-id="core-assignment-and-migration">Core Assignment and Migration</a><a href="#best-practices" class="l2" data-id="best-practices">Best Practices</a><a href="#troubleshooting" class="l2" data-id="troubleshooting">Troubleshooting</a><a href="#low-throughput" class="l3" data-id="low-throughput">Low Throughput</a><a href="#high-latency" class="l3" data-id="high-latency">High Latency</a><a href="#crashes" class="l3" data-id="crashes">Crashes</a><a href="#files-reference" class="l2" data-id="files-reference">Files Reference</a><a href="#headers" class="l3" data-id="headers">Headers</a><a href="#implementation" class="l3" data-id="implementation">Implementation</a><a href="#tests" class="l3" data-id="tests">Tests</a></nav>
@@ -242,21 +243,21 @@ ActorBase* actor = scheduler_spawn_actor(preferred_core, step_fn, <span class="k
       <p class="foot-status">v0.467 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
-      <h4>Docs</h4>
+      <h3 class="foot-h">Docs</h3>
       <a href="/Docs/getting-started.html">Getting Started</a>
       <a href="/Docs/tutorial.html">Tutorial</a>
       <a href="/Docs/language-reference.html">Language Reference</a>
       <a href="/Docs/stdlib-reference.html">Standard Library</a>
     </div>
     <div class="foot-col">
-      <h4>Project</h4>
+      <h3 class="foot-h">Project</h3>
       <a href="https://github.com/aether-lang-org/aether">GitHub</a>
       <a href="https://github.com/aether-lang-org/aether/issues">Issues</a>
       <a href="https://github.com/aether-lang-org/aether/blob/main/CHANGELOG.md">Changelog</a>
       <a href="https://github.com/sponsors/nicolas-maman">Sponsor</a>
     </div>
     <div class="foot-col">
-      <h4>Try</h4>
+      <h3 class="foot-h">Try</h3>
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html">Install</a>
       <a href="/Docs/architecture.html">Architecture</a>

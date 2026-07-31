@@ -134,6 +134,7 @@ main() {
 <ul><li><code>Isolated[T]</code> for scalar, string, and struct payloads.</li><li><code>isolate()</code> / <code>consume()</code> and ownership transfer into a function.</li><li>The full move checker (use-after-consume, use-after-<code>send</code>, heap-source reuse, loop-external consume all rejected; single-use, both-branch consume, fresh-per-iteration, and scalar-source reuse all accepted).</li><li>Zero-cost lowering: <code>Isolated[T]</code> is <code>T</code> in the emitted C; <code>isolate</code> and <code>consume</code> are the identity.</li></ul>
 <p>Deliberate follow-ups (each a natural next implementation phase):</p>
 <ul><li><strong>Actor mailbox payloads.</strong> Isolating a <code>message</code> <em>constructor</em> (<code>isolate(Task{...})</code>) and flowing it through the actor mailbox with auto-unwrap in <code>receive</code> is not wired yet: messages have a distinct construction and enqueue path from plain values. The move checker already enforces linearity at a <code>send(w, iso)</code> call site; only the message-payload codegen remains.</li><li><strong>Deep aliasing / escape proof</strong> for question 2 above, so <code>isolate(x)</code> can reject wrapping a value that another live binding still references.</li><li><strong><code>Isolated[Capability]</code></strong> as the type-level shape of a single-use, non -shareable capability token, once capability tokens are a first-class type.</li></ul>
+<nav class="doc-prevnext" aria-label="Previous and next page"><a class="pn-prev" href="/Docs/aether_compared_to_capsicum.html"><span>Previous</span>Aether Sandbox Model vs. BSD Capsicum: Architecture, Parallels, and FreeBSD Integration</a><a class="pn-next" href="/Docs/compile-time-eval.html"><span>Next</span>Compile-time constant evaluation (phase-1)</a></nav>
       </article>
     </main>
     <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#the-four-design-questions" class="l2" data-id="the-four-design-questions">The four design questions</a><a href="#the-move-checker" class="l2" data-id="the-move-checker">The move checker</a><a href="#what-lowers-and-runs-today-and-what-is-a-follow-up" class="l2" data-id="what-lowers-and-runs-today-and-what-is-a-follow-up">What lowers and runs today, and what is a follow-up</a></nav>
@@ -148,21 +149,21 @@ main() {
       <p class="foot-status">v0.467 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
-      <h4>Docs</h4>
+      <h3 class="foot-h">Docs</h3>
       <a href="/Docs/getting-started.html">Getting Started</a>
       <a href="/Docs/tutorial.html">Tutorial</a>
       <a href="/Docs/language-reference.html">Language Reference</a>
       <a href="/Docs/stdlib-reference.html">Standard Library</a>
     </div>
     <div class="foot-col">
-      <h4>Project</h4>
+      <h3 class="foot-h">Project</h3>
       <a href="https://github.com/aether-lang-org/aether">GitHub</a>
       <a href="https://github.com/aether-lang-org/aether/issues">Issues</a>
       <a href="https://github.com/aether-lang-org/aether/blob/main/CHANGELOG.md">Changelog</a>
       <a href="https://github.com/sponsors/nicolas-maman">Sponsor</a>
     </div>
     <div class="foot-col">
-      <h4>Try</h4>
+      <h3 class="foot-h">Try</h3>
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html">Install</a>
       <a href="/Docs/architecture.html">Architecture</a>

@@ -427,6 +427,25 @@ def group_of(order, cur):
     return "docs"
 
 
+def prevnext_html(order, titles, cur):
+    flat = [sl for _, slugs in order for sl in slugs]
+    if cur not in flat:
+        return ""
+    i = flat.index(cur)
+    parts = []
+    if i > 0:
+        p = flat[i - 1]
+        parts.append('<a class="pn-prev" href="/Docs/%s.html"><span>Previous</span>%s</a>'
+                     % (p, esc(strip_ticks(titles[p]))))
+    else:
+        parts.append('<span></span>')
+    if i < len(flat) - 1:
+        n = flat[i + 1]
+        parts.append('<a class="pn-next" href="/Docs/%s.html"><span>Next</span>%s</a>'
+                     % (n, esc(strip_ticks(titles[n]))))
+    return '<nav class="doc-prevnext" aria-label="Previous and next page">%s</nav>' % "".join(parts)
+
+
 def extract_headings(body_html):
     hs = []
     for m in re.finditer(r'<h([23]) id="([^"]+)">(.*?)</h\1>', body_html, re.S):
@@ -492,6 +511,7 @@ PAGE = """<!doctype html>
       <article class="doc-body" id="doc">
         <div class="bc"><span class="prompt">$</span>docs / {group}</div>
 {body}
+{prevnext}
       </article>
     </main>
     {toc}
@@ -506,21 +526,21 @@ PAGE = """<!doctype html>
       <p class="foot-status">v0.467 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
-      <h4>Docs</h4>
+      <h3 class="foot-h">Docs</h3>
       <a href="/Docs/getting-started.html">Getting Started</a>
       <a href="/Docs/tutorial.html">Tutorial</a>
       <a href="/Docs/language-reference.html">Language Reference</a>
       <a href="/Docs/stdlib-reference.html">Standard Library</a>
     </div>
     <div class="foot-col">
-      <h4>Project</h4>
+      <h3 class="foot-h">Project</h3>
       <a href="https://github.com/aether-lang-org/aether">GitHub</a>
       <a href="https://github.com/aether-lang-org/aether/issues">Issues</a>
       <a href="https://github.com/aether-lang-org/aether/blob/main/CHANGELOG.md">Changelog</a>
       <a href="https://github.com/sponsors/nicolas-maman">Sponsor</a>
     </div>
     <div class="foot-col">
-      <h4>Try</h4>
+      <h3 class="foot-h">Try</h3>
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html">Install</a>
       <a href="/Docs/architecture.html">Architecture</a>
@@ -566,6 +586,7 @@ def main():
             toc=toc_html(headings),
             canon="%s/Docs/%s.html" % (DOMAIN, slug),
             domain=DOMAIN,
+            prevnext=prevnext_html(order, titles, slug),
         )
         page = page.replace("github.com/nicolasmd87/aether", "github.com/aether-lang-org/aether")
         page = re.sub(r"\s*\u2014\s*", ", ", page)   # no em-dashes (house style)

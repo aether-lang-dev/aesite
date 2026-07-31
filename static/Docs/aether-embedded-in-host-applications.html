@@ -328,6 +328,7 @@ aether_spawn_sandboxed(grants, <span class="str">"/tmp/pricing"</span>, input_js
 <p>Most languages that support <code>LD_PRELOAD</code> containment (C, C++, Rust, Go with CGO) are general-purpose, the contained process is a full program that happens to be sandboxed.  Aether's advantage is that the <em>language itself</em> is designed for the builder-DSL-with-closures pattern:</p>
 <ul><li>The script's <em>structure</em> (trailing blocks, nested scopes) mirrors the system it configures</li><li><code>hide</code>/<code>seal except</code> provides author-side hygiene <em>within</em> the script (not security, the facade and LD_PRELOAD handle security)</li><li>The facade is a natural fit for Aether's <code>extern</code> mechanism</li><li>The compilation to <code>.so</code> is already part of the toolchain</li></ul>
 <p>The result: an Aether application can host Aether rules/config scripts with the same containment guarantees a Java application would get, facade for the API boundary, <code>LD_PRELOAD</code> for the OS boundary, and <code>hide</code>/<code>seal except</code> for the rule author's own code organization.</p>
+<nav class="doc-prevnext" aria-label="Previous and next page"><a class="pn-prev" href="/Docs/embedded-namespaces-and-host-bindings.html"><span>Previous</span>Aether as a Configuration Language, v2: Namespaces and Generated Bindings</a><a class="pn-next" href="/Docs/stdlib-reference.html"><span>Next</span>Aether Standard Library Reference</a></nav>
       </article>
     </main>
     <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#part-1-aethers-dsl-vs-the-configuration-language-landscape" class="l2" data-id="part-1-aethers-dsl-vs-the-configuration-language-landscape">Part 1: Aether's DSL vs. the configuration language landscape</a><a href="#context" class="l3" data-id="context">Context</a><a href="#where-aethers-dsl-sits" class="l3" data-id="where-aethers-dsl-sits">Where Aether's DSL sits</a><a href="#what-aethers-dsl-does-right-relative-to-the-complaints" class="l3" data-id="what-aethers-dsl-does-right-relative-to-the-complaints">What Aether's DSL does right relative to the complaints</a><a href="#the-honest-tradeoff" class="l3" data-id="the-honest-tradeoff">The honest tradeoff</a><a href="#part-2-embedding-aether-in-a-java-application" class="l2" data-id="part-2-embedding-aether-in-a-java-application">Part 2: Embedding Aether in a Java application</a><a href="#the-question" class="l3" data-id="the-question">The question</a><a href="#what-exists-today" class="l3" data-id="what-exists-today">What exists today</a><a href="#whats-needed" class="l3" data-id="whats-needed">What's needed</a><a href="#part-3-the-arexx-model-aether-drives-the-host" class="l2" data-id="part-3-the-arexx-model-aether-drives-the-host">Part 3: The ARexx model, Aether drives the host</a><a href="#the-insight" class="l3" data-id="the-insight">The insight</a><a href="#what-it-would-look-like" class="l3" data-id="what-it-would-look-like">What it would look like</a><a href="#the-arexx-parallel" class="l3" data-id="the-arexx-parallel">The ARexx parallel</a><a href="#what-aether-needs-for-this" class="l3" data-id="what-aether-needs-for-this">What Aether needs for this</a><a href="#the-facade-is-the-real-security-boundary" class="l3" data-id="the-facade-is-the-real-security-boundary">The facade is the real security boundary</a><a href="#risks-of-a-scriptable-config-language" class="l3" data-id="risks-of-a-scriptable-config-language">Risks of a scriptable config language</a><a href="#effort-estimate-current-state" class="l3" data-id="effort-estimate-current-state">Effort estimate, current state</a><a href="#conclusion" class="l3" data-id="conclusion">Conclusion</a><a href="#part-4-aether-hosting-aether-ld_preload-containment" class="l2" data-id="part-4-aether-hosting-aether-ld_preload-containment">Part 4: Aether hosting Aether, LD_PRELOAD containment</a><a href="#the-question" class="l3" data-id="the-question">The question</a><a href="#the-mechanism-already-exists" class="l3" data-id="the-mechanism-already-exists">The mechanism already exists</a><a href="#how-aether-hosts-aether" class="l3" data-id="how-aether-hosts-aether">How Aether hosts Aether</a><a href="#why-ld_preload-not-just-a-facade" class="l3" data-id="why-ld_preload-not-just-a-facade">Why LD_PRELOAD, not just a facade</a><a href="#what-this-means-for-rules-and-config-scripts" class="l3" data-id="what-this-means-for-rules-and-config-scripts">What this means for rules and config scripts</a><a href="#the-aether-specific-advantage" class="l3" data-id="the-aether-specific-advantage">The Aether-specific advantage</a></nav>
@@ -342,21 +343,21 @@ aether_spawn_sandboxed(grants, <span class="str">"/tmp/pricing"</span>, input_js
       <p class="foot-status">v0.467 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
-      <h4>Docs</h4>
+      <h3 class="foot-h">Docs</h3>
       <a href="/Docs/getting-started.html">Getting Started</a>
       <a href="/Docs/tutorial.html">Tutorial</a>
       <a href="/Docs/language-reference.html">Language Reference</a>
       <a href="/Docs/stdlib-reference.html">Standard Library</a>
     </div>
     <div class="foot-col">
-      <h4>Project</h4>
+      <h3 class="foot-h">Project</h3>
       <a href="https://github.com/aether-lang-org/aether">GitHub</a>
       <a href="https://github.com/aether-lang-org/aether/issues">Issues</a>
       <a href="https://github.com/aether-lang-org/aether/blob/main/CHANGELOG.md">Changelog</a>
       <a href="https://github.com/sponsors/nicolas-maman">Sponsor</a>
     </div>
     <div class="foot-col">
-      <h4>Try</h4>
+      <h3 class="foot-h">Try</h3>
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html">Install</a>
       <a href="/Docs/architecture.html">Architecture</a>

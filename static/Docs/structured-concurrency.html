@@ -181,6 +181,7 @@ main() {
 <p>Phase 1 can ship without Phase 2. Phase 2 can ship independently once Phase 1 is in, they touch different compiler subsystems.</p>
 <h2 id="references">References</h2>
 <ul><li><a href="/Docs/actor-concurrency.html"><code>docs/actor-concurrency.md</code></a>, current actor runtime.</li><li><a href="/Docs/hide-and-seal.html"><code>docs/hide-and-seal.md</code></a>, existing capability-denial primitive that Phase 2 extends.</li><li><a href="/Docs/containment-sandbox.html"><code>docs/containment-sandbox.md</code></a>, filesystem / network capability grants, natural pairing with Phase 2.</li><li><a href="https://www.erlang.org/doc/design_principles/des_princ.html">Erlang OTP design principles</a> the supervision-tree pattern we're borrowing.</li><li><a href="https://vorpus.org/blog/notes-on-structured-concurrency-or-go-statement-considered-harmful/">Nathaniel Smith, <em>Notes on structured concurrency</em></a> the Trio post that named the pattern. Aether takes the "structure" part but not the nursery/task primitive.</li></ul>
+<nav class="doc-prevnext" aria-label="Previous and next page"><a class="pn-prev" href="/Docs/allocators.html"><span>Previous</span>Allocators</a><a class="pn-next" href="/Docs/contract-folding.html"><span>Next</span>Compile-time contract folding, costed design</a></nav>
       </article>
     </main>
     <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#what-were-trying-to-fix" class="l2" data-id="what-were-trying-to-fix">What we're trying to fix</a><a href="#the-design-space-and-why-we-picked-what-we-picked" class="l2" data-id="the-design-space-and-why-we-picked-what-we-picked">The design space, and why we picked what we picked</a><a href="#the-two-rulings-worth-unpacking" class="l3" data-id="the-two-rulings-worth-unpacking">The two rulings worth unpacking</a><a href="#the-two-were-building" class="l3" data-id="the-two-were-building">The two we're building</a><a href="#phase-1-supervision-primitives" class="l2" data-id="phase-1-supervision-primitives">Phase 1, supervision primitives</a><a href="#what-the-runtime-must-expose" class="l3" data-id="what-the-runtime-must-expose">What the runtime must expose</a><a href="#language--stdlib-surface" class="l3" data-id="language--stdlib-surface">Language / stdlib surface</a><a href="#supervisor-as-a-library-actor" class="l3" data-id="supervisor-as-a-library-actor">Supervisor as a library actor</a><a href="#phase-2-capability-scoped-concurrency" class="l2" data-id="phase-2-capability-scoped-concurrency">Phase 2, capability-scoped concurrency</a><a href="#what-the-compiler-must-enforce" class="l3" data-id="what-the-compiler-must-enforce">What the compiler must enforce</a><a href="#worked-example" class="l3" data-id="worked-example">Worked example</a><a href="#whats-not-in-scope" class="l2" data-id="whats-not-in-scope">What's not in scope</a><a href="#order-of-work" class="l2" data-id="order-of-work">Order of work</a><a href="#references" class="l2" data-id="references">References</a></nav>
@@ -195,21 +196,21 @@ main() {
       <p class="foot-status">v0.467 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
-      <h4>Docs</h4>
+      <h3 class="foot-h">Docs</h3>
       <a href="/Docs/getting-started.html">Getting Started</a>
       <a href="/Docs/tutorial.html">Tutorial</a>
       <a href="/Docs/language-reference.html">Language Reference</a>
       <a href="/Docs/stdlib-reference.html">Standard Library</a>
     </div>
     <div class="foot-col">
-      <h4>Project</h4>
+      <h3 class="foot-h">Project</h3>
       <a href="https://github.com/aether-lang-org/aether">GitHub</a>
       <a href="https://github.com/aether-lang-org/aether/issues">Issues</a>
       <a href="https://github.com/aether-lang-org/aether/blob/main/CHANGELOG.md">Changelog</a>
       <a href="https://github.com/sponsors/nicolas-maman">Sponsor</a>
     </div>
     <div class="foot-col">
-      <h4>Try</h4>
+      <h3 class="foot-h">Try</h3>
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html">Install</a>
       <a href="/Docs/architecture.html">Architecture</a>

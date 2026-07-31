@@ -128,6 +128,7 @@
 <p>A function is <strong>pure</strong> when, transitively, it:</p>
 <ul><li>reaches no fs/net/os capability call (<code>file.*</code>/<code>dir.*</code>/<code>path.*</code>, <code>tcp.*</code>/ <code>http.*</code>, <code>os.*</code> time/exec live under <code>os</code>), and</li><li>mutates no caller-visible state, neither a parameter's pointee (<code>p.field = …</code>, <code>p[i] = …</code>) nor a module-level global.</li></ul>
 <p>The analysis is <strong>conservative</strong>: a function whose body it cannot see (an <code>extern</code>, or an unresolved name) is treated as impure, and a raw <code>extern</code> call inside a body is opaque and left unjudged (the same boundary the <code>--with=</code> gate and effect tags have). This is the determinism axis that complements the capability (access-control) axis, a function can be capability-empty yet impure (reads a clock handed to it), or hold <code>fs</code> yet be pure for fixed input. <code>__pure</code> resolves at compile time, so it gates optimizations and library features with zero runtime cost.</p>
+<nav class="doc-prevnext" aria-label="Previous and next page"><a class="pn-prev" href="/Docs/isolated.html"><span>Previous</span>Isolated[T]: move-only actor message payloads</a><a class="pn-next" href="/Docs/dsl-without-macros.html"><span>Next</span>DSL without macros, why Aether doesn't need macro_rules!</a></nav>
       </article>
     </main>
     <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#what-folds" class="l2" data-id="what-folds">What folds</a><a href="#what-does-not-fold-and-why" class="l2" data-id="what-does-not-fold-and-why">What does NOT fold (and why)</a><a href="#where-it-lives" class="l2" data-id="where-it-lives">Where it lives</a><a href="#phase-1-scope" class="l2" data-id="phase-1-scope">Phase-1 scope</a><a href="#purity-introspection-__purefn" class="l2" data-id="purity-introspection-__purefn">Purity introspection: __pure(fn)</a></nav>
@@ -142,21 +143,21 @@
       <p class="foot-status">v0.467 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
-      <h4>Docs</h4>
+      <h3 class="foot-h">Docs</h3>
       <a href="/Docs/getting-started.html">Getting Started</a>
       <a href="/Docs/tutorial.html">Tutorial</a>
       <a href="/Docs/language-reference.html">Language Reference</a>
       <a href="/Docs/stdlib-reference.html">Standard Library</a>
     </div>
     <div class="foot-col">
-      <h4>Project</h4>
+      <h3 class="foot-h">Project</h3>
       <a href="https://github.com/aether-lang-org/aether">GitHub</a>
       <a href="https://github.com/aether-lang-org/aether/issues">Issues</a>
       <a href="https://github.com/aether-lang-org/aether/blob/main/CHANGELOG.md">Changelog</a>
       <a href="https://github.com/sponsors/nicolas-maman">Sponsor</a>
     </div>
     <div class="foot-col">
-      <h4>Try</h4>
+      <h3 class="foot-h">Try</h3>
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html">Install</a>
       <a href="/Docs/architecture.html">Architecture</a>

@@ -190,6 +190,7 @@ main() {
 <p>Each phase gets its own follow-up issue.</p>
 <h2 id="references">References</h2>
 <ul><li><code>Isolated[T]</code> composes with distinct types.</li><li><code>Duration</code>, the first tagged-int type in Aether; serves as the operator-inheritance precedent (see TBD-2).</li><li>Bare-int → Duration at parameter passing is rejected; the strictness precedent for distinct types at call sites.</li><li><code>LLM.md</code> § "Runtime sequence of strings → <code>*StringSeq</code>, not <code>string[]</code>", exactly the class of mistake distinct types diagnose.</li><li><code>LLM.md</code> § "Ownership of <code>ptr</code>-typed returns", borrowed-vs-ref-counted is another candidate distinction.</li><li><code>docs/containment-sandbox.md</code> capability tokens, the prime use case.</li><li>Nim manual § "Distinct type", reference design including the <code>borrow</code> annotation (TBD-2 option C / D).</li></ul>
+<nav class="doc-prevnext" aria-label="Previous and next page"><a class="pn-prev" href="/Docs/type-inference-multi-value-returns.html"><span>Previous</span>Multi-Value Return Type Inference</a><a class="pn-next" href="/Docs/sequences.html"><span>Next</span>Sequences (*StringSeq)</a></nav>
       </article>
     </main>
     <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#implemented" class="l2" data-id="implemented">Implemented</a><a href="#goal" class="l2" data-id="goal">Goal</a><a href="#why-this-matters-for-aether" class="l2" data-id="why-this-matters-for-aether">Why this matters for Aether</a><a href="#sketch" class="l2" data-id="sketch">Sketch</a><a href="#lowering-confirmed-not-tbd" class="l2" data-id="lowering-confirmed-not-tbd">Lowering, confirmed (not TBD)</a><a href="#surface-confirmed-not-tbd" class="l2" data-id="surface-confirmed-not-tbd">Surface, confirmed (not TBD)</a><a href="#open-design-questions-tbd" class="l2" data-id="open-design-questions-tbd">Open design questions, TBD</a><a href="#tbd-1-cast-spelling" class="l3" data-id="tbd-1-cast-spelling">TBD-1: Cast spelling</a><a href="#tbd-2-operator-inheritance" class="l3" data-id="tbd-2-operator-inheritance">TBD-2: Operator inheritance</a><a href="#tbd-3-extern-signature-interaction" class="l3" data-id="tbd-3-extern-signature-interaction">TBD-3: Extern signature interaction</a><a href="#tbd-4-pattern-matching-destructure" class="l3" data-id="tbd-4-pattern-matching-destructure">TBD-4: Pattern matching destructure</a><a href="#tbd-5-format-string--interpolation-behaviour" class="l3" data-id="tbd-5-format-string--interpolation-behaviour">TBD-5: Format-string / interpolation behaviour</a><a href="#tbd-6-layered-distinct-distinct-over-distinct" class="l3" data-id="tbd-6-layered-distinct-distinct-over-distinct">TBD-6: Layered distinct (distinct over distinct)</a><a href="#implementation-phasing" class="l2" data-id="implementation-phasing">Implementation phasing</a><a href="#references" class="l2" data-id="references">References</a></nav>
@@ -204,21 +205,21 @@ main() {
       <p class="foot-status">v0.467 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
-      <h4>Docs</h4>
+      <h3 class="foot-h">Docs</h3>
       <a href="/Docs/getting-started.html">Getting Started</a>
       <a href="/Docs/tutorial.html">Tutorial</a>
       <a href="/Docs/language-reference.html">Language Reference</a>
       <a href="/Docs/stdlib-reference.html">Standard Library</a>
     </div>
     <div class="foot-col">
-      <h4>Project</h4>
+      <h3 class="foot-h">Project</h3>
       <a href="https://github.com/aether-lang-org/aether">GitHub</a>
       <a href="https://github.com/aether-lang-org/aether/issues">Issues</a>
       <a href="https://github.com/aether-lang-org/aether/blob/main/CHANGELOG.md">Changelog</a>
       <a href="https://github.com/sponsors/nicolas-maman">Sponsor</a>
     </div>
     <div class="foot-col">
-      <h4>Try</h4>
+      <h3 class="foot-h">Try</h3>
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html">Install</a>
       <a href="/Docs/architecture.html">Architecture</a>

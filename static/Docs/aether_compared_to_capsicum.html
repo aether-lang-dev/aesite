@@ -542,6 +542,7 @@ main() {
 <ul><li><a href="/Docs/containment-sandbox.html"><code>docs/containment-sandbox.md</code></a>, Aether's permission model and examples</li><li><a href="/Docs/aether-embedded-in-host-applications.html"><code>docs/aether-embedded-in-host-applications.md</code></a>, Hosted modules and capability-empty defaults</li><li><a href="/Docs/closures-and-builder-dsl.html"><code>docs/closures-and-builder-dsl.md</code></a>, Closure isolation and scope hygiene</li><li><a href="/Docs/emit-lib.html"><code>docs/emit-lib.md</code></a>, Embedding Aether as a library in host applications</li></ul>
 <h3 id="related-security-research">Related Security Research</h3>
 <ul><li><a href="http://www.trustedbsd.org/2010usenix-security-capsicum-website.pdf">USENIX Security 2010: Capsicum paper</a></li><li><a href="https://www.bsdcan.org/2014/schedule/track/Security/486.en.html">BSDCan 2014: Capsicum and Casper</a></li><li><a href="https://www.engr.mun.ca/~anderson/publications/2017/towards-oblivious-sandboxing.pdf">Oblivious Sandboxing with Capsicum</a></li></ul>
+<nav class="doc-prevnext" aria-label="Previous and next page"><a class="pn-prev" href="/Docs/json-parser-design.html"><span>Previous</span>std.json Design Notes</a><a class="pn-next" href="/Docs/isolated.html"><span>Next</span>Isolated[T]: move-only actor message payloads</a></nav>
       </article>
     </main>
     <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#executive-summary" class="l2" data-id="executive-summary">Executive Summary</a><a href="#part-1-sandbox-models-compared" class="l2" data-id="part-1-sandbox-models-compared">Part 1: Sandbox Models Compared</a><a href="#11-capsicum-os-level-capability-restrictions" class="l3" data-id="11-capsicum-os-level-capability-restrictions">1.1 Capsicum: OS-Level Capability Restrictions</a><a href="#12-aether-language-level-scope-based-isolation" class="l3" data-id="12-aether-language-level-scope-based-isolation">1.2 Aether: Language-Level Scope-Based Isolation</a><a href="#13-side-by-side-comparison" class="l3" data-id="13-side-by-side-comparison">1.3 Side-by-Side Comparison</a><a href="#part-14-closing-the-gap-what-ld_preload-needs-to-match-capsicum-on-linux" class="l2" data-id="part-14-closing-the-gap-what-ld_preload-needs-to-match-capsicum-on-linux">Part 1.4 Closing the Gap: What LD_PRELOAD Needs to Match Capsicum on Linux</a><a href="#part-2-architectural-parallels" class="l2" data-id="part-2-architectural-parallels">Part 2: Architectural Parallels</a><a href="#21-common-principles" class="l3" data-id="21-common-principles">2.1 Common Principles</a><a href="#22-where-they-differ" class="l3" data-id="22-where-they-differ">2.2 Where They Differ</a><a href="#part-3-opportunities-for-aether-on-freebsd" class="l2" data-id="part-3-opportunities-for-aether-on-freebsd">Part 3: Opportunities for Aether on FreeBSD</a><a href="#31-a-hybrid-approach-aether--capsicum" class="l3" data-id="31-a-hybrid-approach-aether--capsicum">3.1 A Hybrid Approach: Aether + Capsicum</a><a href="#32-concrete-implementation-roadmap" class="l3" data-id="32-concrete-implementation-roadmap">3.2 Concrete Implementation Roadmap</a><a href="#33-freebsd-specific-optimizations" class="l3" data-id="33-freebsd-specific-optimizations">3.3 FreeBSD-Specific Optimizations</a><a href="#part-4-real-world-use-cases-for-aether-on-freebsd" class="l2" data-id="part-4-real-world-use-cases-for-aether-on-freebsd">Part 4: Real-World Use Cases for Aether on FreeBSD</a><a href="#41-secure-configuration-management" class="l3" data-id="41-secure-configuration-management">4.1 Secure Configuration Management</a><a href="#42-plugin-system-for-services" class="l3" data-id="42-plugin-system-for-services">4.2 Plugin System for Services</a><a href="#43-secure-scripting-in-system-tools" class="l3" data-id="43-secure-scripting-in-system-tools">4.3 Secure Scripting in System Tools</a><a href="#part-5-challenges-and-limitations" class="l2" data-id="part-5-challenges-and-limitations">Part 5: Challenges and Limitations</a><a href="#51-capsicum-limitations" class="l3" data-id="51-capsicum-limitations">5.1 Capsicum Limitations</a><a href="#52-aether-limitations" class="l3" data-id="52-aether-limitations">5.2 Aether Limitations</a><a href="#part-6-roadmap-for-aether-on-freebsd" class="l2" data-id="part-6-roadmap-for-aether-on-freebsd">Part 6: Roadmap for Aether on FreeBSD</a><a href="#short-term-2-3-months" class="l3" data-id="short-term-2-3-months">Short Term (2-3 months)</a><a href="#medium-term-3-6-months" class="l3" data-id="medium-term-3-6-months">Medium Term (3-6 months)</a><a href="#long-term-6-months" class="l3" data-id="long-term-6-months">Long Term (6+ months)</a><a href="#part-7-conclusion" class="l2" data-id="part-7-conclusion">Part 7: Conclusion</a><a href="#references" class="l2" data-id="references">References</a><a href="#capsicum-documentation" class="l3" data-id="capsicum-documentation">Capsicum Documentation</a><a href="#aether-documentation" class="l3" data-id="aether-documentation">Aether Documentation</a><a href="#related-security-research" class="l3" data-id="related-security-research">Related Security Research</a></nav>
@@ -556,21 +557,21 @@ main() {
       <p class="foot-status">v0.467 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
-      <h4>Docs</h4>
+      <h3 class="foot-h">Docs</h3>
       <a href="/Docs/getting-started.html">Getting Started</a>
       <a href="/Docs/tutorial.html">Tutorial</a>
       <a href="/Docs/language-reference.html">Language Reference</a>
       <a href="/Docs/stdlib-reference.html">Standard Library</a>
     </div>
     <div class="foot-col">
-      <h4>Project</h4>
+      <h3 class="foot-h">Project</h3>
       <a href="https://github.com/aether-lang-org/aether">GitHub</a>
       <a href="https://github.com/aether-lang-org/aether/issues">Issues</a>
       <a href="https://github.com/aether-lang-org/aether/blob/main/CHANGELOG.md">Changelog</a>
       <a href="https://github.com/sponsors/nicolas-maman">Sponsor</a>
     </div>
     <div class="foot-col">
-      <h4>Try</h4>
+      <h3 class="foot-h">Try</h3>
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html">Install</a>
       <a href="/Docs/architecture.html">Architecture</a>

@@ -305,6 +305,7 @@ Stack trace (most recent call first):
 <p>See <a href="/Docs/memory-management.html">Memory Management</a> for details on arenas, pools, and allocation strategies.</p>
 <h2 id="patterns">Patterns</h2>
 <ul><li><strong>Per-process configuration</strong>, Aether rejects mutable assignment to module-level identifiers, so the C <code>static char *g_config</code> shape doesn't transcribe. The canonical replacement is the actor-singleton pattern: spawn one config actor at startup, drive writes via <code>Set*</code> messages, drive reads via <code>Get*</code> messages that carry an <code>actor_ref</code> reply target. See <a href="/Docs/per-process-config.html">per-process-config.md</a> for the worked example, the trade-offs (when message round-trip is acceptable vs. when to plumb the value as a parameter or worker-actor cache), and a port of a real C global-state shim.</li></ul>
+<nav class="doc-prevnext" aria-label="Previous and next page"><a class="pn-prev" href="/Docs/architecture.html"><span>Previous</span>Aether Architecture</a><a class="pn-next" href="/Docs/scheduler-quick-reference.html"><span>Next</span>Aether Scheduler - Quick Reference</a></nav>
       </article>
     </main>
     <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#performance-optimizations" class="l2" data-id="performance-optimizations">Performance Optimizations</a><a href="#scheduler-design" class="l3" data-id="scheduler-design">Scheduler Design</a><a href="#active-optimizations" class="l3" data-id="active-optimizations">Active Optimizations</a><a href="#actor-model" class="l2" data-id="actor-model">Actor Model</a><a href="#actor-lifecycle" class="l3" data-id="actor-lifecycle">Actor Lifecycle</a><a href="#actor-structure" class="l3" data-id="actor-structure">Actor Structure</a><a href="#message-passing" class="l2" data-id="message-passing">Message Passing</a><a href="#mailbox" class="l3" data-id="mailbox">Mailbox</a><a href="#message-structure" class="l3" data-id="message-structure">Message Structure</a><a href="#sending-messages" class="l3" data-id="sending-messages">Sending Messages</a><a href="#receiving-messages" class="l3" data-id="receiving-messages">Receiving Messages</a><a href="#actor-timeouts" class="l2" data-id="actor-timeouts">Actor Timeouts</a><a href="#panic-and-stack-traces" class="l2" data-id="panic-and-stack-traces">Panic and Stack Traces</a><a href="#heap-cleanup-on-unwind" class="l3" data-id="heap-cleanup-on-unwind">Heap cleanup on unwind</a><a href="#cooperative-preemption" class="l2" data-id="cooperative-preemption">Cooperative Preemption</a><a href="#single-core-runtime" class="l2" data-id="single-core-runtime">Single-Core Runtime</a><a href="#multi-core-runtime" class="l2" data-id="multi-core-runtime">Multi-Core Runtime</a><a href="#synchronization" class="l3" data-id="synchronization">Synchronization</a><a href="#initialization" class="l3" data-id="initialization">Initialization</a><a href="#core-assignment-and-migration" class="l3" data-id="core-assignment-and-migration">Core Assignment and Migration</a><a href="#message-routing" class="l3" data-id="message-routing">Message Routing</a><a href="#memory-management" class="l2" data-id="memory-management">Memory Management</a><a href="#memory-model" class="l2" data-id="memory-model">Memory Model</a><a href="#patterns" class="l2" data-id="patterns">Patterns</a></nav>
@@ -319,21 +320,21 @@ Stack trace (most recent call first):
       <p class="foot-status">v0.467 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
-      <h4>Docs</h4>
+      <h3 class="foot-h">Docs</h3>
       <a href="/Docs/getting-started.html">Getting Started</a>
       <a href="/Docs/tutorial.html">Tutorial</a>
       <a href="/Docs/language-reference.html">Language Reference</a>
       <a href="/Docs/stdlib-reference.html">Standard Library</a>
     </div>
     <div class="foot-col">
-      <h4>Project</h4>
+      <h3 class="foot-h">Project</h3>
       <a href="https://github.com/aether-lang-org/aether">GitHub</a>
       <a href="https://github.com/aether-lang-org/aether/issues">Issues</a>
       <a href="https://github.com/aether-lang-org/aether/blob/main/CHANGELOG.md">Changelog</a>
       <a href="https://github.com/sponsors/nicolas-maman">Sponsor</a>
     </div>
     <div class="foot-col">
-      <h4>Try</h4>
+      <h3 class="foot-h">Try</h3>
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html">Install</a>
       <a href="/Docs/architecture.html">Architecture</a>

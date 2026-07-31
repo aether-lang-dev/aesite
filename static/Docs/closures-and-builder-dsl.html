@@ -513,6 +513,7 @@ r = assert.expect_int(<span class="num">5</span>).to_equal(<span class="num">5</
 <ul><li><code>box_closure(c)</code> → heap-allocates an <code>_AeClosure</code> struct, returns <code>void*</code></li><li><code>unbox_closure(p)</code> → dereferences back to <code>_AeClosure</code></li></ul>
 <p>Additional builtins for interactive programs:</p>
 <ul><li><code>read_char()</code> → <code>getchar()</code> (blocking single-character input)</li><li><code>raw_mode()</code> / <code>cooked_mode()</code> → terminal mode switching (Unix <code>termios</code>)</li><li><code>char_at(str)</code> → ASCII value of first character</li><li><code>str_eq(a, b)</code> → string equality (returns 0 or 1)</li></ul>
+<nav class="doc-prevnext" aria-label="Previous and next page"><a class="pn-prev" href="/Docs/named-args-and-select.html"><span>Previous</span>Named Arguments and select()</a><a class="pn-next" href="/Docs/closures-and-lifetimes.html"><span>Next</span>Closures and Environment Lifetimes</a></nav>
       </article>
     </main>
     <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#quick-reckoner-llm-cheat-sheet" class="l2" data-id="quick-reckoner-llm-cheat-sheet">Quick reckoner (LLM cheat-sheet)</a><a href="#background" class="l2" data-id="background">Background</a><a href="#closure-syntax" class="l2" data-id="closure-syntax">Closure Syntax</a><a href="#invoking-closures" class="l2" data-id="invoking-closures">Invoking Closures</a><a href="#closures-as-function-parameters" class="l2" data-id="closures-as-function-parameters">Closures as Function Parameters</a><a href="#trailing-blocks" class="l2" data-id="trailing-blocks">Trailing Blocks</a><a href="#immediate-blocks-dsl-structure" class="l3" data-id="immediate-blocks-dsl-structure">Immediate blocks (DSL structure)</a><a href="#same-line-rule-for-trailing-blocks" class="l3" data-id="same-line-rule-for-trailing-blocks">Same-line rule for trailing blocks</a><a href="#closure-blocks-callbacks" class="l3" data-id="closure-blocks-callbacks">Closure blocks (callbacks)</a><a href="#callback-blocks" class="l3" data-id="callback-blocks">Callback blocks</a><a href="#dsl-block-receiver-scoping" class="l2" data-id="dsl-block-receiver-scoping">DSL Block Receiver Scoping</a><a href="#higher-order-functions" class="l2" data-id="higher-order-functions">Higher-Order Functions</a><a href="#builder-context-stack" class="l2" data-id="builder-context-stack">Builder Context Stack</a><a href="#invisible-context-injection" class="l2" data-id="invisible-context-injection">Invisible Context Injection</a><a href="#builder-functions-configure-then-execute" class="l2" data-id="builder-functions-configure-then-execute">Builder Functions, "Configure Then Execute"</a><a href="#defining-a-builder-function" class="l3" data-id="defining-a-builder-function">Defining a builder function</a><a href="#calling-a-builder-function" class="l3" data-id="calling-a-builder-function">Calling a builder function</a><a href="#builder-functions-can-return-values" class="l3" data-id="builder-functions-can-return-values">Builder functions can return values</a><a href="#choosing-the-config-factory-with-with" class="l3" data-id="choosing-the-config-factory-with-with">Choosing the config factory with with</a><a href="#generated-code" class="l3" data-id="generated-code">Generated code</a><a href="#ref-cells-shared-mutable-state-for-closures" class="l2" data-id="ref-cells-shared-mutable-state-for-closures">Ref Cells, Shared Mutable State for Closures</a><a href="#storing-closures-in-collections" class="l3" data-id="storing-closures-in-collections">Storing Closures in Collections</a><a href="#interactive-calculator-example" class="l3" data-id="interactive-calculator-example">Interactive Calculator Example</a><a href="#fluent-method-chaining-ufcs" class="l2" data-id="fluent-method-chaining-ufcs">Fluent Method Chaining (UFCS)</a><a href="#comparison-with-other-languages" class="l2" data-id="comparison-with-other-languages">Comparison with Other Languages</a><a href="#implementation-notes" class="l2" data-id="implementation-notes">Implementation Notes</a></nav>
@@ -527,21 +528,21 @@ r = assert.expect_int(<span class="num">5</span>).to_equal(<span class="num">5</
       <p class="foot-status">v0.467 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
-      <h4>Docs</h4>
+      <h3 class="foot-h">Docs</h3>
       <a href="/Docs/getting-started.html">Getting Started</a>
       <a href="/Docs/tutorial.html">Tutorial</a>
       <a href="/Docs/language-reference.html">Language Reference</a>
       <a href="/Docs/stdlib-reference.html">Standard Library</a>
     </div>
     <div class="foot-col">
-      <h4>Project</h4>
+      <h3 class="foot-h">Project</h3>
       <a href="https://github.com/aether-lang-org/aether">GitHub</a>
       <a href="https://github.com/aether-lang-org/aether/issues">Issues</a>
       <a href="https://github.com/aether-lang-org/aether/blob/main/CHANGELOG.md">Changelog</a>
       <a href="https://github.com/sponsors/nicolas-maman">Sponsor</a>
     </div>
     <div class="foot-col">
-      <h4>Try</h4>
+      <h3 class="foot-h">Try</h3>
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html">Install</a>
       <a href="/Docs/architecture.html">Architecture</a>
