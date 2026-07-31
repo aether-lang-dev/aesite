@@ -84,6 +84,31 @@ count = 42</div>
   </section>
 
 
+  <section class="feature alt">
+    <div class="wrap">
+      <h2 class="center-h">Inside the scheduler.</h2>
+      <p class="center-sub">Actors are not threads. The runtime pins one scheduler thread per core, then moves work around to keep messages on the fastest path.</p>
+      <div class="mech">
+        <div class="mech-item">
+          <div class="mech-k">Per-pair queues</div>
+          <p>Each sender and receiver pair gets its own single-producer, single-consumer queue, so two senders never contend for the same slot.</p>
+        </div>
+        <div class="mech-item">
+          <div class="mech-k">Cache-line padded</div>
+          <p>Head and tail sit on separate 64-byte lines, so the sending core and the receiving core never fight over the same line.</p>
+        </div>
+        <div class="mech-item">
+          <div class="mech-k">Work stealing</div>
+          <p>An idle core takes whole actors from a busy one, not individual messages, which keeps each actor's state on one core.</p>
+        </div>
+        <div class="mech-item">
+          <div class="mech-k">Migration</div>
+          <p>Actors that message each other often get moved onto the same core, where the handoff becomes a direct write.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <section class="pipe-section">
     <div class="wrap">
       <div class="pipeline">
