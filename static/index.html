@@ -110,6 +110,41 @@ count = 42</div>
     </div>
   </section>
 
+  <section class="feature">
+    <div class="wrap feature-grid">
+      <div class="feature-text">
+        <h2>Lock striping, without the locks.</h2>
+        <p>One actor owning hot state serializes every access. That is the single-mutex trap wearing a different hat. Spawn several shards instead, route each key to one of them, and operations on different keys land in different mailboxes on different cores.</p>
+        <p class="muted-p"><code>?</code> asks and waits for the answer, <code>reply</code> sends it back. Both are language syntax, not a library on top.</p>
+      </div>
+      <div class="panel term">
+        <div class="term-bar"><span class="file">sharded-map.ae</span></div>
+<pre class="run-src"><span class="kw">message</span> Get <span class="pn">{</span> key: <span class="fn">string</span> <span class="pn">}</span>
+<span class="kw">message</span> GetReply <span class="pn">{</span> value: <span class="fn">int</span> <span class="pn">}</span>
+
+<span class="kw">actor</span> <span class="fn">Shard</span> <span class="pn">{</span>
+    <span class="kw">state</span> store = <span class="fn">map_new</span>()
+
+    <span class="kw">receive</span> <span class="pn">{</span>
+        Get(key) -&gt; <span class="pn">{</span>
+            result = <span class="fn">map_get</span>(store, key)
+            <span class="kw">reply</span> GetReply <span class="pn">{</span> value: result <span class="pn">}</span>
+        <span class="pn">}</span>
+    <span class="pn">}</span>
+<span class="pn">}</span>
+
+<span class="fn">main</span>() <span class="pn">{</span>
+    shards = [<span class="kw">spawn</span>(<span class="fn">Shard</span>()), <span class="kw">spawn</span>(<span class="fn">Shard</span>()),
+              <span class="kw">spawn</span>(<span class="fn">Shard</span>()), <span class="kw">spawn</span>(<span class="fn">Shard</span>())]
+
+    <span class="com">// FNV-1a over the key, modulo the shard count</span>
+    idx = <span class="fn">shard_for</span>(key, <span class="num">4</span>)
+    got = shards[idx] <span class="kw">?</span> Get <span class="pn">{</span> key: key <span class="pn">}</span>
+<span class="pn">}</span></pre>
+      </div>
+    </div>
+  </section>
+
   <section class="pipe-section">
     <div class="wrap">
       <div class="pipeline">
