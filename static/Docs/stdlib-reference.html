@@ -1093,7 +1093,7 @@ main() {
     }
 }</code></pre>
 <p><strong>The <code>IoReady</code> message name is reserved.</strong> The runtime scheduler delivers I/O-readiness notifications under a fixed message ID; the Aether message registry assigns that same ID to any user message named <code>IoReady</code> so your handler sees the event as a normal receive arm.</p>
-<div class="tw"><table><thead><tr><th>Function</th><th>Returns</th><th>Description</th></tr></thead><tbody><tr><td><code>net.await_io(fd)</code></td><td><code>string</code></td><td>Register <code>fd</code> with the current core's I/O poller and suspend the calling actor. Returns <code>""</code> on success, error string on failure. One-shot: the fd is automatically unregistered after the next <code>IoReady</code> delivery.</td></tr><tr><td><code>net.ae_io_cancel(fd)</code></td><td>, </td><td>Abandon a pending <code>await_io</code> without waiting for the message. Rarely needed due to one-shot policy.</td></tr></tbody></table></div>
+<div class="tw"><table><thead><tr><th>Function</th><th>Returns</th><th>Description</th></tr></thead><tbody><tr><td><code>net.await_io(fd)</code></td><td><code>string</code></td><td>Register <code>fd</code> with the current core's I/O poller and suspend the calling actor. Returns <code>""</code> on success, error string on failure. One-shot: the fd is automatically unregistered after the next <code>IoReady</code> delivery.</td></tr><tr><td><code>net.ae_io_cancel(fd)</code></td><td>,</td><td>Abandon a pending <code>await_io</code> without waiting for the message. Rarely needed due to one-shot policy.</td></tr></tbody></table></div>
 <p><strong>Constraints:</strong></p>
 <ul><li><code>await_io</code> must be called from inside an actor's <code>receive</code> handler (not from <code>main()</code>). The bridge reads the current actor from a TLS set at the top of every generated <code>_step()</code> function.</li><li>Single-actor programs run in main-thread mode which bypasses the scheduler loop, and therefore the I/O reactor. Spawn at least two actors to force multi-threaded scheduler mode if you want <code>await_io</code> to function.</li><li>The fd must outlive the <code>await_io</code> registration. If you close the fd before the <code>IoReady</code> fires, behavior depends on the backend (epoll reports EPOLLHUP; kqueue silently drops the one-shot).</li></ul>
 <p><strong>Performance:</strong> a C-level benchmark demonstrated the raw reactor pattern delivering substantially higher HTTP throughput than the blocking keep-alive worker it replaced. <code>await_io</code> is the Aether-language surface over the same runtime machinery, rerun the HTTP benchmark on your own target host before relying on historical numbers.</p>
@@ -1359,7 +1359,7 @@ handle_request(req: <span class="fn">ptr</span>, res: <span class="fn">ptr</span
       <a href="https://github.com/aether-lang-org/aether">GitHub</a>
       <a href="https://github.com/aether-lang-org/aether/issues">Issues</a>
       <a href="https://github.com/aether-lang-org/aether/blob/main/CHANGELOG.md">Changelog</a>
-      <a href="https://github.com/sponsors/nicolasmd87">Sponsor</a>
+      <a href="https://github.com/sponsors/nicolas-maman">Sponsor</a>
     </div>
     <div class="foot-col">
       <h4>Try</h4>
