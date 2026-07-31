@@ -26,7 +26,7 @@
     <nav>
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
-      <a class="src" href="https://github.com/aether-lang-org/aether">Source</a>
+      <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
       <span class="vtag">v0.467</span>
     </nav>
   </div>
@@ -226,7 +226,7 @@ ae build --emit=lib --with=all          file.ae   <span class="com"># alias for 
 <p>What gets <code>static</code> storage class versus external linkage in the generated <code>.c</code> file, by function origin × emit mode. This determines which symbols collide when multiple <code>.c</code> files compiled from different <code>.ae</code> sources are linked into one binary.</p>
 <div class="tw"><table><thead><tr><th>Function origin</th><th><code>--emit=exe</code></th><th><code>--emit=lib</code></th></tr></thead><tbody><tr><td>Local (defined in this <code>.ae</code>)</td><td>external</td><td>external + <code>aether_&lt;name&gt;</code> alias</td></tr><tr><td>Local with trailing <code>_</code> (<code>helper_</code>)</td><td><strong><code>static</code></strong></td><td><strong><code>static</code></strong> (no <code>aether_&lt;name&gt;</code> alias)</td></tr><tr><td>Local with tuple return type</td><td>external</td><td>external (no <code>aether_&lt;name&gt;</code> alias)</td></tr><tr><td>Imported Aether wrapper</td><td><strong><code>static</code></strong></td><td><strong><code>static</code></strong> (no <code>aether_&lt;name&gt;</code> alias)</td></tr><tr><td><code>extern</code> declaration (any module)</td><td>declaration only, refers to external symbol from <code>libaether.a</code> or another TU</td></tr><tr><td>Stdlib C externs (<code>std/*/aether_*.c</code>)</td><td>linked from <code>libaether.a</code>; no per-TU duplication</td></tr></tbody></table></div>
 <p>Two consequences worth highlighting:</p>
-<p><strong>Imported Aether wrappers are private to each TU.</strong> When module A and module B both <code>import std.string</code>, both generated <code>.c</code> files contain <code>static const char* string_copy(...)</code> a private copy each. Linking the two <code>.o</code> files together produces no duplicate-symbol errors, even on linkers that don't support <code>-Wl,--allow-multiple-definition</code> (notably macOS ld64). This is deliberate; see <a href="https://github.com/aether-lang-org/aether/tree/main/compiler/aether_module.c"><code>compiler/aether_module.c</code></a> where cloned imported functions get <code>clone-&gt;is_imported = 1</code>, and <a href="https://github.com/aether-lang-org/aether/tree/main/compiler/codegen/codegen_func.c"><code>compiler/codegen/codegen_func.c</code></a> where the <code>static </code> prefix is emitted for functions guarded by <code>func-&gt;is_imported || trailing_underscore_private</code>.</p>
+<p><strong>Imported Aether wrappers are private to each TU.</strong> When module A and module B both <code>import std.string</code>, both generated <code>.c</code> files contain <code>static const char* string_copy(...)</code> a private copy each. Linking the two <code>.o</code> files together produces no duplicate-symbol errors, even on linkers that don't support <code>-Wl,--allow-multiple-definition</code> (notably macOS ld64). This is deliberate; see <a href="https://github.com/aether-lang-dev/aether/tree/main/compiler/aether_module.c"><code>compiler/aether_module.c</code></a> where cloned imported functions get <code>clone-&gt;is_imported = 1</code>, and <a href="https://github.com/aether-lang-dev/aether/tree/main/compiler/codegen/codegen_func.c"><code>compiler/codegen/codegen_func.c</code></a> where the <code>static </code> prefix is emitted for functions guarded by <code>func-&gt;is_imported || trailing_underscore_private</code>.</p>
 <p><strong>Locally-defined functions retain external linkage.</strong> If two <code>.ae</code> files both define a function with the same name (e.g. both define <code>helper</code>), they DO collide at link time. <code>--emit=lib</code> adds an <code>aether_&lt;name&gt;</code> alias on top, but the un-aliased local symbol is still external. This is the symmetric opposite of the imported case and is intentional, local functions are the unit of inter-TU linking; the user program structures around their names.</p>
 <p><strong>Implication for downstream tools.</strong> Multi-TU binaries that import the same SDK module across many <code>.ae</code> files do not need <code>-Wl,--allow-multiple-definition</code>. The static-marking on imported wrappers handles deduplication at the source level. Tools building this shape can drop the link flag and gain macOS compatibility for free, <code>ld64</code> (Apple's linker) silently rejects <code>--allow-multiple-definition</code>, and the static-marking removes the need for it.</p>
 <h2 id="using-swig-to-generate-javapythonrubygo-bindings">Using SWIG to generate Java/Python/Ruby/Go bindings</h2>
@@ -415,9 +415,9 @@ for i in range(meta.function_count):
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Project</h3>
-      <a href="https://github.com/aether-lang-org/aether">GitHub</a>
-      <a href="https://github.com/aether-lang-org/aether/issues">Issues</a>
-      <a href="https://github.com/aether-lang-org/aether/blob/main/CHANGELOG.md">Changelog</a>
+      <a href="https://github.com/aether-lang-dev/aether">GitHub</a>
+      <a href="https://github.com/aether-lang-dev/aether/issues">Issues</a>
+      <a href="https://github.com/aether-lang-dev/aether/blob/main/CHANGELOG.md">Changelog</a>
       <a href="https://github.com/sponsors/nicolas-maman">Sponsor</a>
     </div>
     <div class="foot-col">

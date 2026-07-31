@@ -20,7 +20,7 @@ WORKDIR /home/runner/app
 COPY --chown=runner:runner . .
 
 # Same install method the CI uses (proven), scoped to the runner user.
-RUN curl -sSL https://raw.githubusercontent.com/aether-lang-org/aether/main/get.sh \
+RUN curl -sSL https://raw.githubusercontent.com/aether-lang-dev/aether/main/get.sh \
       | PREFIX="$HOME/.local" sh
 ENV PATH="/home/runner/.local/bin:${PATH}"
 RUN ae build serve.ae -o aesite-serve

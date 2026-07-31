@@ -26,7 +26,7 @@
     <nav>
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
-      <a class="src" href="https://github.com/aether-lang-org/aether">Source</a>
+      <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
       <span class="vtag">v0.467</span>
     </nav>
   </div>
@@ -127,7 +127,7 @@
 <p>There is no fourth kind, and there must never be one that is fetched transparently. An <code>import</code> is a pointer into the local filesystem, period. The lcamtuf post's core horror, <code>#include &lt;https://...&gt;</code> looking local, is structurally impossible in Aether because the import grammar has no URL production and the resolver has no network code path.</p>
 <p>If a future need for remote packages arises, it belongs to <code>aeb</code>, not to <code>import</code> (see below). It must never be reachable by writing an <code>import</code> statement.</p>
 <h3 id="3-if-remote-packages-ever-exist-fetch-is-a-separate-audited-pinned-step">3. If remote packages ever exist, fetch is a separate, audited, pinned step</h3>
-<p><code>aeb</code> (the external multi-package build system, github.com/aether-lang-org/aeb) reads <code>share/aether/MANIFEST</code> to discover link-suitable runtime/stdlib <code>.c</code> files; <a href="/Docs/install-layout.html">install-layout.md</a> documents the MANIFEST contract it consumes. Today it operates entirely on the local install tree.</p>
+<p><code>aeb</code> (the external multi-package build system, github.com/aether-lang-dev/aeb) reads <code>share/aether/MANIFEST</code> to discover link-suitable runtime/stdlib <code>.c</code> files; <a href="/Docs/install-layout.html">install-layout.md</a> documents the MANIFEST contract it consumes. Today it operates entirely on the local install tree.</p>
 <p>Should <code>aeb</code> ever grow remote package fetch, the lcamtuf post is the cautionary tale for <em>how not to do it</em>. The non-negotiable constraints:</p>
 <ul><li><strong>Fetch is a distinct command</strong>, not a side effect of build. <code>aeb fetch</code> is separate from <code>aeb build</code>. A build never reaches the network.</li><li><strong>Pinned by content hash.</strong> A lockfile records the exact hash of every fetched artifact. A build verifies hashes against the lockfile and fails on mismatch. The build's inputs are reproducible and auditable.</li><li><strong>Fetched code is contrib-vendored, then reviewed.</strong> A fetched package lands as files on disk that a human (or CI) can diff before it is ever compiled, not streamed straight into the compiler.</li><li><strong>Fetch runs without compiler authority.</strong> The thing that touches the network is not the thing that generates code.</li></ul>
 <p>The principle: <strong>transparent or build-time-implicit remote resolution is permanently off the table.</strong> Provenance must always be visible, pinned, and separable from the build.</p>
@@ -160,9 +160,9 @@
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Project</h3>
-      <a href="https://github.com/aether-lang-org/aether">GitHub</a>
-      <a href="https://github.com/aether-lang-org/aether/issues">Issues</a>
-      <a href="https://github.com/aether-lang-org/aether/blob/main/CHANGELOG.md">Changelog</a>
+      <a href="https://github.com/aether-lang-dev/aether">GitHub</a>
+      <a href="https://github.com/aether-lang-dev/aether/issues">Issues</a>
+      <a href="https://github.com/aether-lang-dev/aether/blob/main/CHANGELOG.md">Changelog</a>
       <a href="https://github.com/sponsors/nicolas-maman">Sponsor</a>
     </div>
     <div class="foot-col">

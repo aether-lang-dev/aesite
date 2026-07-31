@@ -18,7 +18,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/aether.css">
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Aether","alternateName":"Aether programming language","url":"https://aether-lang.dev/","applicationCategory":"DeveloperApplication","operatingSystem":"Linux, macOS, Windows, FreeBSD","description":"A compiled, actor-based systems language that compiles to readable C. Message-passing concurrency, type inference, and pattern matching, with no VM and no garbage collector.","softwareVersion":"0.467","license":"https://opensource.org/licenses/MIT","codeRepository":"https://github.com/aether-lang-org/aether","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}
+{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Aether","alternateName":"Aether programming language","url":"https://aether-lang.dev/","applicationCategory":"DeveloperApplication","operatingSystem":"Linux, macOS, Windows, FreeBSD","description":"A compiled, actor-based systems language that compiles to readable C. Message-passing concurrency, type inference, and pattern matching, with no VM and no garbage collector.","softwareVersion":"0.467","license":"https://opensource.org/licenses/MIT","codeRepository":"https://github.com/aether-lang-dev/aether","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}
 </script>
 
 </head>
@@ -30,7 +30,7 @@
     <nav>
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html">Docs</a>
-      <a class="src" href="https://github.com/aether-lang-org/aether">Source</a>
+      <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
       <span class="vtag">v0.467</span>
     </nav>
   </div>
@@ -226,7 +226,7 @@ q = <span class="fn">safe_divide</span>(<span class="num">10</span>, <span class
       <div class="feature-text">
         <h2>The reverse proxy ships with the language.</h2>
         <p>Three weighted upstreams, health probes every five seconds, and a breaker that opens after five consecutive failures. The same file adds an LRU response cache, per-upstream rate limiting, retries with jittered backoff, and a Prometheus endpoint.</p>
-        <p class="muted-p">No framework, no sidecar. All of it is <code>std.http.proxy</code>, and the example is <a href="https://github.com/aether-lang-org/aether/blob/main/examples/stdlib/http-reverse-proxy-pool.ae">in the repo</a>.</p>
+        <p class="muted-p">No framework, no sidecar. All of it is <code>std.http.proxy</code>, and the example is <a href="https://github.com/aether-lang-dev/aether/blob/main/examples/stdlib/http-reverse-proxy-pool.ae">in the repo</a>.</p>
       </div>
       <div class="panel term">
         <div class="term-bar"><span class="file">http-reverse-proxy-pool.ae</span></div>
@@ -275,11 +275,11 @@ proxy.<span class="fn">breaker_configure</span>(pool, <span class="num">5</span>
       <div class="rows">
         <div class="row"><div class="row-k">One toolchain</div><div class="row-v">A single <code>ae</code> command: <code>init</code>, <code>run</code>, <code>build</code>, <code>test</code>, <code>fmt</code>, and <code>check</code>, plus <code>ae add github.com/user/repo</code> to pull packages from any git host.</div></div>
         <div class="row"><div class="row-k">Standard library</div><div class="row-v">A production HTTP stack in <code>std.http</code>: routing, TLS, HTTP/2, WebSocket, SSE, and a full reverse proxy with load balancing, health checks, and caching. Plus JSON, a full cryptography suite, regex, UUID, msgpack and CBOR, and compression.</div></div>
-        <div class="row"><div class="row-k">Imports</div><div class="row-v">Imports work like Java's, not C's: <code>import a.b.c</code> is a hierarchical package path resolved to a nested module tree, and calls stay namespaced (<code>c.fn()</code>) — no flat global symbol soup. Opt into bare names with <code>import a.b.c (name)</code> or <code>(*)</code>, the <code>import static</code> / star-import equivalents.</div></div>
+        <div class="row"><div class="row-k">Imports</div><div class="row-v">Imports work like Java's, not C's: <code>import a.b.c</code> is a hierarchical package path resolved to a nested module tree, and calls stay namespaced (<code>c.fn()</code>), no flat global symbol soup. Opt into bare names with <code>import a.b.c (name)</code> or <code>(*)</code>, the <code>import static</code> / star-import equivalents.</div></div>
         <div class="row"><div class="row-k">C interop</div><div class="row-v">Call any C library by declaring an <code>extern</code>. Tuple returns bind struct-returning C APIs with zero glue. Or embed Aether in Python, Java, and Ruby with <code>--emit=lib</code>.</div></div>
         <div class="row"><div class="row-k">Cross-compile</div><div class="row-v">One flag: <code>ae build --target=aarch64-linux</code>, using zig as the cross toolchain, so no cross-gcc and no sysroot. Cross builds leave out the OpenSSL, zlib, nghttp2 and PCRE2 features. WebAssembly runs the same actor code on a cooperative scheduler.</div></div>
         <div class="row"><div class="row-k">Capabilities</div><div class="row-v">What a program may touch, the filesystem, the network, other processes, is a language concern here, not a deployment afterthought. <code>hide</code> and <code>seal</code> deny names at compile time, a preloaded shim checks the same grants at the libc boundary and inherits them across <code>exec</code>, and on FreeBSD the kernel enforces them through Capsicum. Every check, allowed or denied, lands in an audit ring you can read from inside the program.</div></div>
-        <div class="row"><div class="row-k">Memory</div><div class="row-v">No garbage collector. <code>defer</code> frees memory at scope exit, and the compiler tracks string ownership so heap strings are reclaimed automatically. A caught panic frees exactly what its <code>defer</code>s would have: the runtime journals armed allocations and drains them before it unwinds.</div></div>
+        <div class="row"><div class="row-k">Memory</div><div class="row-v">RAII, emitted by the compiler rather than written as destructors. No garbage collector and no borrow checker: <code>defer</code> frees at scope exit, and heap-string ownership is tracked for you. A caught panic frees exactly what its <code>defer</code>s would have, because the runtime journals armed allocations and drains them before it unwinds.</div></div>
       </div>
     </div>
   </section>
@@ -319,9 +319,9 @@ proxy.<span class="fn">breaker_configure</span>(pool, <span class="num">5</span>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Project</h3>
-      <a href="https://github.com/aether-lang-org/aether">GitHub</a>
-      <a href="https://github.com/aether-lang-org/aether/issues">Issues</a>
-      <a href="https://github.com/aether-lang-org/aether/blob/main/CHANGELOG.md">Changelog</a>
+      <a href="https://github.com/aether-lang-dev/aether">GitHub</a>
+      <a href="https://github.com/aether-lang-dev/aether/issues">Issues</a>
+      <a href="https://github.com/aether-lang-dev/aether/blob/main/CHANGELOG.md">Changelog</a>
       <a href="https://github.com/sponsors/nicolas-maman">Sponsor</a>
     </div>
     <div class="foot-col">

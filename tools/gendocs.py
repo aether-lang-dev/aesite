@@ -21,7 +21,7 @@ import re
 import sys
 
 VERSION = "0.467"
-GH = "https://github.com/aether-lang-org/aether"
+GH = "https://github.com/aether-lang-dev/aether"
 SITE = "Aether"
 DOMAIN = "https://aether-lang.dev"
 
@@ -538,9 +538,9 @@ PAGE = """<!doctype html>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Project</h3>
-      <a href="https://github.com/aether-lang-org/aether">GitHub</a>
-      <a href="https://github.com/aether-lang-org/aether/issues">Issues</a>
-      <a href="https://github.com/aether-lang-org/aether/blob/main/CHANGELOG.md">Changelog</a>
+      <a href="https://github.com/aether-lang-dev/aether">GitHub</a>
+      <a href="https://github.com/aether-lang-dev/aether/issues">Issues</a>
+      <a href="https://github.com/aether-lang-dev/aether/blob/main/CHANGELOG.md">Changelog</a>
       <a href="https://github.com/sponsors/nicolas-maman">Sponsor</a>
     </div>
     <div class="foot-col">
@@ -592,7 +592,7 @@ def main():
             domain=DOMAIN,
             prevnext=prevnext_html(order, titles, slug),
         )
-        page = page.replace("github.com/nicolasmd87/aether", "github.com/aether-lang-org/aether")
+        page = page.replace("github.com/nicolasmd87/aether", "github.com/aether-lang-dev/aether")
         page = re.sub(r"\s*\u2014\s*", ", ", page)   # no em-dashes (house style)
         with open(os.path.join(out, slug + ".html"), "w", encoding="utf-8") as fh:
             fh.write(page)
