@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Playground · Aether</title>
+<title>Examples · Aether</title>
 <meta name="description" content="Six annotated Aether examples with real output, covering actors, error handling, pattern matching, and C interop.">
 <meta name="aesite-exec" content="">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Playground · Aether">
+<meta property="og:title" content="Examples · Aether">
 <meta property="og:description" content="Six annotated Aether examples with real output, covering actors, error handling, pattern matching, and C interop.">
 <meta property="og:url" content="https://aether-lang.dev/repl.html">
 <meta property="og:image" content="https://aether-lang.dev/og.png">
@@ -25,7 +25,7 @@
   <div class="wrap bar">
     <a class="brand" href="/" aria-label="Aether"><span class="ae">ae</span><span class="nm">aether</span></a>
     <nav>
-      <a href="/repl.html" class="on">Playground</a>
+      <a href="/repl.html" class="on">Examples</a>
       <a href="/Docs/getting-started.html">Docs</a>
       <a class="src" href="https://github.com/aether-lang-org/aether">Source</a>
       <span class="vtag">v0.467</span>
@@ -34,7 +34,7 @@
 </header>
 
 <main class="wrap" id="main">
-  <div class="sec-head" style="padding-top:44px"><h2>Playground</h2><span class="rule"></span></div>
+  <div class="sec-head" style="padding-top:44px"><h2 id="pgtitle">Examples</h2><span class="rule"></span></div>
   <div class="repl">
     <div class="lessons" id="lessons"><div class="lh">Lessons</div></div>
     <div class="stage">
@@ -44,7 +44,7 @@
         <textarea id="ed" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" aria-label="Aether code editor"></textarea>
       </div>
       <div class="runbar">
-        <button class="run" id="run">Run &rsaquo;</button>
+        <button class="run" id="run">Show output</button>
         <button class="ghostbtn" id="copy" title="Copy code to clipboard">Copy</button>
         <span class="hint" id="mode"></span>
         <span class="lnav"><button id="prev">&larr; prev</button><button id="next">next &rarr;</button></span>
@@ -77,7 +77,7 @@
     </div>
     <div class="foot-col">
       <h4>Try</h4>
-      <a href="/repl.html">Playground</a>
+      <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html">Install</a>
       <a href="/Docs/architecture.html">Architecture</a>
     </div>
@@ -172,9 +172,15 @@
   }
 
   function setMode(){
-    modeEl.innerHTML=LIVE
-      ? 'connected &middot; runs your code on an Aether backend'
-      : 'annotated examples with real output &middot; install Aether to run your own code';
+    var t=document.getElementById("pgtitle");
+    if(LIVE){
+      modeEl.innerHTML='connected &middot; runs your code on an Aether backend';
+      runBtn.textContent='Run \u203a';
+      if(t) t.textContent='Playground';
+      document.title='Playground \u00b7 Aether';
+    }else{
+      modeEl.innerHTML='real output, captured by running each example with ae';
+    }
   }
 
   ed.addEventListener("input",paint);

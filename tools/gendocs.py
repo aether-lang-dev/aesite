@@ -476,7 +476,7 @@ PAGE = """<!doctype html>
   <div class="wrap bar">
     <a class="brand" href="/" aria-label="Aether"><span class="ae">ae</span><span class="nm">aether</span></a>
     <nav>
-      <a href="/repl.html">Playground</a>
+      <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="{gh}">Source</a>
       <span class="vtag">v{version}</span>
@@ -521,7 +521,7 @@ PAGE = """<!doctype html>
     </div>
     <div class="foot-col">
       <h4>Try</h4>
-      <a href="/repl.html">Playground</a>
+      <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html">Install</a>
       <a href="/Docs/architecture.html">Architecture</a>
     </div>
