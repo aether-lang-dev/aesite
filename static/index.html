@@ -106,6 +106,7 @@ count = 42</div>
           <p>Actors that message each other often get moved onto the same core, where the handoff becomes a direct write.</p>
         </div>
       </div>
+      <p class="mech-note">The compiler knows the scheduler is there. A loop that fans out messages is batched and sorted by target core, and a message carrying a single scalar rides in a register instead of the heap.</p>
     </div>
   </section>
 
@@ -185,6 +186,31 @@ q = <span class="fn">safe_divide</span>(<span class="num">10</span>, <span class
     </div>
   </section>
 
+  <section class="feature">
+    <div class="wrap feature-grid">
+      <div class="feature-text">
+        <h2>A load balancer in 134 lines.</h2>
+        <p>Three weighted upstreams, health probes every five seconds, and a breaker that opens after five consecutive failures. The same file adds an LRU response cache, per-upstream rate limiting, retries with jittered backoff, and a Prometheus endpoint.</p>
+        <p class="muted-p">No framework, no sidecar. It is <code>std.http.proxy</code>, and the whole example is <a href="https://github.com/aether-lang-org/aether/blob/main/examples/stdlib/http-reverse-proxy-pool.ae">in the repo</a>.</p>
+      </div>
+      <div class="panel term">
+        <div class="term-bar"><span class="file">http-reverse-proxy-pool.ae</span></div>
+<pre class="run-src">pool = proxy.<span class="fn">upstream_pool_new</span>(<span class="str">"weighted_rr"</span>, <span class="num">30</span>, <span class="num">0</span>, <span class="num">0</span>)
+
+proxy.<span class="fn">upstream_add</span>(pool, <span class="str">"http://localhost:9001"</span>, <span class="num">3</span>)
+proxy.<span class="fn">upstream_add</span>(pool, <span class="str">"http://localhost:9002"</span>, <span class="num">2</span>)
+proxy.<span class="fn">upstream_add</span>(pool, <span class="str">"http://localhost:9003"</span>, <span class="num">1</span>)
+
+<span class="com">// probe /health every 5s, two good marks it up</span>
+proxy.<span class="fn">health_checks_enable</span>(pool, <span class="str">"/health"</span>,
+                             <span class="num">200</span>, <span class="num">5000</span>, <span class="num">2000</span>, <span class="num">2</span>, <span class="num">2</span>)
+
+<span class="com">// five failures in a row opens the breaker for 30s</span>
+proxy.<span class="fn">breaker_configure</span>(pool, <span class="num">5</span>, <span class="num">30000</span>, <span class="num">1</span>)</pre>
+      </div>
+    </div>
+  </section>
+
   <section class="feature alt flip">
     <div class="wrap feature-grid">
       <div class="feature-text">
@@ -216,7 +242,7 @@ q = <span class="fn">safe_divide</span>(<span class="num">10</span>, <span class
         <div class="row"><div class="row-k">C interop</div><div class="row-v">Call any C library by declaring an <code>extern</code>. Tuple returns bind struct-returning C APIs with zero glue. Or embed Aether in Python, Java, and Ruby with <code>--emit=lib</code>.</div></div>
         <div class="row"><div class="row-k">Cross-compile</div><div class="row-v">One flag: <code>ae build --target=aarch64-linux</code>, using zig as the cross toolchain, so no cross-gcc and no sysroot. Cross builds leave out the OpenSSL, zlib, nghttp2 and PCRE2 features. WebAssembly runs the same actor code on a cooperative scheduler.</div></div>
         <div class="row"><div class="row-k">Capabilities</div><div class="row-v">What a program may touch, the filesystem, the network, other processes, is a language concern here, not a deployment afterthought. <code>hide</code> and <code>seal</code> deny names at compile time, a preloaded shim checks the same grants at the libc boundary and inherits them across <code>exec</code>, and on FreeBSD the kernel enforces them through Capsicum. Every check, allowed or denied, lands in an audit ring you can read from inside the program.</div></div>
-        <div class="row"><div class="row-k">Memory</div><div class="row-v">No garbage collector. <code>defer</code> frees memory at scope exit, and the compiler tracks string ownership so heap strings are reclaimed automatically.</div></div>
+        <div class="row"><div class="row-k">Memory</div><div class="row-v">No garbage collector. <code>defer</code> frees memory at scope exit, and the compiler tracks string ownership so heap strings are reclaimed automatically. A caught panic frees exactly what its <code>defer</code>s would have: the runtime journals armed allocations and drains them before it unwinds.</div></div>
       </div>
     </div>
   </section>
