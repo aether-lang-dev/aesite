@@ -42,8 +42,8 @@
       <div class="hero-copy">
         <p class="eyebrow">The Aether programming language</p>
         <h1><span class="hl">Actors</span> that compile to C.</h1>
-        <p class="lede">Sending a message never takes a lock. Every pair of actors gets its own queue, and actors that talk often end up on the same core.</p>
-        <p class="lede-2">No VM, no garbage collector. The output is C your own compiler builds, and the same source always produces it byte for byte.</p>
+        <p class="lede">Sending a message never takes a lock. Every pair of actors gets its own queue, and the scheduler moves the ones that talk most onto the same core.</p>
+        <p class="lede-2">No VM, no garbage collector. The output is C, built by the compiler you already have.</p>
         <div class="install">
           <div class="install-row">
             <span class="dollar">$</span>
@@ -87,7 +87,7 @@ count = 42</div>
   <section class="feature alt">
     <div class="wrap">
       <h2 class="center-h">Inside the scheduler.</h2>
-      <p class="center-sub">Actors are not threads. The runtime pins one scheduler thread per core, then moves work around to keep messages on the fastest path.</p>
+      <p class="center-sub">Actors are not threads. The runtime pins one scheduler thread per core and moves actors between them to keep every message on the fastest path.</p>
       <div class="mech">
         <div class="mech-item">
           <div class="mech-k">Per-pair queues</div>
@@ -95,7 +95,7 @@ count = 42</div>
         </div>
         <div class="mech-item">
           <div class="mech-k">Cache-line padded</div>
-          <p>Head and tail sit on separate 64-byte lines, so the sending core and the receiving core never fight over the same line.</p>
+          <p>Head and tail sit on separate 64-byte lines, so the sending core and the receiving core never invalidate each other's cache.</p>
         </div>
         <div class="mech-item">
           <div class="mech-k">Work stealing</div>
@@ -127,7 +127,7 @@ count = 42</div>
       <div class="feature-text">
         <h2>Readable C, not a black box.</h2>
         <p>Aether lowers to C, which GCC or Clang compiles to a native binary. The same source always produces byte-identical C, so builds are reproducible.</p>
-        <p class="muted-p">Every abstraction, enums, optionals, distinct types, contracts, is zero-cost: it disappears into plain C with no vtables and no virtual dispatch.</p>
+        <p class="muted-p">Enums, optionals, distinct types and contracts are zero-cost. They disappear into plain C, with no vtables and no virtual dispatch.</p>
       </div>
       <div class="cc">
         <div class="panel term">
@@ -158,7 +158,7 @@ count = 42</div>
     <div class="wrap two-up">
       <div class="col">
         <h3>Errors without exceptions</h3>
-        <p>Fallible functions return <code>T!</code>, a <code>(value, err)</code> pair. Handle it inline with <code>or</code>, or propagate with <code>!</code>. No exceptions, no hidden control flow.</p>
+        <p>Fallible functions return <code>T!</code>, a <code>(value, err)</code> pair. Handle it inline with <code>or</code>, or pass it up with <code>!</code>. No exceptions, no hidden control flow.</p>
         <div class="panel term">
           <div class="term-bar"><span class="file">divide.ae</span></div>
 <pre class="run-src"><span class="fn">safe_divide</span>(a: <span class="fn">int</span>, b: <span class="fn">int</span>) -&gt; <span class="fn">int</span><span class="kw">!</span> <span class="pn">{</span>
@@ -171,7 +171,7 @@ q = <span class="fn">safe_divide</span>(<span class="num">10</span>, <span class
       </div>
       <div class="col">
         <h3>Contracts the compiler checks</h3>
-        <p>Attach <code>requires</code> / <code>ensures</code> to a function. A predicate the compiler can prove is elided; one it can prove false is a build error, folded at the call site.</p>
+        <p>Attach <code>requires</code> and <code>ensures</code> to a function. A predicate the compiler can prove disappears; one it can prove false fails the build, even when the values come from the call site.</p>
         <div class="panel term">
           <div class="term-bar"><span class="file">contract.ae</span></div>
 <pre class="run-src"><span class="fn">divide</span>(a: <span class="fn">int</span>, b: <span class="fn">int</span>) -&gt; <span class="fn">int</span>
@@ -191,7 +191,7 @@ q = <span class="fn">safe_divide</span>(<span class="num">10</span>, <span class
       <div class="feature-text">
         <h2>The reverse proxy ships with the language.</h2>
         <p>Three weighted upstreams, health probes every five seconds, and a breaker that opens after five consecutive failures. The same file adds an LRU response cache, per-upstream rate limiting, retries with jittered backoff, and a Prometheus endpoint.</p>
-        <p class="muted-p">No framework, no sidecar. It is <code>std.http.proxy</code>, and the whole example is <a href="https://github.com/aether-lang-org/aether/blob/main/examples/stdlib/http-reverse-proxy-pool.ae">in the repo</a>.</p>
+        <p class="muted-p">No framework, no sidecar. All of it is <code>std.http.proxy</code>, and the example is <a href="https://github.com/aether-lang-org/aether/blob/main/examples/stdlib/http-reverse-proxy-pool.ae">in the repo</a>.</p>
       </div>
       <div class="panel term">
         <div class="term-bar"><span class="file">http-reverse-proxy-pool.ae</span></div>
@@ -215,8 +215,8 @@ proxy.<span class="fn">breaker_configure</span>(pool, <span class="num">5</span>
     <div class="wrap feature-grid">
       <div class="feature-text">
         <h2>Config that is code.</h2>
-        <p>A trailing block runs in the caller's scope, so a library's setup surface reads like a config file, but it's real Aether: conditionals, loops, and environment lookups, with no YAML dialect and no macro system.</p>
-        <p class="muted-p">It's the "DSL with scope" pattern, built into the grammar rather than bolted on as macros.</p>
+        <p>A trailing block runs in the caller's scope, so a library's setup surface reads like a config file. It is still Aether underneath, with conditionals, loops and environment lookups, and no YAML dialect to learn.</p>
+        <p class="muted-p">This is the "DSL with scope" pattern, part of the grammar rather than a macro layer on top.</p>
       </div>
       <div class="panel term">
         <div class="term-bar"><span class="file">deploy.ae</span></div>
@@ -236,6 +236,7 @@ proxy.<span class="fn">breaker_configure</span>(pool, <span class="num">5</span>
   <section class="feature">
     <div class="wrap">
       <h2 class="center-h">What ships with it.</h2>
+      <p class="center-sub">All of this comes with the compiler. There is nothing to add before you start.</p>
       <div class="rows">
         <div class="row"><div class="row-k">One toolchain</div><div class="row-v">A single <code>ae</code> command: <code>init</code>, <code>run</code>, <code>build</code>, <code>test</code>, <code>fmt</code>, and <code>check</code>, plus <code>ae add github.com/user/repo</code> to pull packages from any git host.</div></div>
         <div class="row"><div class="row-k">Standard library</div><div class="row-v">A production HTTP stack in <code>std.http</code>: routing, TLS, HTTP/2, WebSocket, SSE, and a full reverse proxy with load balancing, health checks, and caching. Plus JSON, a full crypto suite, regex, UUID, msgpack and CBOR, and compression.</div></div>
