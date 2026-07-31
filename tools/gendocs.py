@@ -435,13 +435,17 @@ def prevnext_html(order, titles, cur):
     parts = []
     if i > 0:
         p = flat[i - 1]
-        parts.append('<a class="pn-prev" href="/Docs/%s.html"><span>Previous</span>%s</a>'
+        parts.append('<a class="pn-prev" href="/Docs/%s.html">'
+                     '<span class="pn-k">Previous</span>'
+                     '<span class="pn-t">%s</span></a>'
                      % (p, esc(strip_ticks(titles[p]))))
     else:
         parts.append('<span></span>')
     if i < len(flat) - 1:
         n = flat[i + 1]
-        parts.append('<a class="pn-next" href="/Docs/%s.html"><span>Next</span>%s</a>'
+        parts.append('<a class="pn-next" href="/Docs/%s.html">'
+                     '<span class="pn-k">Next</span>'
+                     '<span class="pn-t">%s</span></a>'
                      % (n, esc(strip_ticks(titles[n]))))
     return '<nav class="doc-prevnext" aria-label="Previous and next page">%s</nav>' % "".join(parts)
 
