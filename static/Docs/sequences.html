@@ -38,7 +38,6 @@
 <div class="grp">Start</div>
 <a href="/Docs/getting-started.html">Getting Started with Aether</a>
 <a href="/Docs/tutorial.html">Aether Language Tutorial</a>
-<a href="/Docs/next-steps.html">Next Steps</a>
 <div class="grp">Language</div>
 <a href="/Docs/language-reference.html">Aether Language Reference</a>
 <a href="/Docs/type-inference-guide.html">Aether Type Inference Guide</a>
@@ -93,7 +92,7 @@
 <a href="/Docs/compiler-trust-boundary.html">The Compiler Trust Boundary</a>
 <a href="/Docs/json-parser-design.html">std.json Design Notes</a>
 <a href="/Docs/aether_compared_to_capsicum.html">Aether Sandbox Model vs. BSD Capsicum: Architecture, Parallels, and FreeBSD Integration</a>
-<a href="/Docs/isolated.html">Isolated[T]: move-only actor message payloads (#479)</a>
+<a href="/Docs/isolated.html">Isolated[T]: move-only actor message payloads</a>
 <a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
 <a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn't need macro_rules!</a>
 <a href="/Docs/lib-caller-info.html">--emit=lib caller-info channel</a>
@@ -191,7 +190,7 @@ rebuilt = <span class="fn">string</span>.seq_concat(prefix, suffix)
 take(s, n) ++ drop(s, n) == s          (for any 0 &lt;= n &lt;= length(s))</code></pre>
 <p><code>reverse</code> walks the source spine forward, prepending each head onto a fresh result spine, O(n) work, O(1) auxiliary stack. <code>concat</code> reverses the first argument (one O(|a|) walk), then iteratively conses each element back onto the second; the second argument is shared, never walked. <code>take</code> collects the first n elements into a reverse buffer then reverses to get them in order. <code>drop</code> is a pure pointer walk with a single <code>seq_retain</code> at the end.</p>
 <h2 id="closure-bearing-combinators">Closure-bearing combinators</h2>
-<p>These take an Aether closure as the per-element callback (issue #421, multi-sequence iteration primitives). Every one is a single <strong>iterative spine walk, O(n) time, O(1) auxiliary stack</strong> (no recursion; that's the O(n²)→O(n) point of the issue):</p>
+<p>These take an Aether closure as the per-element callback (the multi-sequence iteration primitives). Every one is a single <strong>iterative spine walk, O(n) time, O(1) auxiliary stack</strong> (no recursion; that's the O(n²)→O(n) point of the design):</p>
 <div class="tw"><table><thead><tr><th>Combinator</th><th>Callback</th><th>Returns</th></tr></thead><tbody><tr><td><code>string.seq_each(s, f)</code></td><td><code>\|x\| { ... }</code> (side effects)</td><td>nothing</td></tr><tr><td><code>string.seq_map(s, f)</code></td><td><code>\|x\| { return ... }</code> (<code>-&gt; string</code>)</td><td>a NEW <code>*StringSeq</code>, order preserved</td></tr><tr><td><code>string.seq_filter(s, pred)</code></td><td><code>\|x\| { return 0/1 }</code> (<code>-&gt; int</code>)</td><td>a NEW <code>*StringSeq</code> of truthy elements</td></tr><tr><td><code>string.seq_reduce(s, init, f)</code></td><td><code>\|acc, x\| { ... }</code> (<code>(ptr, string) -&gt; ptr</code>)</td><td>the final accumulator (<code>ptr</code>)</td></tr><tr><td><code>string.seq_zip_each(a, b, f)</code></td><td><code>\|x, y\| { ... }</code> (side effects)</td><td>nothing</td></tr></tbody></table></div>
 <pre><code><span class="kw">import</span> std.<span class="fn">string</span>
 
@@ -312,7 +311,7 @@ b = <span class="fn">string</span>.seq_cons(<span class="str">"b"</span>, <span 
   <div class="wrap foot-grid">
     <div class="foot-brand">
       <span class="ae">ae</span>
-      <p class="foot-tag">A compiled systems language you can audit.</p>
+      <p class="foot-tag">Actors that compile to C.</p>
       <p class="foot-status">v0.467 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">

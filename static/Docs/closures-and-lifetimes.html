@@ -38,7 +38,6 @@
 <div class="grp">Start</div>
 <a href="/Docs/getting-started.html">Getting Started with Aether</a>
 <a href="/Docs/tutorial.html">Aether Language Tutorial</a>
-<a href="/Docs/next-steps.html">Next Steps</a>
 <div class="grp">Language</div>
 <a href="/Docs/language-reference.html">Aether Language Reference</a>
 <a href="/Docs/type-inference-guide.html">Aether Type Inference Guide</a>
@@ -93,7 +92,7 @@
 <a href="/Docs/compiler-trust-boundary.html">The Compiler Trust Boundary</a>
 <a href="/Docs/json-parser-design.html">std.json Design Notes</a>
 <a href="/Docs/aether_compared_to_capsicum.html">Aether Sandbox Model vs. BSD Capsicum: Architecture, Parallels, and FreeBSD Integration</a>
-<a href="/Docs/isolated.html">Isolated[T]: move-only actor message payloads (#479)</a>
+<a href="/Docs/isolated.html">Isolated[T]: move-only actor message payloads</a>
 <a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
 <a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn't need macro_rules!</a>
 <a href="/Docs/lib-caller-info.html">--emit=lib caller-info channel</a>
@@ -144,7 +143,7 @@
 <ul><li><strong>Transient callback.</strong> A capturing closure created inline and passed to a parameter that only <em>calls</em> it and neither stores nor returns it (<code>run(cb) { cb() }</code>) is dead once the call returns, so its env is freed right after the call. This is gated on a proven non-escape, invoking a closure parameter (<code>cb()</code>, an indirect-<code>call</code> node whose first child is the callee) is not an escape, whereas a stored or returned closure suppresses the drain so its env follows the owner.</li><li><strong>Stored in a list.</strong> A closure value stored into a list is heap-boxed (the <code>fn → ptr</code> coercion) and the list owns the box; <code>list.free</code> now reclaims the captured env as well as the box (<code>owned_flags == 2</code>).</li></ul>
 <p>Still a leak (the safe side of the leak-vs-UAF trade): <strong>L5 below</strong>, reassigning a closure <em>variable</em> drops the previous env, because without whole-program escape analysis the codegen can't prove the old env is unreachable (it may be aliased through a <code>box_closure</code> copy).</p>
 <h2 id="closure-patterns-and-workarounds">Closure patterns and workarounds</h2>
-<p>L1–L3 are ergonomic patterns with known workarounds you can apply today. L4 is a compile-time rejection, previously silent wrong answers, now surfaced at compile time with a clear error. L5 is a memory-handling contract around reassignment. Each has a near-term workaround; the "proper fix" notes describe the larger language work each leans on. See <a href="/Docs/next-steps.html"><code>docs/next-steps.md</code></a> for scheduling.</p>
+<p>L1–L3 are ergonomic patterns with known workarounds you can apply today. L4 is a compile-time rejection, previously silent wrong answers, now surfaced at compile time with a clear error. L5 is a memory-handling contract around reassignment. Each has a near-term workaround; the "proper fix" notes describe the larger language work each leans on.</p>
 <h3 id="l1-callx-where-x-comes-from-a-list">L1. <code>call(x)</code> where <code>x</code> comes from a list</h3>
 <pre><code>handlers = list.new()
 list.add(handlers, box_closure(|_| { <span class="kw">return</span> <span class="str">"hello"</span> }))
@@ -199,7 +198,7 @@ op = |x: <span class="fn">int</span>| { <span class="kw">return</span> x * <span
   <div class="wrap foot-grid">
     <div class="foot-brand">
       <span class="ae">ae</span>
-      <p class="foot-tag">A compiled systems language you can audit.</p>
+      <p class="foot-tag">Actors that compile to C.</p>
       <p class="foot-status">v0.467 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">

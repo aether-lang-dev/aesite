@@ -38,7 +38,6 @@
 <div class="grp">Start</div>
 <a href="/Docs/getting-started.html">Getting Started with Aether</a>
 <a href="/Docs/tutorial.html">Aether Language Tutorial</a>
-<a href="/Docs/next-steps.html">Next Steps</a>
 <div class="grp">Language</div>
 <a href="/Docs/language-reference.html">Aether Language Reference</a>
 <a href="/Docs/type-inference-guide.html">Aether Type Inference Guide</a>
@@ -93,7 +92,7 @@
 <a href="/Docs/compiler-trust-boundary.html">The Compiler Trust Boundary</a>
 <a href="/Docs/json-parser-design.html">std.json Design Notes</a>
 <a href="/Docs/aether_compared_to_capsicum.html" class="on">Aether Sandbox Model vs. BSD Capsicum: Architecture, Parallels, and FreeBSD Integration</a>
-<a href="/Docs/isolated.html">Isolated[T]: move-only actor message payloads (#479)</a>
+<a href="/Docs/isolated.html">Isolated[T]: move-only actor message payloads</a>
 <a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
 <a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn't need macro_rules!</a>
 <a href="/Docs/lib-caller-info.html">--emit=lib caller-info channel</a>
@@ -401,7 +400,7 @@ capsicum.fcntls_limit(fd, mask)   <span class="com">// narrow allowed fcntl comm
 <p>What's implemented:</p>
 <ul><li><strong><code>capsicum_autosandbox.c</code></strong>, a runtime startup hook. The compiler-emitted <code>main()</code> calls <code>aether_capsicum_autosandbox()</code> immediately after <code>aether_args_init()</code> (so: after rtld has finished, before user code). If <code>AETHER_CAPSICUM=1</code> is set in the environment, the hook calls <code>cap_enter()</code>. If the variable is set but the kernel can't honour it, the process exits rather than run unconfined, a requested sandbox never silently downgrades.</li><li><strong><code>spawn_sandboxed</code> on FreeBSD</strong> sets <code>AETHER_CAPSICUM=1</code> in every child's environment. Containment is then two-layered:<ol><li><strong>LD_PRELOAD</strong>, intercepts libc for <em>any</em> child, Aether or not (python3, bash). Userspace, cooperative, bypassable.</li><li><strong>Capsicum self-sandbox</strong>, if the child is an Aether binary it reads <code>AETHER_CAPSICUM</code> and <code>cap_enter()</code>s itself. Kernel-enforced, unbypassable. A non-Aether child just ignores the variable and is left with layer 1.</li></ol></li><li>The preload library exempts the <code>AETHER_*</code> env namespace from its <code>getenv</code> interception, so a sandboxed Aether child can still read its own <code>AETHER_CAPSICUM</code> control variable.</li></ul>
 <p><strong>Benefit:</strong> a spawned Aether child gets OS-enforced containment with no change to its source. Note Capsicum is strictly the harder ceiling, in capability mode <em>no</em> path-based open succeeds, grant list or not; the LD_PRELOAD grants only matter for the operations Capsicum would otherwise still allow (acting on already-open fds) and for non-Aether children.</p>
-<p><strong>Limitation:</strong> a self-sandboxed program must open everything it needs <em>before</em> <code>main()</code> runs, or accept that path access is gone. Wiring the grant list into pre-opened, <code>cap_rights_limit()</code>'d fds handed to the child is the remaining refinement. Its prerequisite landed with issue #1003: the stdlib handle types now expose their descriptors, <code>file.fd(handle)</code> / <code>fs.fd(handle)</code> for files, <code>tcp.fd(sock)</code> / <code>tcp.server_fd(server)</code> for sockets, so a program can open through the stdlib and narrow each descriptor with <code>capsicum.rights_limit()</code> before <code>capsicum.enter()</code> (exercised by <code>tests/freebsd/rights_limit_stdlib_fd.ae</code>).</p>
+<p><strong>Limitation:</strong> a self-sandboxed program must open everything it needs <em>before</em> <code>main()</code> runs, or accept that path access is gone. Wiring the grant list into pre-opened, <code>cap_rights_limit()</code>'d fds handed to the child is the remaining refinement. Its prerequisite landed with issue The stdlib handle types now expose their descriptors, <code>file.fd(handle)</code> / <code>fs.fd(handle)</code> for files, <code>tcp.fd(sock)</code> / <code>tcp.server_fd(server)</code> for sockets, so a program can open through the stdlib and narrow each descriptor with <code>capsicum.rights_limit()</code> before <code>capsicum.enter()</code> (exercised by <code>tests/freebsd/rights_limit_stdlib_fd.ae</code>).</p>
 <h4 id="phase-3-audit-logging-done">Phase 3: Audit Logging, <strong>DONE</strong></h4>
 <p>The in-process permission layer now records every grant check, allowed and denied, with two faces (<code>runtime/sandbox/aether_audit.c</code>, <code>std/audit/module.ae</code>):</p>
 <ul><li><strong>Live sink</strong>, <code>AETHER_SANDBOX_AUDIT=none|stderr|file</code> (default <code>none</code>), mirroring the existing <code>AETHER_SANDBOX_LOG</code> convention. Emits <code>AETHER_ALLOWED:</code> / <code>AETHER_DENIED:</code> lines.</li><li><strong>Queryable log</strong>, a 256-entry in-memory ring buffer read back via <code>std.audit</code>: <code>audit.count()</code>, <code>audit.entry(i)</code> → <code>(category, resource, allowed)</code>, <code>audit.denied_count()</code>, <code>audit.clear()</code>.</li></ul>
@@ -553,7 +552,7 @@ main() {
   <div class="wrap foot-grid">
     <div class="foot-brand">
       <span class="ae">ae</span>
-      <p class="foot-tag">A compiled systems language you can audit.</p>
+      <p class="foot-tag">Actors that compile to C.</p>
       <p class="foot-status">v0.467 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">

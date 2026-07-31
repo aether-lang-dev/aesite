@@ -38,7 +38,6 @@
 <div class="grp">Start</div>
 <a href="/Docs/getting-started.html">Getting Started with Aether</a>
 <a href="/Docs/tutorial.html">Aether Language Tutorial</a>
-<a href="/Docs/next-steps.html">Next Steps</a>
 <div class="grp">Language</div>
 <a href="/Docs/language-reference.html">Aether Language Reference</a>
 <a href="/Docs/type-inference-guide.html">Aether Type Inference Guide</a>
@@ -93,7 +92,7 @@
 <a href="/Docs/compiler-trust-boundary.html">The Compiler Trust Boundary</a>
 <a href="/Docs/json-parser-design.html">std.json Design Notes</a>
 <a href="/Docs/aether_compared_to_capsicum.html">Aether Sandbox Model vs. BSD Capsicum: Architecture, Parallels, and FreeBSD Integration</a>
-<a href="/Docs/isolated.html">Isolated[T]: move-only actor message payloads (#479)</a>
+<a href="/Docs/isolated.html">Isolated[T]: move-only actor message payloads</a>
 <a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
 <a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn't need macro_rules!</a>
 <a href="/Docs/lib-caller-info.html">--emit=lib caller-info channel</a>
@@ -108,10 +107,9 @@
 <h1 id="per-process-configuration-in-aether">Per-process configuration in Aether</h1>
 <p>Many CLI tools and servers need a per-process key/value: parse it once at startup (from <code>--flag X</code> args, an env var, or a config file), then read it from many call sites for the rest of the process's life. Examples:</p>
 <ul><li><code>--superuser-token X</code> parsed at CLI entry, checked on every HTTP request handler.</li><li><code>--log-level debug</code> set once, consulted by every log call.</li><li><code>--data-dir /var/lib/myapp</code> baked in at startup, used by every filesystem op.</li><li>API keys, tenant IDs, current-user identity stashed by an auth middleware.</li></ul>
-<p>In C this is a <code>static int g_thing = …;</code> plus <code>set_thing(n)</code> / <code>get_thing(void)</code> helpers. Aether transcribes this shape directly with a <strong>module-level <code>var</code></strong> (added in [#701]): <code>var</code> at module scope lowers to a file-scope C <code>static</code>, and same-module functions read and write it as a plain identifier, a real lvalue, so a setter genuinely updates it and every reader sees the new value. That's the simplest answer for scalar per-process config (a log-level enum, a numeric limit, a feature flag, a pointer handle).</p>
+<p>In C this is a <code>static int g_thing = …;</code> plus <code>set_thing(n)</code> / <code>get_thing(void)</code> helpers. Aether transcribes this shape directly with a <strong>module-level <code>var</code></strong> : <code>var</code> at module scope lowers to a file-scope C <code>static</code>, and same-module functions read and write it as a plain identifier, a real lvalue, so a setter genuinely updates it and every reader sees the new value. That's the simplest answer for scalar per-process config (a log-level enum, a numeric limit, a feature flag, a pointer handle).</p>
 <p>For state that must be shared <strong>across actors / threads</strong>, or that owns a resource it should free, the <strong>actor-as-singleton</strong> is the better tool: spawn one actor at startup, set values via messages, read via messages, the mailbox serialises access for you. Both patterns are below; pick by whether the value is process-local scalar config (<code>var</code>) or concurrently-shared/owned state (actor).</p>
 <p>This page is the worked example. It's a doc, not a stdlib feature, there's nothing to import beyond the language primitives.</p>
-<p>[#701]: https://github.com/aether-lang-org/aether/issues/701</p>
 <h2 id="the-simple-case-a-module-level-var">The simple case: a module-level <code>var</code></h2>
 <p>For a scalar config value parsed once at startup and read from many call sites, declare a module-level <code>var</code> and write the parsed value through a setter:</p>
 <pre><code><span class="kw">import</span> std.io
@@ -244,7 +242,7 @@ cfg ! GetUser { to: worker }   <span class="com">// worker stashes the reply whe
   <div class="wrap foot-grid">
     <div class="foot-brand">
       <span class="ae">ae</span>
-      <p class="foot-tag">A compiled systems language you can audit.</p>
+      <p class="foot-tag">Actors that compile to C.</p>
       <p class="foot-status">v0.467 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">

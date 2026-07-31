@@ -38,7 +38,6 @@
 <div class="grp">Start</div>
 <a href="/Docs/getting-started.html">Getting Started with Aether</a>
 <a href="/Docs/tutorial.html">Aether Language Tutorial</a>
-<a href="/Docs/next-steps.html">Next Steps</a>
 <div class="grp">Language</div>
 <a href="/Docs/language-reference.html">Aether Language Reference</a>
 <a href="/Docs/type-inference-guide.html">Aether Type Inference Guide</a>
@@ -93,7 +92,7 @@
 <a href="/Docs/compiler-trust-boundary.html">The Compiler Trust Boundary</a>
 <a href="/Docs/json-parser-design.html">std.json Design Notes</a>
 <a href="/Docs/aether_compared_to_capsicum.html">Aether Sandbox Model vs. BSD Capsicum: Architecture, Parallels, and FreeBSD Integration</a>
-<a href="/Docs/isolated.html">Isolated[T]: move-only actor message payloads (#479)</a>
+<a href="/Docs/isolated.html">Isolated[T]: move-only actor message payloads</a>
 <a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
 <a href="/Docs/dsl-without-macros.html" class="on">DSL without macros, why Aether doesn't need macro_rules!</a>
 <a href="/Docs/lib-caller-info.html">--emit=lib caller-info channel</a>
@@ -238,7 +237,7 @@ room = s.room(<span class="str">"Library"</span>) {
 <h2 id="what-aether-does-instead">What Aether does instead</h2>
 <p>The trailing block isn't a macro construct, it's part of the language grammar. <code>panel("Controls") { button("OK") }</code> parses as "call <code>panel</code>, then run this block." The compiler injects <code>_aether_ctx_push(panel_result)</code> before the block and <code>_aether_ctx_pop()</code> after; function calls inside the block whose first param is <code>_ctx: ptr</code> get <code>_aether_ctx_get()</code> auto-injected as their first argument. The whole mechanism is in <a href="/Docs/closures-and-builder-dsl.html#builder-context-stack"><code>closures-and-builder-dsl.md</code></a>.</p>
 <p>What this means in practice:</p>
-<ul><li><strong>No parser to write.</strong> The DSL surface is "function calls with a trailing block." Nesting works because trailing blocks nest. There's no user-side recursion to hand-build.</li><li><strong>Errors come from the regular typechecker.</strong> A typo inside <code>panel { ... }</code> surfaces as "undefined <code>buton</code>" at the line you wrote it, with the same diagnostic quality as any other call site. The receiver-scoping rules (<a href="/Docs/closures-and-builder-dsl.html#dsl-block-receiver-scoping-333"><code>closures-and-builder-dsl.md</code> §DSL Block Receiver Scoping</a>) even let bare-name calls inside a <code>bash.test(b) { ... }</code> block fall back through <code>bash_&lt;name&gt;</code> without a companion <code>import bash (script, jobs)</code> line.</li><li><strong>Refactor safety.</strong> Rename a setter and every call site updates, because the setter is a regular function, not a macro-synthesised identifier. rust-analyzer's rename across macro bodies is a separate feature with separate caveats; Aether's editor tooling sees the DSL body as ordinary code.</li><li><strong>No second language.</strong> Rust DSLs effectively live in a parallel syntactic universe (the macro body's grammar), and <code>syn</code> is a compatibility shim that makes that universe look like Rust. Aether DSL bodies <em>are</em> Aether, <code>for</code>, <code>if</code>, <code>${...}</code> interpolation, closures, ref cells, <code>defer</code> all work and behave identically to how they work outside the block.</li></ul>
+<ul><li><strong>No parser to write.</strong> The DSL surface is "function calls with a trailing block." Nesting works because trailing blocks nest. There's no user-side recursion to hand-build.</li><li><strong>Errors come from the regular typechecker.</strong> A typo inside <code>panel { ... }</code> surfaces as "undefined <code>buton</code>" at the line you wrote it, with the same diagnostic quality as any other call site. The receiver-scoping rules (<a href="/Docs/closures-and-builder-dsl.html#dsl-block-receiver-scoping"><code>closures-and-builder-dsl.md</code> §DSL Block Receiver Scoping</a>) even let bare-name calls inside a <code>bash.test(b) { ... }</code> block fall back through <code>bash_&lt;name&gt;</code> without a companion <code>import bash (script, jobs)</code> line.</li><li><strong>Refactor safety.</strong> Rename a setter and every call site updates, because the setter is a regular function, not a macro-synthesised identifier. rust-analyzer's rename across macro bodies is a separate feature with separate caveats; Aether's editor tooling sees the DSL body as ordinary code.</li><li><strong>No second language.</strong> Rust DSLs effectively live in a parallel syntactic universe (the macro body's grammar), and <code>syn</code> is a compatibility shim that makes that universe look like Rust. Aether DSL bodies <em>are</em> Aether, <code>for</code>, <code>if</code>, <code>${...}</code> interpolation, closures, ref cells, <code>defer</code> all work and behave identically to how they work outside the block.</li></ul>
 <h2 id="where-aether-hits-its-own-ceiling">Where Aether hits its own ceiling</h2>
 <p>This is the honest part. Aether's trailing block is <em>imperative</em>, it runs its statements in source order. A DSL where order shouldn't matter (declarative attributes, a graph that wants topological resolution, a spec where the user describes <em>what</em> and not <em>the order of operations</em>) sits awkwardly.</p>
 <p>The escape hatch is the builder variant, <code>builder ... with &lt;factory&gt;</code> (<a href="/Docs/closures-and-builder-dsl.html#builder-functions-configure-then-execute"><code>closures-and-builder-dsl.md</code> §Builder Functions</a>). The block runs first against a config object filled via setter calls; the function runs second with that config. This is the closest analogue to a real declarative DSL and it works for most cases:</p>
@@ -277,7 +276,7 @@ compile(<span class="str">"Main.java"</span>) {
   <div class="wrap foot-grid">
     <div class="foot-brand">
       <span class="ae">ae</span>
-      <p class="foot-tag">A compiled systems language you can audit.</p>
+      <p class="foot-tag">Actors that compile to C.</p>
       <p class="foot-status">v0.467 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
