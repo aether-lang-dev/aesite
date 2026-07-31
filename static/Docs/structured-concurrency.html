@@ -38,6 +38,7 @@
 <div class="grp">Start</div>
 <a href="/Docs/getting-started.html">Getting Started with Aether</a>
 <a href="/Docs/tutorial.html">Aether Language Tutorial</a>
+<a href="/Docs/next-steps.html">Next Steps</a>
 <div class="grp">Language</div>
 <a href="/Docs/language-reference.html">Aether Language Reference</a>
 <a href="/Docs/type-inference-guide.html">Aether Type Inference Guide</a>
@@ -92,7 +93,7 @@
 <a href="/Docs/compiler-trust-boundary.html">The Compiler Trust Boundary</a>
 <a href="/Docs/json-parser-design.html">std.json Design Notes</a>
 <a href="/Docs/aether_compared_to_capsicum.html">Aether Sandbox Model vs. BSD Capsicum: Architecture, Parallels, and FreeBSD Integration</a>
-<a href="/Docs/isolated.html">Isolated[T]: move-only actor message payloads</a>
+<a href="/Docs/isolated.html">Isolated[T]: move-only actor message payloads (#479)</a>
 <a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
 <a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn't need macro_rules!</a>
 <a href="/Docs/lib-caller-info.html">--emit=lib caller-info channel</a>
@@ -117,8 +118,8 @@
 <p><strong>Async/await is ruled out</strong> because Aether's handlers are run-to-completion. Introducing suspension points inside a handler would break the invariant that makes the shared-nothing actor model safe: a handler either finishes or panics, it doesn't yield. Async/await would also force <strong>coloured functions</strong> (async vs sync), which splits the ecosystem, every stdlib function becomes two functions, every actor becomes two kinds. Aether's cooperative scheduler gets its simplicity from the run-to-completion rule, and async/await would throw that away.</p>
 <p><strong>CSP channels are ruled out</strong> because Aether already has actor mailboxes. A channel is a point-to-point typed queue with a send and a receive end; an actor's mailbox is exactly that with an identity attached. Adding channels on top would give users two ways to do the same thing and force stdlib authors to pick one, usually the wrong one for half their callers.</p>
 <h3 id="the-two-were-building">The two we're building</h3>
-<p><strong>Supervision trees</strong> solve the "who's responsible when a child dies" problem. They're a library-level pattern on top of primitives the runtime <em>doesn't yet expose but easily could</em>: actor failure notification. Parents register interest in a child; if the child dies, the parent gets a <code>Down { ref, reason }</code> message. Everything else, restart strategies, escalation, graceful shutdown, is ordinary actor code on top of that one primitive.</p>
-<p><strong>Capability-scoped concurrency</strong> solves the "who can reach whom" problem. Aether already has <code>hide</code> and <code>seal except</code> for compile-time capability denial on <em>variable</em> references. Extending that enforcement to <em>actor</em> references means a sealed block cannot <code>spawn</code> a type it can't name, cannot <code>!</code> a reference it can't see, and cannot <code>ask</code> an actor outside its whitelist. <strong>No new mechanism is needed</strong>, just the existing scope-denial check applied at two more compile-time sites (spawn, send).</p>
+<p><strong>Supervision trees (#2)</strong> solve the "who's responsible when a child dies" problem. They're a library-level pattern on top of primitives the runtime <em>doesn't yet expose but easily could</em>: actor failure notification. Parents register interest in a child; if the child dies, the parent gets a <code>Down { ref, reason }</code> message. Everything else, restart strategies, escalation, graceful shutdown, is ordinary actor code on top of that one primitive.</p>
+<p><strong>Capability-scoped concurrency (#6)</strong> solves the "who can reach whom" problem. Aether already has <code>hide</code> and <code>seal except</code> for compile-time capability denial on <em>variable</em> references. Extending that enforcement to <em>actor</em> references means a sealed block cannot <code>spawn</code> a type it can't name, cannot <code>!</code> a reference it can't see, and cannot <code>ask</code> an actor outside its whitelist. <strong>No new mechanism is needed</strong>, just the existing scope-denial check applied at two more compile-time sites (spawn, send).</p>
 <p>The two compose: a supervised subtree that is also sealed gives you both bounded lifetime and bounded blast radius.</p>
 <h2 id="phase-1-supervision-primitives">Phase 1, supervision primitives</h2>
 <p>The runtime change needed is small: actor failure notification.</p>
@@ -175,7 +176,7 @@ main() {
 }</code></pre>
 <p>The subtree rooted at this block has both lifetime containment (the <code>sandbox</code> scope's containment runtime) and capability containment (the <code>seal except</code> list). A malicious or buggy handler cannot spawn a crypto-miner actor because it cannot name one.</p>
 <h2 id="whats-not-in-scope">What's not in scope</h2>
-<ul><li><strong>Fork-join / <code>parallel_for</code></strong>, useful for data parallelism, does not solve the lifecycle or reachability problem. Can be added later as a narrow stdlib feature layered on the existing work-stealing scheduler. Not part of this design.</li><li><strong>Nurseries</strong>, would require a second concurrency primitive (lightweight tasks distinct from actors). High cost for small marginal benefit given the actor model already exists. Revisit only if users ask for it after Phases 1 and 2 ship.</li><li><strong>Channels</strong>, actors already cover this. No plan.</li></ul>
+<ul><li><strong>Fork-join / <code>parallel_for</code> (#5)</strong>, useful for data parallelism, does not solve the lifecycle or reachability problem. Can be added later as a narrow stdlib feature layered on the existing work-stealing scheduler. Not part of this design.</li><li><strong>Nurseries (#1)</strong>, would require a second concurrency primitive (lightweight tasks distinct from actors). High cost for small marginal benefit given the actor model already exists. Revisit only if users ask for it after Phases 1 and 2 ship.</li><li><strong>Channels (#4)</strong>, actors already cover this. No plan.</li></ul>
 <h2 id="order-of-work">Order of work</h2>
 <ol><li><strong>Runtime, <code>Down</code> message delivery.</strong> Scheduler catches handler exits, iterates the monitor/link table, enqueues <code>Down</code> messages.</li><li><strong>Builtins, <code>monitor</code>, <code>link</code>, <code>demonitor</code>, <code>unlink</code>.</strong> Thin wrappers over the runtime table.</li><li><strong><code>std.supervise</code> module.</strong> Supervisor actor type with the three strategies. Builder DSL for child registration.</li><li><strong>Tests.</strong> Restart-on-crash, escalation, graceful shutdown, monitor vs link asymmetry, double-death ordering.</li><li><strong>Compiler, capability-scoped spawn/send/ask.</strong> Extend existing <code>hide</code>/<code>seal except</code> denial to concurrency sites.</li><li><strong>Docs and worked example.</strong> Update <code>docs/actor-concurrency.md</code> with the supervision section. One worked example in <code>examples/actors/</code> showing a supervised, sealed subtree.</li></ol>
 <p>Phase 1 can ship without Phase 2. Phase 2 can ship independently once Phase 1 is in, they touch different compiler subsystems.</p>
@@ -191,7 +192,7 @@ main() {
   <div class="wrap foot-grid">
     <div class="foot-brand">
       <span class="ae">ae</span>
-      <p class="foot-tag">A compiled systems language built on actors.</p>
+      <p class="foot-tag">A compiled systems language you can audit.</p>
       <p class="foot-status">v0.467 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">

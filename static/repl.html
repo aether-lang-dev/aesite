@@ -4,11 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Playground · Aether</title>
-<meta name="description" content="Write Aether in the browser. Short lessons with real sample output, live execution when an Aether backend is connected.">
+<meta name="description" content="Six annotated Aether examples with real output, covering actors, error handling, pattern matching, and C interop.">
 <meta name="aesite-exec" content="">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Playground · Aether">
-<meta property="og:description" content="Write Aether in the browser. Short lessons with real sample output, live execution when an Aether backend is connected.">
+<meta property="og:description" content="Six annotated Aether examples with real output, covering actors, error handling, pattern matching, and C interop.">
 <meta property="og:url" content="https://aether-lang.dev/repl.html">
 <meta property="og:image" content="https://aether-lang.dev/og.png">
 <meta name="twitter:card" content="summary_large_image">
@@ -46,7 +46,7 @@
       <div class="runbar">
         <button class="run" id="run">Run &rsaquo;</button>
         <button class="ghostbtn" id="copy" title="Copy code to clipboard">Copy</button>
-        <span class="hint" id="mode">connecting&hellip;</span>
+        <span class="hint" id="mode"></span>
         <span class="lnav"><button id="prev">&larr; prev</button><button id="next">next &rarr;</button></span>
       </div>
       <div class="output" id="out"><span class="op">&gt;</span> <span class="muted">press Run</span></div>
@@ -58,7 +58,7 @@
   <div class="wrap foot-grid">
     <div class="foot-brand">
       <span class="ae">ae</span>
-      <p class="foot-tag">A compiled systems language built on actors.</p>
+      <p class="foot-tag">A compiled systems language you can audit.</p>
       <p class="foot-status">v0.467 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
@@ -147,11 +147,10 @@
   function staticRun(){
     var L=lessons[cur-1]||{};
     if(!edited()&&L.expected_output!=null){
-      out.innerHTML=lines(L.expected_output)+'\n<span class="op">&gt;</span> <span class="muted">precomputed output &middot; edit and run locally for live output</span>';
+      out.innerHTML=lines(L.expected_output)+'\n<span class="op">&gt;</span> <span class="muted">real output, captured by running this example with ae</span>';
     }else{
-      out.innerHTML='<span class="op">&gt;</span> <span class="muted">This static playground shows sample output. To run your edits, copy the code and:</span>\n'
-        +'<span class="op">&gt;</span> ae run main.ae\n'
-        +'<span class="op">&gt;</span> <span class="muted">or connect a live Aether backend (see the repo README).</span>';
+      out.innerHTML='<span class="op">&gt;</span> <span class="muted">Your edits run locally. Copy the code, then:</span>\n'
+        +'<span class="op">&gt;</span> ae run main.ae';
     }
   }
 
@@ -174,8 +173,8 @@
 
   function setMode(){
     modeEl.innerHTML=LIVE
-      ? 'live &middot; runs on the Aether server via <code style="color:var(--dim)">ae run</code>'
-      : 'static preview &middot; edit and run locally with <code style="color:var(--dim)">ae run</code>';
+      ? 'connected &middot; runs your code on an Aether backend'
+      : 'annotated examples with real output &middot; install Aether to run your own code';
   }
 
   ed.addEventListener("input",paint);

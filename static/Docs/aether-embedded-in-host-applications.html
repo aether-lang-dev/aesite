@@ -38,6 +38,7 @@
 <div class="grp">Start</div>
 <a href="/Docs/getting-started.html">Getting Started with Aether</a>
 <a href="/Docs/tutorial.html">Aether Language Tutorial</a>
+<a href="/Docs/next-steps.html">Next Steps</a>
 <div class="grp">Language</div>
 <a href="/Docs/language-reference.html">Aether Language Reference</a>
 <a href="/Docs/type-inference-guide.html">Aether Type Inference Guide</a>
@@ -92,7 +93,7 @@
 <a href="/Docs/compiler-trust-boundary.html">The Compiler Trust Boundary</a>
 <a href="/Docs/json-parser-design.html">std.json Design Notes</a>
 <a href="/Docs/aether_compared_to_capsicum.html">Aether Sandbox Model vs. BSD Capsicum: Architecture, Parallels, and FreeBSD Integration</a>
-<a href="/Docs/isolated.html">Isolated[T]: move-only actor message payloads</a>
+<a href="/Docs/isolated.html">Isolated[T]: move-only actor message payloads (#479)</a>
 <a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
 <a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn't need macro_rules!</a>
 <a href="/Docs/lib-caller-info.html">--emit=lib caller-info channel</a>
@@ -106,7 +107,7 @@
         <div class="bc"><span class="prompt">$</span>docs / interop</div>
 <h1 id="aether-as-a-configuration-language-for-other-languages">Aether as a Configuration Language for Other Languages</h1>
 <p>A design exploration: using Aether's trailing-block DSL, <code>hide</code>/<code>seal except</code>, and closures as a configuration and wiring language embedded in host applications (Java, Go, etc.).</p>
-<blockquote><strong>Status (2026-04-18):</strong> the <strong>foundation is built and v2 is shipped</strong>. <code>aetherc --emit=lib</code> produces a <code>.so</code>/<code>.dylib</code> with stable C-ABI entry points (see <strong><a href="/Docs/emit-lib.html"><code>emit-lib.md</code></a></strong>), and the <strong>v2 embedded-namespace layer</strong> generates idiomatic per-language SDKs (Python ctypes, Java Panama, Ruby Fiddle) on top, see <strong><a href="/Docs/embedded-namespaces-and-host-bindings.html"><code>embedded-namespaces-and-host-bindings.md</code></a></strong> for the typed-SDK story.  What's built (✅ Done): - Part 2 §1, shared library output (compiler flag is named <code>--emit=lib</code>, not <code>--embed</code>) - Part 2 §2, <code>aether_config_*</code> C ABI for walking results - Part 2 §3, host bindings: hand-written per-language SDK generators for Python, Java (Panama, JDK 22+), Ruby (Fiddle). Java SWIG is no longer the recommended path, Panama is cleaner once you have a namespace manifest to template against - Part 3, capability-empty default (rejects <code>std.net|http|tcp|fs|os</code>) - Part 4, LD_PRELOAD containment composes naturally with <code>--emit=lib</code>  What's still speculative (📋 Future): - Part 2 §4, <code>ae eval</code> → JSON on stdout (the in-process accessor path may obsolete this) - Part 2 §5 + Part 3, host-side callbacks, <code>host_call()</code> primitive, the full ARexx/rules-engine bidirectional model - Wall-clock timeout, allocation budget  Section-by-section annotations below mark each item.</blockquote>
+<blockquote><strong>Status (2026-04-18):</strong> the <strong>foundation is built and v2 is shipped</strong>. <code>aetherc --emit=lib</code> produces a <code>.so</code>/<code>.dylib</code> with stable C-ABI entry points (see <strong><a href="/Docs/emit-lib.html"><code>emit-lib.md</code></a></strong>), and the <strong>v2 embedded-namespace layer</strong> (PR #172) generates idiomatic per-language SDKs (Python ctypes, Java Panama, Ruby Fiddle) on top, see <strong><a href="/Docs/embedded-namespaces-and-host-bindings.html"><code>embedded-namespaces-and-host-bindings.md</code></a></strong> for the typed-SDK story.  What's built (✅ Done): - Part 2 §1, shared library output (compiler flag is named <code>--emit=lib</code>, not <code>--embed</code>) - Part 2 §2, <code>aether_config_*</code> C ABI for walking results - Part 2 §3, host bindings: hand-written per-language SDK generators for Python, Java (Panama, JDK 22+), Ruby (Fiddle). Java SWIG is no longer the recommended path, Panama is cleaner once you have a namespace manifest to template against - Part 3, capability-empty default (rejects <code>std.net|http|tcp|fs|os</code>) - Part 4, LD_PRELOAD containment composes naturally with <code>--emit=lib</code>  What's still speculative (📋 Future): - Part 2 §4, <code>ae eval</code> → JSON on stdout (the in-process accessor path may obsolete this) - Part 2 §5 + Part 3, host-side callbacks, <code>host_call()</code> primitive, the full ARexx/rules-engine bidirectional model - Wall-clock timeout, allocation budget  Section-by-section annotations below mark each item.</blockquote>
 <hr>
 <h2 id="part-1-aethers-dsl-vs-the-configuration-language-landscape">Part 1: Aether's DSL vs. the configuration language landscape</h2>
 <h3 id="context">Context</h3>
@@ -338,7 +339,7 @@ aether_spawn_sandboxed(grants, <span class="str">"/tmp/pricing"</span>, input_js
   <div class="wrap foot-grid">
     <div class="foot-brand">
       <span class="ae">ae</span>
-      <p class="foot-tag">A compiled systems language built on actors.</p>
+      <p class="foot-tag">A compiled systems language you can audit.</p>
       <p class="foot-status">v0.467 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">

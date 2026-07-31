@@ -38,6 +38,7 @@
 <div class="grp">Start</div>
 <a href="/Docs/getting-started.html">Getting Started with Aether</a>
 <a href="/Docs/tutorial.html">Aether Language Tutorial</a>
+<a href="/Docs/next-steps.html">Next Steps</a>
 <div class="grp">Language</div>
 <a href="/Docs/language-reference.html">Aether Language Reference</a>
 <a href="/Docs/type-inference-guide.html">Aether Type Inference Guide</a>
@@ -92,7 +93,7 @@
 <a href="/Docs/compiler-trust-boundary.html">The Compiler Trust Boundary</a>
 <a href="/Docs/json-parser-design.html">std.json Design Notes</a>
 <a href="/Docs/aether_compared_to_capsicum.html">Aether Sandbox Model vs. BSD Capsicum: Architecture, Parallels, and FreeBSD Integration</a>
-<a href="/Docs/isolated.html">Isolated[T]: move-only actor message payloads</a>
+<a href="/Docs/isolated.html">Isolated[T]: move-only actor message payloads (#479)</a>
 <a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
 <a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn't need macro_rules!</a>
 <a href="/Docs/lib-caller-info.html">--emit=lib caller-info channel</a>
@@ -122,7 +123,7 @@ ae fmt --check src        <span class="com"># do not write; list files that woul
 <h2 id="safety-guarantee">Safety guarantee</h2>
 <p><code>ae fmt</code> cannot change what your program does. It works on the token stream: the sequence of significant tokens is never reordered, dropped, or fused, and string and comment bytes are copied verbatim. Because the lexer already tokenizes <code>a-b</code> and <code>a - b</code> identically, re-spacing between separated tokens cannot change how the source parses; the one hazard, gluing two tokens that would re-lex as one (<code>a b</code> becoming <code>ab</code>, or <code>&lt;</code> <code>&lt;</code> becoming <code>&lt;&lt;</code>), is explicitly prevented.</p>
 <p>This is verified, not just asserted: formatting every program in <code>examples/</code> and <code>tests/</code> produces byte-identical generated C (modulo <code>#line</code> directives), and formatting is idempotent (<code>fmt(fmt(x)) == fmt(x)</code>) across the whole corpus.</p>
-<p>Both properties are enforced in CI, not just described: <code>tests/integration/fmt_gate/test_fmt_gate.sh</code> fails the build if any checked-in <code>.ae</code> file under <code>std/</code>, <code>examples/</code>, or <code>tests/</code> is not canonically formatted (<code>ae fmt --check</code>), if formatting stops being idempotent, or if a formatted file's generated C diverges from the original's (modulo <code>#line</code>). Run <code>ae fmt std examples tests</code> before committing to stay canonical.</p>
+<p>Since #1302 both properties are enforced in CI, not just described: <code>tests/integration/fmt_gate/test_fmt_gate.sh</code> fails the build if any checked-in <code>.ae</code> file under <code>std/</code>, <code>examples/</code>, or <code>tests/</code> is not canonically formatted (<code>ae fmt --check</code>), if formatting stops being idempotent, or if a formatted file's generated C diverges from the original's (modulo <code>#line</code>). Run <code>ae fmt std examples tests</code> before committing to stay canonical.</p>
 <h2 id="not-yet-done">Not yet done</h2>
 <p>The formatter does not reflow long lines or align consecutive declarations. Those are layout decisions that need an opinionated style pass; they can be added later without changing the safety model above.</p>
       </article>
@@ -135,7 +136,7 @@ ae fmt --check src        <span class="com"># do not write; list files that woul
   <div class="wrap foot-grid">
     <div class="foot-brand">
       <span class="ae">ae</span>
-      <p class="foot-tag">A compiled systems language built on actors.</p>
+      <p class="foot-tag">A compiled systems language you can audit.</p>
       <p class="foot-status">v0.467 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">

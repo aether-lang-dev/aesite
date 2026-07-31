@@ -38,6 +38,7 @@
 <div class="grp">Start</div>
 <a href="/Docs/getting-started.html">Getting Started with Aether</a>
 <a href="/Docs/tutorial.html">Aether Language Tutorial</a>
+<a href="/Docs/next-steps.html">Next Steps</a>
 <div class="grp">Language</div>
 <a href="/Docs/language-reference.html">Aether Language Reference</a>
 <a href="/Docs/type-inference-guide.html">Aether Type Inference Guide</a>
@@ -92,7 +93,7 @@
 <a href="/Docs/compiler-trust-boundary.html">The Compiler Trust Boundary</a>
 <a href="/Docs/json-parser-design.html">std.json Design Notes</a>
 <a href="/Docs/aether_compared_to_capsicum.html">Aether Sandbox Model vs. BSD Capsicum: Architecture, Parallels, and FreeBSD Integration</a>
-<a href="/Docs/isolated.html">Isolated[T]: move-only actor message payloads</a>
+<a href="/Docs/isolated.html">Isolated[T]: move-only actor message payloads (#479)</a>
 <a href="/Docs/compile-time-eval.html" class="on">Compile-time constant evaluation (phase-1)</a>
 <a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn't need macro_rules!</a>
 <a href="/Docs/lib-caller-info.html">--emit=lib caller-info channel</a>
@@ -106,7 +107,7 @@
         <div class="bc"><span class="prompt">$</span>docs / design &amp; rfcs</div>
 <h1 id="compile-time-constant-evaluation-phase-1">Compile-time constant evaluation (phase-1)</h1>
 <p>Aether's <code>const</code> is <em>substitution-at-each-use</em>: the compiler inlines the RHS expression at every reference rather than allocating storage. For a literal (<code>const PI = 3.14</code>) that is exactly right. For an arbitrary call (<code>const G = make_thing()</code>) it is silently wrong, every reference would re-run the call, re-allocating / re-side-effecting. The typechecker therefore rejects non-constant const initializers.</p>
-<p>Phase-1 extends the set of initializers the compiler can evaluate <em>at compile time</em>, folding them to a plain literal before codegen so they inline correctly and run once, not per use. It is a <strong>hard-whitelisted folder, not an interpreter</strong>.</p>
+<p>Phase-1 (issue #482) extends the set of initializers the compiler can evaluate <em>at compile time</em>, folding them to a plain literal before codegen so they inline correctly and run once, not per use. It is a <strong>hard-whitelisted folder, not an interpreter</strong>.</p>
 <h2 id="what-folds">What folds</h2>
 <div class="tw"><table><thead><tr><th>Initializer</th><th>Folds to</th><th>Notes</th></tr></thead><tbody><tr><td><code>2 + 3 * 4</code> (arithmetic on numeric literals: <code>+ - * / %</code>)</td><td><code>14</code></td><td>Predates phase-1; in the correct width (int = 32-bit, float = double). Division/modulo by zero is <em>not</em> folded.</td></tr><tr><td><code>string.from_int(&lt;int const&gt;)</code></td><td><code>"42"</code></td><td>Folded in 32-bit width.</td></tr><tr><td><code>string.from_long(&lt;int const&gt;)</code></td><td><code>"9999999999"</code></td><td>Folded in 64-bit width.</td></tr><tr><td><code>string.from_float(&lt;num const&gt;)</code></td><td><code>"3.14"</code></td><td><code>%g</code> formatting.</td></tr><tr><td><code>string.concat(&lt;str const&gt;, &lt;str const&gt;)</code></td><td><code>"ab"</code></td><td>Both operands must be string literals (or fold to them).</td></tr><tr><td><code>const A: int[3] = [1, 2, 3]</code> / <code>const A[] = [...]</code></td><td><code>static const int A[] = {1, 2, 3}</code></td><td>Const array literal. Every element must itself be a compile-time constant.</td></tr></tbody></table></div>
 <p>Folds compose: <code>string.concat(string.from_int(1), "x")</code> folds to <code>"1x"</code> because the optimizer recurses into arguments before folding the enclosing call.</p>
@@ -120,7 +121,7 @@
 <ul><li><strong>Whitelist gate (accept/reject):</strong> <code>is_const_expression</code> / <code>is_const_expr_call</code> in <code>compiler/analysis/typechecker.c</code>. Runs during typecheck; admits exactly the whitelist, rejects everything else with a source-mapped diagnostic.</li><li><strong>Folder (call → literal):</strong> <code>fold_const_string_call</code> and the <code>AST_FUNCTION_CALL</code> / <code>AST_CONST_DECLARATION</code> arms of <code>optimize_constant_folding</code> in <code>compiler/codegen/optimizer.c</code>. Runs after typecheck, before codegen. The two lists are kept byte-for-byte in sync (<code>is_whitelisted_string_call</code> ↔ the typechecker whitelist).</li><li><strong>Lowering:</strong> a folded scalar const lowers to <code>#define NAME (value)</code>; a const array lowers to <code>static const T NAME[] = {…}</code> (<code>compiler/codegen/codegen_stmt.c</code> for locals, <code>compiler/codegen/codegen.c</code> for module-level).</li></ul>
 <h2 id="phase-1-scope">Phase-1 scope</h2>
 <p>Phase-1 is intentionally narrow: arithmetic on numeric literals, the four whitelisted <code>string.*</code> conversions, and constant array literals. There is no general const evaluator, no compile-time loop unrolling beyond the existing closed-form loop passes, and no evaluation of user functions. Any broadening of the whitelist must preserve the capability-gate invariant above: only pure, I/O-free value conversions are ever eligible.</p>
-<h2 id="purity-introspection-__purefn">Purity introspection: <code>__pure(fn)</code></h2>
+<h2 id="purity-introspection-__purefn-522">Purity introspection: <code>__pure(fn)</code> (#522)</h2>
 <p>A separate whole-program analysis assigns every function a <strong>purity</strong> bit, and the compile-time builtin <code>__pure(funcName)</code> folds to a <code>true</code>/<code>false</code> constant reflecting it:</p>
 <pre><code><span class="kw">let</span> safe = __pure(transform)           <span class="com">// bool constant, no runtime cost</span>
 <span class="kw">if</span> __pure(parse_config) { ... }        <span class="com">// branch on purity; folded to a literal</span></code></pre>
@@ -130,7 +131,7 @@
 <p>The analysis is <strong>conservative</strong>: a function whose body it cannot see (an <code>extern</code>, or an unresolved name) is treated as impure, and a raw <code>extern</code> call inside a body is opaque and left unjudged (the same boundary the <code>--with=</code> gate and effect tags have). This is the determinism axis that complements the capability (access-control) axis, a function can be capability-empty yet impure (reads a clock handed to it), or hold <code>fs</code> yet be pure for fixed input. <code>__pure</code> resolves at compile time, so it gates optimizations and library features with zero runtime cost.</p>
       </article>
     </main>
-    <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#what-folds" class="l2" data-id="what-folds">What folds</a><a href="#what-does-not-fold-and-why" class="l2" data-id="what-does-not-fold-and-why">What does NOT fold (and why)</a><a href="#where-it-lives" class="l2" data-id="where-it-lives">Where it lives</a><a href="#phase-1-scope" class="l2" data-id="phase-1-scope">Phase-1 scope</a><a href="#purity-introspection-__purefn" class="l2" data-id="purity-introspection-__purefn">Purity introspection: __pure(fn)</a></nav>
+    <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#what-folds" class="l2" data-id="what-folds">What folds</a><a href="#what-does-not-fold-and-why" class="l2" data-id="what-does-not-fold-and-why">What does NOT fold (and why)</a><a href="#where-it-lives" class="l2" data-id="where-it-lives">Where it lives</a><a href="#phase-1-scope" class="l2" data-id="phase-1-scope">Phase-1 scope</a><a href="#purity-introspection-__purefn-522" class="l2" data-id="purity-introspection-__purefn-522">Purity introspection: __pure(fn) (#522)</a></nav>
   </div>
 </div>
 <script src="/docs.js" defer></script>
@@ -138,7 +139,7 @@
   <div class="wrap foot-grid">
     <div class="foot-brand">
       <span class="ae">ae</span>
-      <p class="foot-tag">A compiled systems language built on actors.</p>
+      <p class="foot-tag">A compiled systems language you can audit.</p>
       <p class="foot-status">v0.467 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">

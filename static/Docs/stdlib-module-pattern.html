@@ -38,6 +38,7 @@
 <div class="grp">Start</div>
 <a href="/Docs/getting-started.html">Getting Started with Aether</a>
 <a href="/Docs/tutorial.html">Aether Language Tutorial</a>
+<a href="/Docs/next-steps.html">Next Steps</a>
 <div class="grp">Language</div>
 <a href="/Docs/language-reference.html">Aether Language Reference</a>
 <a href="/Docs/type-inference-guide.html">Aether Type Inference Guide</a>
@@ -92,7 +93,7 @@
 <a href="/Docs/compiler-trust-boundary.html">The Compiler Trust Boundary</a>
 <a href="/Docs/json-parser-design.html">std.json Design Notes</a>
 <a href="/Docs/aether_compared_to_capsicum.html">Aether Sandbox Model vs. BSD Capsicum: Architecture, Parallels, and FreeBSD Integration</a>
-<a href="/Docs/isolated.html">Isolated[T]: move-only actor message payloads</a>
+<a href="/Docs/isolated.html">Isolated[T]: move-only actor message payloads (#479)</a>
 <a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
 <a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn't need macro_rules!</a>
 <a href="/Docs/lib-caller-info.html">--emit=lib caller-info channel</a>
@@ -142,7 +143,7 @@ op(args) -&gt; {
 <h3 id="return-shapes">Return shapes</h3>
 <div class="tw"><table><thead><tr><th>Operation</th><th>Success return</th><th>Failure return</th></tr></thead><tbody><tr><td>Produces a value</td><td><code>(value, "")</code></td><td><code>(zero-value, "reason")</code></td></tr><tr><td>Produces nothing (setter, writer)</td><td><code>""</code></td><td><code>"reason"</code></td></tr><tr><td>Lookup that can be absent</td><td><code>(value, "")</code> / <code>(null, "")</code> for absent</td><td><code>(null, "reason")</code> for error</td></tr></tbody></table></div>
 <p>For the lookup row: distinguish <strong>absent</strong> from <strong>error</strong>. An absent key is not an error, the caller asked if X exists. Only return a non-empty error string when something actually went wrong (null receiver, wrong type, allocation failure).</p>
-<h3 id="structured-errors-pilot">Structured errors (pilot)</h3>
+<h3 id="structured-errors-pilot-issue-392">Structured errors (pilot, issue #392)</h3>
 <p>A small set of newer wrappers extends the (value, err) shape with a <strong>third element</strong>: an integer "kind" that lets callers programmatically discriminate between failure modes without parsing the human-readable message. The tuple is <code>(value, kind: int, message: string)</code>. <code>kind == 0</code> means success (constant <code>KIND_OK</code>); non-zero means an error of the named class.</p>
 <pre><code>// (bytes_copied, kind, message)
 //   on success:  (n, KIND_OK, "")
@@ -171,7 +172,7 @@ open(path: string, mode: string) -&gt; {
 <ol><li>Create <code>std/&lt;name&gt;/</code> with <code>module.ae</code> and <code>aether_&lt;name&gt;.c</code>/<code>.h</code>.</li><li>Write the C functions first; split into <code>&lt;op&gt;_raw</code> (fallible) and <code>&lt;op&gt;</code> (infallible) per the rules above.</li><li>Mirror each function as an <code>extern</code> in <code>module.ae</code>, copying the <code>_raw</code> suffix for fallible ones.</li><li>Add the "API shape" preamble comment.</li><li>Add Go-style wrappers for every fallible extern.</li><li>Add tests exercising both the success and error paths of each wrapper.</li><li>Add an example under <code>examples/stdlib/&lt;name&gt;-demo.ae</code> showing idiomatic use of the Go-style API.</li></ol>
       </article>
     </main>
-    <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#the-shape" class="l2" data-id="the-shape">The shape</a><a href="#rules" class="l2" data-id="rules">Rules</a><a href="#when-to-add-a-_raw-extern--wrapper" class="l3" data-id="when-to-add-a-_raw-extern--wrapper">When to add a _raw extern + wrapper</a><a href="#when-not-to-wrap" class="l3" data-id="when-not-to-wrap">When NOT to wrap</a><a href="#return-shapes" class="l3" data-id="return-shapes">Return shapes</a><a href="#structured-errors-pilot" class="l3" data-id="structured-errors-pilot">Structured errors (pilot)</a><a href="#docstring" class="l3" data-id="docstring">Docstring</a><a href="#ownership-of-returned-strings" class="l3" data-id="ownership-of-returned-strings">Ownership of returned strings</a><a href="#worked-example-stdfs" class="l2" data-id="worked-example-stdfs">Worked example: std.fs</a><a href="#modules-that-follow-this-pattern" class="l2" data-id="modules-that-follow-this-pattern">Modules that follow this pattern</a><a href="#adding-a-new-stdlib-module" class="l2" data-id="adding-a-new-stdlib-module">Adding a new stdlib module</a></nav>
+    <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#the-shape" class="l2" data-id="the-shape">The shape</a><a href="#rules" class="l2" data-id="rules">Rules</a><a href="#when-to-add-a-_raw-extern--wrapper" class="l3" data-id="when-to-add-a-_raw-extern--wrapper">When to add a _raw extern + wrapper</a><a href="#when-not-to-wrap" class="l3" data-id="when-not-to-wrap">When NOT to wrap</a><a href="#return-shapes" class="l3" data-id="return-shapes">Return shapes</a><a href="#structured-errors-pilot-issue-392" class="l3" data-id="structured-errors-pilot-issue-392">Structured errors (pilot, issue #392)</a><a href="#docstring" class="l3" data-id="docstring">Docstring</a><a href="#ownership-of-returned-strings" class="l3" data-id="ownership-of-returned-strings">Ownership of returned strings</a><a href="#worked-example-stdfs" class="l2" data-id="worked-example-stdfs">Worked example: std.fs</a><a href="#modules-that-follow-this-pattern" class="l2" data-id="modules-that-follow-this-pattern">Modules that follow this pattern</a><a href="#adding-a-new-stdlib-module" class="l2" data-id="adding-a-new-stdlib-module">Adding a new stdlib module</a></nav>
   </div>
 </div>
 <script src="/docs.js" defer></script>
@@ -179,7 +180,7 @@ open(path: string, mode: string) -&gt; {
   <div class="wrap foot-grid">
     <div class="foot-brand">
       <span class="ae">ae</span>
-      <p class="foot-tag">A compiled systems language built on actors.</p>
+      <p class="foot-tag">A compiled systems language you can audit.</p>
       <p class="foot-status">v0.467 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">

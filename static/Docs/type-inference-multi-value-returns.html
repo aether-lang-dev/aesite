@@ -38,6 +38,7 @@
 <div class="grp">Start</div>
 <a href="/Docs/getting-started.html">Getting Started with Aether</a>
 <a href="/Docs/tutorial.html">Aether Language Tutorial</a>
+<a href="/Docs/next-steps.html">Next Steps</a>
 <div class="grp">Language</div>
 <a href="/Docs/language-reference.html">Aether Language Reference</a>
 <a href="/Docs/type-inference-guide.html">Aether Type Inference Guide</a>
@@ -92,7 +93,7 @@
 <a href="/Docs/compiler-trust-boundary.html">The Compiler Trust Boundary</a>
 <a href="/Docs/json-parser-design.html">std.json Design Notes</a>
 <a href="/Docs/aether_compared_to_capsicum.html">Aether Sandbox Model vs. BSD Capsicum: Architecture, Parallels, and FreeBSD Integration</a>
-<a href="/Docs/isolated.html">Isolated[T]: move-only actor message payloads</a>
+<a href="/Docs/isolated.html">Isolated[T]: move-only actor message payloads (#479)</a>
 <a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
 <a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn't need macro_rules!</a>
 <a href="/Docs/lib-caller-info.html">--emit=lib caller-info channel</a>
@@ -105,7 +106,7 @@
       <article class="doc-body" id="doc">
         <div class="bc"><span class="prompt">$</span>docs / language</div>
 <h1 id="multi-value-return-type-inference">Multi-Value Return Type Inference</h1>
-<blockquote>Post-mortem of bugs fixed in commit <code>bc42939</code> and its follow-up (commit <code>937b029</code>). The per-bug <strong>Cause</strong> sections describe pre-fix code that no longer exists; the <strong>Fix</strong> sections describe what landed. Read the "Putting it together" invariant and the litmus test as the durable takeaways, the bug-by-bug archaeology is frozen in time and will drift as <code>type_inference.c</code> evolves.</blockquote>
+<blockquote>Post-mortem of bugs fixed in commit <code>bc42939</code> and PR #249 (commit <code>937b029</code>). The per-bug <strong>Cause</strong> sections describe pre-fix code that no longer exists; the <strong>Fix</strong> sections describe what landed. Read the "Putting it together" invariant and the litmus test as the durable takeaways, the bug-by-bug archaeology is frozen in time and will drift as <code>type_inference.c</code> evolves.</blockquote>
 <p>The Go-style <code>(value, err)</code> tuple return migration in stdlib (<code>std.map</code>, <code>std.list</code>, <code>std.fs</code>, <code>std.zlib</code>, <code>std.cryptography</code>, …) put a lot of weight on cross-function tuple-return inference. Several latent bugs in <code>compiler/analysis/type_inference.c</code> only surface once a function's body destructures a multi-value call and then itself returns a tuple mixing a destructured local with a literal. This doc catalogs them and describes the fix shape so future regressions in the same area are recognizable.</p>
 <p>For the broader inference flow (constraint collection, propagation, phase ordering), see <a href="/Docs/type-inference-guide.html"><code>type-inference-guide.md</code></a>. This doc covers only multi-value-return-specific edge cases.</p>
 <h2 id="the-shape-that-triggers-the-cluster">The shape that triggers the cluster</h2>
@@ -172,7 +173,7 @@ hash_file(p: <span class="fn">string</span>) {
   <div class="wrap foot-grid">
     <div class="foot-brand">
       <span class="ae">ae</span>
-      <p class="foot-tag">A compiled systems language built on actors.</p>
+      <p class="foot-tag">A compiled systems language you can audit.</p>
       <p class="foot-status">v0.467 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
