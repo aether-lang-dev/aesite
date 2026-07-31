@@ -26,7 +26,7 @@
     <nav>
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
-      <a class="src" href="https://github.com/aether-lang-org/aether">Source</a>
+      <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
       <span class="vtag">v0.467</span>
     </nav>
   </div>
@@ -472,7 +472,7 @@ main() {
 <p><strong>Metrics</strong>: <code>proxy.pool_metrics_text(pool) -&gt; string</code> returns Prometheus 0.0.4 exposition (per-upstream counters by status class, transport_errors, timeouts, retries, latency_ms_sum/count + gauges for inflight/healthy/breaker_state/draining; pool-level cache_hits/misses/revalidations/503_no_upstream).</p>
 <p>Full reference: <a href="/Docs/http-reverse-proxy.html"><code>docs/http-reverse-proxy.md</code></a>.</p>
 <h3 id="http-recordreplay-vcr-moved-out-of-the-stdlib">HTTP Record/Replay (VCR), moved out of the stdlib</h3>
-<p>The Servirtium record/replay engine that used to ship as <code>std.http.server.vcr</code> has been lifted into its own repository, <a href="https://github.com/aether-lang-org/servirtium-vcr"><code>servirtium-vcr</code></a>, which is now its authoritative home (alongside its language bindings). It is no longer part of the Aether stdlib. See <a href="/Docs/http-vcr.html"><code>docs/http-vcr.md</code></a>.</p>
+<p>The Servirtium record/replay engine that used to ship as <code>std.http.server.vcr</code> has been lifted into its own repository, <a href="https://github.com/servirtium/servirtium-vcr"><code>servirtium-vcr</code></a>, which is now its authoritative home (alongside its language bindings). It is no longer part of the Aether stdlib. See <a href="/Docs/http-vcr.html"><code>docs/http-vcr.md</code></a>.</p>
 <h3 id="tcp-sockets-go-style">TCP Sockets (Go-style)</h3>
 <blockquote>Note: <code>send</code> and <code>receive</code> are reserved actor keywords in Aether, so the TCP wrappers use <code>write</code>/<code>read</code> instead. The raw externs retain the <code>send_raw</code>/<code>receive_raw</code> naming.</blockquote>
 <ul><li><code>tcp.connect(host, port)</code> → <code>(ptr, string)</code> - Connect, return <code>(socket, err)</code></li><li><code>tcp.write(sock, data)</code> → <code>(int, string)</code> - Text-shaped write, return <code>(bytes, err)</code></li><li><code>tcp.write_n(sock, data, length)</code> → <code>(int, string)</code> - Length-aware write for binary payloads</li><li><code>tcp.read(sock, max_bytes)</code> → <code>(string, string)</code> - Text-shaped read, return <code>(data, err)</code></li><li><code>tcp.read_n(sock, max_bytes)</code> → <code>(string, int, string)</code> - Binary-safe read, return <code>(bytes, length, err)</code></li><li><code>tcp.poll(sock, timeout_ms)</code> → <code>(bool, string)</code> - Wait for readability. <code>(true, "")</code> = a following <code>read_n</code> won't block, <code>(false, "")</code> = timeout, <code>(false, err)</code> = closed/failed. <code>timeout_ms</code>: <code>-1</code> blocks, <code>0</code> polls, <code>&gt;0</code> waits that many ms.</li><li><code>tcp.poll2(a, b, timeout_ms)</code> → <code>(bool, bool, string)</code> - Wait on two sockets at once (the full-duplex relay primitive); each flag is true when that side is readable, both may be true.</li><li><code>tcp.listen(port)</code> → <code>(ptr, string)</code> - Create listening socket</li><li><code>tcp.accept(server)</code> → <code>(ptr, string)</code> - Accept connection</li><li><code>tcp.close(sock)</code> - Close socket (infallible)</li><li><code>tcp.server_close(server)</code> - Close server socket</li></ul>
@@ -686,9 +686,9 @@ main() {
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Project</h3>
-      <a href="https://github.com/aether-lang-org/aether">GitHub</a>
-      <a href="https://github.com/aether-lang-org/aether/issues">Issues</a>
-      <a href="https://github.com/aether-lang-org/aether/blob/main/CHANGELOG.md">Changelog</a>
+      <a href="https://github.com/aether-lang-dev/aether">GitHub</a>
+      <a href="https://github.com/aether-lang-dev/aether/issues">Issues</a>
+      <a href="https://github.com/aether-lang-dev/aether/blob/main/CHANGELOG.md">Changelog</a>
       <a href="https://github.com/sponsors/nicolas-maman">Sponsor</a>
     </div>
     <div class="foot-col">

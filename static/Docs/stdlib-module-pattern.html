@@ -26,7 +26,7 @@
     <nav>
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
-      <a class="src" href="https://github.com/aether-lang-org/aether">Source</a>
+      <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
       <span class="vtag">v0.467</span>
     </nav>
   </div>
@@ -106,7 +106,7 @@
         <div class="bc"><span class="prompt">$</span>docs / contributing</div>
 <h1 id="aether-stdlib-module-pattern">Aether Stdlib Module Pattern</h1>
 <p>This is the canonical shape for an Aether standard-library module. Use it when adding a new <code>std/&lt;name&gt;/</code> module or retrofitting an existing one.</p>
-<p>The worked example throughout this document is <a href="https://github.com/aether-lang-org/aether/tree/main/std/fs/module.ae"><code>std/fs/module.ae</code></a>, read it alongside this doc.</p>
+<p>The worked example throughout this document is <a href="https://github.com/aether-lang-dev/aether/tree/main/std/fs/module.ae"><code>std/fs/module.ae</code></a>, read it alongside this doc.</p>
 <h2 id="the-shape">The shape</h2>
 <p>Every <code>std/&lt;name&gt;/module.ae</code> has two layers:</p>
 <ol><li><strong>Raw externs</strong>, thin declarations of the underlying C functions. Fallible externs use a <code>_raw</code> suffix and return the old C conventions (<code>ptr</code> for nullable, <code>int</code> for 1/0 success flags).</li><li><strong>Go-style wrappers</strong>, Aether functions that call the raw externs and translate C-style returns into Go-style <code>(value, err)</code> tuples (or just <code>err</code> for operations with no return value).</li></ol>
@@ -138,7 +138,7 @@ op(args) -&gt; {
 <ul><li>A <code>_raw</code>-suffixed C function (either rename the existing one or add it alongside).</li><li>A companion Aether wrapper that turns the C return into either <code>(value, "")</code> on success or <code>(zero-value, "reason")</code> on failure.</li></ul>
 <h3 id="when-not-to-wrap">When NOT to wrap</h3>
 <p>Keep raw externs with <strong>no</strong> <code>_raw</code> suffix and <strong>no</strong> wrapper for operations that are:</p>
-<ul><li>Pure total functions that can't fail for any well-typed input (<code>path_join</code>, <code>path_basename</code>, <code>math_sqrt</code>, <code>math_sin</code>, <code>string_length</code>, <code>list_size</code>), and infallible boolean queries (<code>file_exists</code>, <code>path_is_absolute</code>, <code>fs_is_symlink</code>, <code>json_is_null</code>, <code>map_has</code>).</li><li><strong>Sentinel-returning infallibles</strong> where the sentinel is part of the contract, not an error. Example: <code>file_mtime</code> returns <code>0</code> for missing files or stat failure, callers already handle zero as "no mtime", so wrapping would just add noise.</li><li><strong>Intentionally void fire-and-forget operations.</strong> Example: <a href="https://github.com/aether-lang-org/aether/tree/main/std/log/module.ae"><code>log_write</code></a> in <code>std.log</code> the module deliberately degrades to stderr if the log file is unopenable, so callers don't need an error from each write.</li><li><strong>Structural/DSL builders.</strong> Example: the manifest DSL in <a href="https://github.com/aether-lang-org/aether/tree/main/std/host/module.ae"><code>std.host</code></a>, <code>describe</code>, <code>input</code>, <code>event</code>, <code>bindings</code>, <code>java</code>, … are void because they structurally append to a global registry. They're not silent failures, they're a different pattern.</li></ul>
+<ul><li>Pure total functions that can't fail for any well-typed input (<code>path_join</code>, <code>path_basename</code>, <code>math_sqrt</code>, <code>math_sin</code>, <code>string_length</code>, <code>list_size</code>), and infallible boolean queries (<code>file_exists</code>, <code>path_is_absolute</code>, <code>fs_is_symlink</code>, <code>json_is_null</code>, <code>map_has</code>).</li><li><strong>Sentinel-returning infallibles</strong> where the sentinel is part of the contract, not an error. Example: <code>file_mtime</code> returns <code>0</code> for missing files or stat failure, callers already handle zero as "no mtime", so wrapping would just add noise.</li><li><strong>Intentionally void fire-and-forget operations.</strong> Example: <a href="https://github.com/aether-lang-dev/aether/tree/main/std/log/module.ae"><code>log_write</code></a> in <code>std.log</code> the module deliberately degrades to stderr if the log file is unopenable, so callers don't need an error from each write.</li><li><strong>Structural/DSL builders.</strong> Example: the manifest DSL in <a href="https://github.com/aether-lang-dev/aether/tree/main/std/host/module.ae"><code>std.host</code></a>, <code>describe</code>, <code>input</code>, <code>event</code>, <code>bindings</code>, <code>java</code>, … are void because they structurally append to a global registry. They're not silent failures, they're a different pattern.</li></ul>
 <h3 id="return-shapes">Return shapes</h3>
 <div class="tw"><table><thead><tr><th>Operation</th><th>Success return</th><th>Failure return</th></tr></thead><tbody><tr><td>Produces a value</td><td><code>(value, "")</code></td><td><code>(zero-value, "reason")</code></td></tr><tr><td>Produces nothing (setter, writer)</td><td><code>""</code></td><td><code>"reason"</code></td></tr><tr><td>Lookup that can be absent</td><td><code>(value, "")</code> / <code>(null, "")</code> for absent</td><td><code>(null, "reason")</code> for error</td></tr></tbody></table></div>
 <p>For the lookup row: distinguish <strong>absent</strong> from <strong>error</strong>. An absent key is not an error, the caller asked if X exists. Only return a non-empty error string when something actually went wrong (null receiver, wrong type, allocation failure).</p>
@@ -161,9 +161,9 @@ open(path: string, mode: string) -&gt; {
     ...
 }</code></pre>
 <h3 id="ownership-of-returned-strings">Ownership of returned strings</h3>
-<p>If the underlying C function returns a borrowed <code>const char*</code> (pointer into another object's memory), the wrapper <strong>must</strong> copy it before returning so the caller's string outlives the source object. The idiomatic copy in Aether is <code>string_concat(borrowed, "")</code> see <a href="https://github.com/aether-lang-org/aether/tree/main/std/fs/module.ae"><code>std.fs</code></a>'s <code>readlink</code> wrapper for the pattern.</p>
+<p>If the underlying C function returns a borrowed <code>const char*</code> (pointer into another object's memory), the wrapper <strong>must</strong> copy it before returning so the caller's string outlives the source object. The idiomatic copy in Aether is <code>string_concat(borrowed, "")</code> see <a href="https://github.com/aether-lang-dev/aether/tree/main/std/fs/module.ae"><code>std.fs</code></a>'s <code>readlink</code> wrapper for the pattern.</p>
 <h2 id="worked-example-stdfs">Worked example: <code>std.fs</code></h2>
-<p><a href="https://github.com/aether-lang-org/aether/tree/main/std/fs/module.ae"><code>std/fs/module.ae</code></a> is the reference implementation. Skim it start-to-finish; it demonstrates:</p>
+<p><a href="https://github.com/aether-lang-dev/aether/tree/main/std/fs/module.ae"><code>std/fs/module.ae</code></a> is the reference implementation. Skim it start-to-finish; it demonstrates:</p>
 <ul><li>Raw <code>_raw</code> externs grouped at the top with structural comments.</li><li>Pure-function externs (the <code>path_*</code> block) that correctly have no <code>_raw</code> suffix and no wrapper.</li><li>Every fallible operation wrapped in a Go-style function below.</li><li>Consistent <code>"cannot &lt;verb&gt; &lt;noun&gt;"</code> error phrasing.</li><li>An explicit note where a raw extern is left unwrapped intentionally (<code>file_mtime</code>'s sentinel-0 contract).</li></ul>
 <h2 id="modules-that-follow-this-pattern">Modules that follow this pattern</h2>
 <p><code>fs</code>, <code>io</code>, <code>http</code>, <code>net</code>, <code>os</code>, <code>string</code>, <code>tcp</code>, <code>dir</code>, <code>file</code> full wrapper coverage. <code>json</code>, <code>collections</code>, <code>list</code>, <code>map</code> completed in the stdlib-consistency pass alongside this doc. <code>log</code> and <code>host</code>, intentionally follow domain-specific variants (fire-and-forget logging; DSL builders) as described above.</p>
@@ -192,9 +192,9 @@ open(path: string, mode: string) -&gt; {
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Project</h3>
-      <a href="https://github.com/aether-lang-org/aether">GitHub</a>
-      <a href="https://github.com/aether-lang-org/aether/issues">Issues</a>
-      <a href="https://github.com/aether-lang-org/aether/blob/main/CHANGELOG.md">Changelog</a>
+      <a href="https://github.com/aether-lang-dev/aether">GitHub</a>
+      <a href="https://github.com/aether-lang-dev/aether/issues">Issues</a>
+      <a href="https://github.com/aether-lang-dev/aether/blob/main/CHANGELOG.md">Changelog</a>
       <a href="https://github.com/sponsors/nicolas-maman">Sponsor</a>
     </div>
     <div class="foot-col">

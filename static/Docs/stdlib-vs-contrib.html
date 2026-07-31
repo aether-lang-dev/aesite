@@ -26,7 +26,7 @@
     <nav>
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
-      <a class="src" href="https://github.com/aether-lang-org/aether">Source</a>
+      <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
       <span class="vtag">v0.467</span>
     </nav>
   </div>
@@ -118,7 +118,7 @@
 <div class="tw"><table><thead><tr><th>Module</th><th>Reason for <code>contrib/</code></th></tr></thead><tbody><tr><td><code>contrib/sqlite/</code></td><td>DB driver, fails rubric Q1 (not universal) and Q3 (4 MiB amalgamation).</td></tr><tr><td><code>contrib/tinyweb/</code></td><td>Builder DSL for HTTP services, competes with <code>std.http.server</code>'s closure-config approach; opinionated shape that's better off evolving without the stability constraint.</td></tr><tr><td><code>contrib/templating/{native,liquid}/</code></td><td>Escape-correct output emission, <code>native</code> (Aether-as-template-language) and <code>liquid</code> (Shopify Liquid port). Opinionated template surfaces; fail Q2.</td></tr><tr><td><code>contrib/parsers/xml_expat/</code></td><td>Expat-backed streaming XML parser, third-party C dependency; fails Q3 (<code>std.xml</code> covers the in-tree case).</td></tr><tr><td><code>contrib/host/{python,lua,perl,ruby,js,tcl,go,java,factor,aether,…}/</code></td><td>Per-language embedding bridges, each one is a separate sub-decision that wouldn't share an API; fails Q2.</td></tr></tbody></table></div>
 <h2 id="spun-out-to-sibling-repos">Spun out to sibling repos</h2>
 <p>A <code>contrib/</code> module can graduate further, out of this repo entirely into a sibling project that consumes Aether downstream. This keeps the core compiler / runtime / stdlib repo focused while the spun-out project iterates on its own release cadence.</p>
-<div class="tw"><table><thead><tr><th>Sibling repo</th><th>Replaces</th></tr></thead><tbody><tr><td><a href="https://github.com/aether-lang-org/aether-ui">aether-lang-org/aether-ui</a></td><td>The widget toolkit (GTK4 / AppKit / Win32 backends + AetherUIDriver HTTP test server), formerly <code>contrib/aether_ui/</code>.</td></tr><tr><td><a href="https://github.com/aether-lang-org/aeb">aether-lang-org/aeb</a></td><td>The build system (formerly aetherBuild / <code>aeb-link</code>); a downstream consumer of <code>share/aether/MANIFEST</code> and the runtime sources.</td></tr><tr><td>servirtium-vcr (<code>integration/climate_interop/</code>)</td><td>The Servirtium climate-API record/replay harness, formerly <code>contrib/climate_http_tests/</code>. The VCR tapes + record-then-replay tests live alongside the other-language reference impls there.</td></tr></tbody></table></div>
+<div class="tw"><table><thead><tr><th>Sibling repo</th><th>Replaces</th></tr></thead><tbody><tr><td><a href="https://github.com/aether-lang-dev/aether-ui">aether-lang-dev/aether-ui</a></td><td>The widget toolkit (GTK4 / AppKit / Win32 backends + AetherUIDriver HTTP test server), formerly <code>contrib/aether_ui/</code>.</td></tr><tr><td><a href="https://github.com/aether-lang-dev/aeb">aether-lang-dev/aeb</a></td><td>The build system (formerly aetherBuild / <code>aeb-link</code>); a downstream consumer of <code>share/aether/MANIFEST</code> and the runtime sources.</td></tr><tr><td>servirtium-vcr (<code>integration/climate_interop/</code>)</td><td>The Servirtium climate-API record/replay harness, formerly <code>contrib/climate_http_tests/</code>. The VCR tapes + record-then-replay tests live alongside the other-language reference impls there.</td></tr></tbody></table></div>
 <h2 id="migration-test">Migration test</h2>
 <p>A module can always move later, <code>std/</code> → <code>contrib/</code> is painful (breaks every caller), but <code>contrib/</code> → <code>std/</code> is low-cost (add an alias import path, deprecate the <code>contrib/</code> one, remove after a release cycle). When in doubt, <strong>start in <code>contrib/</code></strong>. The only things that should start in <code>std/</code> are the ones that clearly pass all four rubric questions on day one.</p>
 <p>The recent additions of <code>std.arena</code> and <code>std.cas</code> are good worked examples: each is a tiny universal primitive (bulk allocator; content-addressed sha256 store) with a single obvious shape and no new dependencies, all four rubric questions answer "yes," and they landed directly in <code>std/</code>.</p>
@@ -147,9 +147,9 @@
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Project</h3>
-      <a href="https://github.com/aether-lang-org/aether">GitHub</a>
-      <a href="https://github.com/aether-lang-org/aether/issues">Issues</a>
-      <a href="https://github.com/aether-lang-org/aether/blob/main/CHANGELOG.md">Changelog</a>
+      <a href="https://github.com/aether-lang-dev/aether">GitHub</a>
+      <a href="https://github.com/aether-lang-dev/aether/issues">Issues</a>
+      <a href="https://github.com/aether-lang-dev/aether/blob/main/CHANGELOG.md">Changelog</a>
       <a href="https://github.com/sponsors/nicolas-maman">Sponsor</a>
     </div>
     <div class="foot-col">
