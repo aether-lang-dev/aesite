@@ -226,22 +226,22 @@ q = <span class="fn">safe_divide</span>(<span class="num">10</span>, <span class
       <div class="feature-text">
         <h2>The reverse proxy ships with the language.</h2>
         <p>Three weighted upstreams, health probes every five seconds, and a breaker that opens after five consecutive failures. The same file adds an LRU response cache, per-upstream rate limiting, retries with jittered backoff, and a Prometheus endpoint.</p>
-        <p class="muted-p">No framework, no sidecar. All of it is <code>std.http.proxy</code>, and the example is <a href="https://github.com/aether-lang-dev/aether/blob/main/examples/stdlib/http-reverse-proxy-pool.ae">in the repo</a>.</p>
+        <p class="muted-p">No framework, no sidecar. All of it is <code>std.http.proxy</code>, and the example is <a href="https://github.com/aether-lang-dev/aether/blob/main/examples/stdlib/http-reverse-proxy-pool-dsl.ae">in the repo</a>.</p>
       </div>
       <div class="panel term">
-        <div class="term-bar"><span class="file">http-reverse-proxy-pool.ae</span></div>
-<pre class="run-src">pool = proxy.<span class="fn">upstream_pool_new</span>(<span class="str">"weighted_rr"</span>, <span class="num">30</span>, <span class="num">0</span>, <span class="num">0</span>)
+        <div class="term-bar"><span class="file">http-reverse-proxy-pool-dsl.ae</span></div>
+<pre class="run-src">pool = proxy.<span class="fn">pool</span>(<span class="str">"weighted_rr"</span>, <span class="num">30</span>, <span class="num">0</span>, <span class="num">0</span>) <span class="pn">{</span>
+    <span class="fn">upstream</span>(<span class="str">"http://localhost:9001"</span>, <span class="num">3</span>)
+    <span class="fn">upstream</span>(<span class="str">"http://localhost:9002"</span>, <span class="num">2</span>)
+    <span class="fn">upstream</span>(<span class="str">"http://localhost:9003"</span>, <span class="num">1</span>)
 
-proxy.<span class="fn">upstream_add</span>(pool, <span class="str">"http://localhost:9001"</span>, <span class="num">3</span>)
-proxy.<span class="fn">upstream_add</span>(pool, <span class="str">"http://localhost:9002"</span>, <span class="num">2</span>)
-proxy.<span class="fn">upstream_add</span>(pool, <span class="str">"http://localhost:9003"</span>, <span class="num">1</span>)
+    <span class="com">// probe /health every 5s, two good marks it up</span>
+    <span class="fn">health</span>(<span class="str">"/health"</span>, <span class="num">200</span>, <span class="num">5000</span>, <span class="num">2000</span>, <span class="num">2</span>, <span class="num">2</span>)
 
-<span class="com">// probe /health every 5s, two good marks it up</span>
-proxy.<span class="fn">health_checks_enable</span>(pool, <span class="str">"/health"</span>,
-                             <span class="num">200</span>, <span class="num">5000</span>, <span class="num">2000</span>, <span class="num">2</span>, <span class="num">2</span>)
-
-<span class="com">// five failures in a row opens the breaker for 30s</span>
-proxy.<span class="fn">breaker_configure</span>(pool, <span class="num">5</span>, <span class="num">30000</span>, <span class="num">1</span>)</pre>
+    <span class="com">// five failures in a row opens the breaker for 30s</span>
+    <span class="fn">breaker</span>(<span class="num">5</span>, <span class="num">30000</span>, <span class="num">1</span>)
+    <span class="fn">rate_limit</span>(<span class="num">200</span>, <span class="num">50</span>)
+<span class="pn">}</span></pre>
       </div>
     </div>
   </section>
