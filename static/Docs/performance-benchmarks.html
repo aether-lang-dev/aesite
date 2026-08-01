@@ -100,7 +100,9 @@
 <a href="/Docs/stdlib-module-pattern.html">Aether Stdlib Module Pattern</a>
 <a href="/Docs/stdlib-vs-contrib.html">std/ vs contrib/ placement decisions</a>
 <a href="/Docs/bootstrap-from-source.html">Bootstrapping Aether from source (HEAD)</a>
-<a href="/Docs/release-glibc-portability.html">Release binary portability across glibc versions</a></nav>
+<a href="/Docs/release-glibc-portability.html">Release binary portability across glibc versions</a>
+<div class="grp">More</div>
+<a href="/Docs/proposed-aea-lib.html">Proposed .aea Module Artifacts</a></nav>
     <main class="doc-main">
       <article class="doc-body" id="doc">
         <div class="bc"><span class="prompt">$</span>docs / performance</div>
@@ -139,6 +141,7 @@
 <div class="tw"><table><thead><tr><th>Metric</th><th>Description</th></tr></thead><tbody><tr><td>Throughput (M msg/s)</td><td>Messages processed per second (median of N runs)</td></tr><tr><td>Latency (ns/msg)</td><td>Nanoseconds per message (median)</td></tr><tr><td>Memory (MB)</td><td>Peak resident set size via <code>/usr/bin/time</code></td></tr><tr><td>Relative (%)</td><td>Percentage of the fastest language's throughput</td></tr><tr><td>CV%</td><td>Coefficient of variation (σ/μ × 100), measures run-to-run stability</td></tr><tr><td>Range</td><td>Min–Max throughput across all runs</td></tr><tr><td>Efficiency</td><td>Throughput per MB of memory (M msg/s/MB)</td></tr></tbody></table></div>
 <p><strong>CV% interpretation.</strong> The thresholds below are general statistical stability bands for coefficient of variation, not Aether-specific targets. They tell you how much to trust a single run's headline figure, regardless of which language is being measured:</p>
 <ul><li><strong>&lt; 5%</strong> (green): run-to-run variance is small; reported medians are trustworthy.</li><li><strong>5–15%</strong> (orange): moderate variance; read medians alongside Min–Max range.</li><li><strong>&gt; 15%</strong> (red): high variance; investigate thermal throttling, OS scheduling, or shared-host noise before citing numbers.</li></ul>
+<p>The runner computes CV in 64-bit and refuses to publish a negative value. Both matter for the fastest patterns: throughput in the hundreds of millions of msg/sec makes <code>range * 50</code> exceed the 32-bit ceiling before the divide, which used to yield a NEGATIVE CV for exactly the results most likely to be quoted. A negative coefficient of variation is arithmetically impossible, so if one ever appears the runner reports it and substitutes zero rather than letting a consumer read it as a stability signal.</p>
 <h3 id="measurement">Measurement</h3>
 <ul><li>Wall-clock time via <code>CLOCK_MONOTONIC</code> (not CPU time)</li><li>All compiled languages use highest optimization flags</li><li>Correctness validated (e.g., skynet sum = 499,999,500,000 for 1M leaves)</li><li>Memory measured as peak RSS via <code>/usr/bin/time -l</code> (macOS) or <code>/usr/bin/time -v</code> (Linux)</li></ul>
 <h3 id="fairness">Fairness</h3>

@@ -100,7 +100,9 @@
 <a href="/Docs/stdlib-module-pattern.html">Aether Stdlib Module Pattern</a>
 <a href="/Docs/stdlib-vs-contrib.html">std/ vs contrib/ placement decisions</a>
 <a href="/Docs/bootstrap-from-source.html">Bootstrapping Aether from source (HEAD)</a>
-<a href="/Docs/release-glibc-portability.html">Release binary portability across glibc versions</a></nav>
+<a href="/Docs/release-glibc-portability.html">Release binary portability across glibc versions</a>
+<div class="grp">More</div>
+<a href="/Docs/proposed-aea-lib.html">Proposed .aea Module Artifacts</a></nav>
     <main class="doc-main">
       <article class="doc-body" id="doc">
         <div class="bc"><span class="prompt">$</span>docs / standard library</div>
@@ -154,6 +156,17 @@ main() {
 
     http.server_start(server)
 }</code></pre>
+<h2 id="pool-as-a-config-block">Pool as a config block</h2>
+<p>The pool setup above is also available as a trailing-block DSL, a thin, allocation-free sugar over the same functions. <code>proxy.pool(...)</code> runs first and returns the pool ptr, which becomes the block's <code>builder_context()</code>; the child calls then configure that live pool. Both surfaces drive the identical pool, so the returned ptr is used exactly as before (mount, metrics, free).</p>
+<pre><code>pool = proxy.pool(<span class="str">"weighted_rr"</span>, <span class="num">30</span>, <span class="num">0</span>, <span class="num">100</span>) {
+    upstream(<span class="str">"http://10.0.0.1:8080"</span>, <span class="num">3</span>)
+    upstream(<span class="str">"http://10.0.0.2:8080"</span>, <span class="num">2</span>)
+    upstream(<span class="str">"http://10.0.0.3:8080"</span>, <span class="num">1</span>)
+    health(<span class="str">"/health"</span>, <span class="num">200</span>, <span class="num">5000</span>, <span class="num">1000</span>, <span class="num">2</span>, <span class="num">3</span>)
+    breaker(<span class="num">5</span>, <span class="num">30000</span>, <span class="num">1</span>)
+    rate_limit(<span class="num">200</span>, <span class="num">50</span>)
+}</code></pre>
+<p>The child setters (<code>upstream</code>, <code>health</code>, <code>breaker</code>, <code>rate_limit</code>, <code>cookie_name</code>, <code>drain</code>) take the same arguments as their positional counterparts minus the leading <code>pool</code>, and drop the underlying <code>-&gt; string</code> error in favour of readability; when a per-line error matters (a duplicate upstream URL, say), call the positional functions instead. The block is ordinary Aether, so weights can be computed, environment variables read, and lines wrapped in conditionals. See <a href="/Docs/closures-and-builder-dsl.html"><code>docs/closures-and-builder-dsl.md</code></a> for the mechanism.</p>
 <h2 id="method-aware-routing">Method-Aware Routing</h2>
 <p>Multiple proxy mounts can share one listener. Registration order is execution order; a mount whose method or path pattern does not match passes through to the next middleware, so narrower carve-outs should be registered first.</p>
 <pre><code>proxy.mount_match(server, <span class="str">"/repos/:repo/info"</span>, primary_pool, primary_opts, <span class="str">"GET,HEAD"</span>)
@@ -256,6 +269,16 @@ proxy.upstream_remove(pool, base_url) -&gt; <span class="fn">string</span>
 proxy.upstream_drain(pool, base_url) -&gt; <span class="fn">string</span>       <span class="com">// skip in LB</span>
 proxy.upstream_undrain(pool, base_url) -&gt; <span class="fn">string</span>     <span class="com">// re-admit</span>
 
+<span class="com">// ---- Pool as a config block (each child mirrors a positional call)</span>
+proxy.pool(lb_algo, request_timeout_sec, dial_timeout_ms, max_inflight_per_up) -&gt; <span class="fn">ptr</span>
+    upstream(base_url, weight)
+    health(probe_path, expect_status, interval_ms, timeout_ms,
+        healthy_threshold, unhealthy_threshold)
+    breaker(failure_threshold, open_duration_ms, half_open_max)
+    rate_limit(max_rps, burst)
+    cookie_name(name)
+    drain(base_url)
+
 <span class="com">// ---- Per-pool tuning</span>
 proxy.pool_set_cookie_name(pool, name) -&gt; <span class="fn">string</span>     <span class="com">// for "cookie_hash"</span>
 proxy.rate_limit_set(pool, max_rps, burst) -&gt; <span class="fn">string</span> <span class="com">// 0 = disable</span>
@@ -290,11 +313,11 @@ proxy.mount_simple(server, path_prefix, upstream_url, request_timeout_sec) -&gt;
 proxy.pool_metrics_text(pool) -&gt; <span class="fn">string</span>              <span class="com">// Prometheus 0.0.4</span></code></pre>
 <p>All <code>string</code>-returning functions are Go-style: <code>""</code> is success; non-empty is an error message.</p>
 <h2 id="see-also">See also</h2>
-<ul><li><a href="/Docs/http-server.html"><code>docs/http-server.md</code></a>, the inbound side (routes, middleware, TLS, h2, WS, SSE, health probes, metrics, graceful shutdown).</li><li><a href="https://github.com/aether-lang-dev/aether/tree/main/examples/stdlib/http-reverse-proxy.ae"><code>examples/stdlib/http-reverse-proxy.ae</code></a> minimal single-upstream demo.</li><li><a href="https://github.com/aether-lang-dev/aether/tree/main/examples/stdlib/http-reverse-proxy-pool.ae"><code>examples/stdlib/http-reverse-proxy-pool.ae</code></a> full enterprise stack: pool, health, breaker, cache, retry, rate limit, drain, trace-context, Prometheus metrics.</li></ul>
+<ul><li><a href="/Docs/http-server.html"><code>docs/http-server.md</code></a>, the inbound side (routes, middleware, TLS, h2, WS, SSE, health probes, metrics, graceful shutdown).</li><li><a href="https://github.com/aether-lang-dev/aether/tree/main/examples/stdlib/http-reverse-proxy.ae"><code>examples/stdlib/http-reverse-proxy.ae</code></a> minimal single-upstream demo.</li><li><a href="https://github.com/aether-lang-dev/aether/tree/main/examples/stdlib/http-reverse-proxy-pool.ae"><code>examples/stdlib/http-reverse-proxy-pool.ae</code></a> full enterprise stack: pool, health, breaker, cache, retry, rate limit, drain, trace-context, Prometheus metrics.</li><li><a href="https://github.com/aether-lang-dev/aether/tree/main/examples/stdlib/http-reverse-proxy-pool-dsl.ae"><code>examples/stdlib/http-reverse-proxy-pool-dsl.ae</code></a> the same stack with the pool assembled via the config-block DSL.</li></ul>
 <nav class="doc-prevnext" aria-label="Previous and next page"><a class="pn-prev" href="/Docs/http-server.html"><span class="pn-k">Previous</span><span class="pn-t">std.http HTTP Server</span></a><a class="pn-next" href="/Docs/http-handler-context.html"><span class="pn-k">Next</span><span class="pn-t">HTTP handlers with per-server / per-route state</span></a></nav>
       </article>
     </main>
-    <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#quick-start-single-upstream" class="l2" data-id="quick-start-single-upstream">Quick start, single upstream</a><a href="#pool-form-load-balancing--health--cache--breaker" class="l2" data-id="pool-form-load-balancing--health--cache--breaker">Pool form, load balancing + health + cache + breaker</a><a href="#method-aware-routing" class="l2" data-id="method-aware-routing">Method-Aware Routing</a><a href="#load-balancing-algorithms" class="l2" data-id="load-balancing-algorithms">Load-balancing algorithms</a><a href="#health-checks" class="l2" data-id="health-checks">Health checks</a><a href="#circuit-breaker" class="l2" data-id="circuit-breaker">Circuit breaker</a><a href="#response-cache" class="l2" data-id="response-cache">Response cache</a><a href="#key-strategies" class="l3" data-id="key-strategies">Key strategies</a><a href="#idempotent-retry-proxy_next_upstream-semantics" class="l2" data-id="idempotent-retry-proxy_next_upstream-semantics">Idempotent retry, proxy_next_upstream semantics</a><a href="#per-upstream-rate-limit-token-bucket" class="l2" data-id="per-upstream-rate-limit-token-bucket">Per-upstream rate limit (token bucket)</a><a href="#active-drain" class="l2" data-id="active-drain">Active drain</a><a href="#w3c-trace-context-propagation" class="l2" data-id="w3c-trace-context-propagation">W3C Trace-Context propagation</a><a href="#prometheus-metrics" class="l2" data-id="prometheus-metrics">Prometheus metrics</a><a href="#hop-by-hop-headers-rfc-7230-61" class="l2" data-id="hop-by-hop-headers-rfc-7230-61">Hop-by-Hop headers (RFC 7230 §6.1)</a><a href="#headers-added-by-the-proxy" class="l2" data-id="headers-added-by-the-proxy">Headers added by the proxy</a><a href="#error-responses" class="l2" data-id="error-responses">Error responses</a><a href="#limitations-v1" class="l2" data-id="limitations-v1">Limitations (v1)</a><a href="#performance" class="l2" data-id="performance">Performance</a><a href="#reference" class="l2" data-id="reference">Reference</a><a href="#see-also" class="l2" data-id="see-also">See also</a></nav>
+    <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#quick-start-single-upstream" class="l2" data-id="quick-start-single-upstream">Quick start, single upstream</a><a href="#pool-form-load-balancing--health--cache--breaker" class="l2" data-id="pool-form-load-balancing--health--cache--breaker">Pool form, load balancing + health + cache + breaker</a><a href="#pool-as-a-config-block" class="l2" data-id="pool-as-a-config-block">Pool as a config block</a><a href="#method-aware-routing" class="l2" data-id="method-aware-routing">Method-Aware Routing</a><a href="#load-balancing-algorithms" class="l2" data-id="load-balancing-algorithms">Load-balancing algorithms</a><a href="#health-checks" class="l2" data-id="health-checks">Health checks</a><a href="#circuit-breaker" class="l2" data-id="circuit-breaker">Circuit breaker</a><a href="#response-cache" class="l2" data-id="response-cache">Response cache</a><a href="#key-strategies" class="l3" data-id="key-strategies">Key strategies</a><a href="#idempotent-retry-proxy_next_upstream-semantics" class="l2" data-id="idempotent-retry-proxy_next_upstream-semantics">Idempotent retry, proxy_next_upstream semantics</a><a href="#per-upstream-rate-limit-token-bucket" class="l2" data-id="per-upstream-rate-limit-token-bucket">Per-upstream rate limit (token bucket)</a><a href="#active-drain" class="l2" data-id="active-drain">Active drain</a><a href="#w3c-trace-context-propagation" class="l2" data-id="w3c-trace-context-propagation">W3C Trace-Context propagation</a><a href="#prometheus-metrics" class="l2" data-id="prometheus-metrics">Prometheus metrics</a><a href="#hop-by-hop-headers-rfc-7230-61" class="l2" data-id="hop-by-hop-headers-rfc-7230-61">Hop-by-Hop headers (RFC 7230 §6.1)</a><a href="#headers-added-by-the-proxy" class="l2" data-id="headers-added-by-the-proxy">Headers added by the proxy</a><a href="#error-responses" class="l2" data-id="error-responses">Error responses</a><a href="#limitations-v1" class="l2" data-id="limitations-v1">Limitations (v1)</a><a href="#performance" class="l2" data-id="performance">Performance</a><a href="#reference" class="l2" data-id="reference">Reference</a><a href="#see-also" class="l2" data-id="see-also">See also</a></nav>
   </div>
 </div>
 <script src="/docs.js" defer></script>
