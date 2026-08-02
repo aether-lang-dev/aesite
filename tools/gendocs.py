@@ -20,7 +20,7 @@ import os
 import re
 import sys
 
-VERSION = "0.467"
+VERSION = "0.473"
 GH = "https://github.com/aether-lang-dev/aether"
 SITE = "Aether"
 DOMAIN = "https://aether-lang.dev"
@@ -527,7 +527,7 @@ PAGE = """<!doctype html>
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.467 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.473 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

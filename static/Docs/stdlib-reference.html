@@ -27,7 +27,7 @@
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.467</span>
+      <span class="vtag">v0.473</span>
     </nav>
   </div>
 </header>
@@ -100,9 +100,7 @@
 <a href="/Docs/stdlib-module-pattern.html">Aether Stdlib Module Pattern</a>
 <a href="/Docs/stdlib-vs-contrib.html">std/ vs contrib/ placement decisions</a>
 <a href="/Docs/bootstrap-from-source.html">Bootstrapping Aether from source (HEAD)</a>
-<a href="/Docs/release-glibc-portability.html">Release binary portability across glibc versions</a>
-<div class="grp">More</div>
-<a href="/Docs/proposed-aea-lib.html">Proposed .aea Module Artifacts</a></nav>
+<a href="/Docs/release-glibc-portability.html">Release binary portability across glibc versions</a></nav>
     <main class="doc-main">
       <article class="doc-body" id="doc">
         <div class="bc"><span class="prompt">$</span>docs / standard library</div>
@@ -967,7 +965,6 @@ proxy.opts_bind_cache(opts, cache)
 proxy.opts_set_retry_policy(opts, <span class="num">3</span>, <span class="num">100</span>)
 proxy.opts_set_trace_inject(opts, <span class="num">1</span>)
 proxy.mount(server, <span class="str">"/api"</span>, pool, opts)</code></pre>
-<p>Pool setup is also available as a trailing-block DSL over the same functions: <code>proxy.pool(algo, ...) { upstream(...) health(...) breaker(...) rate_limit(...) }</code> returns the same pool ptr. See <a href="/Docs/http-reverse-proxy.html">http-reverse-proxy.md</a>.</p>
 <p><strong>Pool + LB:</strong></p>
 <ul><li><code>proxy.upstream_pool_new(lb_algo, request_timeout_sec, dial_timeout_ms, max_inflight_per_up)</code> → <code>ptr</code> - LB algos: <code>"round_robin"</code>, <code>"least_conn"</code>, <code>"ip_hash"</code>, <code>"weighted_rr"</code>, <code>"cookie_hash"</code>.</li><li><code>proxy.upstream_pool_free(pool)</code> - Decrements refcount; joins health-check thread on zero.</li><li><code>proxy.upstream_add(pool, base_url, weight)</code> → <code>string</code></li><li><code>proxy.upstream_remove(pool, base_url)</code> → <code>string</code></li><li><code>proxy.upstream_drain(pool, base_url)</code> → <code>string</code> - skip in LB; in-flight finish.</li><li><code>proxy.upstream_undrain(pool, base_url)</code> → <code>string</code> - re-admit to LB.</li><li><code>proxy.pool_set_cookie_name(pool, name)</code> → <code>string</code> - cookie key for <code>cookie_hash</code> algo.</li><li><code>proxy.rate_limit_set(pool, max_rps, burst)</code> → <code>string</code> - per-upstream token-bucket rate limit. <code>max_rps = 0</code> disables.</li></ul>
 <p><strong>Health checks (one pthread per pool):</strong></p>
@@ -1357,7 +1354,7 @@ handle_request(req: <span class="fn">ptr</span>, res: <span class="fn">ptr</span
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.467 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.473 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>
