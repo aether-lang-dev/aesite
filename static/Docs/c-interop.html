@@ -15,7 +15,546 @@
 <link rel="icon" href="/favicon.png">
 <link rel="preload" href="/fonts/bricolagegrotesque-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/fonts/dmsans-latin.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/aether.css">
+<link rel="preload" href="/fonts/dmmono-latin.woff2" as="font" type="font/woff2" crossorigin>
+<style id="aether-inline">
+/* Self-hosted webfonts. Previously three families were pulled from
+   fonts.googleapis.com, which chained a stylesheet request and then the
+   font files from a second origin before any text could paint. These are
+   the same faces served from this origin.
+   Variable fonts: one file covers each family's whole weight range.
+   The opsz axis is dropped (nothing here sets font-optical-sizing) which
+   halves Bricolage. latin-ext is listed but only fetched when a character
+   needs it, unicode-range keeps it lazy. */
+/* latin-ext */
+@font-face {
+  font-family: 'Bricolage Grotesque';
+  font-style: normal;
+  font-weight: 700;
+  font-stretch: 100%;
+  font-display: swap;
+  src: url(fonts/bricolagegrotesque-latinext.woff2) format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Bricolage Grotesque';
+  font-style: normal;
+  font-weight: 700;
+  font-stretch: 100%;
+  font-display: swap;
+  src: url(fonts/bricolagegrotesque-latin.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Bricolage Grotesque';
+  font-style: normal;
+  font-weight: 800;
+  font-stretch: 100%;
+  font-display: swap;
+  src: url(fonts/bricolagegrotesque-latinext.woff2) format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Bricolage Grotesque';
+  font-style: normal;
+  font-weight: 800;
+  font-stretch: 100%;
+  font-display: swap;
+  src: url(fonts/bricolagegrotesque-latin.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'DM Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(fonts/dmmono-latinext.woff2) format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'DM Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(fonts/dmmono-latin.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'DM Sans';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(fonts/dmsans-latinext.woff2) format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'DM Sans';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(fonts/dmsans-latin.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'DM Sans';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url(fonts/dmsans-latinext.woff2) format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'DM Sans';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url(fonts/dmsans-latin.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* Aether design system. Red-on-black, monospace, elegant.
+   Brand: red #cc1a1a "ae" on near-black, from the VS Code icon. */
+:root{
+  --bg:#0c0b0b; --bg-2:#121111; --bg-3:#0a0909; --panel:#100f0f;
+  --line:#1e1c1c; --line-2:#2a2727;
+  --ink:#eceae7; --dim:#9b9693; --faint:#6b6663;
+  --red:#cc1a1a; --red-hi:#e63a2f;
+  --c-kw:#c76b60; --c-str:#93a07f; --c-num:#c19a6b; --c-fn:#88a3ad; --c-com:#615c59; --c-pn:#8f8a86;
+  --mono:"DM Mono",ui-monospace,"SF Mono","JetBrains Mono",Menlo,Consolas,monospace;
+  --sans:"DM Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --wrap:1120px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15.5px;line-height:1.6;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+::selection{background:var(--red);color:#fff}
+:focus-visible{outline:2px solid var(--red-hi);outline-offset:2px;border-radius:2px}
+.wrap{max-width:var(--wrap);margin:0 auto;padding:0 26px}
+.mono{font-family:var(--mono)}
+.eyebrow{font-family:var(--mono);font-size:11.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--faint)}
+
+/* wordmark */
+.ae{font-family:var(--mono);font-weight:700;letter-spacing:-.085em;transform:scale(.95,1.2);display:inline-block;color:var(--red)}
+
+/* header */
+.site-head{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 82%,transparent);backdrop-filter:blur(9px);border-bottom:1px solid var(--line)}
+.site-head .bar{display:flex;align-items:center;gap:22px;height:58px}
+.brand{display:flex;align-items:baseline;gap:9px}
+.brand .ae{font-size:21px}
+.brand .nm{font-family:var(--mono);font-size:13.5px;color:var(--ink)}
+.site-head nav{margin-left:auto;display:flex;align-items:center;gap:22px}
+.site-head nav a{font-family:var(--mono);font-size:13px;color:var(--dim);transition:color .15s}
+.site-head nav a:hover,.site-head nav a.on{color:var(--ink)}
+.site-head nav a.on{color:var(--red)}
+.vtag{font-family:var(--mono);font-size:11.5px;color:var(--faint);border:1px solid var(--line-2);border-radius:999px;padding:2px 9px}
+
+/* buttons */
+.btn{font-family:var(--mono);font-size:14px;padding:11px 19px;border-radius:6px;border:1px solid transparent;display:inline-flex;align-items:center;gap:8px;transition:all .16s;cursor:pointer}
+.btn-red{background:var(--red);color:#fff}
+.btn-red:hover{background:var(--red-hi);transform:translateY(-1px)}
+.btn-ghost{border-color:var(--line-2);color:var(--ink)}
+.btn-ghost:hover{border-color:var(--faint);background:var(--bg-2)}
+
+/* section head */
+.sec-head{display:flex;align-items:baseline;gap:14px;margin:0 0 22px}
+.sec-head h2{font-family:var(--mono);font-size:1.15rem;font-weight:700;letter-spacing:-.01em;margin:0}
+.sec-head .rule{flex:1;height:1px;background:var(--line)}
+
+/* code */
+pre,code{font-family:var(--mono)}
+pre.code{background:var(--bg-3);border:1px solid var(--line);border-radius:8px;padding:16px;overflow-x:auto;font-size:12.8px;line-height:1.7;color:var(--ink);margin:0 0 16px}
+.kw{color:var(--c-kw)}.str{color:var(--c-str)}.num{color:var(--c-num)}.fn{color:var(--c-fn)}.com{color:var(--c-com)}.pn{color:var(--c-pn)}
+
+/* footer */
+.site-foot{border-top:1px solid var(--line);margin-top:80px;padding:40px 0}
+.site-foot .foot{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.site-foot .ae{font-size:17px}
+.site-foot .m{font-family:var(--mono);font-size:12px;color:var(--faint)}
+.site-foot nav{margin-left:auto;display:flex;gap:20px}
+.site-foot nav a{font-family:var(--mono);font-size:12.5px;color:var(--dim)}
+.site-foot nav a:hover{color:var(--ink)}
+
+/* ---- docs layout ---- */
+.doc-shell{display:grid;grid-template-columns:250px minmax(0,1fr) 210px;gap:0;align-items:start;min-height:70vh}
+.doc-nav{position:sticky;top:58px;align-self:start;max-height:calc(100vh - 58px);overflow:auto;border-right:1px solid var(--line);padding:26px 0 40px}
+.doc-nav .grp{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint);padding:18px 24px 8px}
+.doc-nav a{display:block;font-family:var(--mono);font-size:12.7px;color:var(--dim);padding:6px 24px;border-left:2px solid transparent;transition:.13s}
+.doc-nav a:hover{color:var(--ink);background:var(--bg-3)}
+.doc-nav a.on{color:var(--ink);border-left-color:var(--red);background:var(--bg-3)}
+.doc-main{padding:40px 0 60px 44px;min-width:0}
+.doc-body{max-width:760px}
+.doc-body .bc{font-family:var(--mono);font-size:12px;color:var(--faint);margin-bottom:20px}
+.doc-body h1{font-family:var(--mono);font-size:1.9rem;letter-spacing:-.02em;margin:0 0 10px;line-height:1.15}
+.doc-body h2{font-family:var(--mono);font-size:1.15rem;color:var(--ink);margin:34px 0 12px;padding-top:16px;border-top:1px solid var(--line)}
+.doc-body h3{font-family:var(--mono);font-size:1rem;color:var(--ink);margin:26px 0 8px}
+.doc-body p{color:var(--dim);margin:0 0 15px}
+.doc-body a{color:var(--red);text-decoration:none}
+.doc-body a:hover{text-decoration:underline}
+.doc-body code{font-family:var(--mono);font-size:.86em;background:var(--bg-2);border:1px solid var(--line);border-radius:4px;padding:1px 5px;color:var(--ink)}
+.doc-body pre{background:var(--bg-3);border:1px solid var(--line);border-radius:8px;padding:16px;overflow-x:auto;font-size:12.8px;line-height:1.7;color:var(--ink);margin:0 0 16px}
+.doc-body pre code{background:none;border:0;padding:0}
+.doc-body ul,.doc-body ol{color:var(--dim);padding-left:22px;margin:0 0 15px}
+.doc-body li{margin:4px 0}
+.doc-body blockquote{border-left:2px solid var(--red);margin:0 0 15px;padding:2px 0 2px 16px;color:var(--dim)}
+.doc-body hr{border:0;border-top:1px solid var(--line);margin:26px 0}
+.doc-body table{border-collapse:collapse;width:100%;margin:0 0 18px;font-size:13.5px}
+.doc-body th,.doc-body td{border:1px solid var(--line);padding:8px 12px;text-align:left;vertical-align:top}
+.doc-body th{font-family:var(--mono);color:var(--ink);background:var(--bg-2);font-weight:700}
+.doc-body td{color:var(--dim)}
+
+@media(max-width:860px){
+  .doc-shell{grid-template-columns:1fr}
+  .doc-nav{position:static;max-height:none;border-right:0;border-bottom:1px solid var(--line);display:flex;overflow-x:auto;padding:8px}
+  .doc-nav .grp{display:none}
+  .doc-nav a{white-space:nowrap;border-left:0}
+  .doc-main{padding:26px 0}
+  .site-head nav a.hidem{display:none}
+}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.btn-red:hover{transform:none}}
+
+/* ---- home + shared components ---- */
+.hero{padding:82px 0 60px}
+.hero-grid{display:grid;grid-template-columns:1.02fr .98fr;gap:52px;align-items:center}
+.hero .eyebrow{margin:0 0 20px}
+.hero h1{font-family:var(--mono);font-weight:700;font-size:clamp(2.3rem,5.2vw,3.5rem);line-height:1.04;letter-spacing:-.03em;margin:0 0 20px;text-wrap:balance}
+.hero h1 .hl{color:var(--red)}
+.hero .lede{font-size:1.1rem;color:var(--dim);max-width:42ch;margin:0 0 30px}
+.cta{display:flex;gap:13px;flex-wrap:wrap}
+.metaline{display:flex;gap:24px;flex-wrap:wrap;margin-top:26px;font-family:var(--mono);font-size:12.5px;color:var(--faint)}
+.metaline b{color:var(--ink);font-weight:400}
+
+/* code panel: filename label + red top accent, no traffic lights */
+.panel{background:var(--bg-3);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.panel-bar{display:flex;align-items:center;gap:10px;padding:11px 16px;border-bottom:1px solid var(--line);background:var(--bg-2)}
+.panel-bar::before{content:"";width:18px;height:2px;background:var(--red);border-radius:2px}
+.panel-bar .file{font-family:var(--mono);font-size:12.5px;color:var(--faint)}
+.panel pre{margin:0;padding:20px;overflow-x:auto;font-family:var(--mono);font-size:13.4px;line-height:1.75;color:var(--ink)}
+
+.block{padding:74px 0;border-top:1px solid var(--line)}
+.feat{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.feat .cell{background:var(--bg);padding:26px 22px}
+.feat .k{font-family:var(--mono);font-size:12.5px;color:var(--red);margin-bottom:12px}
+.feat h3{font-family:var(--mono);font-size:15px;margin:0 0 8px;font-weight:700;letter-spacing:-.01em}
+.feat p{margin:0;font-size:13.7px;color:var(--dim);line-height:1.6}
+.cc{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.cc-h{font-family:var(--mono);font-size:1.5rem;letter-spacing:-.02em;margin:0 0 10px}
+.cc-note{color:var(--dim);max-width:54ch;margin:0 0 30px}
+@media(max-width:860px){.hero-grid{grid-template-columns:1fr;gap:38px}.feat{grid-template-columns:repeat(2,1fr)}.cc{grid-template-columns:1fr}}
+
+/* ---- REPL / playground ---- */
+.repl{display:grid;grid-template-columns:184px 1fr;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--panel)}
+.lessons{border-right:1px solid var(--line);background:var(--bg-2);padding:14px 0}
+.lessons .lh{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--faint);padding:4px 18px 10px}
+.lessons button{display:block;width:100%;text-align:left;background:none;border:0;color:var(--dim);font-family:var(--mono);font-size:12.5px;line-height:1.5;padding:9px 18px;cursor:pointer;border-left:2px solid transparent;transition:.14s}
+.lessons button:hover{color:var(--ink);background:var(--bg-3)}
+.lessons button.on{color:var(--ink);border-left-color:var(--red);background:var(--bg-3)}
+.lessons button .idx{color:var(--faint);margin-right:8px}
+.lessons button.on .idx{color:var(--red)}
+.stage{display:grid;grid-template-rows:auto 1fr auto auto;min-height:360px}
+.theory{padding:16px 20px;border-bottom:1px solid var(--line)}
+.theory h3{font-family:var(--mono);font-size:14px;margin:0 0 6px}
+.theory p{margin:0;font-size:13.5px;color:var(--dim)}
+.editwrap{position:relative;background:var(--bg-3);min-height:200px}
+.editwrap pre,.editwrap textarea{margin:0;padding:18px 20px;font-family:var(--mono);font-size:13.4px;line-height:1.7;letter-spacing:0;tab-size:4;white-space:pre;overflow:auto;border:0}
+.editwrap pre{position:absolute;inset:0;pointer-events:none;color:var(--ink);z-index:0;margin:0}
+.editwrap textarea{position:relative;z-index:1;width:100%;height:100%;min-height:200px;background:transparent;color:transparent;caret-color:var(--red);resize:vertical;outline:none}
+.runbar{display:flex;align-items:center;gap:14px;padding:12px 20px;border-top:1px solid var(--line);background:var(--bg-2)}
+.run{font-family:var(--mono);font-size:13px;background:var(--red);color:#fff;border:0;border-radius:6px;padding:9px 18px;cursor:pointer;transition:.15s}
+.run:hover{background:var(--red-hi)}
+.run:disabled{opacity:.55;cursor:default}
+.runbar .hint{font-family:var(--mono);font-size:11.5px;color:var(--faint)}
+.runbar .lnav{margin-left:auto;display:flex;gap:6px}
+.runbar .lnav button{font-family:var(--mono);font-size:12px;color:var(--dim);background:none;border:1px solid var(--line-2);border-radius:6px;padding:6px 11px;cursor:pointer;transition:.14s}
+.runbar .lnav button:hover{color:var(--ink);border-color:var(--faint)}
+.output{border-top:1px solid var(--line);background:var(--bg-3);padding:14px 20px;font-family:var(--mono);font-size:13px;line-height:1.7;min-height:76px;white-space:pre-wrap}
+.output .op{color:var(--red);user-select:none}
+.output .err{color:var(--c-kw)}
+.output .muted{color:var(--faint)}
+@media(max-width:860px){
+  .repl{grid-template-columns:1fr}
+  .lessons{display:flex;overflow-x:auto;border-right:0;border-bottom:1px solid var(--line);padding:8px}
+  .lessons .lh{display:none}
+  .lessons button{white-space:nowrap;border-left:0;border-bottom:2px solid transparent}
+  .lessons button.on{border-left:0;border-bottom-color:var(--red)}
+}
+
+/* skip-to-content (a11y): hidden until keyboard-focused */
+.skip{position:absolute;left:-9999px;top:0;z-index:50;background:var(--red);color:#fff;font-family:var(--mono);font-size:13px;padding:9px 16px;border-radius:0 0 6px 0}
+.skip:focus{left:0}
+
+/* responsive containment: grid children must shrink so wide code/tables
+   scroll inside their own box and the page body never scrolls sideways */
+.hero-grid>*,.feat>*,.cc>*,.repl>*,.doc-main,.doc-body{min-width:0}
+.doc-body pre,.panel pre,.editwrap pre{max-width:100%}
+.doc-body code{overflow-wrap:anywhere}
+.tw{overflow-x:auto;max-width:100%;margin:0 0 18px}
+.tw table{margin:0}
+@media(max-width:860px){
+  .site-head .bar{gap:14px}
+  .site-head nav{gap:15px}
+  .vtag{display:none}
+  .site-head nav a.src{display:none}
+}
+
+/* secondary playground button (Copy) */
+.ghostbtn{font-family:var(--mono);font-size:12.5px;color:var(--dim);background:none;border:1px solid var(--line-2);border-radius:6px;padding:8px 13px;cursor:pointer;transition:.14s}
+.ghostbtn:hover{color:var(--ink);border-color:var(--faint)}
+
+/* ============================================================
+   RETRO TERMINAL LAYER
+   CRT character on the brand: subtle scanlines, phosphor glow,
+   blinking cursor, terminal-window chrome. Kept restrained so it
+   reads as a real terminal, not a novelty.
+   ============================================================ */
+
+/* CRT overlays: fine scanlines + a soft vignette. Never block input. */
+body::before{content:"";position:fixed;inset:0;z-index:2;pointer-events:none;
+  background:
+    radial-gradient(130% 100% at 50% -10%, transparent 62%, rgba(0,0,0,.45) 100%);}
+body::after{content:"";position:fixed;inset:0;z-index:3;pointer-events:none;opacity:.5;
+  background:repeating-linear-gradient(to bottom,
+    rgba(255,255,255,.020) 0 1px, transparent 1px 3px);}
+.site-head,.wrap,main,footer{position:relative;z-index:4}
+
+/* phosphor glow on the brand red */
+.ae{text-shadow:0 0 14px rgba(204,26,26,.45)}
+.hero h1 .hl,.hl{text-shadow:0 0 18px rgba(230,58,47,.5)}
+
+/* blinking block cursor */
+.cur{display:inline-block;width:.58ch;height:1.02em;margin-left:.12ch;
+  background:var(--red-hi);vertical-align:-0.14em;border-radius:1px;
+  box-shadow:0 0 10px rgba(230,58,47,.7);animation:blink 1.05s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+
+/* terminal window chrome */
+.term{background:var(--bg-3);border:1px solid var(--line-2);border-radius:10px;overflow:hidden;
+  box-shadow:0 0 0 1px rgba(0,0,0,.4),0 24px 60px -30px rgba(230,58,47,.18)}
+.term-bar{display:flex;align-items:center;gap:9px;padding:9px 14px;background:var(--bg-2);
+  border-bottom:1px solid var(--line);font-family:var(--mono);font-size:12px;color:var(--faint)}
+.term-bar::before{content:"";width:9px;height:9px;border-radius:50%;
+  background:var(--red);box-shadow:0 0 8px rgba(204,26,26,.7)}
+.term-bar b{color:var(--dim);font-weight:400}
+.term-body{padding:20px;font-family:var(--mono);font-size:13.2px;line-height:1.7}
+
+/* boot sequence */
+.boot{margin:0 0 18px;font-family:var(--mono);font-size:12.6px;line-height:1.75;color:var(--dim);white-space:pre-wrap;min-height:1.75em}
+.boot .ok{color:var(--c-str)}
+.boot .dim{color:var(--faint)}
+.boot .r{color:var(--red-hi)}
+
+/* prompt accents on section headings */
+.prompt{color:var(--red);margin-right:.5ch}
+.sec-head h2 .prompt{font-weight:400}
+
+/* prompt-styled ghost button */
+.btn-term{font-family:var(--mono);font-size:14px;padding:11px 18px;border-radius:6px;
+  border:1px solid var(--line-2);color:var(--ink);background:var(--bg-3);display:inline-flex;gap:9px;align-items:center;transition:all .15s}
+.btn-term:hover{border-color:var(--red);box-shadow:0 0 0 1px var(--red),0 0 18px -6px var(--red-hi);transform:translateY(-1px)}
+.btn-term .p{color:var(--red)}
+
+@media(prefers-reduced-motion:reduce){.cur{animation:none}}
+@media(max-width:860px){body::before,body::after{display:none}}
+
+/* code + output inside terminal windows */
+.term .run-src{margin:0;padding:18px 20px;font-family:var(--mono);font-size:13px;line-height:1.72;color:var(--ink);overflow-x:auto;white-space:pre}
+.run-out{margin:0 20px;padding:12px 0 4px;border-top:1px solid var(--line);font-family:var(--mono);font-size:13px;line-height:1.7;min-height:1.7em;color:var(--c-str);white-space:pre-line}
+.hero .boot{margin:0 0 16px}
+
+/* docs search + on-page TOC */
+.docsearch{position:relative;padding:16px 18px 8px}
+.docsearch input{width:100%;background:var(--bg-3);border:1px solid var(--line-2);border-radius:6px;color:var(--ink);font-family:var(--mono);font-size:12.5px;padding:8px 30px 8px 11px;outline:none;transition:border-color .14s}
+.docsearch input:focus{border-color:var(--red)}
+.docsearch kbd{position:absolute;right:27px;top:24px;font-family:var(--mono);font-size:11px;color:var(--faint);border:1px solid var(--line-2);border-radius:4px;padding:0 5px;pointer-events:none}
+.ds-res{position:absolute;left:18px;right:18px;top:50px;z-index:30;background:var(--bg-2);border:1px solid var(--line-2);border-radius:8px;max-height:64vh;overflow:auto;display:none;box-shadow:0 24px 60px -24px #000}
+.ds-res.open{display:block}
+.ds-res a{display:block;padding:9px 12px;border-bottom:1px solid var(--line)}
+.ds-res a:last-child{border-bottom:0}
+.ds-res a.sel,.ds-res a:hover{background:var(--bg-3)}
+.ds-res .rt{font-family:var(--mono);font-size:12.5px;color:var(--ink)}
+.ds-res .rg{font-size:10px;color:var(--faint);text-transform:uppercase;letter-spacing:.12em;margin-left:7px}
+.ds-res .rs{font-size:11.5px;color:var(--dim);margin-top:3px;line-height:1.45}
+.ds-res .rt b,.ds-res .rs b{color:var(--red-hi)}
+.ds-res .none{padding:12px;color:var(--faint);font-size:12.5px}
+.toc{position:sticky;top:58px;align-self:start;max-height:calc(100vh - 58px);overflow:auto;padding:30px 0 40px 22px}
+.toc-h{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint);margin-bottom:12px}
+.toc a{display:block;font-family:var(--mono);font-size:12px;color:var(--dim);padding:4px 0 4px 12px;border-left:2px solid var(--line);transition:.13s;line-height:1.35}
+.toc a.l3{padding-left:24px;font-size:11.5px;color:var(--faint)}
+.toc a:hover{color:var(--ink)}
+.toc a.on{color:var(--red);border-left-color:var(--red)}
+@media(max-width:1080px){.doc-shell{grid-template-columns:250px minmax(0,1fr)}.toc{display:none}}
+
+/* ============================================================
+   REFINE PASS: display type, no gimmicks, install-first hero,
+   show-don't-tell sections. Overrides the earlier terminal layer.
+   ============================================================ */
+:root{ --display:"Bricolage Grotesque","DM Sans",system-ui,sans-serif; }
+
+/* drop the CRT costume */
+body::before,body::after{display:none !important}
+.ae{text-shadow:none}
+.hl,.hero h1 .hl{text-shadow:none}
+
+/* display typeface for headings */
+.hero h1,.feature h2,.feature h3,.col h3,.center-h,.getstarted h2,.cc-h,
+.doc-body h1,.doc-body h2,.doc-body h3{font-family:var(--display)}
+.hero h1{font-size:clamp(2.7rem,6vw,4.3rem);font-weight:800;line-height:1.02;letter-spacing:-.035em;margin:0 0 22px;text-wrap:balance}
+.hero .eyebrow{margin:0 0 18px}
+.hero .lede{font-size:1.12rem;color:var(--dim);max-width:46ch;line-height:1.55;margin:0 0 8px}
+
+/* inline code on the home page */
+main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:1px solid var(--line);border-radius:4px;padding:1px 5px;color:var(--ink)}
+.install-row code,.gs-next code,main code.plain{background:none;border:0;padding:0;font-size:13.5px}
+
+/* install command block */
+.install{margin:28px 0 20px}
+.install-row{display:flex;align-items:center;gap:12px;background:var(--bg-3);border:1px solid var(--line-2);border-radius:9px;padding:13px 15px;font-family:var(--mono);max-width:540px}
+.install-row .dollar{color:var(--red);user-select:none}
+.install-row code{flex:1 1 auto;color:var(--ink);white-space:nowrap;overflow-x:auto}
+.cpy{flex:none;font-family:var(--mono);font-size:11.5px;letter-spacing:.03em;color:var(--dim);background:var(--bg-2);border:1px solid var(--line-2);border-radius:5px;padding:6px 11px;cursor:pointer;transition:.14s}
+.cpy:hover{color:var(--ink);border-color:var(--faint)}
+.cpy.ok{color:var(--c-str);border-color:var(--c-str)}
+.install-note{font-family:var(--mono);font-size:12px;color:var(--faint);margin:11px 0 0}
+.install-note a{color:var(--dim);text-decoration:underline;text-underline-offset:2px}
+.install-note a:hover{color:var(--ink)}
+
+/* hero run panel: real command + output */
+.term .run-out{margin:0 20px;padding:13px 0 4px;border-top:1px solid var(--line);font-family:var(--mono);font-size:12.8px;line-height:1.7;white-space:pre-line;color:var(--c-str)}
+.term .run-out .run-cmd{display:block;color:var(--faint);margin-bottom:7px}
+
+/* one-line value strip */
+.strip{border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:var(--bg-2)}
+.strip .wrap{padding:22px 26px}
+.strip p{margin:0;color:var(--dim);font-size:15px;line-height:1.65;max-width:none}
+.strip code{color:var(--ink)}
+
+/* feature sections (show-don't-tell) */
+.feature{padding:70px 0;border-top:1px solid var(--line)}
+.feature-grid{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center}
+.feature h2{font-size:clamp(1.7rem,3vw,2.2rem);font-weight:700;letter-spacing:-.02em;line-height:1.08;margin:0 0 16px}
+.feature p{color:var(--dim);font-size:15px;line-height:1.65;margin:0 0 13px;max-width:48ch}
+.feature .muted-p{color:var(--faint)}
+.feature .cc{grid-template-columns:1fr;gap:14px}
+.feature.alt{background:var(--bg-3)}
+.two-up{display:grid;grid-template-columns:1fr 1fr;gap:36px}
+.col h3{font-size:1.3rem;font-weight:700;letter-spacing:-.01em;margin:0 0 10px}
+.col p{color:var(--dim);font-size:14.5px;line-height:1.6;margin:0 0 16px;max-width:46ch}
+
+/* "more than a language" rows */
+.center-h{text-align:center;font-size:clamp(1.7rem,3vw,2.2rem);font-weight:700;letter-spacing:-.02em;margin:0 0 8px}
+.rows{max-width:840px;margin:32px auto 0;border-top:1px solid var(--line)}
+.row{display:grid;grid-template-columns:172px 1fr;gap:26px;padding:22px 4px;border-bottom:1px solid var(--line)}
+.row-k{font-family:var(--mono);font-size:12.5px;letter-spacing:.02em;color:var(--red);padding-top:1px}
+.row-v{color:var(--dim);font-size:14.7px;line-height:1.62}
+.row-v code{color:var(--ink)}
+
+/* get started */
+.getstarted{padding:84px 0 96px;border-top:1px solid var(--line);text-align:center}
+.getstarted h2{font-size:clamp(1.9rem,3.5vw,2.7rem);font-weight:800;letter-spacing:-.025em;margin:0 0 26px}
+.getstarted .install{display:flex;justify-content:center;margin:0 0 16px}
+.install-lg .install-row{max-width:580px;padding:15px 17px;font-size:14.5px}
+.gs-next{font-family:var(--mono);font-size:13px;color:var(--faint);margin:0 0 30px}
+.gs-next .dollar{color:var(--red);margin-right:6px}
+.getstarted .cta{justify-content:center}
+
+/* refined docs headings */
+.doc-body h1{font-weight:800;letter-spacing:-.02em;font-size:2.1rem}
+.doc-body h2{font-weight:700;letter-spacing:-.01em}
+.doc-body h3{font-weight:700}
+.doc-body p{line-height:1.7}
+
+@media(max-width:860px){
+  .feature-grid,.two-up{grid-template-columns:1fr;gap:30px}
+  .row{grid-template-columns:1fr;gap:5px;padding:18px 4px}
+  .feature{padding:52px 0}
+}
+
+.feature h2,.col h3,.center-h,.getstarted h2{text-wrap:balance}
+.feature-text{max-width:none}
+
+/* review pass: fix floating sections, tighten rhythm */
+.feature-grid{align-items:start}
+.feature-text{padding-top:2px}
+.feature{padding:62px 0}
+.two-up{gap:40px}
+.col .panel{margin-top:2px}
+.rows{max-width:800px}
+.row{grid-template-columns:150px 1fr;gap:28px;padding:20px 4px}
+.getstarted{padding:78px 0 88px}
+/* give the "you can read" code column a touch of breathing room from the text */
+@media(min-width:861px){.feature-grid{gap:56px}}
+
+/* --- home v3: depth, pipeline diagram, real footer --- */
+.hero{position:relative}
+.hero::before{content:"";position:absolute;inset:-40px 0 0;pointer-events:none;z-index:-1;
+  background:radial-gradient(48% 42% at 20% 26%, rgba(204,26,26,.11), transparent 72%)}
+.feature .muted-p{color:var(--dim)}
+
+.pipe-section{padding:34px 0;border-top:1px solid var(--line);background:var(--bg-2)}
+.pipeline{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;font-family:var(--mono)}
+.pl-node{display:flex;flex-direction:column;align-items:center;gap:5px;padding:15px 26px;border:1px solid var(--line-2);border-radius:10px;background:var(--bg-3);font-size:14px;color:var(--ink);min-width:132px}
+.pl-node .pl-k{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--red)}
+.pl-node .pl-sub{font-size:10.5px;color:var(--faint);text-align:center;line-height:1.6}
+.pl-step{display:flex;flex-direction:column;align-items:center;gap:5px;padding:0 10px;min-width:96px}
+.pl-line{width:100%;height:1px;background:linear-gradient(90deg,var(--line-2),var(--red-hi),var(--line-2));position:relative}
+.pl-line::after{content:"\203A";position:absolute;right:-3px;top:-11px;color:var(--red-hi);font-size:16px}
+.pl-lbl{font-size:11px;color:var(--faint)}
+@media(max-width:720px){.pipeline{flex-direction:column}.pl-step{flex-direction:row;gap:8px;padding:8px 0}.pl-line{width:26px;height:1px}.pl-line::after{top:-10px;right:-3px}}
+
+.site-foot{border-top:1px solid var(--line);margin-top:0;padding:58px 0 28px}
+.foot-grid{display:grid;grid-template-columns:1.7fr 1fr 1fr 1fr;gap:40px}
+.foot-brand .ae{font-size:20px}
+.foot-tag{color:var(--dim);font-size:14px;margin:13px 0 9px;max-width:26ch;line-height:1.5}
+.foot-status{font-family:var(--mono);font-size:12px;color:var(--faint)}
+.foot-col .foot-h{font-family:var(--mono);font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);margin:0 0 13px}
+.foot-col a{display:block;color:var(--dim);font-size:13.5px;padding:5px 0;transition:color .14s}
+.foot-col a:hover{color:var(--ink)}
+.foot-note{margin-top:42px;font-family:var(--mono);font-size:12px;color:var(--faint);line-height:1.7;max-width:78ch}
+.foot-legal{display:flex;justify-content:space-between;margin-top:22px;padding-top:22px;border-top:1px solid var(--line);font-family:var(--mono);font-size:12px;color:var(--faint)}
+@media(max-width:760px){.foot-grid{grid-template-columns:1fr 1fr;gap:26px}.foot-brand{grid-column:1/-1}.foot-legal{flex-direction:column;gap:8px}}
+
+.rows{max-width:920px}
+
+/* alternate section direction for rhythm */
+.feature.flip .feature-grid{direction:rtl}
+.feature.flip .feature-grid > *{direction:ltr}
+
+.hero .lede-2{font-size:15px;color:var(--faint);max-width:52ch;line-height:1.6;margin:0 0 4px}
+
+/* scheduler mechanisms */
+.center-sub{text-align:center;color:var(--dim);max-width:60ch;margin:0 auto 34px;font-size:15px;line-height:1.6}
+.mech{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden;max-width:1000px;margin:0 auto}
+.mech-item{background:var(--bg);padding:22px 20px}
+.mech-k{font-family:var(--mono);font-size:12.5px;color:var(--red);margin-bottom:10px}
+.mech-item p{margin:0;font-size:13.6px;color:var(--dim);line-height:1.6;max-width:none}
+@media(max-width:900px){.mech{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:560px){.mech{grid-template-columns:1fr}}
+
+.mech-note{max-width:1000px;margin:22px auto 0;text-align:center;color:var(--faint);font-size:13.6px;line-height:1.65}
+
+/* install command must shrink inside small viewports: a flex item will not
+   shrink below its content width unless min-width is cleared */
+.install-row{max-width:min(540px,100%)}
+.install-lg .install-row{max-width:min(580px,100%)}
+.install-row code{min-width:0}
+
+/* docs prev / next */
+.doc-prevnext{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:48px 0 0;padding-top:24px;border-top:1px solid var(--line)}
+.doc-prevnext a{min-width:0;display:flex;flex-direction:column;gap:4px;padding:13px 15px;border:1px solid var(--line-2);border-radius:8px;color:var(--ink);transition:border-color .14s}
+.doc-prevnext a:hover{border-color:var(--red);text-decoration:none}
+.doc-prevnext .pn-k{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint)}
+.doc-prevnext .pn-t{font-size:13.5px;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.doc-prevnext .pn-next{grid-column:2;text-align:right}
+@media(max-width:620px){.doc-prevnext{grid-template-columns:1fr}.doc-prevnext .pn-next{grid-column:1;text-align:left}}
+</style>
 </head>
 <body>
 <a class="skip" href="#doc">Skip to content</a>
@@ -646,8 +1185,13 @@ main() {
 <p>Mitigation: the codegen keeps a curated list of libc / POSIX symbol names (see <code>compiler/codegen/codegen.c</code>'s <code>is_c_reserved_word</code> for the full set, it covers C keywords, the entire BSD/POSIX network sockets API, POSIX I/O, process control, memory + dynamic linking, string + stdio, and time + env). Any Aether function whose name appears in the list gets transparently emitted with an <code>ae_</code> prefix in the C output:</p>
 <div class="tw"><table><thead><tr><th>Aether-side spelling</th><th>Emitted C symbol</th></tr></thead><tbody><tr><td><code>bind</code></td><td><code>ae_bind</code></td></tr><tr><td><code>listen</code></td><td><code>ae_listen</code></td></tr><tr><td><code>read</code></td><td><code>ae_read</code></td></tr><tr><td><code>write</code></td><td><code>ae_write</code></td></tr><tr><td><code>connect</code></td><td><code>ae_connect</code></td></tr><tr><td><code>socket</code></td><td><code>ae_socket</code></td></tr><tr><td><code>fork</code></td><td><code>ae_fork</code></td></tr><tr><td><code>malloc</code></td><td><code>ae_malloc</code></td></tr></tbody></table></div>
 <p>The renaming is <strong>invisible to Aether source</strong>, you call your function <code>bind(...)</code> and the compiler does the right thing. The only place you see the prefix is in the emitted C (useful if you're debugging with <code>nm</code>, <code>objdump</code>, or a stack trace).</p>
+<h3 id="collisions-with-the-aether-standard-library">Collisions with the Aether standard library</h3>
+<p>The curated list above covers libc, but <code>libaether.a</code> exports a couple of thousand bare C symbols of its own (<code>string_*</code>, <code>list_*</code>, <code>map_*</code>, …), and it grows with every release. A top-level function in your entry file called <code>string_replace_all</code> used to emit a bare C symbol of that name and collide with <code>libaether.a</code> the moment <code>std.string</code> gained a function that lowered to the same symbol, breaking a build that had worked for months with no change to your code (#1366).</p>
+<p>Two things prevent that now, and neither is a name list that has to be kept up to date:</p>
+<ul><li><strong>Top-level functions in an executable build get internal linkage.</strong> The generated C for an executable is a single translation unit, so nothing outside it can legitimately reference those functions by name, and <code>static</code> means the linker never compares them against <code>libaether.a</code> at all.</li><li><strong>A function whose name matches an extern the same file declares is renamed</strong> to the <code>ae_</code> spelling above. Importing <code>std.string</code> puts a <code>string_replace_all</code> prototype in your translation unit, so your own function of that name is emitted as <code>ae_string_replace_all</code>. Calls follow the rename; <code>string.replace_all(...)</code> still reaches the standard library.</li></ul>
+<p>Both are invisible to Aether source. <code>--emit=lib</code>, <code>--emit=both</code> and <code>--emit=csrc</code> are excluded from the linkage change, because there the bare symbols of functions the flattened ABI cannot express (builders, <code>fn</code>-typed parameters) are a documented part of what consumers link against.</p>
 <h3 id="when-to-use-c_callback-instead">When to use <code>@c_callback</code> instead</h3>
-<p>If your Aether function specifically needs a <strong>stable, unprefixed C symbol</strong>, e.g. it's going to be looked up via <code>dlsym()</code> from a host program, or passed as a function pointer to a C library, annotate it with <code>@c_callback("desired_c_name")</code>. That bypasses the prefix logic and emits exactly the symbol you ask for.</p>
+<p>If your Aether function specifically needs a <strong>stable, unprefixed C symbol</strong>, e.g. it's going to be looked up via <code>dlsym()</code> from a host program, or passed as a function pointer to a C library, annotate it with <code>@c_callback("desired_c_name")</code>. That bypasses the prefix logic and emits exactly the symbol you ask for. It is also the opt-out from the internal-linkage rule above: a <code>@c_callback</code> function keeps external linkage in every emit mode, so a C file you pass with <code>--extra</code> (or <code>extra_sources</code> in <code>aether.toml</code>) can call it by name.</p>
 <h3 id="aether-keyword-collisions">Aether-keyword collisions</h3>
 <p>A handful of libc names also happen to be Aether keywords (<code>send</code> is reserved for actor messaging). Those are caught one layer earlier by the parser with <code>error[E0100]</code> the codegen mitigation never sees them.</p>
 <h2 id="see-also">See Also</h2>
@@ -655,7 +1199,7 @@ main() {
 <nav class="doc-prevnext" aria-label="Previous and next page"><a class="pn-prev" href="/Docs/numa-support.html"><span class="pn-k">Previous</span><span class="pn-t">NUMA Support in Aether</span></a><a class="pn-next" href="/Docs/c-embedding.html"><span class="pn-k">Next</span><span class="pn-t">Embedding Aether Actors in C Applications</span></a></nav>
       </article>
     </main>
-    <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#calling-c-functions" class="l2" data-id="calling-c-functions">Calling C Functions</a><a href="#the-extern-keyword" class="l2" data-id="the-extern-keyword">The extern Keyword</a><a href="#syntax" class="l3" data-id="syntax">Syntax</a><a href="#type-mapping" class="l3" data-id="type-mapping">Type Mapping</a><a href="#example-custom-c-functions" class="l3" data-id="example-custom-c-functions">Example: Custom C Functions</a><a href="#tuple-return-types-extern-foo---t1-t2-" class="l2" data-id="tuple-return-types-extern-foo---t1-t2-">Tuple Return Types, extern foo(...) -&gt; (T1, T2, ...)</a><a href="#type-name-mangling" class="l3" data-id="type-name-mangling">Type-name mangling</a><a href="#when-to-reach-for-it" class="l3" data-id="when-to-reach-for-it">When to reach for it</a><a href="#binding-struct-returning-c-functions" class="l3" data-id="binding-struct-returning-c-functions">Binding struct-returning C functions</a><a href="#tuple-parameters-by-value-struct-arguments" class="l3" data-id="tuple-parameters-by-value-struct-arguments">Tuple parameters, by-value struct arguments</a><a href="#renaming-a-c-symbol-externc_name" class="l2" data-id="renaming-a-c-symbol-externc_name">Renaming a C Symbol, @extern("c_name")</a><a href="#exporting-an-aether-function-as-a-c-callback-c_callback" class="l2" data-id="exporting-an-aether-function-as-a-c-callback-c_callback">Exporting an Aether Function as a C Callback, @c_callback</a><a href="#optional-explicit-symbol" class="l3" data-id="optional-explicit-symbol">Optional explicit symbol</a><a href="#when-to-use-it" class="l3" data-id="when-to-use-it">When to use it</a><a href="#companion-externc_symbol" class="l3" data-id="companion-externc_symbol">Companion: @extern("c_symbol")</a><a href="#linking-external-libraries" class="l2" data-id="linking-external-libraries">Linking External Libraries</a><a href="#example-using-sqlite" class="l3" data-id="example-using-sqlite">Example: Using SQLite</a><a href="#best-practices" class="l2" data-id="best-practices">Best Practices</a><a href="#built-in-primitives-and-the-aether_-c-symbol-convention" class="l2" data-id="built-in-primitives-and-the-aether_-c-symbol-convention">Built-in primitives and the aether_ C-symbol convention</a><a href="#working-with-pointers" class="l2" data-id="working-with-pointers">Working with Pointers</a><a href="#passing-integers-to-ptr-parameters" class="l3" data-id="passing-integers-to-ptr-parameters">Passing Integers to ptr Parameters</a><a href="#consuming---string-returns-from-c" class="l2" data-id="consuming---string-returns-from-c">Consuming -&gt; string Returns From C</a><a href="#passing-string-values-into-c-externs-auto-unwrap" class="l3" data-id="passing-string-values-into-c-externs-auto-unwrap">Passing string values INTO C externs (auto-unwrap)</a><a href="#aether-emitted-receivers-name-aether-string" class="l3" data-id="aether-emitted-receivers-name-aether-string">Aether-emitted receivers, name: @aether string</a><a href="#struct-overlay-on-raw-pointers-structname-and-expr-as-structname" class="l3" data-id="struct-overlay-on-raw-pointers-structname-and-expr-as-structname">Struct overlay on raw pointers, *StructName and expr as *StructName</a><a href="#address-of-a-field-lvalue" class="l3" data-id="address-of-a-field-lvalue">Address of a field, &amp;lvalue</a><a href="#typed-array-view-expr-as-t" class="l3" data-id="typed-array-view-expr-as-t">Typed array view, expr as T[]</a><a href="#c_struct-typed-overlays-width-correct-field-access-over-a-raw-ptr" class="l3" data-id="c_struct-typed-overlays-width-correct-field-access-over-a-raw-ptr">@c_struct typed overlays, width-correct field access over a raw ptr</a><a href="#extern-struct-unions-union----and-nested-struct---" class="l3" data-id="extern-struct-unions-union----and-nested-struct---">extern struct unions, union { ... } and nested struct { ... }</a><a href="#packed-structs-extern-struct--packed" class="l3" data-id="packed-structs-extern-struct--packed">Packed structs, extern struct ... @packed</a><a href="#aether-side-string-builder-return-types" class="l3" data-id="aether-side-string-builder-return-types">Aether-side string-builder return types</a><a href="#heap-string-ownership-across-the-ffi-boundary" class="l3" data-id="heap-string-ownership-across-the-ffi-boundary">Heap-string ownership across the FFI boundary</a><a href="#embedding-aether-in-c-applications" class="l2" data-id="embedding-aether-in-c-applications">Embedding Aether in C Applications</a><a href="#c-symbol-namespace-libc-collision-avoidance" class="l2" data-id="c-symbol-namespace-libc-collision-avoidance">C symbol namespace (libc collision avoidance)</a><a href="#when-to-use-c_callback-instead" class="l3" data-id="when-to-use-c_callback-instead">When to use @c_callback instead</a><a href="#aether-keyword-collisions" class="l3" data-id="aether-keyword-collisions">Aether-keyword collisions</a><a href="#see-also" class="l2" data-id="see-also">See Also</a></nav>
+    <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#calling-c-functions" class="l2" data-id="calling-c-functions">Calling C Functions</a><a href="#the-extern-keyword" class="l2" data-id="the-extern-keyword">The extern Keyword</a><a href="#syntax" class="l3" data-id="syntax">Syntax</a><a href="#type-mapping" class="l3" data-id="type-mapping">Type Mapping</a><a href="#example-custom-c-functions" class="l3" data-id="example-custom-c-functions">Example: Custom C Functions</a><a href="#tuple-return-types-extern-foo---t1-t2-" class="l2" data-id="tuple-return-types-extern-foo---t1-t2-">Tuple Return Types, extern foo(...) -&gt; (T1, T2, ...)</a><a href="#type-name-mangling" class="l3" data-id="type-name-mangling">Type-name mangling</a><a href="#when-to-reach-for-it" class="l3" data-id="when-to-reach-for-it">When to reach for it</a><a href="#binding-struct-returning-c-functions" class="l3" data-id="binding-struct-returning-c-functions">Binding struct-returning C functions</a><a href="#tuple-parameters-by-value-struct-arguments" class="l3" data-id="tuple-parameters-by-value-struct-arguments">Tuple parameters, by-value struct arguments</a><a href="#renaming-a-c-symbol-externc_name" class="l2" data-id="renaming-a-c-symbol-externc_name">Renaming a C Symbol, @extern("c_name")</a><a href="#exporting-an-aether-function-as-a-c-callback-c_callback" class="l2" data-id="exporting-an-aether-function-as-a-c-callback-c_callback">Exporting an Aether Function as a C Callback, @c_callback</a><a href="#optional-explicit-symbol" class="l3" data-id="optional-explicit-symbol">Optional explicit symbol</a><a href="#when-to-use-it" class="l3" data-id="when-to-use-it">When to use it</a><a href="#companion-externc_symbol" class="l3" data-id="companion-externc_symbol">Companion: @extern("c_symbol")</a><a href="#linking-external-libraries" class="l2" data-id="linking-external-libraries">Linking External Libraries</a><a href="#example-using-sqlite" class="l3" data-id="example-using-sqlite">Example: Using SQLite</a><a href="#best-practices" class="l2" data-id="best-practices">Best Practices</a><a href="#built-in-primitives-and-the-aether_-c-symbol-convention" class="l2" data-id="built-in-primitives-and-the-aether_-c-symbol-convention">Built-in primitives and the aether_ C-symbol convention</a><a href="#working-with-pointers" class="l2" data-id="working-with-pointers">Working with Pointers</a><a href="#passing-integers-to-ptr-parameters" class="l3" data-id="passing-integers-to-ptr-parameters">Passing Integers to ptr Parameters</a><a href="#consuming---string-returns-from-c" class="l2" data-id="consuming---string-returns-from-c">Consuming -&gt; string Returns From C</a><a href="#passing-string-values-into-c-externs-auto-unwrap" class="l3" data-id="passing-string-values-into-c-externs-auto-unwrap">Passing string values INTO C externs (auto-unwrap)</a><a href="#aether-emitted-receivers-name-aether-string" class="l3" data-id="aether-emitted-receivers-name-aether-string">Aether-emitted receivers, name: @aether string</a><a href="#struct-overlay-on-raw-pointers-structname-and-expr-as-structname" class="l3" data-id="struct-overlay-on-raw-pointers-structname-and-expr-as-structname">Struct overlay on raw pointers, *StructName and expr as *StructName</a><a href="#address-of-a-field-lvalue" class="l3" data-id="address-of-a-field-lvalue">Address of a field, &amp;lvalue</a><a href="#typed-array-view-expr-as-t" class="l3" data-id="typed-array-view-expr-as-t">Typed array view, expr as T[]</a><a href="#c_struct-typed-overlays-width-correct-field-access-over-a-raw-ptr" class="l3" data-id="c_struct-typed-overlays-width-correct-field-access-over-a-raw-ptr">@c_struct typed overlays, width-correct field access over a raw ptr</a><a href="#extern-struct-unions-union----and-nested-struct---" class="l3" data-id="extern-struct-unions-union----and-nested-struct---">extern struct unions, union { ... } and nested struct { ... }</a><a href="#packed-structs-extern-struct--packed" class="l3" data-id="packed-structs-extern-struct--packed">Packed structs, extern struct ... @packed</a><a href="#aether-side-string-builder-return-types" class="l3" data-id="aether-side-string-builder-return-types">Aether-side string-builder return types</a><a href="#heap-string-ownership-across-the-ffi-boundary" class="l3" data-id="heap-string-ownership-across-the-ffi-boundary">Heap-string ownership across the FFI boundary</a><a href="#embedding-aether-in-c-applications" class="l2" data-id="embedding-aether-in-c-applications">Embedding Aether in C Applications</a><a href="#c-symbol-namespace-libc-collision-avoidance" class="l2" data-id="c-symbol-namespace-libc-collision-avoidance">C symbol namespace (libc collision avoidance)</a><a href="#collisions-with-the-aether-standard-library" class="l3" data-id="collisions-with-the-aether-standard-library">Collisions with the Aether standard library</a><a href="#when-to-use-c_callback-instead" class="l3" data-id="when-to-use-c_callback-instead">When to use @c_callback instead</a><a href="#aether-keyword-collisions" class="l3" data-id="aether-keyword-collisions">Aether-keyword collisions</a><a href="#see-also" class="l2" data-id="see-also">See Also</a></nav>
   </div>
 </div>
 <script src="/docs.js" defer></script>

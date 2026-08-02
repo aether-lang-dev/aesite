@@ -15,7 +15,546 @@
 <link rel="icon" href="/favicon.png">
 <link rel="preload" href="/fonts/bricolagegrotesque-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/fonts/dmsans-latin.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/aether.css">
+<link rel="preload" href="/fonts/dmmono-latin.woff2" as="font" type="font/woff2" crossorigin>
+<style id="aether-inline">
+/* Self-hosted webfonts. Previously three families were pulled from
+   fonts.googleapis.com, which chained a stylesheet request and then the
+   font files from a second origin before any text could paint. These are
+   the same faces served from this origin.
+   Variable fonts: one file covers each family's whole weight range.
+   The opsz axis is dropped (nothing here sets font-optical-sizing) which
+   halves Bricolage. latin-ext is listed but only fetched when a character
+   needs it, unicode-range keeps it lazy. */
+/* latin-ext */
+@font-face {
+  font-family: 'Bricolage Grotesque';
+  font-style: normal;
+  font-weight: 700;
+  font-stretch: 100%;
+  font-display: swap;
+  src: url(fonts/bricolagegrotesque-latinext.woff2) format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Bricolage Grotesque';
+  font-style: normal;
+  font-weight: 700;
+  font-stretch: 100%;
+  font-display: swap;
+  src: url(fonts/bricolagegrotesque-latin.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Bricolage Grotesque';
+  font-style: normal;
+  font-weight: 800;
+  font-stretch: 100%;
+  font-display: swap;
+  src: url(fonts/bricolagegrotesque-latinext.woff2) format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Bricolage Grotesque';
+  font-style: normal;
+  font-weight: 800;
+  font-stretch: 100%;
+  font-display: swap;
+  src: url(fonts/bricolagegrotesque-latin.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'DM Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(fonts/dmmono-latinext.woff2) format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'DM Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(fonts/dmmono-latin.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'DM Sans';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(fonts/dmsans-latinext.woff2) format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'DM Sans';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(fonts/dmsans-latin.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'DM Sans';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url(fonts/dmsans-latinext.woff2) format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'DM Sans';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url(fonts/dmsans-latin.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* Aether design system. Red-on-black, monospace, elegant.
+   Brand: red #cc1a1a "ae" on near-black, from the VS Code icon. */
+:root{
+  --bg:#0c0b0b; --bg-2:#121111; --bg-3:#0a0909; --panel:#100f0f;
+  --line:#1e1c1c; --line-2:#2a2727;
+  --ink:#eceae7; --dim:#9b9693; --faint:#6b6663;
+  --red:#cc1a1a; --red-hi:#e63a2f;
+  --c-kw:#c76b60; --c-str:#93a07f; --c-num:#c19a6b; --c-fn:#88a3ad; --c-com:#615c59; --c-pn:#8f8a86;
+  --mono:"DM Mono",ui-monospace,"SF Mono","JetBrains Mono",Menlo,Consolas,monospace;
+  --sans:"DM Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --wrap:1120px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15.5px;line-height:1.6;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+::selection{background:var(--red);color:#fff}
+:focus-visible{outline:2px solid var(--red-hi);outline-offset:2px;border-radius:2px}
+.wrap{max-width:var(--wrap);margin:0 auto;padding:0 26px}
+.mono{font-family:var(--mono)}
+.eyebrow{font-family:var(--mono);font-size:11.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--faint)}
+
+/* wordmark */
+.ae{font-family:var(--mono);font-weight:700;letter-spacing:-.085em;transform:scale(.95,1.2);display:inline-block;color:var(--red)}
+
+/* header */
+.site-head{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 82%,transparent);backdrop-filter:blur(9px);border-bottom:1px solid var(--line)}
+.site-head .bar{display:flex;align-items:center;gap:22px;height:58px}
+.brand{display:flex;align-items:baseline;gap:9px}
+.brand .ae{font-size:21px}
+.brand .nm{font-family:var(--mono);font-size:13.5px;color:var(--ink)}
+.site-head nav{margin-left:auto;display:flex;align-items:center;gap:22px}
+.site-head nav a{font-family:var(--mono);font-size:13px;color:var(--dim);transition:color .15s}
+.site-head nav a:hover,.site-head nav a.on{color:var(--ink)}
+.site-head nav a.on{color:var(--red)}
+.vtag{font-family:var(--mono);font-size:11.5px;color:var(--faint);border:1px solid var(--line-2);border-radius:999px;padding:2px 9px}
+
+/* buttons */
+.btn{font-family:var(--mono);font-size:14px;padding:11px 19px;border-radius:6px;border:1px solid transparent;display:inline-flex;align-items:center;gap:8px;transition:all .16s;cursor:pointer}
+.btn-red{background:var(--red);color:#fff}
+.btn-red:hover{background:var(--red-hi);transform:translateY(-1px)}
+.btn-ghost{border-color:var(--line-2);color:var(--ink)}
+.btn-ghost:hover{border-color:var(--faint);background:var(--bg-2)}
+
+/* section head */
+.sec-head{display:flex;align-items:baseline;gap:14px;margin:0 0 22px}
+.sec-head h2{font-family:var(--mono);font-size:1.15rem;font-weight:700;letter-spacing:-.01em;margin:0}
+.sec-head .rule{flex:1;height:1px;background:var(--line)}
+
+/* code */
+pre,code{font-family:var(--mono)}
+pre.code{background:var(--bg-3);border:1px solid var(--line);border-radius:8px;padding:16px;overflow-x:auto;font-size:12.8px;line-height:1.7;color:var(--ink);margin:0 0 16px}
+.kw{color:var(--c-kw)}.str{color:var(--c-str)}.num{color:var(--c-num)}.fn{color:var(--c-fn)}.com{color:var(--c-com)}.pn{color:var(--c-pn)}
+
+/* footer */
+.site-foot{border-top:1px solid var(--line);margin-top:80px;padding:40px 0}
+.site-foot .foot{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.site-foot .ae{font-size:17px}
+.site-foot .m{font-family:var(--mono);font-size:12px;color:var(--faint)}
+.site-foot nav{margin-left:auto;display:flex;gap:20px}
+.site-foot nav a{font-family:var(--mono);font-size:12.5px;color:var(--dim)}
+.site-foot nav a:hover{color:var(--ink)}
+
+/* ---- docs layout ---- */
+.doc-shell{display:grid;grid-template-columns:250px minmax(0,1fr) 210px;gap:0;align-items:start;min-height:70vh}
+.doc-nav{position:sticky;top:58px;align-self:start;max-height:calc(100vh - 58px);overflow:auto;border-right:1px solid var(--line);padding:26px 0 40px}
+.doc-nav .grp{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint);padding:18px 24px 8px}
+.doc-nav a{display:block;font-family:var(--mono);font-size:12.7px;color:var(--dim);padding:6px 24px;border-left:2px solid transparent;transition:.13s}
+.doc-nav a:hover{color:var(--ink);background:var(--bg-3)}
+.doc-nav a.on{color:var(--ink);border-left-color:var(--red);background:var(--bg-3)}
+.doc-main{padding:40px 0 60px 44px;min-width:0}
+.doc-body{max-width:760px}
+.doc-body .bc{font-family:var(--mono);font-size:12px;color:var(--faint);margin-bottom:20px}
+.doc-body h1{font-family:var(--mono);font-size:1.9rem;letter-spacing:-.02em;margin:0 0 10px;line-height:1.15}
+.doc-body h2{font-family:var(--mono);font-size:1.15rem;color:var(--ink);margin:34px 0 12px;padding-top:16px;border-top:1px solid var(--line)}
+.doc-body h3{font-family:var(--mono);font-size:1rem;color:var(--ink);margin:26px 0 8px}
+.doc-body p{color:var(--dim);margin:0 0 15px}
+.doc-body a{color:var(--red);text-decoration:none}
+.doc-body a:hover{text-decoration:underline}
+.doc-body code{font-family:var(--mono);font-size:.86em;background:var(--bg-2);border:1px solid var(--line);border-radius:4px;padding:1px 5px;color:var(--ink)}
+.doc-body pre{background:var(--bg-3);border:1px solid var(--line);border-radius:8px;padding:16px;overflow-x:auto;font-size:12.8px;line-height:1.7;color:var(--ink);margin:0 0 16px}
+.doc-body pre code{background:none;border:0;padding:0}
+.doc-body ul,.doc-body ol{color:var(--dim);padding-left:22px;margin:0 0 15px}
+.doc-body li{margin:4px 0}
+.doc-body blockquote{border-left:2px solid var(--red);margin:0 0 15px;padding:2px 0 2px 16px;color:var(--dim)}
+.doc-body hr{border:0;border-top:1px solid var(--line);margin:26px 0}
+.doc-body table{border-collapse:collapse;width:100%;margin:0 0 18px;font-size:13.5px}
+.doc-body th,.doc-body td{border:1px solid var(--line);padding:8px 12px;text-align:left;vertical-align:top}
+.doc-body th{font-family:var(--mono);color:var(--ink);background:var(--bg-2);font-weight:700}
+.doc-body td{color:var(--dim)}
+
+@media(max-width:860px){
+  .doc-shell{grid-template-columns:1fr}
+  .doc-nav{position:static;max-height:none;border-right:0;border-bottom:1px solid var(--line);display:flex;overflow-x:auto;padding:8px}
+  .doc-nav .grp{display:none}
+  .doc-nav a{white-space:nowrap;border-left:0}
+  .doc-main{padding:26px 0}
+  .site-head nav a.hidem{display:none}
+}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.btn-red:hover{transform:none}}
+
+/* ---- home + shared components ---- */
+.hero{padding:82px 0 60px}
+.hero-grid{display:grid;grid-template-columns:1.02fr .98fr;gap:52px;align-items:center}
+.hero .eyebrow{margin:0 0 20px}
+.hero h1{font-family:var(--mono);font-weight:700;font-size:clamp(2.3rem,5.2vw,3.5rem);line-height:1.04;letter-spacing:-.03em;margin:0 0 20px;text-wrap:balance}
+.hero h1 .hl{color:var(--red)}
+.hero .lede{font-size:1.1rem;color:var(--dim);max-width:42ch;margin:0 0 30px}
+.cta{display:flex;gap:13px;flex-wrap:wrap}
+.metaline{display:flex;gap:24px;flex-wrap:wrap;margin-top:26px;font-family:var(--mono);font-size:12.5px;color:var(--faint)}
+.metaline b{color:var(--ink);font-weight:400}
+
+/* code panel: filename label + red top accent, no traffic lights */
+.panel{background:var(--bg-3);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.panel-bar{display:flex;align-items:center;gap:10px;padding:11px 16px;border-bottom:1px solid var(--line);background:var(--bg-2)}
+.panel-bar::before{content:"";width:18px;height:2px;background:var(--red);border-radius:2px}
+.panel-bar .file{font-family:var(--mono);font-size:12.5px;color:var(--faint)}
+.panel pre{margin:0;padding:20px;overflow-x:auto;font-family:var(--mono);font-size:13.4px;line-height:1.75;color:var(--ink)}
+
+.block{padding:74px 0;border-top:1px solid var(--line)}
+.feat{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.feat .cell{background:var(--bg);padding:26px 22px}
+.feat .k{font-family:var(--mono);font-size:12.5px;color:var(--red);margin-bottom:12px}
+.feat h3{font-family:var(--mono);font-size:15px;margin:0 0 8px;font-weight:700;letter-spacing:-.01em}
+.feat p{margin:0;font-size:13.7px;color:var(--dim);line-height:1.6}
+.cc{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.cc-h{font-family:var(--mono);font-size:1.5rem;letter-spacing:-.02em;margin:0 0 10px}
+.cc-note{color:var(--dim);max-width:54ch;margin:0 0 30px}
+@media(max-width:860px){.hero-grid{grid-template-columns:1fr;gap:38px}.feat{grid-template-columns:repeat(2,1fr)}.cc{grid-template-columns:1fr}}
+
+/* ---- REPL / playground ---- */
+.repl{display:grid;grid-template-columns:184px 1fr;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--panel)}
+.lessons{border-right:1px solid var(--line);background:var(--bg-2);padding:14px 0}
+.lessons .lh{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--faint);padding:4px 18px 10px}
+.lessons button{display:block;width:100%;text-align:left;background:none;border:0;color:var(--dim);font-family:var(--mono);font-size:12.5px;line-height:1.5;padding:9px 18px;cursor:pointer;border-left:2px solid transparent;transition:.14s}
+.lessons button:hover{color:var(--ink);background:var(--bg-3)}
+.lessons button.on{color:var(--ink);border-left-color:var(--red);background:var(--bg-3)}
+.lessons button .idx{color:var(--faint);margin-right:8px}
+.lessons button.on .idx{color:var(--red)}
+.stage{display:grid;grid-template-rows:auto 1fr auto auto;min-height:360px}
+.theory{padding:16px 20px;border-bottom:1px solid var(--line)}
+.theory h3{font-family:var(--mono);font-size:14px;margin:0 0 6px}
+.theory p{margin:0;font-size:13.5px;color:var(--dim)}
+.editwrap{position:relative;background:var(--bg-3);min-height:200px}
+.editwrap pre,.editwrap textarea{margin:0;padding:18px 20px;font-family:var(--mono);font-size:13.4px;line-height:1.7;letter-spacing:0;tab-size:4;white-space:pre;overflow:auto;border:0}
+.editwrap pre{position:absolute;inset:0;pointer-events:none;color:var(--ink);z-index:0;margin:0}
+.editwrap textarea{position:relative;z-index:1;width:100%;height:100%;min-height:200px;background:transparent;color:transparent;caret-color:var(--red);resize:vertical;outline:none}
+.runbar{display:flex;align-items:center;gap:14px;padding:12px 20px;border-top:1px solid var(--line);background:var(--bg-2)}
+.run{font-family:var(--mono);font-size:13px;background:var(--red);color:#fff;border:0;border-radius:6px;padding:9px 18px;cursor:pointer;transition:.15s}
+.run:hover{background:var(--red-hi)}
+.run:disabled{opacity:.55;cursor:default}
+.runbar .hint{font-family:var(--mono);font-size:11.5px;color:var(--faint)}
+.runbar .lnav{margin-left:auto;display:flex;gap:6px}
+.runbar .lnav button{font-family:var(--mono);font-size:12px;color:var(--dim);background:none;border:1px solid var(--line-2);border-radius:6px;padding:6px 11px;cursor:pointer;transition:.14s}
+.runbar .lnav button:hover{color:var(--ink);border-color:var(--faint)}
+.output{border-top:1px solid var(--line);background:var(--bg-3);padding:14px 20px;font-family:var(--mono);font-size:13px;line-height:1.7;min-height:76px;white-space:pre-wrap}
+.output .op{color:var(--red);user-select:none}
+.output .err{color:var(--c-kw)}
+.output .muted{color:var(--faint)}
+@media(max-width:860px){
+  .repl{grid-template-columns:1fr}
+  .lessons{display:flex;overflow-x:auto;border-right:0;border-bottom:1px solid var(--line);padding:8px}
+  .lessons .lh{display:none}
+  .lessons button{white-space:nowrap;border-left:0;border-bottom:2px solid transparent}
+  .lessons button.on{border-left:0;border-bottom-color:var(--red)}
+}
+
+/* skip-to-content (a11y): hidden until keyboard-focused */
+.skip{position:absolute;left:-9999px;top:0;z-index:50;background:var(--red);color:#fff;font-family:var(--mono);font-size:13px;padding:9px 16px;border-radius:0 0 6px 0}
+.skip:focus{left:0}
+
+/* responsive containment: grid children must shrink so wide code/tables
+   scroll inside their own box and the page body never scrolls sideways */
+.hero-grid>*,.feat>*,.cc>*,.repl>*,.doc-main,.doc-body{min-width:0}
+.doc-body pre,.panel pre,.editwrap pre{max-width:100%}
+.doc-body code{overflow-wrap:anywhere}
+.tw{overflow-x:auto;max-width:100%;margin:0 0 18px}
+.tw table{margin:0}
+@media(max-width:860px){
+  .site-head .bar{gap:14px}
+  .site-head nav{gap:15px}
+  .vtag{display:none}
+  .site-head nav a.src{display:none}
+}
+
+/* secondary playground button (Copy) */
+.ghostbtn{font-family:var(--mono);font-size:12.5px;color:var(--dim);background:none;border:1px solid var(--line-2);border-radius:6px;padding:8px 13px;cursor:pointer;transition:.14s}
+.ghostbtn:hover{color:var(--ink);border-color:var(--faint)}
+
+/* ============================================================
+   RETRO TERMINAL LAYER
+   CRT character on the brand: subtle scanlines, phosphor glow,
+   blinking cursor, terminal-window chrome. Kept restrained so it
+   reads as a real terminal, not a novelty.
+   ============================================================ */
+
+/* CRT overlays: fine scanlines + a soft vignette. Never block input. */
+body::before{content:"";position:fixed;inset:0;z-index:2;pointer-events:none;
+  background:
+    radial-gradient(130% 100% at 50% -10%, transparent 62%, rgba(0,0,0,.45) 100%);}
+body::after{content:"";position:fixed;inset:0;z-index:3;pointer-events:none;opacity:.5;
+  background:repeating-linear-gradient(to bottom,
+    rgba(255,255,255,.020) 0 1px, transparent 1px 3px);}
+.site-head,.wrap,main,footer{position:relative;z-index:4}
+
+/* phosphor glow on the brand red */
+.ae{text-shadow:0 0 14px rgba(204,26,26,.45)}
+.hero h1 .hl,.hl{text-shadow:0 0 18px rgba(230,58,47,.5)}
+
+/* blinking block cursor */
+.cur{display:inline-block;width:.58ch;height:1.02em;margin-left:.12ch;
+  background:var(--red-hi);vertical-align:-0.14em;border-radius:1px;
+  box-shadow:0 0 10px rgba(230,58,47,.7);animation:blink 1.05s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+
+/* terminal window chrome */
+.term{background:var(--bg-3);border:1px solid var(--line-2);border-radius:10px;overflow:hidden;
+  box-shadow:0 0 0 1px rgba(0,0,0,.4),0 24px 60px -30px rgba(230,58,47,.18)}
+.term-bar{display:flex;align-items:center;gap:9px;padding:9px 14px;background:var(--bg-2);
+  border-bottom:1px solid var(--line);font-family:var(--mono);font-size:12px;color:var(--faint)}
+.term-bar::before{content:"";width:9px;height:9px;border-radius:50%;
+  background:var(--red);box-shadow:0 0 8px rgba(204,26,26,.7)}
+.term-bar b{color:var(--dim);font-weight:400}
+.term-body{padding:20px;font-family:var(--mono);font-size:13.2px;line-height:1.7}
+
+/* boot sequence */
+.boot{margin:0 0 18px;font-family:var(--mono);font-size:12.6px;line-height:1.75;color:var(--dim);white-space:pre-wrap;min-height:1.75em}
+.boot .ok{color:var(--c-str)}
+.boot .dim{color:var(--faint)}
+.boot .r{color:var(--red-hi)}
+
+/* prompt accents on section headings */
+.prompt{color:var(--red);margin-right:.5ch}
+.sec-head h2 .prompt{font-weight:400}
+
+/* prompt-styled ghost button */
+.btn-term{font-family:var(--mono);font-size:14px;padding:11px 18px;border-radius:6px;
+  border:1px solid var(--line-2);color:var(--ink);background:var(--bg-3);display:inline-flex;gap:9px;align-items:center;transition:all .15s}
+.btn-term:hover{border-color:var(--red);box-shadow:0 0 0 1px var(--red),0 0 18px -6px var(--red-hi);transform:translateY(-1px)}
+.btn-term .p{color:var(--red)}
+
+@media(prefers-reduced-motion:reduce){.cur{animation:none}}
+@media(max-width:860px){body::before,body::after{display:none}}
+
+/* code + output inside terminal windows */
+.term .run-src{margin:0;padding:18px 20px;font-family:var(--mono);font-size:13px;line-height:1.72;color:var(--ink);overflow-x:auto;white-space:pre}
+.run-out{margin:0 20px;padding:12px 0 4px;border-top:1px solid var(--line);font-family:var(--mono);font-size:13px;line-height:1.7;min-height:1.7em;color:var(--c-str);white-space:pre-line}
+.hero .boot{margin:0 0 16px}
+
+/* docs search + on-page TOC */
+.docsearch{position:relative;padding:16px 18px 8px}
+.docsearch input{width:100%;background:var(--bg-3);border:1px solid var(--line-2);border-radius:6px;color:var(--ink);font-family:var(--mono);font-size:12.5px;padding:8px 30px 8px 11px;outline:none;transition:border-color .14s}
+.docsearch input:focus{border-color:var(--red)}
+.docsearch kbd{position:absolute;right:27px;top:24px;font-family:var(--mono);font-size:11px;color:var(--faint);border:1px solid var(--line-2);border-radius:4px;padding:0 5px;pointer-events:none}
+.ds-res{position:absolute;left:18px;right:18px;top:50px;z-index:30;background:var(--bg-2);border:1px solid var(--line-2);border-radius:8px;max-height:64vh;overflow:auto;display:none;box-shadow:0 24px 60px -24px #000}
+.ds-res.open{display:block}
+.ds-res a{display:block;padding:9px 12px;border-bottom:1px solid var(--line)}
+.ds-res a:last-child{border-bottom:0}
+.ds-res a.sel,.ds-res a:hover{background:var(--bg-3)}
+.ds-res .rt{font-family:var(--mono);font-size:12.5px;color:var(--ink)}
+.ds-res .rg{font-size:10px;color:var(--faint);text-transform:uppercase;letter-spacing:.12em;margin-left:7px}
+.ds-res .rs{font-size:11.5px;color:var(--dim);margin-top:3px;line-height:1.45}
+.ds-res .rt b,.ds-res .rs b{color:var(--red-hi)}
+.ds-res .none{padding:12px;color:var(--faint);font-size:12.5px}
+.toc{position:sticky;top:58px;align-self:start;max-height:calc(100vh - 58px);overflow:auto;padding:30px 0 40px 22px}
+.toc-h{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint);margin-bottom:12px}
+.toc a{display:block;font-family:var(--mono);font-size:12px;color:var(--dim);padding:4px 0 4px 12px;border-left:2px solid var(--line);transition:.13s;line-height:1.35}
+.toc a.l3{padding-left:24px;font-size:11.5px;color:var(--faint)}
+.toc a:hover{color:var(--ink)}
+.toc a.on{color:var(--red);border-left-color:var(--red)}
+@media(max-width:1080px){.doc-shell{grid-template-columns:250px minmax(0,1fr)}.toc{display:none}}
+
+/* ============================================================
+   REFINE PASS: display type, no gimmicks, install-first hero,
+   show-don't-tell sections. Overrides the earlier terminal layer.
+   ============================================================ */
+:root{ --display:"Bricolage Grotesque","DM Sans",system-ui,sans-serif; }
+
+/* drop the CRT costume */
+body::before,body::after{display:none !important}
+.ae{text-shadow:none}
+.hl,.hero h1 .hl{text-shadow:none}
+
+/* display typeface for headings */
+.hero h1,.feature h2,.feature h3,.col h3,.center-h,.getstarted h2,.cc-h,
+.doc-body h1,.doc-body h2,.doc-body h3{font-family:var(--display)}
+.hero h1{font-size:clamp(2.7rem,6vw,4.3rem);font-weight:800;line-height:1.02;letter-spacing:-.035em;margin:0 0 22px;text-wrap:balance}
+.hero .eyebrow{margin:0 0 18px}
+.hero .lede{font-size:1.12rem;color:var(--dim);max-width:46ch;line-height:1.55;margin:0 0 8px}
+
+/* inline code on the home page */
+main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:1px solid var(--line);border-radius:4px;padding:1px 5px;color:var(--ink)}
+.install-row code,.gs-next code,main code.plain{background:none;border:0;padding:0;font-size:13.5px}
+
+/* install command block */
+.install{margin:28px 0 20px}
+.install-row{display:flex;align-items:center;gap:12px;background:var(--bg-3);border:1px solid var(--line-2);border-radius:9px;padding:13px 15px;font-family:var(--mono);max-width:540px}
+.install-row .dollar{color:var(--red);user-select:none}
+.install-row code{flex:1 1 auto;color:var(--ink);white-space:nowrap;overflow-x:auto}
+.cpy{flex:none;font-family:var(--mono);font-size:11.5px;letter-spacing:.03em;color:var(--dim);background:var(--bg-2);border:1px solid var(--line-2);border-radius:5px;padding:6px 11px;cursor:pointer;transition:.14s}
+.cpy:hover{color:var(--ink);border-color:var(--faint)}
+.cpy.ok{color:var(--c-str);border-color:var(--c-str)}
+.install-note{font-family:var(--mono);font-size:12px;color:var(--faint);margin:11px 0 0}
+.install-note a{color:var(--dim);text-decoration:underline;text-underline-offset:2px}
+.install-note a:hover{color:var(--ink)}
+
+/* hero run panel: real command + output */
+.term .run-out{margin:0 20px;padding:13px 0 4px;border-top:1px solid var(--line);font-family:var(--mono);font-size:12.8px;line-height:1.7;white-space:pre-line;color:var(--c-str)}
+.term .run-out .run-cmd{display:block;color:var(--faint);margin-bottom:7px}
+
+/* one-line value strip */
+.strip{border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:var(--bg-2)}
+.strip .wrap{padding:22px 26px}
+.strip p{margin:0;color:var(--dim);font-size:15px;line-height:1.65;max-width:none}
+.strip code{color:var(--ink)}
+
+/* feature sections (show-don't-tell) */
+.feature{padding:70px 0;border-top:1px solid var(--line)}
+.feature-grid{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center}
+.feature h2{font-size:clamp(1.7rem,3vw,2.2rem);font-weight:700;letter-spacing:-.02em;line-height:1.08;margin:0 0 16px}
+.feature p{color:var(--dim);font-size:15px;line-height:1.65;margin:0 0 13px;max-width:48ch}
+.feature .muted-p{color:var(--faint)}
+.feature .cc{grid-template-columns:1fr;gap:14px}
+.feature.alt{background:var(--bg-3)}
+.two-up{display:grid;grid-template-columns:1fr 1fr;gap:36px}
+.col h3{font-size:1.3rem;font-weight:700;letter-spacing:-.01em;margin:0 0 10px}
+.col p{color:var(--dim);font-size:14.5px;line-height:1.6;margin:0 0 16px;max-width:46ch}
+
+/* "more than a language" rows */
+.center-h{text-align:center;font-size:clamp(1.7rem,3vw,2.2rem);font-weight:700;letter-spacing:-.02em;margin:0 0 8px}
+.rows{max-width:840px;margin:32px auto 0;border-top:1px solid var(--line)}
+.row{display:grid;grid-template-columns:172px 1fr;gap:26px;padding:22px 4px;border-bottom:1px solid var(--line)}
+.row-k{font-family:var(--mono);font-size:12.5px;letter-spacing:.02em;color:var(--red);padding-top:1px}
+.row-v{color:var(--dim);font-size:14.7px;line-height:1.62}
+.row-v code{color:var(--ink)}
+
+/* get started */
+.getstarted{padding:84px 0 96px;border-top:1px solid var(--line);text-align:center}
+.getstarted h2{font-size:clamp(1.9rem,3.5vw,2.7rem);font-weight:800;letter-spacing:-.025em;margin:0 0 26px}
+.getstarted .install{display:flex;justify-content:center;margin:0 0 16px}
+.install-lg .install-row{max-width:580px;padding:15px 17px;font-size:14.5px}
+.gs-next{font-family:var(--mono);font-size:13px;color:var(--faint);margin:0 0 30px}
+.gs-next .dollar{color:var(--red);margin-right:6px}
+.getstarted .cta{justify-content:center}
+
+/* refined docs headings */
+.doc-body h1{font-weight:800;letter-spacing:-.02em;font-size:2.1rem}
+.doc-body h2{font-weight:700;letter-spacing:-.01em}
+.doc-body h3{font-weight:700}
+.doc-body p{line-height:1.7}
+
+@media(max-width:860px){
+  .feature-grid,.two-up{grid-template-columns:1fr;gap:30px}
+  .row{grid-template-columns:1fr;gap:5px;padding:18px 4px}
+  .feature{padding:52px 0}
+}
+
+.feature h2,.col h3,.center-h,.getstarted h2{text-wrap:balance}
+.feature-text{max-width:none}
+
+/* review pass: fix floating sections, tighten rhythm */
+.feature-grid{align-items:start}
+.feature-text{padding-top:2px}
+.feature{padding:62px 0}
+.two-up{gap:40px}
+.col .panel{margin-top:2px}
+.rows{max-width:800px}
+.row{grid-template-columns:150px 1fr;gap:28px;padding:20px 4px}
+.getstarted{padding:78px 0 88px}
+/* give the "you can read" code column a touch of breathing room from the text */
+@media(min-width:861px){.feature-grid{gap:56px}}
+
+/* --- home v3: depth, pipeline diagram, real footer --- */
+.hero{position:relative}
+.hero::before{content:"";position:absolute;inset:-40px 0 0;pointer-events:none;z-index:-1;
+  background:radial-gradient(48% 42% at 20% 26%, rgba(204,26,26,.11), transparent 72%)}
+.feature .muted-p{color:var(--dim)}
+
+.pipe-section{padding:34px 0;border-top:1px solid var(--line);background:var(--bg-2)}
+.pipeline{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;font-family:var(--mono)}
+.pl-node{display:flex;flex-direction:column;align-items:center;gap:5px;padding:15px 26px;border:1px solid var(--line-2);border-radius:10px;background:var(--bg-3);font-size:14px;color:var(--ink);min-width:132px}
+.pl-node .pl-k{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--red)}
+.pl-node .pl-sub{font-size:10.5px;color:var(--faint);text-align:center;line-height:1.6}
+.pl-step{display:flex;flex-direction:column;align-items:center;gap:5px;padding:0 10px;min-width:96px}
+.pl-line{width:100%;height:1px;background:linear-gradient(90deg,var(--line-2),var(--red-hi),var(--line-2));position:relative}
+.pl-line::after{content:"\203A";position:absolute;right:-3px;top:-11px;color:var(--red-hi);font-size:16px}
+.pl-lbl{font-size:11px;color:var(--faint)}
+@media(max-width:720px){.pipeline{flex-direction:column}.pl-step{flex-direction:row;gap:8px;padding:8px 0}.pl-line{width:26px;height:1px}.pl-line::after{top:-10px;right:-3px}}
+
+.site-foot{border-top:1px solid var(--line);margin-top:0;padding:58px 0 28px}
+.foot-grid{display:grid;grid-template-columns:1.7fr 1fr 1fr 1fr;gap:40px}
+.foot-brand .ae{font-size:20px}
+.foot-tag{color:var(--dim);font-size:14px;margin:13px 0 9px;max-width:26ch;line-height:1.5}
+.foot-status{font-family:var(--mono);font-size:12px;color:var(--faint)}
+.foot-col .foot-h{font-family:var(--mono);font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);margin:0 0 13px}
+.foot-col a{display:block;color:var(--dim);font-size:13.5px;padding:5px 0;transition:color .14s}
+.foot-col a:hover{color:var(--ink)}
+.foot-note{margin-top:42px;font-family:var(--mono);font-size:12px;color:var(--faint);line-height:1.7;max-width:78ch}
+.foot-legal{display:flex;justify-content:space-between;margin-top:22px;padding-top:22px;border-top:1px solid var(--line);font-family:var(--mono);font-size:12px;color:var(--faint)}
+@media(max-width:760px){.foot-grid{grid-template-columns:1fr 1fr;gap:26px}.foot-brand{grid-column:1/-1}.foot-legal{flex-direction:column;gap:8px}}
+
+.rows{max-width:920px}
+
+/* alternate section direction for rhythm */
+.feature.flip .feature-grid{direction:rtl}
+.feature.flip .feature-grid > *{direction:ltr}
+
+.hero .lede-2{font-size:15px;color:var(--faint);max-width:52ch;line-height:1.6;margin:0 0 4px}
+
+/* scheduler mechanisms */
+.center-sub{text-align:center;color:var(--dim);max-width:60ch;margin:0 auto 34px;font-size:15px;line-height:1.6}
+.mech{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden;max-width:1000px;margin:0 auto}
+.mech-item{background:var(--bg);padding:22px 20px}
+.mech-k{font-family:var(--mono);font-size:12.5px;color:var(--red);margin-bottom:10px}
+.mech-item p{margin:0;font-size:13.6px;color:var(--dim);line-height:1.6;max-width:none}
+@media(max-width:900px){.mech{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:560px){.mech{grid-template-columns:1fr}}
+
+.mech-note{max-width:1000px;margin:22px auto 0;text-align:center;color:var(--faint);font-size:13.6px;line-height:1.65}
+
+/* install command must shrink inside small viewports: a flex item will not
+   shrink below its content width unless min-width is cleared */
+.install-row{max-width:min(540px,100%)}
+.install-lg .install-row{max-width:min(580px,100%)}
+.install-row code{min-width:0}
+
+/* docs prev / next */
+.doc-prevnext{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:48px 0 0;padding-top:24px;border-top:1px solid var(--line)}
+.doc-prevnext a{min-width:0;display:flex;flex-direction:column;gap:4px;padding:13px 15px;border:1px solid var(--line-2);border-radius:8px;color:var(--ink);transition:border-color .14s}
+.doc-prevnext a:hover{border-color:var(--red);text-decoration:none}
+.doc-prevnext .pn-k{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint)}
+.doc-prevnext .pn-t{font-size:13.5px;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.doc-prevnext .pn-next{grid-column:2;text-align:right}
+@media(max-width:620px){.doc-prevnext{grid-template-columns:1fr}.doc-prevnext .pn-next{grid-column:1;text-align:left}}
+</style>
 </head>
 <body>
 <a class="skip" href="#doc">Skip to content</a>
@@ -553,7 +1092,7 @@ main() {
     dir.delete(<span class="str">"temp_dir"</span>)
 }</code></pre>
 <p><strong>Functions:</strong></p>
-<ul><li><code>dir.create(path)</code> → <code>string</code> - Create directory, return error string</li><li><code>dir.delete(path)</code> → <code>string</code> - Delete empty directory, return error string</li><li><code>dir.list(path)</code> → <code>(ptr, string)</code> - List contents (caller must <code>dir.list_free</code>)</li><li><code>dir.list_count(list)</code> → <code>int</code> - Number of entries</li><li><code>dir.list_get(list, index)</code> → <code>string</code> - Entry name at <code>index</code></li><li><code>dir.list_kind(list, index)</code> → <code>int</code> - Entry's file kind from readdir's <code>d_type</code>, avoiding a <code>stat(2)</code> per entry: 1 = file, 2 = directory, 3 = symlink (target not followed), 4 = other; 0 = unknown (the filesystem didn't report a type, stat that entry to resolve it). Same encoding as <code>file_stat</code>'s kind.</li><li><code>dir.exists(path)</code> - 1 if a <strong>directory</strong> is at <code>path</code>, 0 otherwise. Returns 0 for regular files, even if they exist, see <code>fs.exists</code> for the path-agnostic check.</li><li><code>dir.list_free(list)</code> - Free directory listing</li></ul>
+<ul><li><code>dir.create(path)</code> → <code>string</code> - Create directory, return error string</li><li><code>dir.delete(path)</code> → <code>string</code> - Delete empty directory, return error string</li><li><code>dir.list(path)</code> → <code>(ptr, string)</code> - List contents (caller must <code>dir.list_free</code>)</li><li><code>dir.list_count(list)</code> → <code>int</code> - Number of entries</li><li><code>dir.list_get(list, index)</code> → <code>string</code> - Entry name at <code>index</code></li><li><code>dir.list_kind(list, index)</code> → <code>int</code> - Entry's file kind from readdir's <code>d_type</code>, avoiding a <code>stat(2)</code> per entry: 1 = file, 2 = directory, 3 = symlink (target not followed), 4 = other, 5 = socket, 6 = FIFO, 7 = device; 0 = unknown (the filesystem didn't report a type, stat that entry to resolve it). Same encoding as <code>file_stat</code>'s kind. Kinds 5-7 are POSIX-only: Windows reports those nodes as 4. The named constants <code>fs.STAT_KIND_FILE</code>, <code>STAT_KIND_DIR</code>, <code>STAT_KIND_SYMLINK</code>, <code>STAT_KIND_OTHER</code>, <code>STAT_KIND_SOCKET</code>, <code>STAT_KIND_FIFO</code> and <code>STAT_KIND_DEVICE</code> are exported from <code>std.fs</code>, prefer them over the bare numbers.</li><li><code>dir.exists(path)</code> - 1 if a <strong>directory</strong> is at <code>path</code>, 0 otherwise. Returns 0 for regular files, even if they exist, see <code>fs.exists</code> for the path-agnostic check.</li><li><code>dir.list_free(list)</code> - Free directory listing</li></ul>
 <p>Raw externs: <code>dir_create_raw</code>, <code>dir_delete_raw</code>, <code>dir_list_raw</code>, <code>dir_list_count</code>, <code>dir_list_get</code>, <code>dir_list_kind</code>, <code>dir_list_free</code>.</p>
 <h3 id="recursive-walk-and-change-notification-fswalk-fswatch_">Recursive walk and change notification (<code>fs.walk</code>, <code>fs.watch_*</code>)</h3>
 <p>The building blocks beyond one-level listing: visit a whole tree, and learn when a directory changes underneath you.</p>
@@ -561,7 +1100,8 @@ main() {
 
 <span class="com">// Walk: the callback sees every entry with its kind and depth.</span>
 n, err = fs.walk(root, |path: <span class="fn">string</span>, kind: <span class="fn">int</span>, depth: <span class="fn">int</span>| {
-    <span class="com">// kind: 1 file / 2 dir / 3 symlink / 4 other (same as file_stat)</span>
+    <span class="com">// kind: 1 file / 2 dir / 3 symlink / 4 other / 5 socket / 6 fifo / 7 device</span>
+    <span class="com">// (same encoding as file_stat; see fs.STAT_KIND_*)</span>
     <span class="kw">if</span> kind == <span class="num">2</span> &amp;&amp; <span class="fn">string</span>.ends_with(path, <span class="str">"/node_modules"</span>) == <span class="num">1</span> {
         <span class="kw">return</span> <span class="num">1</span>                 <span class="com">// skip this subtree</span>
     }
@@ -612,7 +1152,7 @@ main() {
     data, n, err = fs.read_binary(<span class="str">"payload.bin"</span>)
 }</code></pre>
 <p><strong>Functions (beyond those re-exported from <code>std.file</code>/<code>std.dir</code>/<code>std.path</code>):</strong></p>
-<ul><li><code>fs.exists(path)</code> → <code>int</code> - <strong>Path-agnostic</strong> existence check: 1 if anything is at <code>path</code> (regular file, directory, symlink, fifo, ...), 0 otherwise. Distinct from <code>file.exists</code> (regular-file-only) and <code>dir.exists</code> (directory-only), those filter by type, this one doesn't. Uses <code>lstat(2)</code> so a dangling symlink counts as existing, matches POSIX <code>test -e</code>. Reach for this in tooling that probes whether a path is bound without caring what's there (build-system runtime-path discovery, "did the user pass a real path?" CLI validation).</li><li><code>fs.write_atomic(path, data, length)</code> → <code>string</code> - Stage to <code>&lt;path&gt;.tmp.&lt;pid&gt;.&lt;n&gt;</code>, fsync, rename over destination. Binary-safe via explicit length. The tmp file is created with <code>O_CREAT|O_EXCL|O_NOFOLLOW</code> so an attacker who pre-plants a symlink at the predictable tmp path can't trick the write into following it; permissions track the process umask exactly as the previous <code>fopen("wb")</code> would have.</li><li><code>fs.write_binary(path, data, length)</code> → <code>string</code> - Non-atomic <code>fopen("wb")</code> + <code>fwrite</code> + <code>fclose</code>. Binary-safe via explicit length. Cheaper than <code>write_atomic</code> when a partial file on crash is acceptable (scratch writes, caches).</li><li><code>fs.rename(from, to)</code> → <code>string</code> - POSIX <code>rename(2)</code> wrapper. Atomic when source and target are on the same filesystem.</li><li><code>fs.create_dir_with_mode(path, mode)</code> → <code>string</code> - Like <code>fs.create_dir</code> but takes an explicit POSIX mode (0777-masked). Use this for private dirs (e.g. <code>0o700</code> for keys), sets the bits at creation time, closing the <code>mkdir</code> → <code>chmod</code> race window. Windows ignores the mode at the directory layer; the parameter is accepted for portability.</li><li><code>fs.mtime(path)</code> → <code>(int, string)</code> - File's mtime as Unix epoch seconds, in the standard <code>(value, err)</code> shape. Distinguishes "stat failed" from "file's mtime is 0 (1970 epoch)", the older <code>file_mtime</code> extern collapsed both into a single 0 sentinel and is kept only for back-compat.</li><li><code>fs.file_stat(path)</code> → <code>(kind, size, mtime, err)</code> - One <code>lstat(2)</code>; symlinks report kind 3, target is not followed.</li><li><code>fs.read_binary(path)</code> → <code>(content, length, err)</code> - Length-aware read preserving embedded NULs.</li></ul>
+<ul><li><code>fs.exists(path)</code> → <code>int</code> - <strong>Path-agnostic</strong> existence check: 1 if anything is at <code>path</code> (regular file, directory, symlink, fifo, ...), 0 otherwise. Distinct from <code>file.exists</code> (regular-file-only) and <code>dir.exists</code> (directory-only), those filter by type, this one doesn't. Uses <code>lstat(2)</code> so a dangling symlink counts as existing, matches POSIX <code>test -e</code>. Reach for this in tooling that probes whether a path is bound without caring what's there (build-system runtime-path discovery, "did the user pass a real path?" CLI validation).</li><li><code>fs.write_atomic(path, data, length)</code> → <code>string</code> - Stage to <code>&lt;path&gt;.tmp.&lt;pid&gt;.&lt;n&gt;</code>, fsync, rename over destination. Binary-safe via explicit length. The tmp file is created with <code>O_CREAT|O_EXCL|O_NOFOLLOW</code> so an attacker who pre-plants a symlink at the predictable tmp path can't trick the write into following it; permissions track the process umask exactly as the previous <code>fopen("wb")</code> would have.</li><li><code>fs.write_binary(path, data, length)</code> → <code>string</code> - Non-atomic <code>fopen("wb")</code> + <code>fwrite</code> + <code>fclose</code>. Binary-safe via explicit length. Cheaper than <code>write_atomic</code> when a partial file on crash is acceptable (scratch writes, caches).</li><li><code>fs.rename(from, to)</code> → <code>string</code> - POSIX <code>rename(2)</code> wrapper. Atomic when source and target are on the same filesystem.</li><li><code>fs.create_dir_with_mode(path, mode)</code> → <code>string</code> - Like <code>fs.create_dir</code> but takes an explicit POSIX mode (0777-masked). Use this for private dirs (e.g. <code>0o700</code> for keys), sets the bits at creation time, closing the <code>mkdir</code> → <code>chmod</code> race window. Windows ignores the mode at the directory layer; the parameter is accepted for portability.</li><li><code>fs.mtime(path)</code> → <code>(int, string)</code> - File's mtime as Unix epoch seconds, in the standard <code>(value, err)</code> shape. Distinguishes "stat failed" from "file's mtime is 0 (1970 epoch)", the older <code>file_mtime</code> extern collapsed both into a single 0 sentinel and is kept only for back-compat.</li><li><code>fs.file_stat(path)</code> → <code>(kind, size, mtime, err)</code> - One <code>lstat(2)</code>; symlinks report kind 3, target is not followed. Kind is 1 = file, 2 = directory, 3 = symlink, 4 = other, 5 = socket, 6 = FIFO, 7 = device (char and block devices share 7). Sockets, FIFOs and devices are distinguished on POSIX only; Windows reports them as 4. Use the <code>fs.STAT_KIND_*</code> constants rather than the literals.</li><li><code>fs.fs_is_socket(path)</code> → <code>int</code> - 1 if <code>path</code> is a UNIX-domain socket, 0 otherwise (including when nothing is there). Unlike <code>fs.fs_is_symlink</code> this <strong>follows</strong> symlinks, since a caller asking "is this a socket" wants the target. POSIX only; always 0 on Windows. Pair it with <code>os.user_id()</code> to locate a per-user runtime socket such as <code>/run/user/${os.user_id()}/podman/podman.sock</code>.</li><li><code>fs.read_binary(path)</code> → <code>(content, length, err)</code> - Length-aware read preserving embedded NULs.</li></ul>
 <h3 id="structured-error-pilot">Structured-error pilot</h3>
 <p>The four wrappers below return a three-element tuple <code>(value, kind: int, message: string)</code> instead of the usual <code>(value, err)</code> shape. <code>kind</code> is one of the <code>KIND_*</code> constants exported from <code>std.fs</code>; switch on it to discriminate failure modes programmatically without parsing English. <code>kind == fs.KIND_OK</code> (the integer <code>0</code>) means success; the message stays empty.</p>
 <pre><code><span class="kw">import</span> std.fs
@@ -1149,7 +1689,7 @@ main() {
     }
 }</code></pre>
 <p><strong>Functions:</strong></p>
-<ul><li><code>os.system(cmd)</code> - Run shell command, returns exit code (0 = success, POSIX convention)</li><li><code>os.exec(cmd)</code> → <code>(string, string)</code> - Run command and capture stdout, return <code>(output, err)</code></li><li><code>os.getenv(name)</code> - Get environment variable (returns string, or null if not set, infallible)</li><li><code>os.setenv(name, value)</code> → <code>string</code> - Set environment variable, returns "" on success or an error string. Same C-side function as <code>io.setenv</code> use <code>os.setenv</code> when you've already imported <code>std.os</code> for <code>os.getenv</code>.</li><li><code>os.unsetenv(name)</code> → <code>string</code> - Unset environment variable, returns "" on success or an error string. Same C-side function as <code>io.unsetenv</code>.</li><li><code>os.getpid()</code> → <code>int</code> - Process identifier of the current process. POSIX <code>getpid(2)</code>; Windows <code>_getpid()</code>. Useful for tmpfile names (<code>/tmp/myprog.${os.getpid()}.tmp</code>), per-process locks, log prefixes, and stable tagging across forked children. Returns 0 on platforms compiled without filesystem support.</li><li><code>os.now_utc_iso8601()</code> → <code>string</code> - Current UTC time as ISO-8601 (<code>YYYY-MM-DDThh:mm:ssZ</code>). Returns <code>""</code> (never null) on clock/format failure. Thread-safe.</li><li><code>os.wall_seconds()</code> → <code>long</code> - Whole seconds since the Unix epoch (POSIX <code>gettimeofday</code>; Windows <code>GetSystemTimeAsFileTime</code>). NTP-jumpable, pair with <code>wall_micros</code> for sub-second precision, or use the monotonic accessors below for elapsed-time measurements.</li><li><code>os.wall_micros()</code> → <code>int</code> - Sub-second microsecond fraction (0..999999) from the same <code>struct timeval</code> as <code>wall_seconds</code>.</li><li><code>os.now_monotonic_ms()</code> → <code>long</code> - Monotonic clock, milliseconds since boot / process-start / arbitrary epoch. Value-domain is opaque; only <em>deltas</em> are meaningful. POSIX <code>clock_gettime(CLOCK_MONOTONIC)</code>; Windows <code>QueryPerformanceCounter</code>. Use for animation tick loops, frame-time budgets, microbenchmarks, anything that must survive a wall-clock jump.</li><li><code>os.now_monotonic_ns()</code> → <code>long</code> - Same source as <code>now_monotonic_ms</code>, nanosecond precision. Useful for sub-millisecond timing.</li><li><code>aether_args_count()</code> → <code>int</code> - Number of command-line arguments</li><li><code>aether_args_get(index)</code> → <code>string</code> - Get the i-th argument; null if out of range</li><li><code>aether_argv0()</code> → <code>string</code> - Path the OS launched the current process with (argv[0]); null before <code>aether_args_init</code> runs</li><li><code>os.argv0()</code> → <code>string</code> - Convenience wrapper around <code>aether_argv0()</code> that returns <code>""</code> instead of null and hands back a fresh copy</li><li><code>os.args_seal()</code> - <strong>One-shot runtime seal</strong> of the argv accessors. After this returns, <code>aether_args_count()</code> reports <code>0</code>, <code>aether_args_get(i)</code> returns null, <code>os.argv0()</code> returns <code>""</code>, and <code>aether_argv_raw()</code> returns null, as if argv had never been initialised. Idempotent (calling twice is a no-op); there is no unseal. Intended use: once <code>main()</code> has parsed its CLI flags into config state, call <code>os.args_seal()</code> to prevent any later code (imported libraries, plugin callbacks, untrusted Aether modules) from reading the original argv. Complements the compile-time <code>hide</code> / <code>seal except</code> scope directives, those deny <em>lexical</em> access, this denies <em>runtime</em> access. Caveat: this is a co-operative Aether-side gate, not a kernel boundary; the OS still has the original argv in process memory (Linux <code>/proc/self/cmdline</code>, macOS sysctl) and code that goes around the Aether accessors can still read it. Pair with the LD_PRELOAD libc sandbox if the threat model demands true inaccessibility.</li><li><code>os.args_sealed()</code> → <code>int</code> - Returns <code>1</code> if <code>args_seal()</code> has been called in this process, <code>0</code> otherwise. Cheap; useful for cooperative callers that want to check before they call.</li><li><code>os_execv(prog, argv_list)</code> → <code>int</code> - Replace the current process image with <code>prog</code>, passing an explicit <code>list&lt;ptr&gt;</code> argv. Uses POSIX <code>execvp(3)</code> so <code>prog</code> is looked up on <code>PATH</code> when it does not contain a slash. Flushes stdio before the exec so pre-exec output is not lost. On success this call <strong>never returns</strong>; on failure returns <code>-1</code> and the current process continues. Not available on Windows, use <code>os_run</code> + <code>exit(rc)</code> instead.</li></ul>
+<ul><li><code>os.system(cmd)</code> - Run shell command, returns exit code (0 = success, POSIX convention)</li><li><code>os.exec(cmd)</code> → <code>(string, string)</code> - Run command and capture stdout, return <code>(output, err)</code></li><li><code>os.getenv(name)</code> - Get environment variable (returns string, or null if not set, infallible)</li><li><code>os.setenv(name, value)</code> → <code>string</code> - Set environment variable, returns "" on success or an error string. Same C-side function as <code>io.setenv</code> use <code>os.setenv</code> when you've already imported <code>std.os</code> for <code>os.getenv</code>.</li><li><code>os.unsetenv(name)</code> → <code>string</code> - Unset environment variable, returns "" on success or an error string. Same C-side function as <code>io.unsetenv</code>.</li><li><code>os.getpid()</code> → <code>int</code> - Process identifier of the current process. POSIX <code>getpid(2)</code>; Windows <code>_getpid()</code>. Useful for tmpfile names (<code>/tmp/myprog.${os.getpid()}.tmp</code>), per-process locks, log prefixes, and stable tagging across forked children. Returns 0 on platforms compiled without filesystem support.</li><li><code>os.user_id()</code> → <code>int</code> - Effective user id of the calling process (POSIX <code>geteuid(2)</code>). Windows has no numeric uid model and returns -1, so treat any negative result as "unavailable" rather than as a uid. Mainly for building per-user runtime paths like <code>/run/user/${os.user_id()}/</code>.</li><li><code>os.now_utc_iso8601()</code> → <code>string</code> - Current UTC time as ISO-8601 (<code>YYYY-MM-DDThh:mm:ssZ</code>). Returns <code>""</code> (never null) on clock/format failure. Thread-safe.</li><li><code>os.wall_seconds()</code> → <code>long</code> - Whole seconds since the Unix epoch (POSIX <code>gettimeofday</code>; Windows <code>GetSystemTimeAsFileTime</code>). NTP-jumpable, pair with <code>wall_micros</code> for sub-second precision, or use the monotonic accessors below for elapsed-time measurements.</li><li><code>os.wall_micros()</code> → <code>int</code> - Sub-second microsecond fraction (0..999999) from the same <code>struct timeval</code> as <code>wall_seconds</code>.</li><li><code>os.now_monotonic_ms()</code> → <code>long</code> - Monotonic clock, milliseconds since boot / process-start / arbitrary epoch. Value-domain is opaque; only <em>deltas</em> are meaningful. POSIX <code>clock_gettime(CLOCK_MONOTONIC)</code>; Windows <code>QueryPerformanceCounter</code>. Use for animation tick loops, frame-time budgets, microbenchmarks, anything that must survive a wall-clock jump.</li><li><code>os.now_monotonic_ns()</code> → <code>long</code> - Same source as <code>now_monotonic_ms</code>, nanosecond precision. Useful for sub-millisecond timing.</li><li><code>aether_args_count()</code> → <code>int</code> - Number of command-line arguments</li><li><code>aether_args_get(index)</code> → <code>string</code> - Get the i-th argument; null if out of range</li><li><code>aether_argv0()</code> → <code>string</code> - Path the OS launched the current process with (argv[0]); null before <code>aether_args_init</code> runs</li><li><code>os.argv0()</code> → <code>string</code> - Convenience wrapper around <code>aether_argv0()</code> that returns <code>""</code> instead of null and hands back a fresh copy</li><li><code>os.args_seal()</code> - <strong>One-shot runtime seal</strong> of the argv accessors. After this returns, <code>aether_args_count()</code> reports <code>0</code>, <code>aether_args_get(i)</code> returns null, <code>os.argv0()</code> returns <code>""</code>, and <code>aether_argv_raw()</code> returns null, as if argv had never been initialised. Idempotent (calling twice is a no-op); there is no unseal. Intended use: once <code>main()</code> has parsed its CLI flags into config state, call <code>os.args_seal()</code> to prevent any later code (imported libraries, plugin callbacks, untrusted Aether modules) from reading the original argv. Complements the compile-time <code>hide</code> / <code>seal except</code> scope directives, those deny <em>lexical</em> access, this denies <em>runtime</em> access. Caveat: this is a co-operative Aether-side gate, not a kernel boundary; the OS still has the original argv in process memory (Linux <code>/proc/self/cmdline</code>, macOS sysctl) and code that goes around the Aether accessors can still read it. Pair with the LD_PRELOAD libc sandbox if the threat model demands true inaccessibility.</li><li><code>os.args_sealed()</code> → <code>int</code> - Returns <code>1</code> if <code>args_seal()</code> has been called in this process, <code>0</code> otherwise. Cheap; useful for cooperative callers that want to check before they call.</li><li><code>os_execv(prog, argv_list)</code> → <code>int</code> - Replace the current process image with <code>prog</code>, passing an explicit <code>list&lt;ptr&gt;</code> argv. Uses POSIX <code>execvp(3)</code> so <code>prog</code> is looked up on <code>PATH</code> when it does not contain a slash. Flushes stdio before the exec so pre-exec output is not lost. On success this call <strong>never returns</strong>; on failure returns <code>-1</code> and the current process continues. Not available on Windows, use <code>os_run</code> + <code>exit(rc)</code> instead.</li></ul>
 <p>Raw extern: <code>os_exec_raw</code>.</p>
 <p><strong>Process replacement example:</strong></p>
 <pre><code><span class="kw">import</span> std.os

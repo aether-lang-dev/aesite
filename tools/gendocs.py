@@ -17,6 +17,7 @@ as-is by GitHub Pages, so re-run it whenever the upstream docs change.
 
 import html
 import os
+import subprocess
 import re
 import sys
 
@@ -490,6 +491,7 @@ PAGE = """<!doctype html>
 <link rel="icon" href="/favicon.png">
 <link rel="preload" href="/fonts/bricolagegrotesque-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/fonts/dmsans-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/dmmono-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/aether.css">
 </head>
 <body>
@@ -633,6 +635,12 @@ def main():
                  '<link rel="canonical" href="/Docs/%s.html">' % (first, first))
 
     print("generated %d docs -> %s" % (len(docs), out))
+
+    # The pages above are emitted with a <link> to aether.css; inline_css.py
+    # replaces it with the stylesheet's contents. Run it here so regenerated
+    # docs cannot silently fall back to a render-blocking stylesheet.
+    subprocess.run([sys.executable,
+                    os.path.join(here, "tools", "inline_css.py")], check=True)
 
 
 if __name__ == "__main__":
