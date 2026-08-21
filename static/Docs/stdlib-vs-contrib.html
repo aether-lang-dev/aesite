@@ -4,11 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>std/ vs contrib/ placement decisions · Aether</title>
-<meta name="description" content="When adding a new Aether module that wraps an external C library or">
+<meta name="description" content="When adding a new Aether module that wraps an external C library or provides a capability not covered by the core language, the first question is: does it...">
 <link rel="canonical" href="https://aether-lang.dev/Docs/stdlib-vs-contrib.html">
 <meta property="og:type" content="article">
 <meta property="og:title" content="std/ vs contrib/ placement decisions · Aether">
-<meta property="og:description" content="When adding a new Aether module that wraps an external C library or">
+<meta property="og:description" content="When adding a new Aether module that wraps an external C library or provides a capability not covered by the core language, the first question is: does it...">
 <meta property="og:url" content="https://aether-lang.dev/Docs/stdlib-vs-contrib.html">
 <meta property="og:image" content="https://aether-lang.dev/og.png">
 <meta name="twitter:card" content="summary_large_image">
@@ -171,7 +171,7 @@ a{color:inherit;text-decoration:none}
 
 /* section head */
 .sec-head{display:flex;align-items:baseline;gap:14px;margin:0 0 22px}
-.sec-head h2{font-family:var(--mono);font-size:1.15rem;font-weight:700;letter-spacing:-.01em;margin:0}
+.sec-head h1,.sec-head h2{font-family:var(--mono);font-size:1.15rem;font-weight:700;letter-spacing:-.01em;margin:0}
 .sec-head .rule{flex:1;height:1px;background:var(--line)}
 
 /* code */
@@ -358,7 +358,7 @@ body::after{content:"";position:fixed;inset:0;z-index:3;pointer-events:none;opac
 
 /* prompt accents on section headings */
 .prompt{color:var(--red);margin-right:.5ch}
-.sec-head h2 .prompt{font-weight:400}
+.sec-head h1 .prompt,.sec-head h2 .prompt{font-weight:400}
 
 /* prompt-styled ghost button */
 .btn-term{font-family:var(--mono);font-size:14px;padding:11px 18px;border-radius:6px;
@@ -570,7 +570,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.473</span>
+      <span class="vtag">v0.553</span>
     </nav>
   </div>
 </header>
@@ -600,6 +600,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/memory-management.html">Aether Memory Management</a>
 <a href="/Docs/runtime-optimizations.html">Runtime Optimizations</a>
 <a href="/Docs/numa-support.html">NUMA Support in Aether</a>
+<a href="/Docs/message-tracing.html">Message tracing</a>
 <div class="grp">Interop</div>
 <a href="/Docs/c-interop.html">C Interoperability</a>
 <a href="/Docs/c-embedding.html">Embedding Aether Actors in C Applications</a>
@@ -624,6 +625,11 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/runtime-config.html">Runtime Configuration - Quick Reference</a>
 <a href="/Docs/per-process-config.html">Per-process configuration in Aether</a>
 <a href="/Docs/cic-help.html">ae help &lt;script&gt; Offline diagnostics for config-IS-code</a>
+<a href="/Docs/cross-ios.html">Cross-compiling for iOS (arm64)</a>
+<div class="grp">Testing</div>
+<a href="/Docs/testing.html">Testing with std.spec and ae test</a>
+<a href="/Docs/mutation-testing.html">Mutation testing, std.mutation</a>
+<a href="/Docs/differential-testing.html">Differential testing across lowering paths</a>
 <div class="grp">Performance</div>
 <a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
 <a href="/Docs/profiling-guide.html">Aether Runtime Profiling Guide</a>
@@ -639,6 +645,9 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
 <a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn't need macro_rules!</a>
 <a href="/Docs/lib-caller-info.html">--emit=lib caller-info channel</a>
+<a href="/Docs/liveview-lite-roadmap.html">LiveView-lite, a roadmap (Phoenix LiveView, on actors, without the framework)</a>
+<a href="/Docs/schema-projection-roadmap.html">std.schema, a projection-first roadmap (Ash, without the framework)</a>
+<a href="/Docs/locale-independent-float-text.html">Plan: locale-independent float text conversion (LC_NUMERIC correctness)</a>
 <div class="grp">Contributing</div>
 <a href="/Docs/stdlib-module-pattern.html">Aether Stdlib Module Pattern</a>
 <a href="/Docs/stdlib-vs-contrib.html" class="on">std/ vs contrib/ placement decisions</a>
@@ -666,7 +675,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <p>A module can always move later, <code>std/</code> → <code>contrib/</code> is painful (breaks every caller), but <code>contrib/</code> → <code>std/</code> is low-cost (add an alias import path, deprecate the <code>contrib/</code> one, remove after a release cycle). When in doubt, <strong>start in <code>contrib/</code></strong>. The only things that should start in <code>std/</code> are the ones that clearly pass all four rubric questions on day one.</p>
 <p>The recent additions of <code>std.arena</code> and <code>std.cas</code> are good worked examples: each is a tiny universal primitive (bulk allocator; content-addressed sha256 store) with a single obvious shape and no new dependencies, all four rubric questions answer "yes," and they landed directly in <code>std/</code>.</p>
 <h2 id="cross-reference">Cross-reference</h2>
-<ul><li><a href="/Docs/stdlib-module-pattern.html">stdlib-module-pattern.md</a>, how to <em>shape</em> a module once you know where it lives.</li><li><a href="/Docs/stdlib-reference.html">stdlib-reference.md</a>, full surface reference for every <code>std.X</code> module currently shipped.</li><li><a href="/Docs/CONTRIBUTING.html">CONTRIBUTING.md</a>, PR process, including the <code>[current]</code> CHANGELOG convention.</li><li><a href="/Docs/README.html">contrib/tinyweb/README.md</a>, <a href="/Docs/README.html">contrib/templating/README.md</a>, reference examples of <code>contrib/</code> modules that clear three of the four rubric questions but failed on opinionated API shape (Q2) or specific niche (Q1).</li></ul>
+<ul><li><a href="/Docs/stdlib-module-pattern.html">stdlib-module-pattern.md</a>, how to <em>shape</em> a module once you know where it lives.</li><li><a href="/Docs/stdlib-reference.html">stdlib-reference.md</a>, full surface reference for every <code>std.X</code> module currently shipped.</li><li><a href="https://github.com/aether-lang-dev/aether/blob/main/CONTRIBUTING.md">CONTRIBUTING.md</a>, PR process, including the <code>[current]</code> CHANGELOG convention.</li><li><a href="https://github.com/aether-lang-dev/aether/blob/main/contrib/tinyweb/README.md">contrib/tinyweb/README.md</a>, <a href="https://github.com/aether-lang-dev/aether/blob/main/contrib/templating/README.md">contrib/templating/README.md</a>, reference examples of <code>contrib/</code> modules that clear three of the four rubric questions but failed on opinionated API shape (Q2) or specific niche (Q1).</li></ul>
 <nav class="doc-prevnext" aria-label="Previous and next page"><a class="pn-prev" href="/Docs/stdlib-module-pattern.html"><span class="pn-k">Previous</span><span class="pn-t">Aether Stdlib Module Pattern</span></a><a class="pn-next" href="/Docs/bootstrap-from-source.html"><span class="pn-k">Next</span><span class="pn-t">Bootstrapping Aether from source (HEAD)</span></a></nav>
       </article>
     </main>
@@ -679,7 +688,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.473 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.553 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

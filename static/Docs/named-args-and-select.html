@@ -4,11 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Named Arguments and select() · Aether</title>
-<meta name="description" content="Function calls can use named arguments with colon syntax, consistent">
+<meta name="description" content="Function calls can use named arguments with colon syntax, consistent with Aether&#x27;s parameter definition style">
 <link rel="canonical" href="https://aether-lang.dev/Docs/named-args-and-select.html">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Named Arguments and select() · Aether">
-<meta property="og:description" content="Function calls can use named arguments with colon syntax, consistent">
+<meta property="og:description" content="Function calls can use named arguments with colon syntax, consistent with Aether&#x27;s parameter definition style">
 <meta property="og:url" content="https://aether-lang.dev/Docs/named-args-and-select.html">
 <meta property="og:image" content="https://aether-lang.dev/og.png">
 <meta name="twitter:card" content="summary_large_image">
@@ -171,7 +171,7 @@ a{color:inherit;text-decoration:none}
 
 /* section head */
 .sec-head{display:flex;align-items:baseline;gap:14px;margin:0 0 22px}
-.sec-head h2{font-family:var(--mono);font-size:1.15rem;font-weight:700;letter-spacing:-.01em;margin:0}
+.sec-head h1,.sec-head h2{font-family:var(--mono);font-size:1.15rem;font-weight:700;letter-spacing:-.01em;margin:0}
 .sec-head .rule{flex:1;height:1px;background:var(--line)}
 
 /* code */
@@ -358,7 +358,7 @@ body::after{content:"";position:fixed;inset:0;z-index:3;pointer-events:none;opac
 
 /* prompt accents on section headings */
 .prompt{color:var(--red);margin-right:.5ch}
-.sec-head h2 .prompt{font-weight:400}
+.sec-head h1 .prompt,.sec-head h2 .prompt{font-weight:400}
 
 /* prompt-styled ghost button */
 .btn-term{font-family:var(--mono);font-size:14px;padding:11px 18px;border-radius:6px;
@@ -570,7 +570,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.473</span>
+      <span class="vtag">v0.553</span>
     </nav>
   </div>
 </header>
@@ -600,6 +600,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/memory-management.html">Aether Memory Management</a>
 <a href="/Docs/runtime-optimizations.html">Runtime Optimizations</a>
 <a href="/Docs/numa-support.html">NUMA Support in Aether</a>
+<a href="/Docs/message-tracing.html">Message tracing</a>
 <div class="grp">Interop</div>
 <a href="/Docs/c-interop.html">C Interoperability</a>
 <a href="/Docs/c-embedding.html">Embedding Aether Actors in C Applications</a>
@@ -624,6 +625,11 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/runtime-config.html">Runtime Configuration - Quick Reference</a>
 <a href="/Docs/per-process-config.html">Per-process configuration in Aether</a>
 <a href="/Docs/cic-help.html">ae help &lt;script&gt; Offline diagnostics for config-IS-code</a>
+<a href="/Docs/cross-ios.html">Cross-compiling for iOS (arm64)</a>
+<div class="grp">Testing</div>
+<a href="/Docs/testing.html">Testing with std.spec and ae test</a>
+<a href="/Docs/mutation-testing.html">Mutation testing, std.mutation</a>
+<a href="/Docs/differential-testing.html">Differential testing across lowering paths</a>
 <div class="grp">Performance</div>
 <a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
 <a href="/Docs/profiling-guide.html">Aether Runtime Profiling Guide</a>
@@ -639,6 +645,9 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
 <a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn't need macro_rules!</a>
 <a href="/Docs/lib-caller-info.html">--emit=lib caller-info channel</a>
+<a href="/Docs/liveview-lite-roadmap.html">LiveView-lite, a roadmap (Phoenix LiveView, on actors, without the framework)</a>
+<a href="/Docs/schema-projection-roadmap.html">std.schema, a projection-first roadmap (Ash, without the framework)</a>
+<a href="/Docs/locale-independent-float-text.html">Plan: locale-independent float text conversion (LC_NUMERIC correctness)</a>
 <div class="grp">Contributing</div>
 <a href="/Docs/stdlib-module-pattern.html">Aether Stdlib Module Pattern</a>
 <a href="/Docs/stdlib-vs-contrib.html">std/ vs contrib/ placement decisions</a>
@@ -650,45 +659,45 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <h1 id="named-arguments-and-select">Named Arguments and select()</h1>
 <h2 id="named-arguments">Named Arguments</h2>
 <p>Function calls can use named arguments with colon syntax, consistent with Aether's parameter definition style:</p>
-<pre><code><span class="com">// Definition</span>
-greet(name: <span class="fn">string</span>, count: <span class="fn">int</span>) {
-    <span class="kw">for</span> (i = <span class="num">0</span>; i &lt; count; i++) { println(name) }
+<pre><code>// Definition
+greet(name: string, count: int) {
+    for (i = 0; i &lt; count; i++) { println(name) }
 }
 
-<span class="com">// Call with named args</span>
-greet(name: <span class="str">"alice"</span>, count: <span class="num">3</span>)
+// Call with named args
+greet(name: "alice", count: 3)
 
-<span class="com">// Positional still works</span>
-greet(<span class="str">"alice"</span>, <span class="num">3</span>)
+// Positional still works
+greet("alice", 3)
 
-<span class="com">// Mixed: positional first, named after</span>
-greet(<span class="str">"alice"</span>, count: <span class="num">3</span>)</code></pre>
+// Mixed: positional first, named after
+greet("alice", count: 3)</code></pre>
 <p>Named arguments are documentation at the call site, they make code more readable but don't change semantics. The C compiler receives positional arguments regardless.</p>
 <h3 id="rules">Rules</h3>
 <ul><li>Names use colon: <code>name: value</code> (not <code>name = value</code>)</li><li>Positional and named can be mixed in the same call</li><li>Names are not validated against parameter names (they're comments)</li><li>The colon syntax is consistent with parameter definitions: <code>func(name: type)</code></li></ul>
 <h2 id="list-literals">List Literals</h2>
 <p>Array literals with square bracket syntax:</p>
-<pre><code>nums = [<span class="num">10</span>, <span class="num">20</span>, <span class="num">30</span>]
-println(nums[<span class="num">0</span>])         <span class="com">// 10</span>
+<pre><code>nums = [10, 20, 30]
+println(nums[0])         // 10
 
-names = [<span class="str">"alice"</span>, <span class="str">"bob"</span>, <span class="str">"charlie"</span>]
-println(names[<span class="num">1</span>])        <span class="com">// bob</span>
+names = ["alice", "bob", "charlie"]
+println(names[1])        // bob
 
-<span class="com">// Expressions in array literals</span>
-a = <span class="num">5</span>
-computed = [a, a * <span class="num">2</span>, a * <span class="num">3</span>]     <span class="com">// [5, 10, 15]</span>
+// Expressions in array literals
+a = 5
+computed = [a, a * 2, a * 3]     // [5, 10, 15]
 
-<span class="com">// Empty array</span>
+// Empty array
 empty = []
 
-<span class="com">// Single element</span>
-one = [<span class="num">42</span>]</code></pre>
+// Single element
+one = [42]</code></pre>
 <p>Arrays are fixed-size C arrays. Element access uses <code>[]</code> subscript.</p>
 <h2 id="select-platform-conditional">select(), Platform Conditional</h2>
 <p>Compile-time platform selection using named arguments:</p>
-<pre><code>port = select(linux: <span class="num">8080</span>, windows: <span class="num">80</span>, macos: <span class="num">8080</span>)
-timeout = select(windows: <span class="num">5000</span>, other: <span class="num">3000</span>)
-flags = select(linux: <span class="str">"-lpthread"</span>, windows: <span class="str">"-lws2_32"</span>, macos: <span class="str">"-framework Security"</span>)</code></pre>
+<pre><code>port = select(linux: 8080, windows: 80, macos: 8080)
+timeout = select(windows: 5000, other: 3000)
+flags = select(linux: "-lpthread", windows: "-lws2_32", macos: "-framework Security")</code></pre>
 <h3 id="how-it-works">How it works</h3>
 <p><code>select()</code> emits a C <code>#ifdef</code> chain at compile time. Only the matching platform's value is compiled into the binary:</p>
 <pre><code><span class="com">// select(linux: 8080, windows: 80, macos: 8080) compiles to:</span>
@@ -703,46 +712,46 @@ flags = select(linux: <span class="str">"-lpthread"</span>, windows: <span class
 <div class="tw"><table><thead><tr><th>Name</th><th>C condition</th><th>Matches</th></tr></thead><tbody><tr><td><code>linux:</code></td><td><code>#else</code> (default)</td><td>Linux, FreeBSD, other POSIX</td></tr><tr><td><code>windows:</code></td><td><code>#ifdef _WIN32</code></td><td>Windows, MinGW, MSYS2</td></tr><tr><td><code>macos:</code></td><td><code>#elif defined(__APPLE__)</code></td><td>macOS, iOS</td></tr><tr><td><code>other:</code></td><td>fallback</td><td>Any platform not explicitly listed</td></tr></tbody></table></div>
 <h3 id="fallback-with-other">Fallback with <code>other:</code></h3>
 <p><code>other:</code> provides a default value for platforms not explicitly named:</p>
-<pre><code><span class="com">// Only need to specify the exception</span>
-separator = select(windows: <span class="str">"\\"</span>, other: <span class="str">"/"</span>)</code></pre>
+<pre><code>// Only need to specify the exception
+separator = select(windows: "\\", other: "/")</code></pre>
 <h3 id="missing-platform-is-a-compile-error">Missing platform is a compile error</h3>
 <p>If a platform is missing and there's no <code>other:</code> fallback, the Aether compiler emits an error and the C compiler emits <code>#error</code>:</p>
-<pre><code><span class="com">// ERROR: no value for windows or macos, no other: fallback</span>
-port = select(linux: <span class="num">8080</span>)</code></pre>
+<pre><code>// ERROR: no value for windows or macos, no other: fallback
+port = select(linux: 8080)</code></pre>
 <p>This prevents silent bugs where a platform gets <code>0</code> or empty string. Either list all platforms or provide <code>other:</code>.</p>
 <h3 id="use-cases">Use cases</h3>
 <p><strong>Build system flags:</strong></p>
 <pre><code>linker_flags = select(
-    linux: <span class="str">"-lpthread -lrt"</span>,
-    windows: <span class="str">"-lws2_32"</span>,
-    macos: <span class="str">"-framework Security"</span>
+    linux: "-lpthread -lrt",
+    windows: "-lws2_32",
+    macos: "-framework Security"
 )</code></pre>
 <p><strong>Default paths:</strong></p>
 <pre><code>config_dir = select(
-    linux: <span class="str">"/etc/myapp"</span>,
-    macos: <span class="str">"/Library/Application Support/myapp"</span>,
-    windows: <span class="str">"C:\\ProgramData\\myapp"</span>
+    linux: "/etc/myapp",
+    macos: "/Library/Application Support/myapp",
+    windows: "C:\\ProgramData\\myapp"
 )</code></pre>
 <p><strong>Feature availability:</strong></p>
-<pre><code>max_threads = select(linux: <span class="num">16</span>, windows: <span class="num">8</span>, macos: <span class="num">12</span>)
-has_io_uring = select(linux: <span class="num">1</span>, other: <span class="num">0</span>)</code></pre>
+<pre><code>max_threads = select(linux: 16, windows: 8, macos: 12)
+has_io_uring = select(linux: 1, other: 0)</code></pre>
 <h3 id="printing-string-results">Printing string results</h3>
 <p>String values from <code>select()</code> store correctly as <code>const char*</code>, but type inference doesn't yet propagate through the call site. Both a direct <code>println(os)</code> and string interpolation currently print the pointer as an integer, because the result is treated as an <code>int</code>:</p>
-<pre><code>os = select(linux: <span class="str">"Linux"</span>, windows: <span class="str">"Windows"</span>, macos: <span class="str">"macOS"</span>)
-println(os)               <span class="com">// BROKEN: prints a garbage integer, not the string</span>
-println(<span class="str">"os: ${os}"</span>)      <span class="com">// BROKEN: emits printf(..., %d) for the const char*</span></code></pre>
+<pre><code>os = select(linux: "Linux", windows: "Windows", macos: "macOS")
+println(os)               // BROKEN: prints a garbage integer, not the string
+println("os: ${os}")      // BROKEN: emits printf(..., %d) for the const char*</code></pre>
 <p>Until this is fixed, either inline the <code>select()</code> directly in the <code>println()</code> call, or return it from a <code>-&gt; string</code> function and print that result:</p>
-<pre><code><span class="com">// Works: inline, where the string type is known at the call site</span>
-println(select(linux: <span class="str">"Linux"</span>, windows: <span class="str">"Windows"</span>, macos: <span class="str">"macOS"</span>))
+<pre><code>// Works: inline, where the string type is known at the call site
+println(select(linux: "Linux", windows: "Windows", macos: "macOS"))
 
-<span class="com">// Works: a -&gt; string function fixes the type before printing</span>
-os_name() -&gt; <span class="fn">string</span> {
-    <span class="kw">return</span> select(linux: <span class="str">"Linux"</span>, windows: <span class="str">"Windows"</span>, macos: <span class="str">"macOS"</span>)
+// Works: a -&gt; string function fixes the type before printing
+os_name() -&gt; string {
+    return select(linux: "Linux", windows: "Windows", macos: "macOS")
 }
 main() {
     os = os_name()
-    println(os)               <span class="com">// macOS</span>
-    println(<span class="str">"os: ${os}"</span>)      <span class="com">// os: macOS</span>
+    println(os)               // macOS
+    println("os: ${os}")      // os: macOS
 }</code></pre>
 <p>Tracked on the issue backlog as type-inference propagation through <code>select()</code>.</p>
 <nav class="doc-prevnext" aria-label="Previous and next page"><a class="pn-prev" href="/Docs/sequences.html"><span class="pn-k">Previous</span><span class="pn-t">Sequences (*StringSeq)</span></a><a class="pn-next" href="/Docs/closures-and-builder-dsl.html"><span class="pn-k">Next</span><span class="pn-t">Closures and Builder-Style DSL in Aether</span></a></nav>
@@ -757,7 +766,7 @@ main() {
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.473 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.553 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

@@ -4,11 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Allocators · Aether</title>
-<meta name="description" content="Aether's memory model is deterministic scope-exit cleanup with no garbage">
+<meta name="description" content="Aether&#x27;s memory model is deterministic scope-exit cleanup with no garbage collector.">
 <link rel="canonical" href="https://aether-lang.dev/Docs/allocators.html">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Allocators · Aether">
-<meta property="og:description" content="Aether's memory model is deterministic scope-exit cleanup with no garbage">
+<meta property="og:description" content="Aether&#x27;s memory model is deterministic scope-exit cleanup with no garbage collector.">
 <meta property="og:url" content="https://aether-lang.dev/Docs/allocators.html">
 <meta property="og:image" content="https://aether-lang.dev/og.png">
 <meta name="twitter:card" content="summary_large_image">
@@ -171,7 +171,7 @@ a{color:inherit;text-decoration:none}
 
 /* section head */
 .sec-head{display:flex;align-items:baseline;gap:14px;margin:0 0 22px}
-.sec-head h2{font-family:var(--mono);font-size:1.15rem;font-weight:700;letter-spacing:-.01em;margin:0}
+.sec-head h1,.sec-head h2{font-family:var(--mono);font-size:1.15rem;font-weight:700;letter-spacing:-.01em;margin:0}
 .sec-head .rule{flex:1;height:1px;background:var(--line)}
 
 /* code */
@@ -358,7 +358,7 @@ body::after{content:"";position:fixed;inset:0;z-index:3;pointer-events:none;opac
 
 /* prompt accents on section headings */
 .prompt{color:var(--red);margin-right:.5ch}
-.sec-head h2 .prompt{font-weight:400}
+.sec-head h1 .prompt,.sec-head h2 .prompt{font-weight:400}
 
 /* prompt-styled ghost button */
 .btn-term{font-family:var(--mono);font-size:14px;padding:11px 18px;border-radius:6px;
@@ -570,7 +570,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.473</span>
+      <span class="vtag">v0.553</span>
     </nav>
   </div>
 </header>
@@ -600,6 +600,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/memory-management.html">Aether Memory Management</a>
 <a href="/Docs/runtime-optimizations.html">Runtime Optimizations</a>
 <a href="/Docs/numa-support.html">NUMA Support in Aether</a>
+<a href="/Docs/message-tracing.html">Message tracing</a>
 <div class="grp">Interop</div>
 <a href="/Docs/c-interop.html">C Interoperability</a>
 <a href="/Docs/c-embedding.html">Embedding Aether Actors in C Applications</a>
@@ -624,6 +625,11 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/runtime-config.html">Runtime Configuration - Quick Reference</a>
 <a href="/Docs/per-process-config.html">Per-process configuration in Aether</a>
 <a href="/Docs/cic-help.html">ae help &lt;script&gt; Offline diagnostics for config-IS-code</a>
+<a href="/Docs/cross-ios.html">Cross-compiling for iOS (arm64)</a>
+<div class="grp">Testing</div>
+<a href="/Docs/testing.html">Testing with std.spec and ae test</a>
+<a href="/Docs/mutation-testing.html">Mutation testing, std.mutation</a>
+<a href="/Docs/differential-testing.html">Differential testing across lowering paths</a>
 <div class="grp">Performance</div>
 <a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
 <a href="/Docs/profiling-guide.html">Aether Runtime Profiling Guide</a>
@@ -639,6 +645,9 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
 <a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn't need macro_rules!</a>
 <a href="/Docs/lib-caller-info.html">--emit=lib caller-info channel</a>
+<a href="/Docs/liveview-lite-roadmap.html">LiveView-lite, a roadmap (Phoenix LiveView, on actors, without the framework)</a>
+<a href="/Docs/schema-projection-roadmap.html">std.schema, a projection-first roadmap (Ash, without the framework)</a>
+<a href="/Docs/locale-independent-float-text.html">Plan: locale-independent float text conversion (LC_NUMERIC correctness)</a>
 <div class="grp">Contributing</div>
 <a href="/Docs/stdlib-module-pattern.html">Aether Stdlib Module Pattern</a>
 <a href="/Docs/stdlib-vs-contrib.html">std/ vs contrib/ placement decisions</a>
@@ -651,48 +660,48 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <p>Aether's memory model is deterministic scope-exit cleanup with no garbage collector. Most code never thinks about an allocator: values are freed when they leave scope. <code>std.alloc</code> adds an explicit, swappable allocator for the cases that want to control <em>where</em> a data structure's memory comes from, a request-scoped arena, a fixed pool, or a leak-tracking wrapper in tests.</p>
 <h2 id="the-convention-stdalloc">The convention (<code>std.alloc</code>)</h2>
 <p>An allocator is a plain handle (<code>ptr</code>), not an implicit ambient context. You pass it explicitly to the entry points that accept one. This keeps data flow visible and composes with the actor boundary: an actor can hold its own allocator in <code>state</code> without any hidden per-call parameter.</p>
-<pre><code><span class="kw">import</span> std.alloc
+<pre><code>import std.alloc
 
-a  = alloc.system()          <span class="com">// malloc/free; the default everywhere</span>
-p  = alloc.raw(a, <span class="num">128</span>)       <span class="com">// 128 bytes</span>
-p  = alloc.resize(a, p, <span class="num">128</span>, <span class="num">256</span>)
-alloc.release(a, p, <span class="num">256</span>)</code></pre>
+a  = alloc.system()          // malloc/free; the default everywhere
+p  = alloc.raw(a, 128)       // 128 bytes
+p  = alloc.resize(a, p, 128, 256)
+alloc.release(a, p, 256)</code></pre>
 <div class="tw"><table><thead><tr><th>Function</th><th>Meaning</th></tr></thead><tbody><tr><td><code>alloc.system()</code></td><td>The process-wide system allocator (malloc/realloc/free). Static, never freed.</td></tr><tr><td><code>alloc.raw(a, n)</code></td><td>Allocate <code>n</code> bytes through <code>a</code>. Null on failure.</td></tr><tr><td><code>alloc.resize(a, p, old, n)</code></td><td>Resize <code>p</code> from <code>old</code> to <code>n</code> bytes. <code>n == 0</code> frees and returns null; a null <code>p</code> allocates.</td></tr><tr><td><code>alloc.release(a, p, n)</code></td><td>Release a block. <code>n</code> is the size it was allocated with (a hint size-aware allocators use).</td></tr></tbody></table></div>
 <h3 id="arena-backed">Arena-backed</h3>
 <p><code>alloc.of_arena</code> turns an existing <code>std.arena</code> into an allocator: every allocation bump-allocates from the arena and individual frees are no-ops. Reclaim everything at once with <code>arena.reset</code> (O(1)); it is ideal for a request-scoped structure that is built up and thrown away as a unit.</p>
-<pre><code><span class="kw">import</span> std.alloc
-<span class="kw">import</span> std.arena
+<pre><code>import std.alloc
+import std.arena
 
-ar = arena.create(<span class="num">64</span> * <span class="num">1024</span>)
+ar = arena.create(64 * 1024)
 a  = alloc.of_arena(ar)
-<span class="com">// ... build a big request-scoped structure through `a` ...</span>
-arena.reset(ar)              <span class="com">// frees everything the request allocated, at once</span>
-alloc.arena_free(a)          <span class="com">// frees the handle (not the arena)</span>
+// ... build a big request-scoped structure through `a` ...
+arena.reset(ar)              // frees everything the request allocated, at once
+alloc.arena_free(a)          // frees the handle (not the arena)
 arena.destroy(ar)</code></pre>
 <h2 id="collections-that-allocate-through-an-allocator">Collections that allocate through an allocator</h2>
 <p>Collection constructors gain an <code>_in</code> variant that takes an allocator; the default constructor is unchanged and uses the system path. The collection's own memory (its control struct and backing arrays) is then owned by the allocator, so an arena or a tracking wrapper manages the container. Element ownership is unchanged.</p>
-<pre><code><span class="kw">import</span> std.list (list_new_in, add)
-<span class="kw">import</span> std.arena
-<span class="kw">import</span> std.alloc (of_arena)
+<pre><code>import std.list (list_new_in, add)
+import std.arena
+import std.alloc (of_arena)
 
-ar = arena.create(<span class="num">1024</span> * <span class="num">1024</span>)
-l  = list_new_in(of_arena(ar))   <span class="com">// the list lives in the arena</span>
+ar = arena.create(1024 * 1024)
+l  = list_new_in(of_arena(ar))   // the list lives in the arena
 add(l, item)
-<span class="com">// ...</span>
-arena.reset(ar)                  <span class="com">// frees the list and its array</span></code></pre>
+// ...
+arena.reset(ar)                  // frees the list and its array</code></pre>
 <p><code>std.list</code> (<code>list_new_in</code>) is the first collection to adopt this. Others (<code>map</code>, <code>bytes</code>, <code>strbuilder</code>) follow the same shape.</p>
 <h2 id="leak-detection-in-tests-stdtracking">Leak detection in tests (<code>std.tracking</code>)</h2>
 <p>Because there is no GC backstop, a missed <code>release</code>/<code>free</code> is a silent leak. <code>std.tracking</code> wraps any allocator, records every live allocation, and reports the outstanding set, turning a leak from something only a coarse external CI gate can catch into an ordinary in-test assertion.</p>
-<pre><code><span class="kw">import</span> std.alloc
-<span class="kw">import</span> std.tracking
+<pre><code>import std.alloc
+import std.tracking
 
 t = tracking.wrap(alloc.system())
 
-l = list_new_in(t)            <span class="com">// or alloc.raw(t, n), or any _in constructor</span>
-<span class="com">// ... exercise the code under test ...</span>
+l = list_new_in(t)            // or alloc.raw(t, n), or any _in constructor
+// ... exercise the code under test ...
 
-<span class="kw">if</span> tracking.count(t) != <span class="num">0</span> {   <span class="com">// 0 == no leaks</span>
-    tracking.report(t)        <span class="com">// prints each outstanding block (order + size)</span>
+if tracking.count(t) != 0 {   // 0 == no leaks
+    tracking.report(t)        // prints each outstanding block (order + size)
 }
 tracking.destroy(t)</code></pre>
 <div class="tw"><table><thead><tr><th>Function</th><th>Meaning</th></tr></thead><tbody><tr><td><code>tracking.wrap(inner)</code></td><td>Wrap <code>inner</code> (e.g. <code>alloc.system()</code>); returns an allocator handle.</td></tr><tr><td><code>tracking.count(t)</code></td><td>Live (allocated but not freed) block count.</td></tr><tr><td><code>tracking.bytes(t)</code></td><td>Total live bytes.</td></tr><tr><td><code>tracking.report(t)</code></td><td>Print each outstanding block to stderr; returns the live count.</td></tr><tr><td><code>tracking.destroy(t)</code></td><td>Free the tracker. Does not free the leaked blocks (those are the leaks).</td></tr></tbody></table></div>
@@ -709,7 +718,7 @@ tracking.destroy(t)</code></pre>
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.473 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.553 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

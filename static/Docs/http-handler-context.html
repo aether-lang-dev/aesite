@@ -4,11 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>HTTP handlers with per-server / per-route state · Aether</title>
-<meta name="description" content="Server handlers registered via http.server_get (and friends:">
+<meta name="description" content="Server handlers registered via http.server_get (and friends: server_post, server_put, server_delete, server_add_route) receive three arguments">
 <link rel="canonical" href="https://aether-lang.dev/Docs/http-handler-context.html">
 <meta property="og:type" content="article">
 <meta property="og:title" content="HTTP handlers with per-server / per-route state · Aether">
-<meta property="og:description" content="Server handlers registered via http.server_get (and friends:">
+<meta property="og:description" content="Server handlers registered via http.server_get (and friends: server_post, server_put, server_delete, server_add_route) receive three arguments">
 <meta property="og:url" content="https://aether-lang.dev/Docs/http-handler-context.html">
 <meta property="og:image" content="https://aether-lang.dev/og.png">
 <meta name="twitter:card" content="summary_large_image">
@@ -171,7 +171,7 @@ a{color:inherit;text-decoration:none}
 
 /* section head */
 .sec-head{display:flex;align-items:baseline;gap:14px;margin:0 0 22px}
-.sec-head h2{font-family:var(--mono);font-size:1.15rem;font-weight:700;letter-spacing:-.01em;margin:0}
+.sec-head h1,.sec-head h2{font-family:var(--mono);font-size:1.15rem;font-weight:700;letter-spacing:-.01em;margin:0}
 .sec-head .rule{flex:1;height:1px;background:var(--line)}
 
 /* code */
@@ -358,7 +358,7 @@ body::after{content:"";position:fixed;inset:0;z-index:3;pointer-events:none;opac
 
 /* prompt accents on section headings */
 .prompt{color:var(--red);margin-right:.5ch}
-.sec-head h2 .prompt{font-weight:400}
+.sec-head h1 .prompt,.sec-head h2 .prompt{font-weight:400}
 
 /* prompt-styled ghost button */
 .btn-term{font-family:var(--mono);font-size:14px;padding:11px 18px;border-radius:6px;
@@ -570,7 +570,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.473</span>
+      <span class="vtag">v0.553</span>
     </nav>
   </div>
 </header>
@@ -600,6 +600,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/memory-management.html">Aether Memory Management</a>
 <a href="/Docs/runtime-optimizations.html">Runtime Optimizations</a>
 <a href="/Docs/numa-support.html">NUMA Support in Aether</a>
+<a href="/Docs/message-tracing.html">Message tracing</a>
 <div class="grp">Interop</div>
 <a href="/Docs/c-interop.html">C Interoperability</a>
 <a href="/Docs/c-embedding.html">Embedding Aether Actors in C Applications</a>
@@ -624,6 +625,11 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/runtime-config.html">Runtime Configuration - Quick Reference</a>
 <a href="/Docs/per-process-config.html">Per-process configuration in Aether</a>
 <a href="/Docs/cic-help.html">ae help &lt;script&gt; Offline diagnostics for config-IS-code</a>
+<a href="/Docs/cross-ios.html">Cross-compiling for iOS (arm64)</a>
+<div class="grp">Testing</div>
+<a href="/Docs/testing.html">Testing with std.spec and ae test</a>
+<a href="/Docs/mutation-testing.html">Mutation testing, std.mutation</a>
+<a href="/Docs/differential-testing.html">Differential testing across lowering paths</a>
 <div class="grp">Performance</div>
 <a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
 <a href="/Docs/profiling-guide.html">Aether Runtime Profiling Guide</a>
@@ -639,6 +645,9 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
 <a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn't need macro_rules!</a>
 <a href="/Docs/lib-caller-info.html">--emit=lib caller-info channel</a>
+<a href="/Docs/liveview-lite-roadmap.html">LiveView-lite, a roadmap (Phoenix LiveView, on actors, without the framework)</a>
+<a href="/Docs/schema-projection-roadmap.html">std.schema, a projection-first roadmap (Ash, without the framework)</a>
+<a href="/Docs/locale-independent-float-text.html">Plan: locale-independent float text conversion (LC_NUMERIC correctness)</a>
 <div class="grp">Contributing</div>
 <a href="/Docs/stdlib-module-pattern.html">Aether Stdlib Module Pattern</a>
 <a href="/Docs/stdlib-vs-contrib.html">std/ vs contrib/ placement decisions</a>
@@ -649,47 +658,47 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
         <div class="bc"><span class="prompt">$</span>docs / standard library</div>
 <h1 id="http-handlers-with-per-server--per-route-state">HTTP handlers with per-server / per-route state</h1>
 <p>Server handlers registered via <code>http.server_get</code> (and friends: <code>server_post</code>, <code>server_put</code>, <code>server_delete</code>, <code>server_add_route</code>) receive three arguments:</p>
-<pre><code>handler(req: <span class="fn">ptr</span>, res: <span class="fn">ptr</span>, ud: <span class="fn">ptr</span>)</code></pre>
+<pre><code>handler(req: ptr, res: ptr, ud: ptr)</code></pre>
 <p><code>ud</code> is the <strong>user_data</strong> slot, a <code>ptr</code> that the route remembers and passes back to the handler on every invocation. The same slot exists on the C side (<code>HttpHandler</code>'s third arg) and is plumbed end-to-end: whatever you pass as <code>user_data</code> to <code>server_get</code> is what the handler receives as <code>ud</code>.</p>
 <p>This is the in-language way to give handlers access to per-server or per-route state, a database handle, a config struct, an auth scheme, a connection pool. No process-globals, no C shim.</p>
 <h2 id="the-pattern">The pattern</h2>
 <p>Declare a struct, <code>malloc</code>+init it, and pass the resulting <code>ptr</code> as the <code>user_data</code> argument. The handler casts back via <code>ud as *YourStruct</code>.</p>
-<pre><code><span class="kw">import</span> std.http
-<span class="kw">extern</span> malloc(n: <span class="fn">int</span>) -&gt; <span class="fn">ptr</span>
+<pre><code>import std.http
+extern malloc(n: int) -&gt; ptr
 
-<span class="kw">struct</span> AppCtx {
-    db: <span class="fn">ptr</span>            <span class="com">// sqlite handle, redis client, etc.</span>
-    data_dir: <span class="fn">string</span>
-    request_count: <span class="fn">int</span>
+struct AppCtx {
+    db: ptr            // sqlite handle, redis client, etc.
+    data_dir: string
+    request_count: int
 }
 
-handle_get(req: <span class="fn">ptr</span>, res: <span class="fn">ptr</span>, ud: <span class="fn">ptr</span>) {
-    ctx = ud <span class="kw">as</span> *AppCtx
-    http.response_set_status(res, <span class="num">200</span>)
+handle_get(req: ptr, res: ptr, ud: ptr) {
+    ctx = ud as *AppCtx
+    http.response_set_status(res, 200)
     dir = ctx.data_dir
-    http.response_set_body(res, <span class="str">"data_dir=${dir}"</span>)
+    http.response_set_body(res, "data_dir=${dir}")
 }
 
 main() {
-    ctx = malloc(<span class="num">64</span>) <span class="kw">as</span> *AppCtx
+    ctx = malloc(64) as *AppCtx
     ctx.db = open_database()
-    ctx.data_dir = <span class="str">"/var/lib/myapp"</span>
-    ctx.request_count = <span class="num">0</span>
+    ctx.data_dir = "/var/lib/myapp"
+    ctx.request_count = 0
 
-    server = http.server_create(<span class="num">8080</span>)
-    http.server_get(server, <span class="str">"/info"</span>, handle_get, ctx)
-    <span class="com">// ...start server...</span>
+    server = http.server_create(8080)
+    http.server_get(server, "/info", handle_get, ctx)
+    // ...start server...
 }</code></pre>
 <h2 id="per-route-isolation">Per-route isolation</h2>
 <p>Each route has its own <code>user_data</code> slot. A server can host routes with distinct contexts without any coordination:</p>
-<pre><code>ctx_v1 = malloc(<span class="num">64</span>) <span class="kw">as</span> *ApiCtx
-ctx_v1.version = <span class="num">1</span>
+<pre><code>ctx_v1 = malloc(64) as *ApiCtx
+ctx_v1.version = 1
 
-ctx_v2 = malloc(<span class="num">64</span>) <span class="kw">as</span> *ApiCtx
-ctx_v2.version = <span class="num">2</span>
+ctx_v2 = malloc(64) as *ApiCtx
+ctx_v2.version = 2
 
-http.server_get(server, <span class="str">"/v1/*"</span>, handle_v1, ctx_v1)
-http.server_get(server, <span class="str">"/v2/*"</span>, handle_v2, ctx_v2)</code></pre>
+http.server_get(server, "/v1/*", handle_v1, ctx_v1)
+http.server_get(server, "/v2/*", handle_v2, ctx_v2)</code></pre>
 <p>The handler invoked for <code>/v1/...</code> sees <code>ctx_v1</code>; the handler invoked for <code>/v2/...</code> sees <code>ctx_v2</code>. Same handler function with different <code>ud</code> is allowed too, the slot is set per route, not per function.</p>
 <h2 id="lifetime">Lifetime</h2>
 <p>The struct <code>ctx</code> must outlive every request the route serves. In practice that's the lifetime of the server (the whole process), which is what the <code>malloc</code> above gives you, no GC, the bytes stay live until you <code>free</code> them. If you stop the server and start a new one mid-process, free the old context after <code>server_stop</code> returns.</p>
@@ -715,7 +724,7 @@ http.server_get(server, <span class="str">"/v2/*"</span>, handle_v2, ctx_v2)</co
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.473 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.553 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

@@ -4,11 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Config IS Code · Aether</title>
-<meta name="description" content="A design pattern, and a recommendation for Aether libraries that have a">
+<meta name="description" content="A design pattern, and a recommendation for Aether libraries that have a &quot;start the thing&quot; surface, HTTP servers, daemons, agents, schedulers, fixtures...">
 <link rel="canonical" href="https://aether-lang.dev/Docs/config-is-code.html">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Config IS Code · Aether">
-<meta property="og:description" content="A design pattern, and a recommendation for Aether libraries that have a">
+<meta property="og:description" content="A design pattern, and a recommendation for Aether libraries that have a &quot;start the thing&quot; surface, HTTP servers, daemons, agents, schedulers, fixtures...">
 <meta property="og:url" content="https://aether-lang.dev/Docs/config-is-code.html">
 <meta property="og:image" content="https://aether-lang.dev/og.png">
 <meta name="twitter:card" content="summary_large_image">
@@ -171,7 +171,7 @@ a{color:inherit;text-decoration:none}
 
 /* section head */
 .sec-head{display:flex;align-items:baseline;gap:14px;margin:0 0 22px}
-.sec-head h2{font-family:var(--mono);font-size:1.15rem;font-weight:700;letter-spacing:-.01em;margin:0}
+.sec-head h1,.sec-head h2{font-family:var(--mono);font-size:1.15rem;font-weight:700;letter-spacing:-.01em;margin:0}
 .sec-head .rule{flex:1;height:1px;background:var(--line)}
 
 /* code */
@@ -358,7 +358,7 @@ body::after{content:"";position:fixed;inset:0;z-index:3;pointer-events:none;opac
 
 /* prompt accents on section headings */
 .prompt{color:var(--red);margin-right:.5ch}
-.sec-head h2 .prompt{font-weight:400}
+.sec-head h1 .prompt,.sec-head h2 .prompt{font-weight:400}
 
 /* prompt-styled ghost button */
 .btn-term{font-family:var(--mono);font-size:14px;padding:11px 18px;border-radius:6px;
@@ -570,7 +570,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.473</span>
+      <span class="vtag">v0.553</span>
     </nav>
   </div>
 </header>
@@ -600,6 +600,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/memory-management.html">Aether Memory Management</a>
 <a href="/Docs/runtime-optimizations.html">Runtime Optimizations</a>
 <a href="/Docs/numa-support.html">NUMA Support in Aether</a>
+<a href="/Docs/message-tracing.html">Message tracing</a>
 <div class="grp">Interop</div>
 <a href="/Docs/c-interop.html">C Interoperability</a>
 <a href="/Docs/c-embedding.html">Embedding Aether Actors in C Applications</a>
@@ -624,6 +625,11 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/runtime-config.html">Runtime Configuration - Quick Reference</a>
 <a href="/Docs/per-process-config.html">Per-process configuration in Aether</a>
 <a href="/Docs/cic-help.html">ae help &lt;script&gt; Offline diagnostics for config-IS-code</a>
+<a href="/Docs/cross-ios.html">Cross-compiling for iOS (arm64)</a>
+<div class="grp">Testing</div>
+<a href="/Docs/testing.html">Testing with std.spec and ae test</a>
+<a href="/Docs/mutation-testing.html">Mutation testing, std.mutation</a>
+<a href="/Docs/differential-testing.html">Differential testing across lowering paths</a>
 <div class="grp">Performance</div>
 <a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
 <a href="/Docs/profiling-guide.html">Aether Runtime Profiling Guide</a>
@@ -639,6 +645,9 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
 <a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn't need macro_rules!</a>
 <a href="/Docs/lib-caller-info.html">--emit=lib caller-info channel</a>
+<a href="/Docs/liveview-lite-roadmap.html">LiveView-lite, a roadmap (Phoenix LiveView, on actors, without the framework)</a>
+<a href="/Docs/schema-projection-roadmap.html">std.schema, a projection-first roadmap (Ash, without the framework)</a>
+<a href="/Docs/locale-independent-float-text.html">Plan: locale-independent float text conversion (LC_NUMERIC correctness)</a>
 <div class="grp">Contributing</div>
 <a href="/Docs/stdlib-module-pattern.html">Aether Stdlib Module Pattern</a>
 <a href="/Docs/stdlib-vs-contrib.html">std/ vs contrib/ placement decisions</a>
@@ -693,19 +702,19 @@ server = my_server.Server(
 <p>Now config IS a program. Loops, conditionals, library calls, custom helpers, all available, in the same language as the implementation. AWS CDK, Pulumi, Bazel rule files, and most "infrastructure as code" tooling lives here.</p>
 <p>The catch: the <strong>declarative readability is gone</strong>. The user is constructing objects, calling constructors, threading parameters. It reads like glue code, not like config. Operators bounce off, they wanted a config file, they got a program with import statements and type annotations.</p>
 <h3 id="level-4-closure-dsl-config-is-code-and-reads-like-config">Level 4, Closure-DSL: config IS code, <em>and reads like config</em></h3>
-<pre><code><span class="kw">import</span> my_server (serve, host, port, superuser_token, repo)
-<span class="kw">import</span> std.os (os_getenv)
+<pre><code>import my_server (serve, host, port, superuser_token, repo)
+import std.os (os_getenv)
 
 main() {
     serve {
-        host(<span class="str">"127.0.0.1"</span>)
-        port(<span class="num">9990</span>)
-        <span class="kw">if</span> os_getenv(<span class="str">"STAGE"</span>) == <span class="str">"prod"</span> {
-            host(<span class="str">"0.0.0.0"</span>)
+        host("127.0.0.1")
+        port(9990)
+        if os_getenv("STAGE") == "prod" {
+            host("0.0.0.0")
         }
-        superuser_token(os_getenv(<span class="str">"SUPER_TOKEN"</span>))
-        repo(<span class="str">"alpha"</span>, <span class="str">"/srv/alpha"</span>)
-        repo(<span class="str">"beta"</span>,  <span class="str">"/srv/beta"</span>)
+        superuser_token(os_getenv("SUPER_TOKEN"))
+        repo("alpha", "/srv/alpha")
+        repo("beta",  "/srv/beta")
     }
 }</code></pre>
 <p>The Aether <code>builder</code> keyword (see <a href="/Docs/closures-and-builder-dsl.html"><code>closures-and-builder-dsl.md</code></a>) gives you the <em>declarative aesthetic</em> of Level 1, bare setter calls, no explicit object construction, no parameter threading, on top of <em>full code</em> underneath: control flow, library calls, env lookups, arbitrary Aether. The library author absorbs the wiring; the operator writes what looks like a config file but isn't.</p>
@@ -720,59 +729,59 @@ main() {
 <p>For these, build a thin YAML layer that constructs and calls the same opts struct your closure-DSL populates. The inner workhorse stays shared; only the outer entry point differs.</p>
 <h2 id="library-author-recipe">Library author recipe</h2>
 <p>To expose your library's start surface as a closure-DSL, follow the standard three-layer split:</p>
-<pre><code><span class="com">// 1. Opts construction, explicit API. The base everything else</span>
-<span class="com">//    funnels into.</span>
-<span class="kw">export</span> opts_new() -&gt; <span class="fn">ptr</span> {
-    <span class="kw">return</span> map.new()
+<pre><code>// 1. Opts construction, explicit API. The base everything else
+//    funnels into.
+export opts_new() -&gt; ptr {
+    return map.new()
 }
 
-<span class="com">// 2. Setters, take `_ctx: ptr` first, write into the map. Each</span>
-<span class="com">//    setter is one knob.</span>
-<span class="kw">export</span> host(_ctx: <span class="fn">ptr</span>, addr: <span class="fn">string</span>) {
-    _e = map.put(_ctx, <span class="str">"host"</span>, addr)
+// 2. Setters, take `_ctx: ptr` first, write into the map. Each
+//    setter is one knob.
+export host(_ctx: ptr, addr: string) {
+    _e = map.put(_ctx, "host", addr)
 }
 
-<span class="kw">export</span> port(_ctx: <span class="fn">ptr</span>, n: <span class="fn">int</span>) {
-    _e = map.put(_ctx, <span class="str">"port"</span>, <span class="fn">string</span>.from_int(n))
+export port(_ctx: ptr, n: int) {
+    _e = map.put(_ctx, "port", string.from_int(n))
 }
 
-<span class="com">// (Repeatable setter, collect into a list.)</span>
-<span class="kw">export</span> repo(_ctx: <span class="fn">ptr</span>, name: <span class="fn">string</span>, path: <span class="fn">string</span>) {
-    <span class="kw">if</span> map.has(_ctx, <span class="str">"repos"</span>) == <span class="num">0</span> {
-        _e = map.put(_ctx, <span class="str">"repos"</span>, list.new())
+// (Repeatable setter, collect into a list.)
+export repo(_ctx: ptr, name: string, path: string) {
+    if map.has(_ctx, "repos") == 0 {
+        _e = map.put(_ctx, "repos", list.new())
     }
-    repos, _ = map.get(_ctx, <span class="str">"repos"</span>)
-    list.add(repos, <span class="str">"${name}\t${path}"</span>)
+    repos, _ = map.get(_ctx, "repos")
+    list.add(repos, "${name}\t${path}")
 }
 
-<span class="com">// 3. Workhorse, reads opts, does the work. Single source of truth.</span>
-<span class="kw">export</span> serve_opts(opts: <span class="fn">ptr</span>) -&gt; <span class="fn">int</span> {
-    <span class="com">// ... read keys, register, bind, listen, run ...</span>
+// 3. Workhorse, reads opts, does the work. Single source of truth.
+export serve_opts(opts: ptr) -&gt; int {
+    // ... read keys, register, bind, listen, run ...
 }
 
-<span class="com">// 4. Closure-DSL entry, `builder` keyword wires the trailing block</span>
-<span class="com">//    to populate `_builder`, then hands it to the workhorse.</span>
-<span class="kw">builder</span> serve(_ctx: <span class="fn">ptr</span>) -&gt; <span class="fn">int</span> {
-    <span class="kw">return</span> serve_opts(_builder)
+// 4. Closure-DSL entry, `builder` keyword wires the trailing block
+//    to populate `_builder`, then hands it to the workhorse.
+builder serve(_ctx: ptr) -&gt; int {
+    return serve_opts(_builder)
 }</code></pre>
 <p>The user's three options stay 1:1 equivalent:</p>
-<pre><code><span class="com">// (a) Closure-DSL block, the recommended surface.</span>
+<pre><code>// (a) Closure-DSL block, the recommended surface.
 my_lib.serve {
-    host(<span class="str">"127.0.0.1"</span>)
-    port(<span class="num">9990</span>)
+    host("127.0.0.1")
+    port(9990)
 }
 
-<span class="com">// (b) Explicit opts API, for callers who want to construct opts</span>
-<span class="com">//     once and reuse, or build them programmatically from another</span>
-<span class="com">//     source.</span>
+// (b) Explicit opts API, for callers who want to construct opts
+//     once and reuse, or build them programmatically from another
+//     source.
 opts = my_lib.opts_new()
-my_lib.host(opts, <span class="str">"127.0.0.1"</span>)
-my_lib.port(opts, <span class="num">9990</span>)
+my_lib.host(opts, "127.0.0.1")
+my_lib.port(opts, 9990)
 my_lib.serve_opts(opts)
 
-<span class="com">// (c) CLI front-end (your own main.ae), argv → setters →</span>
-<span class="com">//     serve_opts. Same workhorse; argv just becomes another</span>
-<span class="com">//     opts-population strategy alongside the closure-DSL.</span></code></pre>
+// (c) CLI front-end (your own main.ae), argv → setters →
+//     serve_opts. Same workhorse; argv just becomes another
+//     opts-population strategy alongside the closure-DSL.</code></pre>
 <p>Adding a knob is one new setter + one new key read in the workhorse. The CLI, the closure-DSL, and the explicit API all gain the knob in lockstep, no risk of drift between "what the YAML supports" and "what the binary can do."</p>
 <h2 id="pitfalls">Pitfalls</h2>
 <p>A few things to watch for when designing setters:</p>
@@ -795,7 +804,7 @@ inspect: deploy.ae
   constants (1): DEFAULT_PORT</code></pre>
 <p>It reports only what <em>this</em> file declares (imports resolved and classified as stdlib / contrib / local, with the <code>--with=</code> capability any gated module needs; the artifact shape, executable entry point vs library export surface; and the top-level functions, structs, constants, and actors with signatures), declarations merged in from imported modules are excluded. No code is generated. For a library (<code>exports (...)</code>) it lists the exported ABI surface instead of an entry point. Out of scope: full type dumps (that's the FFI <code>aether_describe</code> metadata) and raw AST printing (that's <code>aetherc --emit=ast</code>).</p>
 <h2 id="cross-references">Cross-references</h2>
-<ul><li><a href="/Docs/closures-and-builder-dsl.html"><code>closures-and-builder-dsl.md</code></a>, the reference for <code>builder</code>, trailing blocks, and context injection.</li><li><a href="/Docs/aether-embedded-in-host-applications.html"><code>aether-embedded-in-host-applications.md</code></a> when <code>ae run</code> isn't the deployment vehicle and you're embedding the script inside another binary.</li><li><a href="/Docs/aether-dsl-as-a-rules-engine.html"><code>aether-dsl-as-a-rules-engine.md</code></a> the same closure-DSL machinery applied to business rules rather than start-the-thing config.</li></ul>
+<ul><li><a href="/Docs/closures-and-builder-dsl.html"><code>closures-and-builder-dsl.md</code></a>, the reference for <code>builder</code>, trailing blocks, and context injection.</li><li><a href="/Docs/aether-embedded-in-host-applications.html"><code>aether-embedded-in-host-applications.md</code></a> when <code>ae run</code> isn't the deployment vehicle and you're embedding the script inside another binary.</li><li><a href="https://github.com/aether-lang-dev/aether/blob/main/docs/design/aether-dsl-as-a-rules-engine.md"><code>aether-dsl-as-a-rules-engine.md</code></a> the same closure-DSL machinery applied to business rules rather than start-the-thing config.</li></ul>
 <nav class="doc-prevnext" aria-label="Previous and next page"><a class="pn-prev" href="/Docs/hide-and-seal.html"><span class="pn-k">Previous</span><span class="pn-t">hide and seal except scope-level capability denial</span></a><a class="pn-next" href="/Docs/build-system.html"><span class="pn-k">Next</span><span class="pn-t">Build System</span></a></nav>
       </article>
     </main>
@@ -808,7 +817,7 @@ inspect: deploy.ae
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.473 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.553 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

@@ -4,11 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Structured Concurrency for Aether, Design Direction · Aether</title>
-<meta name="description" content="Status: proposal. Nothing shipped yet. This doc captures the design">
+<meta name="description" content="Status: proposal. Nothing shipped yet. This doc captures the design choices we&#x27;ve committed to before writing code, so the implementation PRs have a...">
 <link rel="canonical" href="https://aether-lang.dev/Docs/structured-concurrency.html">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Structured Concurrency for Aether, Design Direction · Aether">
-<meta property="og:description" content="Status: proposal. Nothing shipped yet. This doc captures the design">
+<meta property="og:description" content="Status: proposal. Nothing shipped yet. This doc captures the design choices we&#x27;ve committed to before writing code, so the implementation PRs have a...">
 <meta property="og:url" content="https://aether-lang.dev/Docs/structured-concurrency.html">
 <meta property="og:image" content="https://aether-lang.dev/og.png">
 <meta name="twitter:card" content="summary_large_image">
@@ -171,7 +171,7 @@ a{color:inherit;text-decoration:none}
 
 /* section head */
 .sec-head{display:flex;align-items:baseline;gap:14px;margin:0 0 22px}
-.sec-head h2{font-family:var(--mono);font-size:1.15rem;font-weight:700;letter-spacing:-.01em;margin:0}
+.sec-head h1,.sec-head h2{font-family:var(--mono);font-size:1.15rem;font-weight:700;letter-spacing:-.01em;margin:0}
 .sec-head .rule{flex:1;height:1px;background:var(--line)}
 
 /* code */
@@ -358,7 +358,7 @@ body::after{content:"";position:fixed;inset:0;z-index:3;pointer-events:none;opac
 
 /* prompt accents on section headings */
 .prompt{color:var(--red);margin-right:.5ch}
-.sec-head h2 .prompt{font-weight:400}
+.sec-head h1 .prompt,.sec-head h2 .prompt{font-weight:400}
 
 /* prompt-styled ghost button */
 .btn-term{font-family:var(--mono);font-size:14px;padding:11px 18px;border-radius:6px;
@@ -570,7 +570,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.473</span>
+      <span class="vtag">v0.553</span>
     </nav>
   </div>
 </header>
@@ -600,6 +600,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/memory-management.html">Aether Memory Management</a>
 <a href="/Docs/runtime-optimizations.html">Runtime Optimizations</a>
 <a href="/Docs/numa-support.html">NUMA Support in Aether</a>
+<a href="/Docs/message-tracing.html">Message tracing</a>
 <div class="grp">Interop</div>
 <a href="/Docs/c-interop.html">C Interoperability</a>
 <a href="/Docs/c-embedding.html">Embedding Aether Actors in C Applications</a>
@@ -624,6 +625,11 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/runtime-config.html">Runtime Configuration - Quick Reference</a>
 <a href="/Docs/per-process-config.html">Per-process configuration in Aether</a>
 <a href="/Docs/cic-help.html">ae help &lt;script&gt; Offline diagnostics for config-IS-code</a>
+<a href="/Docs/cross-ios.html">Cross-compiling for iOS (arm64)</a>
+<div class="grp">Testing</div>
+<a href="/Docs/testing.html">Testing with std.spec and ae test</a>
+<a href="/Docs/mutation-testing.html">Mutation testing, std.mutation</a>
+<a href="/Docs/differential-testing.html">Differential testing across lowering paths</a>
 <div class="grp">Performance</div>
 <a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
 <a href="/Docs/profiling-guide.html">Aether Runtime Profiling Guide</a>
@@ -639,6 +645,9 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
 <a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn't need macro_rules!</a>
 <a href="/Docs/lib-caller-info.html">--emit=lib caller-info channel</a>
+<a href="/Docs/liveview-lite-roadmap.html">LiveView-lite, a roadmap (Phoenix LiveView, on actors, without the framework)</a>
+<a href="/Docs/schema-projection-roadmap.html">std.schema, a projection-first roadmap (Ash, without the framework)</a>
+<a href="/Docs/locale-independent-float-text.html">Plan: locale-independent float text conversion (LC_NUMERIC correctness)</a>
 <div class="grp">Contributing</div>
 <a href="/Docs/stdlib-module-pattern.html">Aether Stdlib Module Pattern</a>
 <a href="/Docs/stdlib-vs-contrib.html">std/ vs contrib/ placement decisions</a>
@@ -668,26 +677,26 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <h3 id="what-the-runtime-must-expose">What the runtime must expose</h3>
 <ol><li>When an actor's handler returns abnormally (an explicit <code>exit(reason)</code>, or a panic caught by the scheduler), the scheduler delivers a <code>Down { ref, reason }</code> message to every actor that registered interest in the failed actor.</li><li>Registration is one of two kinds:<ul><li><strong>Monitor</strong>, one-way. I get a <code>Down</code> if it dies; it doesn't hear about me dying.</li><li><strong>Link</strong>, two-way (Erlang semantics). If either of us dies, the other gets a <code>Down</code>.</li></ul></li><li>Delivery is best-effort at-most-once, routed through the normal mailbox. No new transport.</li></ol>
 <h3 id="language--stdlib-surface">Language / stdlib surface</h3>
-<pre><code><span class="com">// Builtins</span>
-monitor(<span class="fn">actor_ref</span>) -&gt; monitor_id   <span class="com">// one-way</span>
-link(<span class="fn">actor_ref</span>)                     <span class="com">// two-way</span>
-demonitor(monitor_id)               <span class="com">// cancel monitor</span>
-unlink(<span class="fn">actor_ref</span>)                   <span class="com">// cancel link</span>
+<pre><code>// Builtins
+monitor(actor_ref) -&gt; monitor_id   // one-way
+link(actor_ref)                     // two-way
+demonitor(monitor_id)               // cancel monitor
+unlink(actor_ref)                   // cancel link
 
-<span class="com">// System message</span>
-<span class="kw">message</span> Down {
-    ref: <span class="fn">actor_ref</span>
-    reason: <span class="fn">string</span>    <span class="com">// "normal", "killed", or a user-supplied atom</span>
+// System message
+message Down {
+    ref: actor_ref
+    reason: string    // "normal", "killed", or a user-supplied atom
 }</code></pre>
 <h3 id="supervisor-as-a-library-actor">Supervisor as a library actor</h3>
 <p>No language-level supervisor primitive. A <code>std.supervise</code> module provides an ordinary actor type:</p>
-<pre><code><span class="kw">import</span> std.supervise
+<pre><code>import std.supervise
 
 main() {
-    sup = <span class="kw">spawn</span>(supervisor(strategy: <span class="str">"one_for_one"</span>)) {
-        child(<span class="str">"worker_a"</span>, || <span class="kw">spawn</span>(WorkerA()))
-        child(<span class="str">"worker_b"</span>, || <span class="kw">spawn</span>(WorkerB()))
-        child(<span class="str">"db_writer"</span>, || <span class="kw">spawn</span>(DbWriter()))
+    sup = spawn(supervisor(strategy: "one_for_one")) {
+        child("worker_a", || spawn(WorkerA()))
+        child("worker_b", || spawn(WorkerB()))
+        child("db_writer", || spawn(DbWriter()))
     }
 }</code></pre>
 <p>The supervisor actor internally links each child, handles <code>Down</code> messages according to its strategy, and decides whether to restart, escalate, or shut the subtree down. Strategies mirror Erlang: <code>one_for_one</code> (restart just the dead one), <code>one_for_all</code> (restart all siblings on any death), <code>rest_for_one</code> (restart the dead one and everything started after it).</p>
@@ -699,21 +708,21 @@ main() {
 <ul><li><code>spawn(X())</code> rejected if <code>X</code> is hidden or not on the seal whitelist.</li><li><code>ref ! Msg {}</code> rejected if <code>ref</code> is hidden or not whitelisted.</li><li><code>ref ? Request {}</code> (the <code>?</code> ask operator), same check on <code>ref</code>.</li></ul>
 <p>The error message reuses the existing <code>E0304</code> (hidden in this scope) diagnostic.</p>
 <h3 id="worked-example">Worked example</h3>
-<pre><code>sandbox(<span class="str">"payment-handler"</span>) {
-    grant_tcp(<span class="str">"payments.example.com"</span>)
-    <span class="kw">seal</span> <span class="kw">except</span> req, res, payment_client, logger
+<pre><code>sandbox("payment-handler") {
+    grant_tcp("payments.example.com")
+    seal except req, res, payment_client, logger
 
-    <span class="com">// This block can only see the five whitelisted names.</span>
-    <span class="com">// It cannot spawn any actor type not named here.</span>
-    <span class="com">// It cannot send to any actor reference not named here.</span>
-    <span class="com">// It cannot ask any outside service.</span>
+    // This block can only see the five whitelisted names.
+    // It cannot spawn any actor type not named here.
+    // It cannot send to any actor reference not named here.
+    // It cannot ask any outside service.
 
     result = payment_client ? Charge { amount: req.amount }
-    <span class="kw">if</span> result != <span class="kw">null</span> {
-        logger ! Audit { who: req.user, what: <span class="str">"charged"</span>, amount: req.amount }
-        res.status = <span class="num">200</span>
-    } <span class="kw">else</span> {
-        res.status = <span class="num">502</span>
+    if result != null {
+        logger ! Audit { who: req.user, what: "charged", amount: req.amount }
+        res.status = 200
+    } else {
+        res.status = 502
     }
 }</code></pre>
 <p>The subtree rooted at this block has both lifetime containment (the <code>sandbox</code> scope's containment runtime) and capability containment (the <code>seal except</code> list). A malicious or buggy handler cannot spawn a crypto-miner actor because it cannot name one.</p>
@@ -736,7 +745,7 @@ main() {
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.473 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.553 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

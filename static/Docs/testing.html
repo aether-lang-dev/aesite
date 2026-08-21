@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>std.json Design Notes · Aether</title>
-<meta name="description" content="This document explains why aether_json.c is shaped the way it is. It&#x27;s meant to be read alongside the source, not as a standalone spec, but as a map to...">
-<link rel="canonical" href="https://aether-lang.dev/Docs/json-parser-design.html">
+<title>Testing with std.spec and ae test · Aether</title>
+<meta name="description" content="Aether ships a BDD-style test framework in the standard library (std.spec) and a discovery runner in the toolchain (ae test).">
+<link rel="canonical" href="https://aether-lang.dev/Docs/testing.html">
 <meta property="og:type" content="article">
-<meta property="og:title" content="std.json Design Notes · Aether">
-<meta property="og:description" content="This document explains why aether_json.c is shaped the way it is. It&#x27;s meant to be read alongside the source, not as a standalone spec, but as a map to...">
-<meta property="og:url" content="https://aether-lang.dev/Docs/json-parser-design.html">
+<meta property="og:title" content="Testing with std.spec and ae test · Aether">
+<meta property="og:description" content="Aether ships a BDD-style test framework in the standard library (std.spec) and a discovery runner in the toolchain (ae test).">
+<meta property="og:url" content="https://aether-lang.dev/Docs/testing.html">
 <meta property="og:image" content="https://aether-lang.dev/og.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="/favicon.png">
@@ -627,7 +627,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/cic-help.html">ae help &lt;script&gt; Offline diagnostics for config-IS-code</a>
 <a href="/Docs/cross-ios.html">Cross-compiling for iOS (arm64)</a>
 <div class="grp">Testing</div>
-<a href="/Docs/testing.html">Testing with std.spec and ae test</a>
+<a href="/Docs/testing.html" class="on">Testing with std.spec and ae test</a>
 <a href="/Docs/mutation-testing.html">Mutation testing, std.mutation</a>
 <a href="/Docs/differential-testing.html">Differential testing across lowering paths</a>
 <div class="grp">Performance</div>
@@ -639,7 +639,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/contract-folding.html">Compile-time contract folding, costed design</a>
 <a href="/Docs/error-unification.html">Unifying T? and (value, err), costed design</a>
 <a href="/Docs/compiler-trust-boundary.html">The Compiler Trust Boundary</a>
-<a href="/Docs/json-parser-design.html" class="on">std.json Design Notes</a>
+<a href="/Docs/json-parser-design.html">std.json Design Notes</a>
 <a href="/Docs/aether_compared_to_capsicum.html">Aether Sandbox Model vs. BSD Capsicum: Architecture, Parallels, and FreeBSD Integration</a>
 <a href="/Docs/isolated.html">Isolated[T]: move-only actor message payloads</a>
 <a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
@@ -655,127 +655,190 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/release-glibc-portability.html">Release binary portability across glibc versions</a></nav>
     <main class="doc-main">
       <article class="doc-body" id="doc">
-        <div class="bc"><span class="prompt">$</span>docs / design &amp; rfcs</div>
-<h1 id="stdjson-design-notes"><code>std.json</code> Design Notes</h1>
-<p>This document explains <em>why</em> <code>aether_json.c</code> is shaped the way it is. It's meant to be read alongside the source, not as a standalone spec, but as a map to the design decisions so future maintainers know what can be changed freely and what's load-bearing.</p>
-<h2 id="goals">Goals</h2>
-<ol><li><strong>Correctness first.</strong> Pass RFC 8259 conformance. Never UB, never OOB, never silent data loss. JSONTestSuite (318 tests) gates CI.</li><li><strong>Portable to every CI target.</strong> Compiles clean on GCC, Clang, Apple Clang, MinGW (32+64-bit), Emscripten under <code>-Wall -Wextra -Werror -pedantic</code>. SIMD kernels gated behind compile-time feature detection (<code>__SSE2__</code>, <code>__ARM_NEON</code>) with a scalar fallback that's always compiled, no target is SIMD-only.</li><li><strong>Fast enough that JSON isn't a bottleneck.</strong> Every byte in the hot path is touched at most once. Allocations happen from a per-document arena, not per-node. Hot classification decisions are a single LUT read. Measurement harness lives in <a href="https://github.com/aether-lang-dev/aether/blob/main/benchmarks/json/baseline.md"><code>benchmarks/json/baseline.md</code></a>.</li><li><strong>Low maintenance.</strong> One <code>.c</code> file, one design doc, no vendored deps. Anyone who reads this file should be able to maintain the parser without additional context.</li></ol>
-<p>These are in priority order. Correctness outranks speed. Portability outranks a fast-path optimisation that only works on one arch.</p>
-<h2 id="memory-model-one-arena-per-parsed-document">Memory model: one arena per parsed document</h2>
-<p>Every parsed document lives in a bump-pointer arena allocated at <code>json_parse_raw_n</code> time. Every <code>JsonValue</code>, every string payload, every container backing array for that document comes from the same arena. <code>json_free(root)</code> calls <code>arena_destroy</code> which walks the chunk list and returns everything to <code>malloc</code>'s free list in a single pass.</p>
-<p>This eliminates the <strong>per-node malloc</strong> pattern that dominated the original parser's profile: every JsonValue, every string buffer, and every container (via <code>ArrayList</code>/<code>HashMap</code> wrappers) was its own allocation. On <code>large.json</code> (10 MB, 676k values), that's a million allocator round-trips; on our arena path it's a handful of chunk allocations.</p>
-<h3 id="chunks-and-growth">Chunks and growth</h3>
-<p>The arena is a singly-linked list of <code>ArenaChunk</code>s. First chunk is 16 KB (big enough that tiny documents never grow), subsequent chunks double in size up to a 2 MB cap. An allocation bigger than the current chunk's remaining space triggers a new chunk sized at least as large as the requested bytes, so a single 5 MB string doesn't force the allocator to keep doubling until it exceeds the request.</p>
-<p>Alignment is fixed at 8 bytes. All allocations round up.</p>
-<h3 id="why-not-a-tape">Why not a tape?</h3>
-<p>Several fast parsers store parsed values in a <strong>tape</strong>: a flat array of fixed-size slots indexed by position, with parent/child relationships encoded via sibling offsets. That layout is maximally cache-friendly but it couples value lifetimes to the tape and makes the creation path (<code>json_create_string</code>, <code>json_object_set</code>, …) awkward, a standalone value has nowhere to live without a tape to sit in.</p>
-<p>We preserve the API shape, values are reachable through a tree of pointers, and recover cache locality from the arena's chunk-local allocation. Values allocated close in time end up close in memory, and <code>JsonValue</code> itself is sized to fit two per 64-byte cache line (see "JsonValue sizing" below). A full tape representation is possible later with copy-on-mutate preservation of the creation API; the design is sketched in "When to change what" near the end of this doc.</p>
-<h3 id="heap-path-for-json_create_">Heap path for <code>json_create_*</code></h3>
-<p>Values created standalone (<code>json_create_null</code>, <code>json_create_string</code>, <code>json_create_array</code>, etc.) are heap-allocated individually via <code>malloc</code>. Their children are similarly heap-allocated. <code>json_free</code> on such a value walks the tree and frees each node.</p>
-<p>When a standalone value is handed to <code>json_array_add_raw</code> or <code>json_object_set_raw</code> on an arena-backed container, the mutator <strong>deep-copies the subtree into the parent's arena</strong> and frees the original. After insertion the entire tree is arena-owned; a single <code>json_free</code> at the root tears everything down.</p>
-<p>This double-path (arena for parse, heap for create, deep-copy on merge) is the only real complexity cost of preserving the mutation API. The parse path is a tight loop with no branching on allocation mode; the mutation path is rare and pays for its complexity only when invoked.</p>
-<h2 id="character-classification-via-a-256-entry-lut">Character classification via a 256-entry LUT</h2>
-<p><code>JSON_CC_RW[256]</code> holds per-byte flag bits: <code>CC_WHITESPACE</code>, <code>CC_DIGIT</code>, <code>CC_STRUCTURAL</code>, <code>CC_STR_OK</code>, <code>CC_HEX</code>, <code>CC_NUM_START</code>.</p>
-<p>Hot-path decisions become a single indexed load + bit-test:</p>
-<pre><code><span class="kw">while</span> (s-&gt;p &lt; s-&gt;end &amp;&amp; (CC(*s-&gt;p) &amp; CC_STR_OK)) p_advance(s);</code></pre>
-<p>The table is initialized once on first parse via <code>cc_init()</code> (the static initializer handles the digit/hex/structural entries; runtime code fills <code>CC_STR_OK</code> for the rest of printable ASCII). <code>cc_init</code> is idempotent and guarded by a simple non-atomic flag, the race on first parse is benign because both racing threads would compute the same table contents.</p>
-<h3 id="why-runtime-init">Why runtime init?</h3>
-<p>C89 static initializers can't include loops, and writing out every byte's flags explicitly made the source very noisy. A one-time initializer trades one branch on the first parse call for a much more readable declaration. The check is predicted cold after the first parse.</p>
-<h2 id="fast-string-scanning">Fast string scanning</h2>
-<p><code>parse_string_raw</code> is two-phase:</p>
-<ol><li><strong>Pre-scan</strong>, walk forward from the opening <code>"</code>, skipping <code>\\&lt;byte&gt;</code> pairs verbatim, until the closing <code>"</code> is found. This gives us the exact span length. We allocate a decode buffer of <code>span + 1</code> bytes in the arena, tight upper bound because JSON escapes cannot <em>grow</em> their output (a 6-byte <code>\uXXXX</code> decodes to at most 3 UTF-8 bytes; a 12-byte surrogate pair to 4).</li><li><strong>Decode</strong>, walk again, this time with the LUT fast loop:</li></ol>
-<pre><code>   <span class="kw">while</span> (s-&gt;p &lt; s-&gt;end &amp;&amp; (CC(*s-&gt;p) &amp; CC_STR_OK)) {
-       p_advance(s);  <span class="com">// tight loop, no branches except loop condition</span>
-   }
-   memcpy(dst + di, run_start, run_len);</code></pre>
-<p>When the fast loop exits we look at exactly one byte and dispatch: close-quote, escape, control char (reject), or non-ASCII (UTF-8 DFA).</p>
-<h3 id="the-critical-bug-the-pre-scan-prevents">The critical bug the pre-scan prevents</h3>
-<p>The first rewrite didn't pre-scan. It allocated <code>max_len = s-&gt;end - s-&gt;p</code> bytes per string as an upper bound on decoded length. That's fine for one string in a small document, but for <code>large.json</code> with 676k strings each allocating the remaining input size, the arena exploded to gigabytes before the process was killed.</p>
-<p>The pre-scan turns per-string allocation into <code>O(string bytes)</code> instead of <code>O(remaining document bytes)</code>. Without it, correctness degrades into an OOM long before throughput becomes interesting.</p>
-<h2 id="utf-8-validation-hoehrmanns-dfa">UTF-8 validation: Hoehrmann's DFA</h2>
-<p>Non-ASCII bytes in strings go through a ~30-line state machine from <a href="http://bjoern.hoehrmann.de/utf-8/decoder/dfa/">Bjoern Hoehrmann's 2010 paper</a>. Public domain, easy to verify against the reference, rejects every malformed case RFC 3629 forbids: overlongs, surrogate halves, codepoints &gt; U+10FFFF, continuation bytes in lead position.</p>
-<p>The DFA state <code>UTF8_ACCEPT = 0</code> starts a new codepoint, <code>UTF8_REJECT = 12</code> latches an error, any other value means mid-sequence. Per-byte cost: one table load + two arithmetic ops, much cheaper than branching on each byte's bit pattern.</p>
-<h2 id="simd-string-fast-loop">SIMD string fast-loop</h2>
-<p>The string parser's inner loop skips over "safe" printable ASCII bytes (&gt;= 0x20, &lt; 0x80, not <code>"</code>, not <code>\</code>). That loop is in the hot path of every non-trivial JSON document and is embarrassingly parallel, each byte is classified in isolation.</p>
-<p><code>scan_str_safe()</code> picks one implementation at <strong>compile time</strong>, never at runtime:</p>
-<ul><li><code>__SSE2__</code> → SSE2 kernel (16-byte vectors). SSE2 is the AMD64 baseline, so this lights up on every x86_64 CI row without any extra flags. Uses <code>_mm_cmpeq_epi8</code> for quote/backslash + a signed-compare trick (<code>_mm_cmplt_epi8(v, 0x20)</code>) that flags both control chars (0x00-0x1F) and non-ASCII (0x80-0xFF) in a single instruction, then <code>_mm_movemask_epi8</code> + <code>__builtin_ctz</code> for "offset of first unsafe byte."</li><li><code>__ARM_NEON &amp;&amp; __aarch64__</code> → NEON kernel. Same classification as SSE2, different intrinsics. NEON lacks <code>movemask</code>, so we use the canonical <code>vshrn_n_u16</code> narrow-to-nibbles trick to produce a u64 where each input byte contributes 4 bits, <code>__builtin_ctzll &gt;&gt; 2</code> gives the first-set-byte offset.</li><li>fallback → a scalar loop over the CC_STR_OK lookup table. Byte-at- a-time but branch-predictor-friendly. Active on WASM, embedded, or any target that lacks both intrinsic headers.</li></ul>
-<p>All three produce byte-identical results, SIMD is purely additive acceleration, never a semantic shift. The SIMD path always leaves a scalar tail loop to clean up 0-15 bytes at the end. No runtime feature detection = no per-call branch cost on the happy path.</p>
-<p>Line/col accounting stays correct because safe bytes are by definition</p>
-<blockquote>= 0x20, so no newline can ever appear inside a SIMD chunk: the string</blockquote>
-<p>loop bumps col by the run length without checking for '\n'.</p>
-<p>Why not SIMD for UTF-8 validation or structural scan? Those either need tape-based output (structural) or have significantly more state to track (UTF-8 DFA state carries across bytes). The string fast-loop is the one place SIMD drops in with no architectural follow-through. If a profile ever puts parse throughput ahead of everything else, the next structural step is tape representation, not more SIMD.</p>
-<h2 id="number-parsing-validate--dispatch">Number parsing: validate + dispatch</h2>
-<p>RFC 8259 numbers have a strict grammar: <code>[ minus ] int [ frac ] [ exp ]</code> where <code>int</code> rejects leading zeros. We walk the grammar explicitly <strong>and accumulate all three fields in a single pass</strong>, sign, integer mantissa (int64), fractional mantissa (int64) with digit count, signed exponent.</p>
-<p>Three paths, chosen by which accumulators are in-range:</p>
-<ol><li><strong>Pure-integer path.</strong> No <code>.</code>, no <code>e/E</code>, int accumulator hasn't overflowed. Return <code>(double)int_acc</code> (signed). No <code>strtod</code> call.</li><li><strong>Fast-double path.</strong> Total significant digits ≤ 15 (double's fully-exact range) and |effective exponent| ≤ 22 (where <code>POW10_POS[n]</code> is exactly representable in a double). Fuse int and frac into one integer mantissa, multiply/divide by <code>POW10_POS[|exp|]</code> once. One multiply, one cast, one negate.</li><li><strong>Fallback.</strong> Any of the above conditions fails, typically 16+ significant digits, huge exponents, denormals, or overflow of the int64 mantissa. Hand the validated span off to <code>strtod</code> for correctly-rounded IEEE-754. Guarantees we never silently return a wrong double.</li></ol>
-<p>Paths 1 and 2 cover essentially every config file, API response, and log record we've benchmarked. Path 3 is reserved for scientific data sets, cryptographic constants, and similar edge-case corpora.</p>
-<p>The <code>POW10_POS</code> table tops out at <code>1e22</code> because doubles can exactly represent powers of ten only through that index; past 22 the <code>strtod</code> fallback is the only correct answer.</p>
-<h2 id="containers-flat-arrays--one-indirection-for-objects">Containers: flat arrays + one indirection for objects</h2>
-<p><code>JsonValue::arr</code> is <code>{ JsonValue** items; uint32_t count, capacity }</code>, a pointer to an arena-owned array plus inline count/capacity.</p>
-<p><code>JsonValue::obj</code> holds the same count/capacity pair inline but reaches its three parallel arrays through a single <code>JsonObjBlock*</code>:</p>
-<pre><code><span class="kw">typedef</span> <span class="kw">struct</span> JsonObjBlock {
-    <span class="kw">const</span> <span class="kw">char</span>** keys;
-    <span class="kw">uint32_t</span>*    key_lens;
-    JsonValue**  values;
-} JsonObjBlock;</code></pre>
-<p>Reading an object field is <code>obj-&gt;data.obj.blk-&gt;values[i]</code> one extra pointer load compared to inlining the three arrays in <code>JsonValue</code>. The payoff is that the <code>obj</code> union variant is 16 bytes instead of 32, which collapses <code>sizeof(JsonValue)</code> from 48 to 32 and lets two values share a 64-byte cache line on every machine we care about (see the next section). Since every non-trivial object access is going to miss cache <em>somewhere</em>, either on the value struct or on the block, putting the indirection at the block level is essentially free, and halving the value struct's footprint pays back across the whole parsed tree.</p>
-<p>Growth uses simple doubling with an initial capacity of <code>JSON_CONTAINER_INITIAL_CAP</code> (= 8). Realistic JSON objects cluster in the 5–15 key range, so starting at 8 skips one doubling cycle in the common case; tiny objects waste a few unused pointers which round-off into the arena anyway. Old buffers become arena garbage until the arena is freed, waste is bounded by <code>O(final size)</code> per container.</p>
-<p><strong>Iteration order.</strong> The parallel-array layout means objects iterate in insertion order by construction, the parser appends to the tail as it reads each <code>key: value</code> pair, and the builder's <code>json_object_set_raw</code> does the same on first insert. The public iteration API (<code>json_object_size_raw</code> / <code>json_object_key_at</code> / <code>json_object_value_at</code>, and the Aether-side <code>object_entry(obj, i)</code> wrapper) commits to this order: parsed JSON iterates in the order keys appeared in the source, built JSON iterates in the order <code>object_set</code> was called. Callers that need sorted iteration copy the keys and sort.</p>
-<h2 id="jsonvalue-sizing">JsonValue sizing</h2>
-<pre><code><span class="kw">struct</span> JsonValue {
-    <span class="kw">uint8_t</span> type;           <span class="com">// 1</span>
-    <span class="kw">uint8_t</span> flags;          <span class="com">// 1  (JV_FLAG_ROOT | JV_FLAG_HEAP_STRUCT | JV_FLAG_INTEGER)</span>
-    <span class="kw">uint8_t</span> _pad[<span class="num">6</span>];        <span class="com">// 6, needed to align the union at offset 8</span>
-    <span class="kw">union</span> {
-        <span class="kw">int</span>       boolean;                          <span class="com">// 4</span>
-        <span class="kw">double</span>    number;                           <span class="com">// 8</span>
-        <span class="kw">long</span> <span class="kw">long</span> integer;                          <span class="com">// 8, used when JV_FLAG_INTEGER set</span>
-        <span class="kw">struct</span> { <span class="kw">const</span> <span class="kw">char</span>* data; <span class="kw">uint32_t</span> length; } str;  <span class="com">// 16</span>
-        <span class="kw">struct</span> { JsonValue** items; <span class="kw">uint32_t</span> c, cap; } arr; <span class="com">// 16</span>
-        <span class="kw">struct</span> { JsonObjBlock* blk; <span class="kw">uint32_t</span> c, cap; } obj; <span class="com">// 16</span>
-    } data;                 <span class="com">// 16 bytes, widest variant is str / arr / obj</span>
-    Arena* arena;           <span class="com">// 8, set on root only (interior: NULL)</span>
-};                          <span class="com">// 32 bytes total</span></code></pre>
-<p>Two values per 64-byte cache line. That matters because every parsed tree is a graph of JsonValues pointing at JsonValues; fewer cache lines touched per traversal is a direct throughput win, with no change to any code that reads the fields.</p>
-<p>The <code>_pad[6]</code> after <code>type</code>/<code>flags</code> is forced by the union's 8-byte alignment (it contains a <code>double</code>). The <code>arena</code> pointer lives on the root only, interior values keep it <code>NULL</code> and use it as a "is-this-a-root" marker when the mutation path needs to branch.</p>
-<h3 id="object-lookup-linear-scan">Object lookup: linear scan</h3>
-<p><code>json_object_get_raw</code> does a byte-by-byte <code>memcmp</code> walk across all keys. The typical object in API responses has &lt;20 keys; linear scan beats hashing at those sizes because branch prediction is perfect. The <code>key_lens[]</code> array lets us reject mismatched lengths in a single integer compare before touching <code>memcmp</code>.</p>
-<p>For objects with hundreds of keys this becomes O(n) and pathological. If that pattern ever shows up in profiles we'd switch to a sorted keys representation and binary search, or a tiny open-addressed hash for objects above some threshold. Not v1.</p>
-<h2 id="error-reporting">Error reporting</h2>
-<p>Positioned errors funnel through <code>err_set(line, col, fmt, ...)</code> which formats into a <code>_Thread_local</code> buffer. Input-level failures with no cursor position (null input, arena-create OOM in <code>json_parse_raw_n</code>) go through a separate <code>err_set_no_pos(reason)</code>. Both share the <strong>first error wins</strong> rule: once <code>g_json_err_set</code> is true, subsequent calls no-op. This preserves the innermost diagnostic, which is almost always the most specific.</p>
-<p>Position accuracy is maintained by <code>p_advance(s)</code> every cursor motion goes through it, incrementing <code>line</code> on <code>\n</code> and <code>col</code> otherwise. The fast string loop calls <code>p_advance</code> in every iteration (not just on the escape branch), which costs a little throughput but keeps error messages like "expected <code>:</code> at 3:17" correct.</p>
-<h3 id="structured-error-pilot">Structured-error pilot</h3>
-<p>The base parser surfaces errors via <code>err_set</code> (human string) plus the <code>g_json_err_buf</code> thread-local. The structured-error pilot adds a parallel surface that callers can switch on programmatically without parsing English:</p>
-<ul><li><code>g_json_err_kind</code> one of <code>AETHER_JSON_KIND_*</code> (<code>OK</code>, <code>PARSE_ERROR</code>, <code>OUT_OF_MEMORY</code>, <code>INVALID_INPUT</code>). <code>err_set</code> only ever assigns <code>OUT_OF_MEMORY</code> or <code>PARSE_ERROR</code>: OOM detection is a single-site <code>strstr(msg, "out of memory")</code> check, so the dozens of existing <code>err_set("out of memory ...")</code> sites need no change, and everything else falls through to <code>PARSE_ERROR</code>. <code>INVALID_INPUT</code> comes only from <code>err_set_no_pos</code>, which handles the null/empty-input path.</li><li><code>g_json_err_line</code> / <code>_col</code> the same 1-based position the human message reports, but as integers for callers that want to point at source.</li><li><code>json_last_error_kind()</code> / <code>_line()</code> / <code>_col()</code> public C accessors for the three thread-locals. Aether-side wrappers in <code>std/json/module.ae</code> re-export them.</li><li><code>parse_strict(json_str) -&gt; (ptr, int, string)</code> Aether wrapper that returns <code>(value, kind, message)</code> per call. The kind is read from the thread-local immediately after parse so concurrent callers from different threads each see their own; the tuple shape is the canonical structured-error shape from the std.fs pilot.</li></ul>
-<p>KIND values (<code>AETHER_JSON_KIND_*</code> macros + <code>std.json.KIND_*</code> int exports) are intentionally a subset that overlaps <code>std.fs.KIND_*</code> where the meanings align (<code>OK</code>, <code>OUT_OF_MEMORY</code>, <code>INVALID_INPUT</code>), so callers mixing fs and json calls can switch on either surface in the same <code>if</code> chain.</p>
-<p>The existing <code>parse(json_str) -&gt; (ptr, string)</code> surface is unchanged and remains the recommended path for callers that just need "succeeded / failed with this string." <code>parse_strict</code> is opt-in.</p>
-<h2 id="depth-limit">Depth limit</h2>
-<p>Hard cap at <code>JSON_MAX_DEPTH = 256</code>. Enforced on every container entry via <code>parse_value_depth(depth + 1)</code>. Prevents both stack overflow on pathological input and denial-of-service via deeply nested JSON bombs (which DOS many naive parsers). No way to disable at runtime, it's a bounded recursion guarantee, not a configurable limit.</p>
-<h2 id="thread-safety">Thread safety</h2>
-<p>The parser itself is <strong>reentrant and thread-safe</strong>, there is no mutable global state during parse. The five <code>_Thread_local</code> globals (<code>g_json_err_buf</code>, <code>g_json_err_set</code>, and the structured-error trio <code>g_json_err_kind</code> / <code>_line</code> / <code>_col</code>) and the <code>JSON_CC_RW</code> init flag isolate per-thread parses from each other. Two threads parsing concurrently hold independent arenas and see independent error slots.</p>
-<p><code>cc_init</code>'s first-run race is benign (both threads write the same bytes).</p>
-<h2 id="structural-headroom">Structural headroom</h2>
-<p>Three deliberate structural choices bound how far the parser can go without a larger rewrite. Each one trades a specific complexity cost for its current behaviour, and each has a concrete path forward if the bound starts to pinch.</p>
-<h3 id="tape-representation-deferred-path-documented">Tape representation (deferred, path documented)</h3>
-<p>The fastest contemporary JSON parsers store parsed values in a flat slot array ("tape") with parent/child relationships encoded as sibling offsets. That layout is maximally cache-dense for traversal but assumes the whole tree is written once and never mutated, "insert a child" would invalidate every downstream sibling offset.</p>
-<p>Our <code>json_object_set</code> / <code>json_array_add</code> mutation APIs let callers add arbitrary children to parsed trees, including heap-created values from <code>json_create_*</code>. A pure tape can't absorb those without a full rebuild.</p>
-<p>The path forward is <strong>dual representation with copy-on-mutate</strong>:</p>
-<ul><li><code>json.parse</code> produces a flat tape for the parsed document.</li><li><code>json.array_add</code> / <code>json.object_set</code> on a tape-backed value promotes the affected subtree to the existing tree representation once (one deep-copy), flips a flag on the root, then mutates as today.</li><li>Subsequent calls on the promoted root skip the conversion.</li><li>Accessors (<code>object_get</code>, <code>array_get</code>, <code>get_*</code>, …) branch on the tape/tree flag once to pick the right code path.</li></ul>
-<p>What's deferred about this is the breadth of the change, not the design. Every accessor gains a dispatch branch; the mutation path gets a new OOM mode (copy allocation can fail mid-tree); every test needs two flavours. That's worth doing, but it's a standalone review cycle, not a rider on an incremental perf pass. The change-point names the files in "When to change what" below.</p>
-<h3 id="full-simd-parsing-not-on-the-roadmap">Full SIMD parsing (not on the roadmap)</h3>
-<p>Vectorised parsers classify every byte into "structural / whitespace / string-char / escape" with a single wide compare, producing a bitmap the parser walks. The bitmap is only useful if the parser writes tape slots; producing a tree of <code>JsonValue*</code> from the bitmap adds back all the branches the SIMD was meant to save.</p>
-<p>So a full-SIMD path is a tape-path with different input. The targeted SIMD kernel we do ship (<code>scan_str_safe</code>) lives inside the string parser where it drops in cleanly and coexists with a scalar fallback that's always compiled. Anything beyond that depends on tape landing first.</p>
-<h3 id="things-we-deliberately-dont-do">Things we deliberately don't do</h3>
-<ul><li><strong>Streaming / incremental parsing</strong>, everything is parsed into memory in one go. JSON payloads that don't fit in RAM are rare and streaming complicates both the arena and the error-reporting path.</li><li><strong>UTF-16 / UTF-32 input</strong>, RFC 8259 mandates UTF-8. We reject anything else at the byte layer.</li><li><strong>Canonical JSON output / pretty-printing</strong>, <code>json_stringify_raw</code> emits compact JSON. A pretty option is a trivial add if asked for.</li><li><strong>Schema validation</strong>, not a parser concern.</li><li><strong>Runtime CPU feature detection</strong>, compile-time dispatch only. If a binary is built for a target that has SSE2, it uses SSE2 everywhere that target runs. No dispatch cost on the happy path.</li></ul>
-<h2 id="testing-surface">Testing surface</h2>
-<ul><li><strong><code>tests/runtime/test_runtime_json.c</code></strong>, C-level unit tests, 8 tests covering parse/create/stringify for each type.</li><li><strong><code>tests/regression/test_json_*.ae</code></strong>, Aether-level regression tests for edge cases (escapes, Unicode, RFC rejection, position errors, error tuples, edge-case wrappers).</li><li><strong><code>tests/conformance/json/</code></strong>, 318-file JSONTestSuite corpus. <code>make test-json-conformance</code> checks every file. Gates CI on <code>y_*</code> + <code>n_*</code> (283 cases); records <code>i_*</code> (35 cases) as implementation-defined.</li><li><strong><code>make test-json-asan</code></strong>, parses the bench corpus under <code>-fsanitize=address,undefined</code>. Catches leaks, OOB, UB.</li><li><strong><code>make test-json-valgrind</code></strong>, Valgrind run where available.</li><li><strong><code>make bench-json</code> / <code>make bench-json-compare</code></strong>, reproducible benchmark harness; see <a href="https://github.com/aether-lang-dev/aether/blob/main/benchmarks/json/baseline.md">benchmarks/json/baseline.md</a> for the methodology. Absolute throughput numbers are not committed, run the harness on the machine you care about.</li></ul>
-<h2 id="when-to-change-what">When to change what</h2>
-<div class="tw"><table><thead><tr><th>If you want to …</th><th>Change</th></tr></thead><tbody><tr><td>Land tape representation</td><td>New <code>TapeSlot</code> struct + <code>JV_FLAG_TAPE</code> flag on <code>JsonValue</code>; rewrite <code>parse_value_depth</code>/<code>parse_array</code>/<code>parse_object</code> to produce tape slots; add <code>tape_promote_to_tree()</code> helper called lazily from the mutators; branch in every accessor on <code>flags &amp; JV_FLAG_TAPE</code>.</td></tr><tr><td>Add SIMD for structural scan (tape-only)</td><td>New <code>scan_structurals()</code> beside <code>scan_str_safe</code>, called from the tape parser. Needs tape to land first.</td></tr><tr><td>Improve object lookup for large objects</td><td>Threshold-based switch in <code>json_object_get_raw</code>: linear scan below ~32 keys, open-addressed hash above.</td></tr><tr><td>Resize the object backing block</td><td><code>JsonObjBlock</code> lives behind <code>JsonValue::data.obj.blk</code>. Adding a fourth parallel array (e.g. cached hash) goes here.</td></tr><tr><td>Support streaming</td><td>New <code>json_parse_stream</code> API + state object. Would likely need its own arena-resetting allocator.</td></tr><tr><td>Change max depth</td><td><code>JSON_MAX_DEPTH</code> near top of file.</td></tr><tr><td>Add a pretty-print mode</td><td>New flag in a <code>json_stringify_opts</code> struct, new builder path.</td></tr><tr><td>Tune arena chunk sizes</td><td><code>ARENA_INITIAL_CHUNK</code>, <code>ARENA_MAX_AUTO_CHUNK</code>.</td></tr><tr><td>Track another error field</td><td>Extend <code>JSON_ERR_REASON_BUF</code>, update <code>err_set</code>.</td></tr><tr><td>Raise the fast-double digit cap</td><td><code>FAST_INT_SAFE_DIGITS</code>; only safe up to 15 for double-exactness. Past that, <code>strtod</code> is the only correct answer.</td></tr><tr><td>Add AVX2 string scan (32-byte block)</td><td>New <code>#if defined(__AVX2__)</code> branch in <code>scan_str_safe</code>. Same shape as SSE2, wider vectors. Keep all existing branches.</td></tr></tbody></table></div>
-<p>Each of these is a localized change. The one-file design is the whole point: a new contributor reads this doc, scans the source, and can change any single row of the table above without touching the others.</p>
-<nav class="doc-prevnext" aria-label="Previous and next page"><a class="pn-prev" href="/Docs/compiler-trust-boundary.html"><span class="pn-k">Previous</span><span class="pn-t">The Compiler Trust Boundary</span></a><a class="pn-next" href="/Docs/aether_compared_to_capsicum.html"><span class="pn-k">Next</span><span class="pn-t">Aether Sandbox Model vs. BSD Capsicum: Architecture, Parallels, and FreeBSD Integration</span></a></nav>
+        <div class="bc"><span class="prompt">$</span>docs / testing</div>
+<h1 id="testing-with-stdspec-and-ae-test">Testing with <code>std.spec</code> and <code>ae test</code></h1>
+<p>Aether ships a BDD-style test framework in the standard library (<code>std.spec</code>) and a discovery runner in the toolchain (<code>ae test</code>). Together they cover the common shape: describe a suite, write <code>it</code> cases, assert with a flat or fluent API, and run every <code>test_*.ae</code> / <code>*_test.ae</code> file with one command.</p>
+<p><code>std.spec</code> is the pure, dependency-light core of the standalone <a href="https://github.com/aether-lang-dev/aeocha">aeocha</a> framework, folded into the stdlib. The process- and HTTP-shaped integration matchers and the mutation-testing facility remain in aeocha; <code>std.spec</code> is <code>describe</code>/<code>it</code>/hooks, the assertion families, and structured reporting.</p>
+<h2 id="a-first-test">A first test</h2>
+<p><code>std.spec</code> is a normal stdlib module, no install step, no <code>--lib</code>:</p>
+<pre><code>import std.spec
+
+main() {
+    fw = spec.init()
+
+    spec.describe(fw, "calculator") {
+        spec.it("adds two numbers") callback {
+            spec.assert_eq(2 + 3, 5, "2 + 3")
+        }
+        spec.it("prefers the fluent style") callback {
+            spec.expect_int(abs(-7)).to_equal(7)
+        }
+    }
+
+    spec.run_summary(fw)
+}</code></pre>
+<p>Run it directly:</p>
+<pre><code>ae run calc_test.ae</code></pre>
+<p>or let the runner discover it:</p>
+<pre><code>ae test              <span class="com"># every test_*.ae / *_test.ae under tests/</span>
+ae test calc_test.ae <span class="com"># a single file</span>
+ae test path/to/dir  <span class="com"># a directory (its tests/ subdir if present, else itself)</span></code></pre>
+<p>Each test file is a standalone program with its own <code>main()</code>. <code>ae test</code> compiles and runs each one and reads its <strong>process exit code</strong>: <code>0</code> means all assertions passed, non-zero means at least one failed. <code>spec.run_summary(fw)</code> prints the totals and calls <code>exit(1)</code> when any failure was recorded, so the exit-code contract is automatic.</p>
+<h2 id="suites-context-and-hooks">Suites, context, and hooks</h2>
+<p><code>init()</code> returns a framework context and makes it the process's <em>ambient</em> framework. The top-level <code>describe</code> and <code>run_summary</code> take that <code>fw</code>; everything nested inside a suite omits it, because Aether injects the suite context (<code>_ctx</code>) into the trailing block.</p>
+<pre><code>spec.describe(fw, "outer") {
+    spec.describe("inner") {           // no fw, injected
+        spec.before_each() callback { reset() }
+        spec.after_each() callback { close_resources() }
+        spec.it("does something") callback { /* ... */ }
+    }
+}</code></pre>
+<p><code>before_each</code> runs outermost-to-innermost, <code>after_each</code> innermost-to-outermost, and both are inherited by descendant suites. One framework is supported per process, a second <code>init()</code> rebinds the ambient context.</p>
+<p>Because a passing run <em>returns</em> (rather than exiting), a test that starts a long-running actor or server should stop it or end <code>main()</code> with an explicit <code>exit(0)</code>.</p>
+<h2 id="assertions">Assertions</h2>
+<p>Failures are <strong>soft</strong>: a failed assertion records the failure, prints it, and returns, so several checks in one <code>it</code> all report. Any recorded failure makes that <code>it</code> red.</p>
+<h3 id="flat-assertions">Flat assertions</h3>
+<pre><code>spec.assert_eq(count, 4, "four jobs")          // int equality
+spec.assert_not_eq(a, b, "distinct")
+spec.assert_gt(size, 0, "non-empty")
+spec.assert_true(ok, "the thing worked")
+spec.assert_false(flag, "flag is clear")
+spec.assert_str_eq(name, "Ada", "user name")   // exact string equality
+spec.assert_str_eq_diff(got, want, "payload")  // caret under first diff
+spec.assert_contains(body, "world", "greeting")
+spec.assert_null(ptr, "was freed")
+spec.assert_not_null(user, "was loaded")</code></pre>
+<h3 id="asserting-on-the-failure-path">Asserting on the failure path</h3>
+<p><code>std</code> returns <code>(value, err)</code> throughout, <code>err</code> is <code>""</code> on success and a message on failure. Three matchers state that outcome directly:</p>
+<pre><code>v, err = thing.parse(input)
+spec.assert_ok(err, "parse should accept good input")
+
+v, err = thing.parse(bad)
+spec.assert_err(err, "parse should reject bad input")
+spec.assert_err_contains(err, "unexpected token", "and should say why")</code></pre>
+<p>Prefer these over <code>assert_true(err != "", ...)</code>. That form reports only "expected true" and <strong>discards the error string</strong>, so a failing test tells you nothing about what went wrong; <code>assert_ok</code> prints the error it got. It also reads as a mechanism rather than an outcome.</p>
+<p><code>assert_err_contains</code> matches a substring on purpose: a test pins the <em>reason</em> without pinning the exact wording, so rephrasing a message does not break every spec that asserts on it.</p>
+<p><code>assert_ok</code> is worth reaching for even when the call "obviously" succeeds, it is the one people omit, and a suite with only error-path assertions stays green while the success path rots.</p>
+<p><code>assert_str_eq_diff</code> aligns the two values and points a caret at the first differing byte, reach for it when a plain "expected X got Y" would bury the difference in a long string.</p>
+<h3 id="fluent-assertions">Fluent assertions</h3>
+<p>A subject-first, chainable facade over the same soft-failure machinery:</p>
+<pre><code>spec.expect_int(count).to_be_gt(0).to_equal(4)
+spec.expect_int(exit_code).not_().to_equal(1)
+spec.expect_str(name).to_start_with("ae").to_contain("the")</code></pre>
+<p>Integer and string starters are separate because Aether has no receiver-type overloading, so string equality is <code>to_equal_str</code> while integer equality is <code>to_equal</code>. <code>not_()</code> negates the next matchers on an integer subject (start a fresh <code>expect_int</code> to return to positive matching). <code>satisfies</code> / <code>satisfies_str</code> drop an arbitrary <code>fn(value) -&gt; 1/0</code> predicate into the chain.</p>
+<p>Available matchers: <code>to_equal</code>, <code>to_be_gt</code>, <code>to_be_lt</code>, <code>to_be_truthy</code>, <code>to_be_falsy</code> (int); <code>to_equal_str</code>, <code>to_contain</code>, <code>to_start_with</code> (string); <code>satisfies</code>, <code>satisfies_str</code> (both).</p>
+<h4 id="saying-why-a-check-matters">Saying <em>why</em> a check matters</h4>
+<p>Every value-comparison matcher takes an optional trailing message. The generated text tells you <em>what</em> the values were; the message tells a failing-CI triager <em>why</em> the check exists, which is the part the values cannot convey:</p>
+<pre><code>spec.expect_str(egress_fqdn_csv("python_vm"))
+    .to_equal_str(want, "a node's egress set is exactly its declared whitelist")
+spec.expect_int(n).to_be_gt(0, "a derived attempt budget is never zero")</code></pre>
+<pre><code>FAIL: a node's egress set is exactly its declared whitelist, strings differ at index 14
+        expected: "api.github.com, api.anthropic.com"
+        actual:   "api.github.com"
+                                 ^</code></pre>
+<p>The message is optional, so existing chains are unaffected and a single chain can annotate only the links that need it (<code>.to_be_gt(0).to_equal(7, "why")</code>). Omit it and the wording is exactly what it always was.</p>
+<p><code>to_equal_str</code> switches to the caret-aligned diff (the same form <code>assert_str_eq_diff</code> uses) once either string is long enough that eyeballing a quoted pair stops working, on a long whitelist the index and caret are what actually locate the differing byte. Short strings keep the compact <code>expected 'x', got 'y'</code> form.</p>
+<h3 id="extending-the-fluent-chain">Extending the fluent chain</h3>
+<p><code>IntSubject</code> and <code>StrSubject</code> are exported. A free function whose first parameter is one of those types participates in Aether's UFCS method syntax, no base class, no registration:</p>
+<pre><code>to_be_even(s: spec.IntSubject, msg: string) -&gt; spec.IntSubject {
+    if s.value % 2 != 0 { spec.fail("${msg}, ${s.value} is not even") }
+    return s
+}
+
+spec.expect_int(count).to_be_gt(0).to_be_even("even count")</code></pre>
+<p>Return the subject so callers can keep chaining. A flat custom matcher is even simpler, any function that calls <code>spec.fail(msg)</code>:</p>
+<pre><code>expect_prime(n: int, msg: string) {
+    if !is_prime(n) { spec.fail("${msg}, ${n} is not prime") }
+}</code></pre>
+<h3 id="collection-matchers">Collection matchers</h3>
+<p>Operate on a <code>std.list</code> of strings, the common shape for captured lines, names, or ids:</p>
+<pre><code>spec.expect_list_size(xs, 3, "three rows")
+spec.expect_list_empty(ys, "nothing pending")
+spec.expect_list_has_str(xs, "alpha", "has alpha")
+spec.expect_list_contains_all(xs, wanted, "all present")   // order-independent
+spec.expect_list_every(xs, is_nonempty, "no blanks")       // empty passes</code></pre>
+<h3 id="timing-budgets">Timing budgets</h3>
+<p><code>it_within</code> runs a normal test and <em>also</em> fails it when the body meets or exceeds a <code>Duration</code> budget:</p>
+<pre><code>spec.it_within("responds promptly", 50ms) callback {
+    call_service()
+}</code></pre>
+<p><code>expect_elapsed_under</code> does the same comparison for a monotonic-ns span the caller measures itself:</p>
+<pre><code>t0 = os.now_monotonic_ns()
+do_work()
+spec.expect_elapsed_under(os.now_monotonic_ns() - t0, 50ms, "fast path")</code></pre>
+<p>Use monotonic-clock deltas (not wall-clock), only the delta is meaningful and a wall jump would corrupt it.</p>
+<h3 id="skipping-a-test-whose-dependency-may-be-absent">Skipping a test whose dependency may be absent</h3>
+<p>A spec whose subject may not exist on the host, a host-language bridge, a driver, a daemon, a system library, needs a third outcome besides pass and fail. Failing presents a <em>provisioning</em> gap as a code defect (and gets the test deleted from the sweep); passing silently is worse, because a box that skips everything then looks exactly like a box that passes everything.</p>
+<pre><code>have_ruby = 0
+if ruby.ruby_init_host() == 0 { have_ruby = 1 }
+
+spec.describe(fw, "contrib.host.ruby") {
+    spec.it_when(have_ruby, "evaluates a script", "libruby not loadable") callback {
+        spec.assert_eq(ruby.ruby_run("$x = 1"), 0, "eval")
+    }
+}</code></pre>
+<pre><code>contrib.host.ruby
+  ⊘ evaluates a script  (skipped: libruby not loadable)
+
+  0 passing
+  5 skipped</code></pre>
+<p>Exit status is 0, a skip is not a failure, but the count is on stdout and <code>skipped=N</code> is in the structured report, so a degraded box is visible rather than quietly green.</p>
+<div class="tw"><table><thead><tr><th>verb</th><th>use for</th></tr></thead><tbody><tr><td><code>it_when(cond, desc, reason)</code></td><td>dependency gating, the common case. <code>cond</code> is a plain int the caller computes, keeping the probe visible at the call site.</td></tr><tr><td><code>skip_it(desc, reason)</code></td><td>a <strong>permanent</strong> exclusion (known-broken path, unsupported platform) where the body is kept for the day it is re-enabled.</td></tr><tr><td><code>skip_all_if(fw, cond, reason)</code></td><td>file-level bail-out; returns 1 when the caller should <code>return</code>. The condition is evaluated eagerly, so guard an expensive probe yourself.</td></tr></tbody></table></div>
+<p>Prefer <code>it_when</code> for anything that is really a missing dependency: an unconditional <code>skip_it</code> hides <em>why</em> it is skipped, which is the information a provisioning fix needs.</p>
+<h2 id="structured-reporting">Structured reporting</h2>
+<p>By default <code>ae test</code> prints human progress and a <code>PASS</code>/<code>FAIL</code> line per file. Machine-readable reporting is <strong>opt-in</strong> behind <code>--format</code>:</p>
+<pre><code>ae test --format=tap          <span class="com"># one aggregated TAP version 13 stream</span>
+ae test --format=aeocha-v1    <span class="com"># one aeocha v1 block per test file</span></code></pre>
+<p>In a report mode the per-file progress lines and the human summary are suppressed, so stdout carries only the machine stream; the process exit code still reflects pass/fail.</p>
+<h3 id="tap">TAP</h3>
+<p><code>--format=tap</code> emits a single <a href="https://testanything.org/">TAP version 13</a> document with the test points from every file renumbered into one sequence and the plan at the end. A failing case carries its captured message as a YAML diagnostic block:</p>
+<pre><code>TAP version 13
+ok 1 - adds two numbers
+ok 2 - prefers the fluent style
+not ok 3 - handles overflow
+  ---
+  message: "expected 5, got 6"
+  ...
+1..3</code></pre>
+<p>A test file that emits no structured report (a hand-rolled test that doesn't use <code>std.spec</code>, or one that crashes before <code>run_summary</code>) contributes a single point derived from its exit code.</p>
+<h3 id="aeocha-v1">aeocha v1</h3>
+<p><code>--format=aeocha-v1</code> emits the aeocha v1 report format, a <code>version=1</code> key/value header, a <code>---</code> separator, then tab-packed <code>PASS</code>/<code>FAIL</code> rows (status, index, quoted name, per-row nanosecond duration, and the failure message for a FAIL). <code>ae test</code> emits one block per file, each preceded by a <code># &lt;path&gt;</code> comment line, so multiple blocks are separable (split on <code>version=1</code>).</p>
+<h3 id="how-it-works-and-running-it-yourself">How it works (and running it yourself)</h3>
+<p>Under a <code>--format</code> flag, <code>ae test</code> hands each child two environment variables, <code>AE_SPEC_FORMAT</code> (the format name) and <code>AE_SPEC_REPORT</code> (a path), and <code>spec.run_summary</code> writes the report there. You can drive that directly without the runner:</p>
+<pre><code>AE_SPEC_FORMAT=tap AE_SPEC_REPORT=/tmp/out.tap ae run calc_test.ae
+cat /tmp/out.tap</code></pre>
+<p>With neither variable set, <code>run_summary</code> writes no report and the human <code>✓</code>/<code>✗</code> output is the only output, the default.</p>
+<h2 id="conventions">Conventions</h2>
+<ul><li>Name test files <code>test_*.ae</code> or <code>*_test.ae</code> so <code>ae test</code> discovers them (pytest / Go convention).</li><li>Keep test source canonically formatted; CI enforces it (<code>ae fmt tests</code>).</li><li>Assertions are soft, prefer several small <code>expect_</code>/<code>assert_</code> checks over one compound condition, so a failure names exactly what broke.</li></ul>
+<h2 id="see-also">See also</h2>
+<ul><li><a href="/Docs/stdlib-reference.html">Standard Library Reference</a>, the full stdlib surface.</li><li><a href="/Docs/closures-and-builder-dsl.html">Closures and Builder DSL</a>, the trailing-block / <code>_ctx</code> injection mechanism <code>describe</code>/<code>it</code> are built on.</li><li><a href="https://github.com/aether-lang-dev/aeocha">aeocha</a>, the upstream framework, including the process/HTTP integration matchers and mutation testing that live outside the stdlib.</li></ul>
+<h2 id="domain-matcher-arms-stdostesting-and-stdhttpclienthttptest">Domain matcher arms: <code>std.os.testing</code> and <code>std.http.client.httptest</code></h2>
+<p>The framework core (<code>std.spec</code>) is deliberately dependency-light. Two sibling modules carry the integration-shape matchers that consume other std surfaces, reporting through the same ambient framework cell, so they compose with <code>describe</code>/<code>it</code> and count into the same summary:</p>
+<ul><li><strong><code>import std.os.testing</code></strong>, process matchers over the <code>(stdout, exit, stderr)</code> triple from <code>os.run_capture</code>: <code>testing.expect_exit</code>, <code>testing.expect_no_spawn_error</code>, <code>testing.expect_stdout_contains</code> / <code>_line_count</code> / <code>_line_field</code> / <code>_line_after</code> / <code>_matches</code> / <code>_matches_regex</code>, and the stderr pair <code>testing.expect_stderr_contains</code> / <code>_empty</code>. They absorb the bash-shaped "spawn / capture / awk-and-compare" idiom into one call.</li><li><strong><code>import std.http.client.httptest</code></strong> (named per Go's <code>net/http/httptest</code>; the namespace tail must differ from <code>std.os.testing</code>'s), response-handle matchers (<code>httptest.expect_http_status</code> / <code>_no_error</code> / <code>_body_eq</code> / <code>_body_contains</code> / <code>_header</code> / <code>_body_json_field</code>), one-call GET/POST conveniences (<code>httptest.expect_http_get_status</code>, …), and the FluentSelenium-style one-shot retry budgets <code>httptest.within(2s)</code> / <code>httptest.without(2s)</code> that the convenience family honours.</li></ul>
+<p>Both are ported verbatim from the standalone aeocha framework, which retains its own copies (and the mutation-testing facility) for standalone use. See <code>tests/integration/std_testing_arms/probe.ae</code> for an end-to-end example driving both arms against real subprocesses and an in-process fixture server.</p>
+<h2 id="test-report-format-aeocha-v1--a-stable-versioned-contract">Test report format (aeocha-v1), a stable, versioned contract</h2>
+<p><code>std.spec</code>'s <code>run_summary</code> writes a machine-readable report to the path in <code>AE_SPEC_REPORT</code> when <code>AE_SPEC_FORMAT=aeocha</code> (or <code>aeocha-v1</code>) is set; <code>ae test --format=aeocha-v1</code> arranges both per child. Downstream tools (aeb's <code>aether.driver_test</code> reporting among them) parse this file, so its shape is a <strong>contract, not an implementation detail</strong>:</p>
+<pre><code>version=1
+total=&lt;N&gt;
+passed=&lt;N&gt;
+failed=&lt;N&gt;
+skipped=&lt;N&gt;
+errored=&lt;N&gt;
+duration_ms=&lt;N&gt;
+duration_ns=&lt;N&gt;
+---
+&lt;STATUS&gt;\t&lt;index&gt;\t"&lt;name&gt;"\t&lt;duration_ns&gt;[\t&lt;message&gt;]
+...</code></pre>
+<p><code>skipped=</code> was <strong>added</strong> under <code>version=1</code> (#1610), which the additive rule below permits, no version bump, and a consumer that does not know the key ignores it. Note <code>total</code> deliberately remains <code>passed + failed</code>: folding skips into it would <em>repurpose</em> an existing key, which the rules forbid. Rows for skipped tests carry <code>SKIP</code> as their <code>&lt;STATUS&gt;</code> and a duration of <code>0</code>, with the skip reason in the optional <code>&lt;message&gt;</code> field.</p>
+<p>The rules a consumer may rely on, and an editor must preserve:</p>
+<ol><li>The header is <code>key=value</code> lines, one per line, starting with <code>version=</code>. Within <code>version=1</code> the keys above keep their names and meanings. <strong>New keys may be added</strong> (consumers must ignore unknown keys); existing keys are never renamed, repurposed, or removed.</li><li>The header ends at the first <code>---</code> line (<code>\n---\n</code>); rows follow.</li><li>Each row is tab-separated: STATUS (<code>PASS</code>/<code>FAIL</code>), a 1-based index, the double-quoted test name, a duration (nanoseconds today, treat the unit as unspecified within v1 and do not compute from it), and, only when present, a trailing message field.</li><li><strong>Any change that breaks rules 1–3 bumps the leading <code>version=</code></strong> so a pinned consumer detects v2 instead of misparsing v1.</li></ol>
+<p><code>_format_aeocha_v1</code> in <code>std/spec/module.ae</code> is the single producer; it carries a pointer back to this section.</p>
+<h2 id="contribaeocha-is-retired"><code>contrib.aeocha</code> is retired</h2>
+<p>The aeocha framework was absorbed into the stdlib: <code>import std.spec</code> (core + fluent + collections + timing), <code>import std.os.testing</code> (process matchers), <code>import std.http.client.httptest</code> (HTTP matchers, <code>within</code>/<code>without</code>/<code>eventually</code>). No std or contrib module references <code>contrib.aeocha</code>, and nothing in a test's closure requires the aeocha repo or its old IPC-pipe report convention, the env-file transport above replaces it. Downstreams still importing <code>contrib.aeocha</code> from pre-spinout snapshots should migrate to the modules above; the standalone aeocha repo remains only as a thin compatibility facade plus its aeb IPC reporter and mutation-testing tool.</p>
+<nav class="doc-prevnext" aria-label="Previous and next page"><a class="pn-prev" href="/Docs/cross-ios.html"><span class="pn-k">Previous</span><span class="pn-t">Cross-compiling for iOS (arm64)</span></a><a class="pn-next" href="/Docs/mutation-testing.html"><span class="pn-k">Next</span><span class="pn-t">Mutation testing, std.mutation</span></a></nav>
       </article>
     </main>
-    <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#goals" class="l2" data-id="goals">Goals</a><a href="#memory-model-one-arena-per-parsed-document" class="l2" data-id="memory-model-one-arena-per-parsed-document">Memory model: one arena per parsed document</a><a href="#chunks-and-growth" class="l3" data-id="chunks-and-growth">Chunks and growth</a><a href="#why-not-a-tape" class="l3" data-id="why-not-a-tape">Why not a tape?</a><a href="#heap-path-for-json_create_" class="l3" data-id="heap-path-for-json_create_">Heap path for json_create_*</a><a href="#character-classification-via-a-256-entry-lut" class="l2" data-id="character-classification-via-a-256-entry-lut">Character classification via a 256-entry LUT</a><a href="#why-runtime-init" class="l3" data-id="why-runtime-init">Why runtime init?</a><a href="#fast-string-scanning" class="l2" data-id="fast-string-scanning">Fast string scanning</a><a href="#the-critical-bug-the-pre-scan-prevents" class="l3" data-id="the-critical-bug-the-pre-scan-prevents">The critical bug the pre-scan prevents</a><a href="#utf-8-validation-hoehrmanns-dfa" class="l2" data-id="utf-8-validation-hoehrmanns-dfa">UTF-8 validation: Hoehrmann's DFA</a><a href="#simd-string-fast-loop" class="l2" data-id="simd-string-fast-loop">SIMD string fast-loop</a><a href="#number-parsing-validate--dispatch" class="l2" data-id="number-parsing-validate--dispatch">Number parsing: validate + dispatch</a><a href="#containers-flat-arrays--one-indirection-for-objects" class="l2" data-id="containers-flat-arrays--one-indirection-for-objects">Containers: flat arrays + one indirection for objects</a><a href="#jsonvalue-sizing" class="l2" data-id="jsonvalue-sizing">JsonValue sizing</a><a href="#object-lookup-linear-scan" class="l3" data-id="object-lookup-linear-scan">Object lookup: linear scan</a><a href="#error-reporting" class="l2" data-id="error-reporting">Error reporting</a><a href="#structured-error-pilot" class="l3" data-id="structured-error-pilot">Structured-error pilot</a><a href="#depth-limit" class="l2" data-id="depth-limit">Depth limit</a><a href="#thread-safety" class="l2" data-id="thread-safety">Thread safety</a><a href="#structural-headroom" class="l2" data-id="structural-headroom">Structural headroom</a><a href="#tape-representation-deferred-path-documented" class="l3" data-id="tape-representation-deferred-path-documented">Tape representation (deferred, path documented)</a><a href="#full-simd-parsing-not-on-the-roadmap" class="l3" data-id="full-simd-parsing-not-on-the-roadmap">Full SIMD parsing (not on the roadmap)</a><a href="#things-we-deliberately-dont-do" class="l3" data-id="things-we-deliberately-dont-do">Things we deliberately don't do</a><a href="#testing-surface" class="l2" data-id="testing-surface">Testing surface</a><a href="#when-to-change-what" class="l2" data-id="when-to-change-what">When to change what</a></nav>
+    <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#a-first-test" class="l2" data-id="a-first-test">A first test</a><a href="#suites-context-and-hooks" class="l2" data-id="suites-context-and-hooks">Suites, context, and hooks</a><a href="#assertions" class="l2" data-id="assertions">Assertions</a><a href="#flat-assertions" class="l3" data-id="flat-assertions">Flat assertions</a><a href="#asserting-on-the-failure-path" class="l3" data-id="asserting-on-the-failure-path">Asserting on the failure path</a><a href="#fluent-assertions" class="l3" data-id="fluent-assertions">Fluent assertions</a><a href="#extending-the-fluent-chain" class="l3" data-id="extending-the-fluent-chain">Extending the fluent chain</a><a href="#collection-matchers" class="l3" data-id="collection-matchers">Collection matchers</a><a href="#timing-budgets" class="l3" data-id="timing-budgets">Timing budgets</a><a href="#skipping-a-test-whose-dependency-may-be-absent" class="l3" data-id="skipping-a-test-whose-dependency-may-be-absent">Skipping a test whose dependency may be absent</a><a href="#structured-reporting" class="l2" data-id="structured-reporting">Structured reporting</a><a href="#tap" class="l3" data-id="tap">TAP</a><a href="#aeocha-v1" class="l3" data-id="aeocha-v1">aeocha v1</a><a href="#how-it-works-and-running-it-yourself" class="l3" data-id="how-it-works-and-running-it-yourself">How it works (and running it yourself)</a><a href="#conventions" class="l2" data-id="conventions">Conventions</a><a href="#see-also" class="l2" data-id="see-also">See also</a><a href="#domain-matcher-arms-stdostesting-and-stdhttpclienthttptest" class="l2" data-id="domain-matcher-arms-stdostesting-and-stdhttpclienthttptest">Domain matcher arms: std.os.testing and std.http.client.httptest</a><a href="#test-report-format-aeocha-v1--a-stable-versioned-contract" class="l2" data-id="test-report-format-aeocha-v1--a-stable-versioned-contract">Test report format (aeocha-v1), a stable, versioned contract</a><a href="#contribaeocha-is-retired" class="l2" data-id="contribaeocha-is-retired">contrib.aeocha is retired</a></nav>
   </div>
 </div>
 <script src="/docs.js" defer></script>

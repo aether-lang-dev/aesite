@@ -4,11 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Aether as a Configuration Language for Other Languages · Aether</title>
-<meta name="description" content="A design exploration: using Aether's trailing-block DSL, hide/seal except,">
+<meta name="description" content="A design exploration: using Aether&#x27;s trailing-block DSL, hide/seal except, and closures as a configuration and wiring language embedded in host...">
 <link rel="canonical" href="https://aether-lang.dev/Docs/aether-embedded-in-host-applications.html">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Aether as a Configuration Language for Other Languages · Aether">
-<meta property="og:description" content="A design exploration: using Aether's trailing-block DSL, hide/seal except,">
+<meta property="og:description" content="A design exploration: using Aether&#x27;s trailing-block DSL, hide/seal except, and closures as a configuration and wiring language embedded in host...">
 <meta property="og:url" content="https://aether-lang.dev/Docs/aether-embedded-in-host-applications.html">
 <meta property="og:image" content="https://aether-lang.dev/og.png">
 <meta name="twitter:card" content="summary_large_image">
@@ -171,7 +171,7 @@ a{color:inherit;text-decoration:none}
 
 /* section head */
 .sec-head{display:flex;align-items:baseline;gap:14px;margin:0 0 22px}
-.sec-head h2{font-family:var(--mono);font-size:1.15rem;font-weight:700;letter-spacing:-.01em;margin:0}
+.sec-head h1,.sec-head h2{font-family:var(--mono);font-size:1.15rem;font-weight:700;letter-spacing:-.01em;margin:0}
 .sec-head .rule{flex:1;height:1px;background:var(--line)}
 
 /* code */
@@ -358,7 +358,7 @@ body::after{content:"";position:fixed;inset:0;z-index:3;pointer-events:none;opac
 
 /* prompt accents on section headings */
 .prompt{color:var(--red);margin-right:.5ch}
-.sec-head h2 .prompt{font-weight:400}
+.sec-head h1 .prompt,.sec-head h2 .prompt{font-weight:400}
 
 /* prompt-styled ghost button */
 .btn-term{font-family:var(--mono);font-size:14px;padding:11px 18px;border-radius:6px;
@@ -570,7 +570,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.473</span>
+      <span class="vtag">v0.553</span>
     </nav>
   </div>
 </header>
@@ -600,6 +600,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/memory-management.html">Aether Memory Management</a>
 <a href="/Docs/runtime-optimizations.html">Runtime Optimizations</a>
 <a href="/Docs/numa-support.html">NUMA Support in Aether</a>
+<a href="/Docs/message-tracing.html">Message tracing</a>
 <div class="grp">Interop</div>
 <a href="/Docs/c-interop.html">C Interoperability</a>
 <a href="/Docs/c-embedding.html">Embedding Aether Actors in C Applications</a>
@@ -624,6 +625,11 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/runtime-config.html">Runtime Configuration - Quick Reference</a>
 <a href="/Docs/per-process-config.html">Per-process configuration in Aether</a>
 <a href="/Docs/cic-help.html">ae help &lt;script&gt; Offline diagnostics for config-IS-code</a>
+<a href="/Docs/cross-ios.html">Cross-compiling for iOS (arm64)</a>
+<div class="grp">Testing</div>
+<a href="/Docs/testing.html">Testing with std.spec and ae test</a>
+<a href="/Docs/mutation-testing.html">Mutation testing, std.mutation</a>
+<a href="/Docs/differential-testing.html">Differential testing across lowering paths</a>
 <div class="grp">Performance</div>
 <a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
 <a href="/Docs/profiling-guide.html">Aether Runtime Profiling Guide</a>
@@ -639,6 +645,9 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
 <a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn't need macro_rules!</a>
 <a href="/Docs/lib-caller-info.html">--emit=lib caller-info channel</a>
+<a href="/Docs/liveview-lite-roadmap.html">LiveView-lite, a roadmap (Phoenix LiveView, on actors, without the framework)</a>
+<a href="/Docs/schema-projection-roadmap.html">std.schema, a projection-first roadmap (Ash, without the framework)</a>
+<a href="/Docs/locale-independent-float-text.html">Plan: locale-independent float text conversion (LC_NUMERIC correctness)</a>
 <div class="grp">Contributing</div>
 <a href="/Docs/stdlib-module-pattern.html">Aether Stdlib Module Pattern</a>
 <a href="/Docs/stdlib-vs-contrib.html">std/ vs contrib/ placement decisions</a>
@@ -706,14 +715,14 @@ AetherValue* aether_config_list_get  (AetherValue* list, <span class="kw">int32_
 <h4 id="4-config-mode-output-the-simplest-path---future-possibly-obsolete">4. Config-mode output (the simplest path)  📋 Future, possibly obsolete</h4>
 <blockquote>Not built. With <code>--emit=lib</code> shipping, the in-process accessor path covers most of what subprocess+JSON would have done, and avoids the serialization round-trip. Worth keeping as an option for hosts that can't link native code (sandboxed environments, language runtimes without FFI), but no longer the obvious "right first step."</blockquote>
 <p>The original sketch:</p>
-<pre><code><span class="com">// server_config.ae</span>
+<pre><code>// server_config.ae
 main() {
-    server = web_server(<span class="num">8080</span>) {
-        path(<span class="str">"/api"</span>) {
-            end_point(GET, <span class="str">"/health"</span>) |req, res, ctx| { ... }
+    server = web_server(8080) {
+        path("/api") {
+            end_point(GET, "/health") |req, res, ctx| { ... }
         }
     }
-    <span class="kw">return</span> server  <span class="com">// the map IS the config</span>
+    return server  // the map IS the config
 }</code></pre>
 <pre><code>$ ae eval server_config.ae   <span class="com"># would compile, run, print result as JSON</span>
 {<span class="str">"port"</span>: <span class="num">8080</span>, <span class="str">"routes"</span>: [...]}</code></pre>
@@ -744,17 +753,17 @@ host.expose("get_inventory", () -&gt; inventory.asMap());
 
 host.run("config/server.ae");  // Aether script drives the wiring</code></pre>
 <p><strong>Aether side</strong>, calls the host, registers callbacks:</p>
-<pre><code><span class="com">// server.ae, this IS the config, and it drives the Java app</span>
+<pre><code>// server.ae, this IS the config, and it drives the Java app
 
-inv = host_call(<span class="str">"get_inventory"</span>)
+inv = host_call("get_inventory")
 
-web_server(<span class="num">8080</span>) {
-    path(<span class="str">"/api/cart"</span>) {
-        end_point(POST, <span class="str">"/add"</span>) |req, res, ctx| {
-            <span class="kw">hide</span> inv   <span class="com">// can't touch inventory directly here</span>
-            sku = request_param(req, <span class="str">"sku"</span>)
-            host_call(<span class="str">"cart_add"</span>, sku)
-            response_json(res, <span class="str">"{\"added\":\"${sku}\"}"</span>)
+web_server(8080) {
+    path("/api/cart") {
+        end_point(POST, "/add") |req, res, ctx| {
+            hide inv   // can't touch inventory directly here
+            sku = request_param(req, "sku")
+            host_call("cart_add", sku)
+            response_json(res, "{\"added\":\"${sku}\"}")
         }
     }
 }</code></pre>
@@ -765,7 +774,7 @@ web_server(<span class="num">8080</span>) {
 <h3 id="what-aether-needs-for-this">What Aether needs for this</h3>
 <h4 id="1-host_call-the-boundary-crossing-primitive">1. <code>host_call()</code> the boundary crossing primitive</h4>
 <p>A new built-in (or extern) that dispatches to the host:</p>
-<pre><code><span class="kw">extern</span> host_call(name: <span class="fn">string</span>, ...) -&gt; <span class="fn">ptr</span></code></pre>
+<pre><code>extern host_call(name: string, ...) -&gt; ptr</code></pre>
 <p>On the C side, this calls a function pointer table that the embedding host populated before <code>main()</code> runs.  The implementation is small, a map of name -&gt; function pointer, with a varargs marshalling convention.</p>
 <h4 id="2-callback-registration-the-reverse-direction">2. Callback registration, the reverse direction</h4>
 <p>When Aether passes a closure to the host (e.g., as a route handler), the host gets an opaque callback ID.  Later, when an HTTP request arrives, the host calls back into Aether with that ID:</p>
@@ -835,17 +844,17 @@ run.invoke("config/server.ae");
 <h3 id="how-aether-hosts-aether">How Aether hosts Aether</h3>
 <p>The host Aether application:</p>
 <ol><li>Compiles the script to a shared library: <code>ae build rules/pricing.ae --emit=lib -o /tmp/libpricing.so</code> (✅ this works today)</li><li>Creates a POSIX shared-memory object encoding the grant list</li><li>Forks a child process</li><li>Sets <code>LD_PRELOAD=libaether_sandbox.so</code> and <code>AETHER_SANDBOX_SHM=&lt;shm_name&gt;</code> in the child's environment. The SHM envvar carries the <em>name</em> of the shared-memory object, not the grants themselves, the preload library reads the grants from SHM on startup. (See <code>runtime/sandbox/spawn_sandboxed_linux.c</code> for the spawn side and <code>runtime/libaether_sandbox_preload.c</code> for the SHM-reading preload side.)</li><li><code>exec</code>s the script (or <code>dlopen</code>s the <code>.so</code> in the child)</li><li>The child runs with libc calls intercepted, any <code>connect()</code>, <code>open()</code>, <code>execve()</code> that isn't in the grant list is denied at the OS level</li></ol>
-<pre><code><span class="com">// host_app.ae</span>
+<pre><code>// host_app.ae
 
-<span class="com">// Compile the rules script (--emit=lib is shipped)</span>
-os_system(<span class="str">"ae build rules/pricing.ae --emit=lib -o /tmp/libpricing.so"</span>)
+// Compile the rules script (--emit=lib is shipped)
+os_system("ae build rules/pricing.ae --emit=lib -o /tmp/libpricing.so")
 
-<span class="com">// Run it in a sandboxed subprocess. `aether_spawn_sandboxed` is the</span>
-<span class="com">// existing C-level helper; its signature is</span>
-<span class="com">// aether_spawn_sandboxed(void* grant_list, const char* program, const char* arg)</span>
-<span class="com">// and it is not yet exposed as an Aether extern. An Aether-level wrapper</span>
-<span class="com">// would expose the same thing with a grant-list builder.</span>
-aether_spawn_sandboxed(grants, <span class="str">"/tmp/pricing"</span>, input_json)</code></pre>
+// Run it in a sandboxed subprocess. `aether_spawn_sandboxed` is the
+// existing C-level helper; its signature is
+// aether_spawn_sandboxed(void* grant_list, const char* program, const char* arg)
+// and it is not yet exposed as an Aether extern. An Aether-level wrapper
+// would expose the same thing with a grant-list builder.
+aether_spawn_sandboxed(grants, "/tmp/pricing", input_json)</code></pre>
 <h3 id="why-ld_preload-not-just-a-facade">Why LD_PRELOAD, not just a facade</h3>
 <p>The facade model (Part 3) works when the host controls <em>compilation</em>, it decides which <code>extern</code> functions get linked.  But a compiled <code>.so</code> is native code.  If it contains inline assembly, raw <code>syscall()</code> instructions, or was compiled from a modified compiler, the facade means nothing, the code can do whatever the process can do.</p>
 <p><code>LD_PRELOAD</code> operates at a lower level: it intercepts the libc functions that <em>any</em> dynamically linked code must call to talk to the kernel.  Even if the Aether script somehow smuggled in a raw <code>connect()</code> call, the preload library catches it.</p>
@@ -883,7 +892,7 @@ aether_spawn_sandboxed(grants, <span class="str">"/tmp/pricing"</span>, input_js
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.473 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.553 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

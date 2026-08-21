@@ -4,11 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Aether Type Annotation Style Guide · Aether</title>
-<meta name="description" content="Aether supports both type inference and explicit type annotations, giving you flexibility to choose the right approach for your code. This guide provide...">
+<meta name="description" content="Aether supports both type inference and explicit type annotations, giving you flexibility to choose the right approach for your code.">
 <link rel="canonical" href="https://aether-lang.dev/Docs/type-annotation-style-guide.html">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Aether Type Annotation Style Guide · Aether">
-<meta property="og:description" content="Aether supports both type inference and explicit type annotations, giving you flexibility to choose the right approach for your code. This guide provide...">
+<meta property="og:description" content="Aether supports both type inference and explicit type annotations, giving you flexibility to choose the right approach for your code.">
 <meta property="og:url" content="https://aether-lang.dev/Docs/type-annotation-style-guide.html">
 <meta property="og:image" content="https://aether-lang.dev/og.png">
 <meta name="twitter:card" content="summary_large_image">
@@ -171,7 +171,7 @@ a{color:inherit;text-decoration:none}
 
 /* section head */
 .sec-head{display:flex;align-items:baseline;gap:14px;margin:0 0 22px}
-.sec-head h2{font-family:var(--mono);font-size:1.15rem;font-weight:700;letter-spacing:-.01em;margin:0}
+.sec-head h1,.sec-head h2{font-family:var(--mono);font-size:1.15rem;font-weight:700;letter-spacing:-.01em;margin:0}
 .sec-head .rule{flex:1;height:1px;background:var(--line)}
 
 /* code */
@@ -358,7 +358,7 @@ body::after{content:"";position:fixed;inset:0;z-index:3;pointer-events:none;opac
 
 /* prompt accents on section headings */
 .prompt{color:var(--red);margin-right:.5ch}
-.sec-head h2 .prompt{font-weight:400}
+.sec-head h1 .prompt,.sec-head h2 .prompt{font-weight:400}
 
 /* prompt-styled ghost button */
 .btn-term{font-family:var(--mono);font-size:14px;padding:11px 18px;border-radius:6px;
@@ -570,7 +570,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.473</span>
+      <span class="vtag">v0.553</span>
     </nav>
   </div>
 </header>
@@ -600,6 +600,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/memory-management.html">Aether Memory Management</a>
 <a href="/Docs/runtime-optimizations.html">Runtime Optimizations</a>
 <a href="/Docs/numa-support.html">NUMA Support in Aether</a>
+<a href="/Docs/message-tracing.html">Message tracing</a>
 <div class="grp">Interop</div>
 <a href="/Docs/c-interop.html">C Interoperability</a>
 <a href="/Docs/c-embedding.html">Embedding Aether Actors in C Applications</a>
@@ -624,6 +625,11 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/runtime-config.html">Runtime Configuration - Quick Reference</a>
 <a href="/Docs/per-process-config.html">Per-process configuration in Aether</a>
 <a href="/Docs/cic-help.html">ae help &lt;script&gt; Offline diagnostics for config-IS-code</a>
+<a href="/Docs/cross-ios.html">Cross-compiling for iOS (arm64)</a>
+<div class="grp">Testing</div>
+<a href="/Docs/testing.html">Testing with std.spec and ae test</a>
+<a href="/Docs/mutation-testing.html">Mutation testing, std.mutation</a>
+<a href="/Docs/differential-testing.html">Differential testing across lowering paths</a>
 <div class="grp">Performance</div>
 <a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
 <a href="/Docs/profiling-guide.html">Aether Runtime Profiling Guide</a>
@@ -639,6 +645,9 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
 <a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn't need macro_rules!</a>
 <a href="/Docs/lib-caller-info.html">--emit=lib caller-info channel</a>
+<a href="/Docs/liveview-lite-roadmap.html">LiveView-lite, a roadmap (Phoenix LiveView, on actors, without the framework)</a>
+<a href="/Docs/schema-projection-roadmap.html">std.schema, a projection-first roadmap (Ash, without the framework)</a>
+<a href="/Docs/locale-independent-float-text.html">Plan: locale-independent float text conversion (LC_NUMERIC correctness)</a>
 <div class="grp">Contributing</div>
 <a href="/Docs/stdlib-module-pattern.html">Aether Stdlib Module Pattern</a>
 <a href="/Docs/stdlib-vs-contrib.html">std/ vs contrib/ placement decisions</a>
@@ -654,142 +663,142 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <p>Aether's type inference can deduce types automatically in most cases.</p>
 <h3 id="when-to-use-type-inference">When to Use Type Inference</h3>
 <p><strong>Local variables</strong></p>
-<pre><code><span class="com">// Type inference - clean and concise</span>
-x = <span class="num">42</span>              <span class="com">// Inferred as int</span>
-name = <span class="str">"Alice"</span>      <span class="com">// Inferred as string</span>
-points = [<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>]  <span class="com">// Inferred as int array</span></code></pre>
+<pre><code>// Type inference - clean and concise
+x = 42              // Inferred as int
+name = "Alice"      // Inferred as string
+points = [1, 2, 3]  // Inferred as int array</code></pre>
 <p><strong>Simple computations</strong></p>
 <pre><code>sum = a + b
 product = x * y
 result = compute_value()</code></pre>
 <p><strong>Loop variables</strong></p>
-<pre><code><span class="kw">for</span> i <span class="kw">in</span> <span class="num">0</span>..<span class="num">10</span> {
+<pre><code>for i in 0..10 {
     total = total + i
 }</code></pre>
 <p><strong>Struct field access</strong></p>
-<pre><code>point = Point{ x: <span class="num">5</span>, y: <span class="num">10</span> }
-x_value = point.x  <span class="com">// Inferred from struct definition</span></code></pre>
+<pre><code>point = Point{ x: 5, y: 10 }
+x_value = point.x  // Inferred from struct definition</code></pre>
 <h2 id="explicit-types-for-clarity">Explicit Types (For Clarity)</h2>
 <p>Use explicit type annotations when they improve code clarity or are required.</p>
 <h3 id="when-to-use-explicit-types">When to Use Explicit Types</h3>
 <p><strong>Function signatures</strong> (highly recommended)</p>
-<pre><code><span class="com">// Function parameters and return types</span>
-add(<span class="fn">int</span> a, <span class="fn">int</span> b): <span class="fn">int</span> {
-    <span class="kw">return</span> a + b
+<pre><code>// Function parameters and return types
+add(int a, int b): int {
+    return a + b
 }
 
-greet(<span class="fn">string</span> name): <span class="fn">void</span> {
-    println(<span class="str">"Hello, ${name}"</span>)
+greet(string name): void {
+    println("Hello, ${name}")
 }
 
-find_user(<span class="fn">int</span> id): User {
-    <span class="com">// ... implementation</span>
+find_user(int id): User {
+    // ... implementation
 }</code></pre>
 <p><strong>Why</strong>: Makes function contracts clear, improves documentation, helps catch errors at call sites.</p>
 <p><strong>Public APIs and library functions</strong></p>
-<pre><code><span class="com">// Export functions should have explicit types</span>
-<span class="kw">import</span> std.math
+<pre><code>// Export functions should have explicit types
+import std.math
 
-<span class="kw">export</span> calculate_distance(p1: Point, p2: Point): <span class="fn">float</span> {
+export calculate_distance(p1: Point, p2: Point): float {
     dx = p2.x - p1.x
     dy = p2.y - p1.y
-    <span class="kw">return</span> math.sqrt(dx * dx + dy * dy)
+    return math.sqrt(dx * dx + dy * dy)
 }</code></pre>
 <p><strong>Complex types or ambiguous cases</strong></p>
-<pre><code><span class="kw">import</span> std.map
-<span class="kw">import</span> std.list
+<pre><code>import std.map
+import std.list
 
-<span class="com">// map.new() / list.new() return an opaque ptr; let inference bind it</span>
+// map.new() / list.new() return an opaque ptr; let inference bind it
 my_map = map.new()
 users = list.new()
 
-<span class="com">// Explicit type prevents ambiguity</span>
-<span class="fn">int</span> result = parse_number(input)  <span class="com">// Clarifies we want int, not float</span></code></pre>
+// Explicit type prevents ambiguity
+int result = parse_number(input)  // Clarifies we want int, not float</code></pre>
 <p><strong>Actor state declarations</strong></p>
-<pre><code><span class="kw">actor</span> Counter {
-    <span class="kw">state</span> <span class="fn">int</span> count            <span class="com">// Explicit prefix form for clarity</span>
-    <span class="kw">state</span> <span class="fn">string</span> name
-    <span class="kw">state</span> <span class="fn">int</span>[] values
-    <span class="kw">state</span> total = <span class="num">0</span>            <span class="com">// ...or inferred from an initializer</span>
-    <span class="kw">state</span> users = <span class="kw">null</span>         <span class="com">//    (inferred: ptr)</span>
+<pre><code>actor Counter {
+    state int count            // Explicit prefix form for clarity
+    state string name
+    state int[] values
+    state total = 0            // ...or inferred from an initializer
+    state users = null         //    (inferred: ptr)
     
-    <span class="com">// ...</span>
+    // ...
 }</code></pre>
 <p><strong>Struct field definitions</strong></p>
-<pre><code><span class="kw">struct</span> User {
-    <span class="fn">int</span> id
-    <span class="fn">string</span> name
-    <span class="fn">string</span> email
-    <span class="fn">bool</span> active
+<pre><code>struct User {
+    int id
+    string name
+    string email
+    bool active
 }</code></pre>
 <h2 id="style-consistency">Style Consistency</h2>
 <h3 id="within-a-module">Within a Module</h3>
 <p><strong>Be consistent</strong> within a single file or module:</p>
-<pre><code><span class="com">// Option A: Pure inference (for small scripts)</span>
-x = <span class="num">10</span>
-y = <span class="num">20</span>
+<pre><code>// Option A: Pure inference (for small scripts)
+x = 10
+y = 20
 sum = x + y
 
-<span class="com">// Option B: Explicit types (for larger projects)</span>
-<span class="fn">int</span> x = <span class="num">10</span>
-<span class="fn">int</span> y = <span class="num">20</span>
-<span class="fn">int</span> sum = x + y</code></pre>
+// Option B: Explicit types (for larger projects)
+int x = 10
+int y = 20
+int sum = x + y</code></pre>
 <p><strong>Don't mix</strong> styles randomly:</p>
-<pre><code><span class="com">// Inconsistent - avoid</span>
-<span class="fn">int</span> x = <span class="num">10</span>
-y = <span class="num">20</span>           <span class="com">// Sudden switch to inference</span>
-<span class="fn">int</span> sum = x + y  <span class="com">// Back to explicit</span></code></pre>
+<pre><code>// Inconsistent - avoid
+int x = 10
+y = 20           // Sudden switch to inference
+int sum = x + y  // Back to explicit</code></pre>
 <h3 id="across-a-project">Across a Project</h3>
 <p>Establish team conventions:</p>
 <ul><li><strong>Scripts/prototypes</strong>: Use type inference for speed</li><li><strong>Libraries/APIs</strong>: Use explicit types for clarity</li><li><strong>Performance-critical code</strong>: Use explicit types for control</li></ul>
 <h2 id="type-annotations-syntax">Type Annotations Syntax</h2>
 <h3 id="variables">Variables</h3>
-<pre><code><span class="com">// Explicit type annotation</span>
-<span class="fn">int</span> x = <span class="num">42</span>
-<span class="fn">string</span> name = <span class="str">"Alice"</span>
-<span class="fn">float</span> pi = <span class="num">3.14159</span>
-<span class="fn">bool</span> active = <span class="kw">true</span>
+<pre><code>// Explicit type annotation
+int x = 42
+string name = "Alice"
+float pi = 3.14159
+bool active = true
 
-<span class="com">// Type inference (no annotation)</span>
-x = <span class="num">42</span>
-name = <span class="str">"Alice"</span>
-pi = <span class="num">3.14159</span>
-active = <span class="kw">true</span></code></pre>
+// Type inference (no annotation)
+x = 42
+name = "Alice"
+pi = 3.14159
+active = true</code></pre>
 <h3 id="functions">Functions</h3>
-<pre><code><span class="com">// Explicit parameter and return types</span>
-multiply(<span class="fn">int</span> a, <span class="fn">int</span> b): <span class="fn">int</span> {
-    <span class="kw">return</span> a * b
+<pre><code>// Explicit parameter and return types
+multiply(int a, int b): int {
+    return a * b
 }
 
-<span class="com">// Mixed: explicit parameters, inferred return</span>
-add(<span class="fn">int</span> a, <span class="fn">int</span> b) {
-    <span class="kw">return</span> a + b  <span class="com">// Return type inferred</span>
+// Mixed: explicit parameters, inferred return
+add(int a, int b) {
+    return a + b  // Return type inferred
 }
 
-<span class="com">// Full inference (not recommended for public functions)</span>
+// Full inference (not recommended for public functions)
 subtract(a, b) {
-    <span class="kw">return</span> a - b
+    return a - b
 }</code></pre>
 <h3 id="arrays">Arrays</h3>
-<pre><code><span class="com">// Type inference from elements (the working form for array literals)</span>
-numbers = [<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>, <span class="num">4</span>, <span class="num">5</span>]  <span class="com">// Inferred as int[]</span>
-names = [<span class="str">"Alice"</span>, <span class="str">"Bob"</span>]   <span class="com">// Inferred as string[]</span>
+<pre><code>// Type inference from elements (the working form for array literals)
+numbers = [1, 2, 3, 4, 5]  // Inferred as int[]
+names = ["Alice", "Bob"]   // Inferred as string[]
 
-<span class="com">// const binding, also inferred from the literal</span>
-<span class="kw">const</span> primes[] = [<span class="num">2</span>, <span class="num">3</span>, <span class="num">5</span>, <span class="num">7</span>]</code></pre>
+// const binding, also inferred from the literal
+const primes[] = [2, 3, 5, 7]</code></pre>
 <blockquote><strong>Note:</strong> Bind an array literal with inference (<code>numbers = [...]</code>) or a <code>const name[] = [...]</code> declaration. The explicit prefix-type form <code>int[] numbers = [...]</code> does not compile: codegen lowers the annotation to a scalar pointer and the literal spills as excess initializers. The prefix array syntax <code>[T]</code> is not accepted either.</blockquote>
 <h3 id="complex-types">Complex Types</h3>
-<pre><code><span class="kw">import</span> std.map
-<span class="kw">import</span> std.list
+<pre><code>import std.map
+import std.list
 
-<span class="com">// map/list constructors return an opaque ptr, inference is the norm</span>
+// map/list constructors return an opaque ptr, inference is the norm
 user_map = map.new()
 points = list.new()
 
-<span class="com">// Same pattern for other constructors</span>
+// Same pattern for other constructors
 my_map = map.new()
 my_points = list.new()
-counter = <span class="kw">spawn</span>(Counter())</code></pre>
+counter = spawn(Counter())</code></pre>
 <h2 id="examples">Examples</h2>
 <h3 id="example-1-script-style-inference-heavy">Example 1: Script-Style (Inference-Heavy)</h3>
 <pre><code><span class="com">// Quick prototype or script</span>
@@ -805,64 +814,64 @@ main() {
     println(<span class="str">"Fib(10) = ${result}"</span>)
 }</code></pre>
 <h3 id="example-2-library-style-explicit-types">Example 2: Library-Style (Explicit Types)</h3>
-<pre><code><span class="com">// Public library with clear contracts</span>
-<span class="kw">import</span> std.math
+<pre><code>// Public library with clear contracts
+import std.math
 
-<span class="kw">export</span> <span class="kw">struct</span> Point {
-    <span class="fn">float</span> x
-    <span class="fn">float</span> y
+export struct Point {
+    float x
+    float y
 }
 
-<span class="kw">export</span> distance(p1: Point, p2: Point): <span class="fn">float</span> {
-    <span class="fn">float</span> dx = p2.x - p1.x
-    <span class="fn">float</span> dy = p2.y - p1.y
-    <span class="kw">return</span> math.sqrt(dx * dx + dy * dy)
+export distance(p1: Point, p2: Point): float {
+    float dx = p2.x - p1.x
+    float dy = p2.y - p1.y
+    return math.sqrt(dx * dx + dy * dy)
 }
 
-<span class="kw">export</span> midpoint(p1: Point, p2: Point): Point {
-    <span class="kw">return</span> Point{
-        x: (p1.x + p2.x) / <span class="num">2.0</span>,
-        y: (p1.y + p2.y) / <span class="num">2.0</span>
+export midpoint(p1: Point, p2: Point): Point {
+    return Point{
+        x: (p1.x + p2.x) / 2.0,
+        y: (p1.y + p2.y) / 2.0
     }
 }</code></pre>
 <h3 id="example-3-balanced-approach-recommended">Example 3: Balanced Approach (Recommended)</h3>
-<pre><code><span class="com">// Explicit where it matters, inference elsewhere</span>
-<span class="kw">import</span> std.file
+<pre><code>// Explicit where it matters, inference elsewhere
+import std.file
 
-process_file(<span class="fn">string</span> filename): <span class="fn">int</span> {
-    <span class="fn">int</span> count = <span class="num">0</span>
+process_file(string filename): int {
+    int count = 0
 
-    <span class="com">// Inference for simple local variables.</span>
-    <span class="com">// file.read opens, reads, and closes the path, returning (content, err).</span>
+    // Inference for simple local variables.
+    // file.read opens, reads, and closes the path, returning (content, err).
     content, err = file.read(filename)
-    <span class="kw">if</span> err != <span class="str">""</span> {
-        <span class="kw">return</span> count
+    if err != "" {
+        return count
     }
 
-    println(<span class="str">"Read file: ${filename}"</span>)
+    println("Read file: ${filename}")
     println(content)
 
-    <span class="kw">return</span> count
+    return count
 }</code></pre>
 <h2 id="when-explicit-types-are-required">When explicit types are required</h2>
 <p>Some cases don't give the inferencer enough to work with; annotate explicitly:</p>
-<pre><code><span class="com">// This fails - type can't be inferred</span>
+<pre><code>// This fails - type can't be inferred
 x = undefined()
-y = get_value()  <span class="com">// If get_value() return type is unknown</span>
+y = get_value()  // If get_value() return type is unknown
 
-<span class="com">// Solution: Provide explicit type</span>
-<span class="fn">int</span> x = undefined()
-<span class="fn">int</span> y = get_value()</code></pre>
-<pre><code><span class="com">// Recursive functions need return type</span>
+// Solution: Provide explicit type
+int x = undefined()
+int y = get_value()</code></pre>
+<pre><code>// Recursive functions need return type
 fibonacci(n) {
-    <span class="kw">if</span> n &lt;= <span class="num">1</span> { <span class="kw">return</span> n }
-    <span class="kw">return</span> fibonacci(n - <span class="num">1</span>) + fibonacci(n - <span class="num">2</span>)  <span class="com">// ERROR</span>
+    if n &lt;= 1 { return n }
+    return fibonacci(n - 1) + fibonacci(n - 2)  // ERROR
 }
 
-<span class="com">// Explicit return type</span>
-fibonacci(<span class="fn">int</span> n): <span class="fn">int</span> {
-    <span class="kw">if</span> n &lt;= <span class="num">1</span> { <span class="kw">return</span> n }
-    <span class="kw">return</span> fibonacci(n - <span class="num">1</span>) + fibonacci(n - <span class="num">2</span>)
+// Explicit return type
+fibonacci(int n): int {
+    if n &lt;= 1 { return n }
+    return fibonacci(n - 1) + fibonacci(n - 2)
 }</code></pre>
 <h2 id="summary">Summary</h2>
 <div class="tw"><table><thead><tr><th>Use Case</th><th>Recommendation</th><th>Example</th></tr></thead><tbody><tr><td>Local variables</td><td>Inference</td><td><code>x = 42</code></td></tr><tr><td>Function parameters</td><td>Explicit</td><td><code>add(int a, int b)</code></td></tr><tr><td>Function returns</td><td>Explicit</td><td><code>add(...): int</code></td></tr><tr><td>Struct fields</td><td>Explicit</td><td><code>struct User { int id }</code></td></tr><tr><td>Actor state</td><td>Explicit (prefix)</td><td><code>state int count</code></td></tr><tr><td>Loop variables</td><td>Inference</td><td><code>for i in 0..10</code></td></tr><tr><td>Complex types</td><td>Inference</td><td><code>my_map = map.new()</code></td></tr><tr><td>Public APIs</td><td>Explicit</td><td>All types annotated</td></tr><tr><td>Scripts/prototypes</td><td>Inference</td><td>Minimal annotations</td></tr></tbody></table></div>
@@ -884,7 +893,7 @@ fibonacci(<span class="fn">int</span> n): <span class="fn">int</span> {
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.473 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.553 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

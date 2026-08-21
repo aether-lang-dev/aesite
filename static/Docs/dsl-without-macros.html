@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>DSL without macros, why Aether doesn't need macro_rules! · Aether</title>
-<meta name="description" content="A short comparison between Aether's trailing-block DSL story (see">
+<title>DSL without macros, why Aether doesn&#x27;t need macro_rules! · Aether</title>
+<meta name="description" content="A short comparison between Aether&#x27;s trailing-block DSL story (see closures-and-builder-dsl.md) and the Rust macro tower (macro_rules!">
 <link rel="canonical" href="https://aether-lang.dev/Docs/dsl-without-macros.html">
 <meta property="og:type" content="article">
-<meta property="og:title" content="DSL without macros, why Aether doesn't need macro_rules! · Aether">
-<meta property="og:description" content="A short comparison between Aether's trailing-block DSL story (see">
+<meta property="og:title" content="DSL without macros, why Aether doesn&#x27;t need macro_rules! · Aether">
+<meta property="og:description" content="A short comparison between Aether&#x27;s trailing-block DSL story (see closures-and-builder-dsl.md) and the Rust macro tower (macro_rules!">
 <meta property="og:url" content="https://aether-lang.dev/Docs/dsl-without-macros.html">
 <meta property="og:image" content="https://aether-lang.dev/og.png">
 <meta name="twitter:card" content="summary_large_image">
@@ -171,7 +171,7 @@ a{color:inherit;text-decoration:none}
 
 /* section head */
 .sec-head{display:flex;align-items:baseline;gap:14px;margin:0 0 22px}
-.sec-head h2{font-family:var(--mono);font-size:1.15rem;font-weight:700;letter-spacing:-.01em;margin:0}
+.sec-head h1,.sec-head h2{font-family:var(--mono);font-size:1.15rem;font-weight:700;letter-spacing:-.01em;margin:0}
 .sec-head .rule{flex:1;height:1px;background:var(--line)}
 
 /* code */
@@ -358,7 +358,7 @@ body::after{content:"";position:fixed;inset:0;z-index:3;pointer-events:none;opac
 
 /* prompt accents on section headings */
 .prompt{color:var(--red);margin-right:.5ch}
-.sec-head h2 .prompt{font-weight:400}
+.sec-head h1 .prompt,.sec-head h2 .prompt{font-weight:400}
 
 /* prompt-styled ghost button */
 .btn-term{font-family:var(--mono);font-size:14px;padding:11px 18px;border-radius:6px;
@@ -570,7 +570,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.473</span>
+      <span class="vtag">v0.553</span>
     </nav>
   </div>
 </header>
@@ -600,6 +600,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/memory-management.html">Aether Memory Management</a>
 <a href="/Docs/runtime-optimizations.html">Runtime Optimizations</a>
 <a href="/Docs/numa-support.html">NUMA Support in Aether</a>
+<a href="/Docs/message-tracing.html">Message tracing</a>
 <div class="grp">Interop</div>
 <a href="/Docs/c-interop.html">C Interoperability</a>
 <a href="/Docs/c-embedding.html">Embedding Aether Actors in C Applications</a>
@@ -624,6 +625,11 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/runtime-config.html">Runtime Configuration - Quick Reference</a>
 <a href="/Docs/per-process-config.html">Per-process configuration in Aether</a>
 <a href="/Docs/cic-help.html">ae help &lt;script&gt; Offline diagnostics for config-IS-code</a>
+<a href="/Docs/cross-ios.html">Cross-compiling for iOS (arm64)</a>
+<div class="grp">Testing</div>
+<a href="/Docs/testing.html">Testing with std.spec and ae test</a>
+<a href="/Docs/mutation-testing.html">Mutation testing, std.mutation</a>
+<a href="/Docs/differential-testing.html">Differential testing across lowering paths</a>
 <div class="grp">Performance</div>
 <a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
 <a href="/Docs/profiling-guide.html">Aether Runtime Profiling Guide</a>
@@ -639,6 +645,9 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
 <a href="/Docs/dsl-without-macros.html" class="on">DSL without macros, why Aether doesn't need macro_rules!</a>
 <a href="/Docs/lib-caller-info.html">--emit=lib caller-info channel</a>
+<a href="/Docs/liveview-lite-roadmap.html">LiveView-lite, a roadmap (Phoenix LiveView, on actors, without the framework)</a>
+<a href="/Docs/schema-projection-roadmap.html">std.schema, a projection-first roadmap (Ash, without the framework)</a>
+<a href="/Docs/locale-independent-float-text.html">Plan: locale-independent float text conversion (LC_NUMERIC correctness)</a>
 <div class="grp">Contributing</div>
 <a href="/Docs/stdlib-module-pattern.html">Aether Stdlib Module Pattern</a>
 <a href="/Docs/stdlib-vs-contrib.html">std/ vs contrib/ placement decisions</a>
@@ -651,10 +660,10 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <p>A short comparison between Aether's trailing-block DSL story (see <a href="/Docs/closures-and-builder-dsl.html"><code>closures-and-builder-dsl.md</code></a>) and the Rust macro tower (<code>macro_rules!</code> → proc-macros → <code>syn</code>/<code>quote</code>) that Rust DSLs have to climb. The point isn't a beauty contest; it's that the two designs hit different ceilings for different reasons, and being honest about both is useful when choosing or evaluating either.</p>
 <h2 id="the-shape-under-discussion">The shape under discussion</h2>
 <p>A nested, declarative-feeling DSL, the GUI / SwiftUI / kotlinx.html / Sinatra shape:</p>
-<pre><code>frame(<span class="str">"App"</span>) {
-    panel(<span class="str">"Controls"</span>) {
-        button(<span class="str">"OK"</span>)
-        button(<span class="str">"Cancel"</span>)
+<pre><code>frame("App") {
+    panel("Controls") {
+        button("OK")
+        button("Cancel")
     }
 }</code></pre>
 <p>In Rust this would typically be a function-like macro:</p>
@@ -690,13 +699,13 @@ end</code></pre>
 });</code></pre>
 <p><strong>Rust</strong> never seriously attempts this shape. <code>#[test]</code> is function-attribute-based; <code>rstest</code>, <code>test_case</code> etc. add fixtures and parameterised tests but don't try the nested <code>describe</code>/<code>it</code> form, because <code>macro_rules!</code> would have to invent its own scope-and-capture story across nested blocks. The honest answer in the Rust ecosystem is "flat <code>#[test]</code> functions, fixtures via traits or proc-macros."</p>
 <p><strong>Aether.</strong> Trailing blocks for structure, <code>callback</code> blocks (real closures with implicit capture, <a href="/Docs/closures-and-builder-dsl.html#callback-blocks"><code>closures-and-builder-dsl.md</code> §Callback blocks</a>) for the actual test bodies. Shared state across <code>before</code>/<code>it</code> lives in <code>ref</code> cells the closures capture by pointer:</p>
-<pre><code>describe(<span class="str">"Account"</span>) {
-    account = ref(<span class="num">0</span>)
-    before <span class="kw">callback</span> { ref_set(account, account_new(<span class="num">100</span>)) }
-    it(<span class="str">"deducts on withdrawal"</span>) <span class="kw">callback</span> {
+<pre><code>describe("Account") {
+    account = ref(0)
+    before callback { ref_set(account, account_new(100)) }
+    it("deducts on withdrawal") callback {
         a = ref_get(account)
-        account_withdraw(a, <span class="num">30</span>)
-        expect_eq(account_balance(a), <span class="num">70</span>)
+        account_withdraw(a, 30)
+        expect_eq(account_balance(a), 70)
     }
 }</code></pre>
 <p>The structural block (<code>describe { ... }</code>) and the closure-capturing block (<code>it(...) callback { ... }</code>) are <em>different forms</em> of trailing block, that distinction is what makes the DSL legible. The structural block runs inline at registration time; the <code>callback</code> block is a real closure stored in the test registry and invoked later. Both fall out of the language; there's no DSL parser to write.</p>
@@ -719,12 +728,12 @@ let actives = users
     .fetch();</code></pre>
 <p>Same idea as Diesel without the macro layer: the typed bindings come from an external generator that runs against the schema.</p>
 <p><strong>Aether.</strong> Builder-flavour trailing block. The setters fill a config object; the function executes with the filled config; the typed bindings come from the same <code>--emit=lib</code> C-ABI shape Aether uses for everything else.</p>
-<pre><code><span class="kw">import</span> std.sql
+<pre><code>import std.sql
 
 actives = sql.select(users) {
-    where(eq(users.active, <span class="kw">true</span>))
+    where(eq(users.active, true))
     order_by(desc(users.created_at))
-    limit(<span class="num">10</span>)
+    limit(10)
 }</code></pre>
 <p>The seam this exposes is real: Aether's type system today doesn't have a way to bind the schema's column types into the DSL without code-gen either. The honest comparison is "Aether avoids the macro tower but needs the same code-gen step Java needs for the <em>typed</em> layer."  The ergonomic improvement over Java is in the call site, the trailing block reads as nested clauses rather than a method chain, but the upstream type-binding work is the same shape. A future Aether feature that lets <code>--emit=ast</code> consume a schema and emit typed bindings would close that gap.</p>
 <h3 id="a-domain-that-resists-flat-description-interactive-3d-scenes">A domain that resists flat description: interactive 3D scenes</h3>
@@ -749,23 +758,23 @@ clock.addEventListener('tick', () =&gt; {
 });</code></pre>
 <p>No DSL surface at all, it's just a JS codebase. Behaviour is first- class (closures over scene state), but structure (parent-child, layout, constraints) is scattered across <code>.add()</code> calls and there's no nesting to read.</p>
 <p><strong>Aether.</strong> Trailing blocks for structure, real closures for behaviour, both first-class:</p>
-<pre><code><span class="kw">import</span> contrib.scene <span class="kw">as</span> s
+<pre><code>import contrib.scene as s
 
-room = s.room(<span class="str">"Library"</span>) {
-    door = s.door(<span class="str">"east_exit"</span>) {
-        position(<span class="num">4.0</span>, <span class="num">0.0</span>, <span class="num">0.0</span>)
-        open_angle = ref(<span class="num">0.0</span>)
-        s.on_frame() <span class="kw">callback</span> {
-            <span class="kw">if</span> s.distance(s.player(), door) &lt; <span class="num">2.0</span> &amp;&amp; s.input(<span class="str">"E"</span>) {
+room = s.room("Library") {
+    door = s.door("east_exit") {
+        position(4.0, 0.0, 0.0)
+        open_angle = ref(0.0)
+        s.on_frame() callback {
+            if s.distance(s.player(), door) &lt; 2.0 &amp;&amp; s.input("E") {
                 ref_set(open_angle,
-                        s.lerp(ref_get(open_angle), <span class="num">90.0</span>, <span class="num">0.1</span>))
+                        s.lerp(ref_get(open_angle), 90.0, 0.1))
             }
-            s.set_rotation(door, <span class="num">0.0</span>, ref_get(open_angle), <span class="num">0.0</span>)
+            s.set_rotation(door, 0.0, ref_get(open_angle), 0.0)
         }
     }
-    s.npc(<span class="str">"librarian"</span>) {
-        s.chase_target() <span class="kw">callback</span> {
-            <span class="kw">return</span> s.nearest(s.player(), [s.decoy(<span class="num">1</span>), s.decoy(<span class="num">2</span>)])
+    s.npc("librarian") {
+        s.chase_target() callback {
+            return s.nearest(s.player(), [s.decoy(1), s.decoy(2)])
         }
     }
 }</code></pre>
@@ -784,20 +793,20 @@ room = s.room(<span class="str">"Library"</span>) {
 <h2 id="where-aether-hits-its-own-ceiling">Where Aether hits its own ceiling</h2>
 <p>This is the honest part. Aether's trailing block is <em>imperative</em>, it runs its statements in source order. A DSL where order shouldn't matter (declarative attributes, a graph that wants topological resolution, a spec where the user describes <em>what</em> and not <em>the order of operations</em>) sits awkwardly.</p>
 <p>The escape hatch is the builder variant, <code>builder ... with &lt;factory&gt;</code> (<a href="/Docs/closures-and-builder-dsl.html#builder-functions-configure-then-execute"><code>closures-and-builder-dsl.md</code> §Builder Functions</a>). The block runs first against a config object filled via setter calls; the function runs second with that config. This is the closest analogue to a real declarative DSL and it works for most cases:</p>
-<pre><code><span class="kw">builder</span> compile(src: <span class="fn">string</span>) {
-    rel = <span class="str">""</span>
-    <span class="kw">if</span> _builder != <span class="kw">null</span> {
-        <span class="kw">if</span> map_has(_builder, <span class="str">"release"</span>) == <span class="num">1</span> {
-            rel = map_get(_builder, <span class="str">"release"</span>)
+<pre><code>builder compile(src: string) {
+    rel = ""
+    if _builder != null {
+        if map_has(_builder, "release") == 1 {
+            rel = map_get(_builder, "release")
         }
     }
-    println(<span class="str">"compiling ${src} with release=${rel}"</span>)
+    println("compiling ${src} with release=${rel}")
 }
 
-<span class="com">// User writes, block fills config, function runs with it</span>
-compile(<span class="str">"Main.java"</span>) {
-    set_release(<span class="str">"21"</span>)
-    set_lint(<span class="str">"all"</span>)
+// User writes, block fills config, function runs with it
+compile("Main.java") {
+    set_release("21")
+    set_lint("all")
 }</code></pre>
 <p>But there's still ordering: the setters fire in source order, so a "genuinely order-independent" spec has to be reduced to "fill a bag of fields, then resolve." If you need actual declarative semantics where the runtime is allowed to reorder, you build the bag explicitly in the block and post-process it after the call returns. That's a real seam.</p>
 <p>Rust macros have the same problem, they only see token trees, so they can reorder syntactically but can't reorder <em>semantically</em> without emitting a second compile pass. Different ceiling, same general neighbourhood.</p>
@@ -821,7 +830,7 @@ compile(<span class="str">"Main.java"</span>) {
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.473 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.553 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

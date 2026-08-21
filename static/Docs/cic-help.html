@@ -4,11 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ae help &lt;script&gt; Offline diagnostics for config-IS-code · Aether</title>
-<meta name="description" content="A companion command to ae run and aetherc. Goal:">
+<meta name="description" content="A companion command to ae run and aetherc. Goal: catch the common mistakes a less-experienced operator makes when authoring a closure-DSL config script...">
 <link rel="canonical" href="https://aether-lang.dev/Docs/cic-help.html">
 <meta property="og:type" content="article">
 <meta property="og:title" content="ae help &lt;script&gt; Offline diagnostics for config-IS-code · Aether">
-<meta property="og:description" content="A companion command to ae run and aetherc. Goal:">
+<meta property="og:description" content="A companion command to ae run and aetherc. Goal: catch the common mistakes a less-experienced operator makes when authoring a closure-DSL config script...">
 <meta property="og:url" content="https://aether-lang.dev/Docs/cic-help.html">
 <meta property="og:image" content="https://aether-lang.dev/og.png">
 <meta name="twitter:card" content="summary_large_image">
@@ -171,7 +171,7 @@ a{color:inherit;text-decoration:none}
 
 /* section head */
 .sec-head{display:flex;align-items:baseline;gap:14px;margin:0 0 22px}
-.sec-head h2{font-family:var(--mono);font-size:1.15rem;font-weight:700;letter-spacing:-.01em;margin:0}
+.sec-head h1,.sec-head h2{font-family:var(--mono);font-size:1.15rem;font-weight:700;letter-spacing:-.01em;margin:0}
 .sec-head .rule{flex:1;height:1px;background:var(--line)}
 
 /* code */
@@ -358,7 +358,7 @@ body::after{content:"";position:fixed;inset:0;z-index:3;pointer-events:none;opac
 
 /* prompt accents on section headings */
 .prompt{color:var(--red);margin-right:.5ch}
-.sec-head h2 .prompt{font-weight:400}
+.sec-head h1 .prompt,.sec-head h2 .prompt{font-weight:400}
 
 /* prompt-styled ghost button */
 .btn-term{font-family:var(--mono);font-size:14px;padding:11px 18px;border-radius:6px;
@@ -570,7 +570,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.473</span>
+      <span class="vtag">v0.553</span>
     </nav>
   </div>
 </header>
@@ -600,6 +600,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/memory-management.html">Aether Memory Management</a>
 <a href="/Docs/runtime-optimizations.html">Runtime Optimizations</a>
 <a href="/Docs/numa-support.html">NUMA Support in Aether</a>
+<a href="/Docs/message-tracing.html">Message tracing</a>
 <div class="grp">Interop</div>
 <a href="/Docs/c-interop.html">C Interoperability</a>
 <a href="/Docs/c-embedding.html">Embedding Aether Actors in C Applications</a>
@@ -624,6 +625,11 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/runtime-config.html">Runtime Configuration - Quick Reference</a>
 <a href="/Docs/per-process-config.html">Per-process configuration in Aether</a>
 <a href="/Docs/cic-help.html" class="on">ae help &lt;script&gt; Offline diagnostics for config-IS-code</a>
+<a href="/Docs/cross-ios.html">Cross-compiling for iOS (arm64)</a>
+<div class="grp">Testing</div>
+<a href="/Docs/testing.html">Testing with std.spec and ae test</a>
+<a href="/Docs/mutation-testing.html">Mutation testing, std.mutation</a>
+<a href="/Docs/differential-testing.html">Differential testing across lowering paths</a>
 <div class="grp">Performance</div>
 <a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
 <a href="/Docs/profiling-guide.html">Aether Runtime Profiling Guide</a>
@@ -639,6 +645,9 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
 <a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn't need macro_rules!</a>
 <a href="/Docs/lib-caller-info.html">--emit=lib caller-info channel</a>
+<a href="/Docs/liveview-lite-roadmap.html">LiveView-lite, a roadmap (Phoenix LiveView, on actors, without the framework)</a>
+<a href="/Docs/schema-projection-roadmap.html">std.schema, a projection-first roadmap (Ash, without the framework)</a>
+<a href="/Docs/locale-independent-float-text.html">Plan: locale-independent float text conversion (LC_NUMERIC correctness)</a>
 <div class="grp">Contributing</div>
 <a href="/Docs/stdlib-module-pattern.html">Aether Stdlib Module Pattern</a>
 <a href="/Docs/stdlib-vs-contrib.html">std/ vs contrib/ placement decisions</a>
@@ -730,8 +739,8 @@ At least one repo("name", "/path") is required.</code></pre>
 <p>Surfaced via library-shipped hint files (above), so this stays library-agnostic at the tool layer.</p>
 <h3 id="7-top-level-closure-dsl-detection">7. Top-level closure-DSL detection</h3>
 <p>A novice writes:</p>
-<pre><code><span class="kw">import</span> avnserver
-avnserver.serve { repo(<span class="str">"a"</span>, <span class="str">"/x"</span>); port(<span class="num">9990</span>) }</code></pre>
+<pre><code>import avnserver
+avnserver.serve { repo("a", "/x"); port(9990) }</code></pre>
 <p>The typer's complaint will be structural and confusing. <code>ae help</code>:</p>
 <pre><code>Line 2: serve { ... } is at top-level. Aether scripts run main()
 as the entry point. Wrap it:
@@ -771,7 +780,7 @@ as the entry point. Wrap it:
 <p>Total surface: comparable in size to a moderately-featured linter. The <code>--llm</code> mode is an additive feature gate; the heuristic core stands alone.</p>
 <h2 id="cross-references">Cross-references</h2>
 <ul><li><a href="/Docs/config-is-code.html"><code>config-is-code.md</code></a>, the pattern this command serves; the "library author recipe" section defines the surface <code>ae help</code> introspects.</li><li><a href="/Docs/closures-and-builder-dsl.html"><code>closures-and-builder-dsl.md</code></a>, the syntax/semantics the help command's pattern matcher walks.</li><li><a href="/Docs/getting-started.html"><code>getting-started.md</code></a>, where the help command itself should be cross-linked once it ships.</li></ul>
-<nav class="doc-prevnext" aria-label="Previous and next page"><a class="pn-prev" href="/Docs/per-process-config.html"><span class="pn-k">Previous</span><span class="pn-t">Per-process configuration in Aether</span></a><a class="pn-next" href="/Docs/performance-benchmarks.html"><span class="pn-k">Next</span><span class="pn-t">Aether Performance Benchmarks</span></a></nav>
+<nav class="doc-prevnext" aria-label="Previous and next page"><a class="pn-prev" href="/Docs/per-process-config.html"><span class="pn-k">Previous</span><span class="pn-t">Per-process configuration in Aether</span></a><a class="pn-next" href="/Docs/cross-ios.html"><span class="pn-k">Next</span><span class="pn-t">Cross-compiling for iOS (arm64)</span></a></nav>
       </article>
     </main>
     <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#why-a-separate-command" class="l2" data-id="why-a-separate-command">Why a separate command</a><a href="#privacy-model" class="l2" data-id="privacy-model">Privacy model</a><a href="#command-surface" class="l2" data-id="command-surface">Command surface</a><a href="#what-it-does" class="l2" data-id="what-it-does">What it does</a><a href="#1-spelling-matched-suggestions-for-unresolved-symbols" class="l3" data-id="1-spelling-matched-suggestions-for-unresolved-symbols">1. Spelling-matched suggestions for unresolved symbols</a><a href="#2-im-writing-yaml--hcl-pattern-detection" class="l3" data-id="2-im-writing-yaml--hcl-pattern-detection">2. "I'm writing YAML / HCL" pattern detection</a><a href="#3-type-mismatch-with-english" class="l3" data-id="3-type-mismatch-with-english">3. Type-mismatch with English</a><a href="#4-missing-import-detection" class="l3" data-id="4-missing-import-detection">4. Missing-import detection</a><a href="#5-library-author-shipped-hints-helpmd" class="l3" data-id="5-library-author-shipped-hints-helpmd">5. Library-author-shipped hints (*.help.md)</a><a href="#6-lint-for-compiles-but-fails-at-runtime" class="l3" data-id="6-lint-for-compiles-but-fails-at-runtime">6. Lint for "compiles but fails at runtime"</a><a href="#7-top-level-closure-dsl-detection" class="l3" data-id="7-top-level-closure-dsl-detection">7. Top-level closure-DSL detection</a><a href="#8-side-by-side-canonical-template" class="l3" data-id="8-side-by-side-canonical-template">8. Side-by-side canonical template</a><a href="#9-cross-link-to-docs" class="l3" data-id="9-cross-link-to-docs">9. Cross-link to docs</a><a href="#10---fix-for-the-safe-rewrites" class="l3" data-id="10---fix-for-the-safe-rewrites">10. --fix for the safe rewrites</a><a href="#what-it-does-not-do" class="l2" data-id="what-it-does-not-do">What it does NOT do</a><a href="#optional-escalation-local-llm---llm" class="l2" data-id="optional-escalation-local-llm---llm">Optional escalation: local LLM (--llm)</a><a href="#implementation" class="l2" data-id="implementation">Implementation</a><a href="#cross-references" class="l2" data-id="cross-references">Cross-references</a></nav>
@@ -783,7 +792,7 @@ as the entry point. Wrap it:
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.473 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.553 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

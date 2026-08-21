@@ -4,11 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Aether as a Configuration Language, v2: Namespaces and Generated Bindings · Aether</title>
-<meta name="description" content="A host application embedding Aether scripts gets a typed, idiomatic SDK">
+<meta name="description" content="A host application embedding Aether scripts gets a typed, idiomatic SDK in its own language (Java, Python, Ruby, Go stubbed) generated from a single...">
 <link rel="canonical" href="https://aether-lang.dev/Docs/embedded-namespaces-and-host-bindings.html">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Aether as a Configuration Language, v2: Namespaces and Generated Bindings · Aether">
-<meta property="og:description" content="A host application embedding Aether scripts gets a typed, idiomatic SDK">
+<meta property="og:description" content="A host application embedding Aether scripts gets a typed, idiomatic SDK in its own language (Java, Python, Ruby, Go stubbed) generated from a single...">
 <meta property="og:url" content="https://aether-lang.dev/Docs/embedded-namespaces-and-host-bindings.html">
 <meta property="og:image" content="https://aether-lang.dev/og.png">
 <meta name="twitter:card" content="summary_large_image">
@@ -171,7 +171,7 @@ a{color:inherit;text-decoration:none}
 
 /* section head */
 .sec-head{display:flex;align-items:baseline;gap:14px;margin:0 0 22px}
-.sec-head h2{font-family:var(--mono);font-size:1.15rem;font-weight:700;letter-spacing:-.01em;margin:0}
+.sec-head h1,.sec-head h2{font-family:var(--mono);font-size:1.15rem;font-weight:700;letter-spacing:-.01em;margin:0}
 .sec-head .rule{flex:1;height:1px;background:var(--line)}
 
 /* code */
@@ -358,7 +358,7 @@ body::after{content:"";position:fixed;inset:0;z-index:3;pointer-events:none;opac
 
 /* prompt accents on section headings */
 .prompt{color:var(--red);margin-right:.5ch}
-.sec-head h2 .prompt{font-weight:400}
+.sec-head h1 .prompt,.sec-head h2 .prompt{font-weight:400}
 
 /* prompt-styled ghost button */
 .btn-term{font-family:var(--mono);font-size:14px;padding:11px 18px;border-radius:6px;
@@ -570,7 +570,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.473</span>
+      <span class="vtag">v0.553</span>
     </nav>
   </div>
 </header>
@@ -600,6 +600,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/memory-management.html">Aether Memory Management</a>
 <a href="/Docs/runtime-optimizations.html">Runtime Optimizations</a>
 <a href="/Docs/numa-support.html">NUMA Support in Aether</a>
+<a href="/Docs/message-tracing.html">Message tracing</a>
 <div class="grp">Interop</div>
 <a href="/Docs/c-interop.html">C Interoperability</a>
 <a href="/Docs/c-embedding.html">Embedding Aether Actors in C Applications</a>
@@ -624,6 +625,11 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/runtime-config.html">Runtime Configuration - Quick Reference</a>
 <a href="/Docs/per-process-config.html">Per-process configuration in Aether</a>
 <a href="/Docs/cic-help.html">ae help &lt;script&gt; Offline diagnostics for config-IS-code</a>
+<a href="/Docs/cross-ios.html">Cross-compiling for iOS (arm64)</a>
+<div class="grp">Testing</div>
+<a href="/Docs/testing.html">Testing with std.spec and ae test</a>
+<a href="/Docs/mutation-testing.html">Mutation testing, std.mutation</a>
+<a href="/Docs/differential-testing.html">Differential testing across lowering paths</a>
 <div class="grp">Performance</div>
 <a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
 <a href="/Docs/profiling-guide.html">Aether Runtime Profiling Guide</a>
@@ -639,6 +645,9 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
 <a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn't need macro_rules!</a>
 <a href="/Docs/lib-caller-info.html">--emit=lib caller-info channel</a>
+<a href="/Docs/liveview-lite-roadmap.html">LiveView-lite, a roadmap (Phoenix LiveView, on actors, without the framework)</a>
+<a href="/Docs/schema-projection-roadmap.html">std.schema, a projection-first roadmap (Ash, without the framework)</a>
+<a href="/Docs/locale-independent-float-text.html">Plan: locale-independent float text conversion (LC_NUMERIC correctness)</a>
 <div class="grp">Contributing</div>
 <a href="/Docs/stdlib-module-pattern.html">Aether Stdlib Module Pattern</a>
 <a href="/Docs/stdlib-vs-contrib.html">std/ vs contrib/ placement decisions</a>
@@ -668,34 +677,34 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
     build.sh</code></pre>
 <p>The convention: every <code>.ae</code> file in the directory contributes its top-level public functions to the namespace declared by <code>manifest.ae</code>.</p>
 <h3 id="aethermanifestae-as-shipped"><code>aether/manifest.ae</code> (as shipped)</h3>
-<pre><code><span class="kw">import</span> std.host
+<pre><code>import std.host
 
 abi() {
-    describe(<span class="str">"trading"</span>) {
-        input(<span class="str">"max_order"</span>, <span class="str">"int"</span>)
-        event(<span class="str">"OrderPlaced"</span>,   <span class="str">"int64"</span>)
-        event(<span class="str">"OrderRejected"</span>, <span class="str">"int64"</span>)
-        event(<span class="str">"TradeKilled"</span>,   <span class="str">"int64"</span>)
-        event(<span class="str">"UnknownTicker"</span>, <span class="str">"int64"</span>)
+    describe("trading") {
+        input("max_order", "int")
+        event("OrderPlaced",   "int64")
+        event("OrderRejected", "int64")
+        event("TradeKilled",   "int64")
+        event("UnknownTicker", "int64")
         bindings() {
-            java(<span class="str">"com.example.trading"</span>, <span class="str">"Trading"</span>)
+            java("com.example.trading", "Trading")
         }
     }
 }</code></pre>
 <p>The grammar shipped slightly different from the original <code>namespace("trading") {...}</code> design: the outermost call is <code>abi()</code> (Application Binary Interface, a less-overloaded acronym than "API," which now connotes HTTP-over-JSON). Inside, <code>describe("name") { ... }</code> carries the nested builders. Every form is a function call with a trailing block, pure Aether, no new lexer or parser work, same trailing-block + <code>_ctx</code>-injection idiom as TinyWeb's <code>path() { end_point(...) }</code> or <code>examples/calculator-tui.ae</code>'s <code>grid() { btn(...) callback { ... } }</code>.</p>
 <h3 id="aetherplacetradeae-as-shipped"><code>aether/placeTrade.ae</code> (as shipped)</h3>
-<pre><code>place_trade(order_id: <span class="fn">long</span>, amount: <span class="fn">int</span>, ticker_known: <span class="fn">int</span>) {
-    println(<span class="str">"[ae] place_trade order_id=${order_id} amount=${amount}"</span>)
-    <span class="kw">if</span> amount &lt; <span class="num">0</span> || amount &gt; <span class="num">100000</span> {
-        notify(<span class="str">"OrderRejected"</span>, order_id)
-        <span class="kw">return</span> <span class="num">0</span>
+<pre><code>place_trade(order_id: long, amount: int, ticker_known: int) {
+    println("[ae] place_trade order_id=${order_id} amount=${amount}")
+    if amount &lt; 0 || amount &gt; 100000 {
+        notify("OrderRejected", order_id)
+        return 0
     }
-    <span class="kw">if</span> ticker_known == <span class="num">0</span> {
-        notify(<span class="str">"UnknownTicker"</span>, order_id)
-        <span class="kw">return</span> <span class="num">0</span>
+    if ticker_known == 0 {
+        notify("UnknownTicker", order_id)
+        return 0
     }
-    notify(<span class="str">"OrderPlaced"</span>, order_id)
-    <span class="kw">return</span> <span class="num">1</span>
+    notify("OrderPlaced", order_id)
+    return 1
 }</code></pre>
 <p>What's worth noticing about the script:</p>
 <ul><li>It mentions no host language. Nothing about Java, JVM, JNI.</li><li><code>notify(event, id)</code> is the only host-callback primitive. It's the claim check, the host gets the ID, and if it wants the trade detail it calls <code>get_ticker()</code> (or whatever the script exposes) over the normal downcall path.</li><li><code>[ae]</code> prefix on <code>println</code> is a convention so the demo's stdout makes it obvious which lines came from inside the embedded script vs. the Java host.</li></ul>
@@ -733,37 +742,37 @@ try (Trading t = new Trading("aether/libtrading.so")) {
 <p>The transport layer is not visible to either the script author or the host developer in v2. They see the namespace SDK; the transport layer is plumbing underneath.</p>
 <h2 id="the-manifest-grammar-in-detail">The manifest grammar in detail</h2>
 <p><code>std.host</code> defines the manifest builder. Every form below is a function call (or builder block), pure Aether, no new lexer or parser work.</p>
-<pre><code><span class="kw">import</span> std.host
+<pre><code>import std.host
 
 abi() {
-    describe(name: <span class="fn">string</span>) {
-        <span class="com">// name becomes the runtime namespace identifier.</span>
-        <span class="com">// Used for the discovery struct, generator output naming, etc.</span>
+    describe(name: string) {
+        // name becomes the runtime namespace identifier.
+        // Used for the discovery struct, generator output naming, etc.
 
         input(&lt;name&gt;, &lt;type_signature&gt;)
-            <span class="com">// Declares a host-supplied value the namespace makes</span>
-            <span class="com">// available. v1: stored on the SDK instance, the script</span>
-            <span class="com">// doesn't yet read inputs back at runtime (host_call /</span>
-            <span class="com">// ambient input access is Shape B).</span>
-            <span class="com">//</span>
-            <span class="com">// The type signature is a string parsed by the generator:</span>
-            <span class="com">// "int", "long", "float", "bool", "string", "map", "list",</span>
-            <span class="com">// "fn(string) -&gt; bool", etc. Nothing at runtime restricts it</span>
-            <span class="com">// to primitives, v1's intent is to keep inputs to primitives</span>
-            <span class="com">// and strings (see marshalling costs below), but that is</span>
-            <span class="com">// convention, not an enforced check.</span>
+            // Declares a host-supplied value the namespace makes
+            // available. v1: stored on the SDK instance, the script
+            // doesn't yet read inputs back at runtime (host_call /
+            // ambient input access is Shape B).
+            //
+            // The type signature is a string parsed by the generator:
+            // "int", "long", "float", "bool", "string", "map", "list",
+            // "fn(string) -&gt; bool", etc. Nothing at runtime restricts it
+            // to primitives, v1's intent is to keep inputs to primitives
+            // and strings (see marshalling costs below), but that is
+            // convention, not an enforced check.
 
         event(&lt;EventName&gt;, &lt;carries_type&gt;)
-            <span class="com">// Declares an event the script may emit.</span>
-            <span class="com">// v1: `carries` is restricted to `int64` (the claim-check ID).</span>
-            <span class="com">// Each event becomes an `on&lt;EventName&gt;(handler)` method</span>
-            <span class="com">// on the host SDK.</span>
+            // Declares an event the script may emit.
+            // v1: `carries` is restricted to `int64` (the claim-check ID).
+            // Each event becomes an `on&lt;EventName&gt;(handler)` method
+            // on the host SDK.
 
         bindings() {
             java(&lt;package&gt;, &lt;class&gt;)
-            python(&lt;<span class="kw">module</span>&gt;)
-            ruby(&lt;<span class="kw">module</span>&gt;)
-            go(&lt;package&gt;)        <span class="com">// parser accepts; emitter stubbed</span>
+            python(&lt;module&gt;)
+            ruby(&lt;module&gt;)
+            go(&lt;package&gt;)        // parser accepts; emitter stubbed
         }
     }
 }</code></pre>
@@ -781,7 +790,7 @@ abi() {
 <p><strong>Future (escape hatch via explicit <code>import</code>).</strong> A script that lives elsewhere could opt into a namespace by importing its manifest. Would require the import resolver to recognize manifest paths as namespace joins, not just module pulls. Not yet shipped.</p>
 <h2 id="the-claim-check-callback-model">The claim-check callback model</h2>
 <p>Aether-side primitive in <code>std.host</code>:</p>
-<pre><code><span class="kw">extern</span> notify(event: <span class="fn">string</span>, id: <span class="fn">int64</span>) -&gt; <span class="fn">int</span>    <span class="com">// 0 = no listener, 1 = delivered</span></code></pre>
+<pre><code>extern notify(event: string, id: int64) -&gt; int    // 0 = no listener, 1 = delivered</code></pre>
 <p>C-side dispatch table (<code>runtime/aether_host.c</code>):</p>
 <pre><code><span class="kw">typedef</span> <span class="kw">void</span> (*aether_event_handler_t)(<span class="kw">int64_t</span> id);
 
@@ -956,7 +965,7 @@ abi() {
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.473 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.553 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

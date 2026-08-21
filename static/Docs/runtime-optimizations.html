@@ -4,11 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Runtime Optimizations · Aether</title>
-<meta name="description" content="The Aether runtime implements several performance optimizations targeting message-passing overhead, synchronization primitives, and memory access patter...">
+<meta name="description" content="The Aether runtime implements several performance optimizations targeting message-passing overhead, synchronization primitives, and memory access...">
 <link rel="canonical" href="https://aether-lang.dev/Docs/runtime-optimizations.html">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Runtime Optimizations · Aether">
-<meta property="og:description" content="The Aether runtime implements several performance optimizations targeting message-passing overhead, synchronization primitives, and memory access patter...">
+<meta property="og:description" content="The Aether runtime implements several performance optimizations targeting message-passing overhead, synchronization primitives, and memory access...">
 <meta property="og:url" content="https://aether-lang.dev/Docs/runtime-optimizations.html">
 <meta property="og:image" content="https://aether-lang.dev/og.png">
 <meta name="twitter:card" content="summary_large_image">
@@ -171,7 +171,7 @@ a{color:inherit;text-decoration:none}
 
 /* section head */
 .sec-head{display:flex;align-items:baseline;gap:14px;margin:0 0 22px}
-.sec-head h2{font-family:var(--mono);font-size:1.15rem;font-weight:700;letter-spacing:-.01em;margin:0}
+.sec-head h1,.sec-head h2{font-family:var(--mono);font-size:1.15rem;font-weight:700;letter-spacing:-.01em;margin:0}
 .sec-head .rule{flex:1;height:1px;background:var(--line)}
 
 /* code */
@@ -358,7 +358,7 @@ body::after{content:"";position:fixed;inset:0;z-index:3;pointer-events:none;opac
 
 /* prompt accents on section headings */
 .prompt{color:var(--red);margin-right:.5ch}
-.sec-head h2 .prompt{font-weight:400}
+.sec-head h1 .prompt,.sec-head h2 .prompt{font-weight:400}
 
 /* prompt-styled ghost button */
 .btn-term{font-family:var(--mono);font-size:14px;padding:11px 18px;border-radius:6px;
@@ -570,7 +570,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.473</span>
+      <span class="vtag">v0.553</span>
     </nav>
   </div>
 </header>
@@ -600,6 +600,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/memory-management.html">Aether Memory Management</a>
 <a href="/Docs/runtime-optimizations.html" class="on">Runtime Optimizations</a>
 <a href="/Docs/numa-support.html">NUMA Support in Aether</a>
+<a href="/Docs/message-tracing.html">Message tracing</a>
 <div class="grp">Interop</div>
 <a href="/Docs/c-interop.html">C Interoperability</a>
 <a href="/Docs/c-embedding.html">Embedding Aether Actors in C Applications</a>
@@ -624,6 +625,11 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/runtime-config.html">Runtime Configuration - Quick Reference</a>
 <a href="/Docs/per-process-config.html">Per-process configuration in Aether</a>
 <a href="/Docs/cic-help.html">ae help &lt;script&gt; Offline diagnostics for config-IS-code</a>
+<a href="/Docs/cross-ios.html">Cross-compiling for iOS (arm64)</a>
+<div class="grp">Testing</div>
+<a href="/Docs/testing.html">Testing with std.spec and ae test</a>
+<a href="/Docs/mutation-testing.html">Mutation testing, std.mutation</a>
+<a href="/Docs/differential-testing.html">Differential testing across lowering paths</a>
 <div class="grp">Performance</div>
 <a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
 <a href="/Docs/profiling-guide.html">Aether Runtime Profiling Guide</a>
@@ -639,6 +645,9 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
 <a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn't need macro_rules!</a>
 <a href="/Docs/lib-caller-info.html">--emit=lib caller-info channel</a>
+<a href="/Docs/liveview-lite-roadmap.html">LiveView-lite, a roadmap (Phoenix LiveView, on actors, without the framework)</a>
+<a href="/Docs/schema-projection-roadmap.html">std.schema, a projection-first roadmap (Ash, without the framework)</a>
+<a href="/Docs/locale-independent-float-text.html">Plan: locale-independent float text conversion (LC_NUMERIC correctness)</a>
 <div class="grp">Contributing</div>
 <a href="/Docs/stdlib-module-pattern.html">Aether Stdlib Module Pattern</a>
 <a href="/Docs/stdlib-vs-contrib.html">std/ vs contrib/ placement decisions</a>
@@ -874,6 +883,16 @@ atomic_store_explicit(&amp;sched-&gt;idle_cycles, <span class="num">0</span>, me
 <p>Benchmarks showed hardware prefetchers handle sequential ring buffer access more effectively than manual <code>__builtin_prefetch</code> hints. Manual prefetch introduced pipeline stalls.</p>
 <h3 id="simd-message-processing">SIMD Message Processing</h3>
 <p>Message processing is memory-bound. Vectorization overhead exceeded benefits for typical message sizes.</p>
+<h3 id="actor-pooling-1332">Actor Pooling (#1332)</h3>
+<p>Reusing actor allocations across spawn/destroy churn, so a high-churn workload stops paying malloc/free per actor. Measured before implementing, per the rule that perf work needs profiling evidence first, and the measurement did not support it.</p>
+<p>Workload: the skynet benchmark at <code>SKYNET_LEAVES=1000000000</code>, which constructs <strong>11.1M actors</strong>, the most spawn-heavy workload in the tree. Sampled with <code>sample(1)</code> on macOS/arm64. Idle frames (<code>swtch_pri</code>, <code>__semwait_signal</code>, <code>scheduler_wait</code>) are excluded from the denominator, since a pool cannot recover time nobody is using.</p>
+<p>Sampling the <strong>tree-construction phase specifically</strong>, which is where every spawn happens:</p>
+<div class="tw"><table><thead><tr><th>Frame</th><th>Share of non-idle</th></tr></thead><tbody><tr><td><code>scheduler_thread</code> (the scheduler loop)</td><td>70.0%</td></tr><tr><td><code>scheduler_spawn_actor</code> (self)</td><td>10.1%</td></tr><tr><td><code>tlv_get_addr</code> (thread-local access)</td><td>6.7%</td></tr><tr><td><code>scheduler_io_poll</code></td><td>4.8%</td></tr><tr><td><strong>malloc / free, all frames</strong></td><td><strong>2.9%</strong></td></tr><tr><td><code>scheduler_register_actor</code></td><td>0.2%</td></tr></tbody></table></div>
+<p>Sampling a whole run mid-flight instead, so steady-state messaging dominates, puts the allocator at <strong>0.3-0.5%</strong> of non-idle time across two runs.</p>
+<p>So the ceiling for actor pooling is roughly 3% of non-idle CPU in the construction phase of a benchmark built to do nothing but construct actors, and well under 1% of a realistic run. A pool cannot capture even that much: it still has to re-initialize the mailbox, atomics, <code>alloc_size</code> and the panic/dead flags, which is most of what <code>scheduler_spawn_actor</code>'s own 10% is doing. The allocation call is the small half of the small number.</p>
+<p>Against that, a correct pool has to be size-class bucketed (actors are variable-size derived structs), preserve NUMA affinity, and handle release happening on a different core than spawn because work stealing migrates actors mid-life. The previous attempt (removed in PR #1330) got the layout wrong and routed NUMA-allocated memory to plain <code>free()</code>.</p>
+<p>Not worth it at this ratio. Revisit if a profile ever shows allocation as a double-digit share.</p>
+<p><strong>Side finding worth its own look:</strong> <code>tlv_get_addr</code> is 6.7% of non-idle time, stable across all three samples, and about twice the allocator. Thread-local variable access is a larger cost in the actor hot path than actor allocation ever was.</p>
 <h2 id="opt-in-features">Opt-In Features</h2>
 <p>The following optimizations are available but disabled by default. Enable them via runtime configuration flags when appropriate for your workload.</p>
 <p><strong>Message Deduplication</strong> (<code>runtime/actors/aether_message_dedup.h</code>)</p>
@@ -897,8 +916,8 @@ atomic_store_explicit(&amp;sched-&gt;idle_cycles, <span class="num">0</span>, me
 <p>When the codegen is in a main-function context (<code>gen-&gt;current_actor == NULL</code>), it now emits the always-taken branch directly, eliminating the dead conditional.</p>
 <h3 id="arithmetic-series-loop-collapse-compilercodegencodegen_stmtc">Arithmetic Series Loop Collapse (<code>compiler/codegen/codegen_stmt.c</code>)</h3>
 <p>Detects <code>while</code> loops of the form:</p>
-<pre><code><span class="kw">while</span> counter &lt; N {
-    acc1 = acc1 + C1   <span class="com">// loop-invariant addend</span>
+<pre><code>while counter &lt; N {
+    acc1 = acc1 + C1   // loop-invariant addend
     acc2 = acc2 + C2
     counter = counter + step
 }</code></pre>
@@ -915,8 +934,8 @@ atomic_store_explicit(&amp;sched-&gt;idle_cycles, <span class="num">0</span>, me
 <p><strong>Detection requirements (all must hold):</strong></p>
 <ol><li>Condition is <code>var &lt; bound</code> or <code>var &lt;= bound</code></li><li>Every body statement is <code>target = target + expr</code> (no other forms)</li><li>One statement increments the counter variable by a positive literal step</li><li>All addend expressions are loop-invariant (no reference to counter or other modified variables)</li><li>Bound expression is not modified by any loop body statement</li><li>No function calls or actor sends in the loop body (sends get batch-send treatment instead)</li></ol>
 <p><strong>Pure counter elimination</strong> is a subcase handled automatically (zero accumulators):</p>
-<pre><code>i = <span class="num">0</span>
-<span class="kw">while</span> i &lt; n { i = i + <span class="num">1</span> }   <span class="com">// n can be a runtime variable</span></code></pre>
+<pre><code>i = 0
+while i &lt; n { i = i + 1 }   // n can be a runtime variable</code></pre>
 <p>→ <code>if ((i) &lt; (n)) { i = (n); }</code> clang can collapse only when <code>n</code> is a compile-time constant.</p>
 <p><strong>Reported in optimization stats:</strong></p>
 <pre><code>Optimization Statistics:
@@ -924,11 +943,11 @@ atomic_store_explicit(&amp;sched-&gt;idle_cycles, <span class="num">0</span>, me
 <hr>
 <h3 id="linear-counter-sum-compilercodegencodegen_stmtc">Linear Counter Sum (<code>compiler/codegen/codegen_stmt.c</code>)</h3>
 <p>Detects loops where an accumulator adds the <strong>counter variable itself</strong> (or a scaled version of it):</p>
-<pre><code>j = <span class="num">0</span>
-total = <span class="num">0</span>
-<span class="kw">while</span> j &lt; N {
-    total = total + j     <span class="com">// addend IS the induction variable</span>
-    j = j + <span class="num">1</span>
+<pre><code>j = 0
+total = 0
+while j &lt; N {
+    total = total + j     // addend IS the induction variable
+    j = j + 1
 }</code></pre>
 <p>Replaced with the <strong>triangular-number closed form</strong>:</p>
 <pre><code><span class="kw">if</span> ((j) &lt; (N)) {
@@ -963,7 +982,7 @@ total = <span class="num">0</span>
 <nav class="doc-prevnext" aria-label="Previous and next page"><a class="pn-prev" href="/Docs/memory-management.html"><span class="pn-k">Previous</span><span class="pn-t">Aether Memory Management</span></a><a class="pn-next" href="/Docs/numa-support.html"><span class="pn-k">Next</span><span class="pn-t">NUMA Support in Aether</span></a></nav>
       </article>
     </main>
-    <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#overview" class="l2" data-id="overview">Overview</a><a href="#active-optimizations" class="l2" data-id="active-optimizations">Active Optimizations</a><a href="#main-thread-actor-mode" class="l3" data-id="main-thread-actor-mode">Main Thread Actor Mode</a><a href="#thread-local-message-payload-pools" class="l3" data-id="thread-local-message-payload-pools">Thread-Local Message Payload Pools</a><a href="#message-coalescing-with-batch-dequeue" class="l3" data-id="message-coalescing-with-batch-dequeue">Message Coalescing with Batch Dequeue</a><a href="#batch-send-for-fan-out-patterns" class="l3" data-id="batch-send-for-fan-out-patterns">Batch Send for Fan-Out Patterns</a><a href="#adaptive-batch-size" class="l3" data-id="adaptive-batch-size">Adaptive Batch Size</a><a href="#optimized-spinlock-with-platform-specific-yield" class="l3" data-id="optimized-spinlock-with-platform-specific-yield">Optimized Spinlock with Platform-Specific Yield</a><a href="#lock-free-cross-core-queue" class="l3" data-id="lock-free-cross-core-queue">Lock-Free Cross-Core Queue</a><a href="#spsc-queue-for-same-core-messaging" class="l3" data-id="spsc-queue-for-same-core-messaging">SPSC Queue for Same-Core Messaging</a><a href="#direct-mailbox-delivery" class="l3" data-id="direct-mailbox-delivery">Direct Mailbox Delivery</a><a href="#message-driven-actor-migration" class="l3" data-id="message-driven-actor-migration">Message-Driven Actor Migration</a><a href="#inline-single-field-messages" class="l3" data-id="inline-single-field-messages">Inline Single-Field Messages</a><a href="#computed-goto-dispatch" class="l3" data-id="computed-goto-dispatch">Computed Goto Dispatch</a><a href="#progressive-backoff-strategy" class="l3" data-id="progressive-backoff-strategy">Progressive Backoff Strategy</a><a href="#cache-line-alignment" class="l3" data-id="cache-line-alignment">Cache Line Alignment</a><a href="#power-of-2-buffer-sizing" class="l3" data-id="power-of-2-buffer-sizing">Power-of-2 Buffer Sizing</a><a href="#relaxed-atomic-memory-ordering" class="l3" data-id="relaxed-atomic-memory-ordering">Relaxed Atomic Memory Ordering</a><a href="#numa-aware-allocation" class="l3" data-id="numa-aware-allocation">NUMA-Aware Allocation</a><a href="#link-time-optimization" class="l3" data-id="link-time-optimization">Link-Time Optimization</a><a href="#cpu-detection-fallback" class="l3" data-id="cpu-detection-fallback">CPU Detection Fallback</a><a href="#apple-silicon-p-core-detection" class="l3" data-id="apple-silicon-p-core-detection">Apple Silicon P-Core Detection</a><a href="#per-core-message-counters" class="l3" data-id="per-core-message-counters">Per-Core Message Counters</a><a href="#rejected-optimizations" class="l2" data-id="rejected-optimizations">Rejected Optimizations</a><a href="#manual-prefetching" class="l3" data-id="manual-prefetching">Manual Prefetching</a><a href="#simd-message-processing" class="l3" data-id="simd-message-processing">SIMD Message Processing</a><a href="#opt-in-features" class="l2" data-id="opt-in-features">Opt-In Features</a><a href="#compiler-optimizations" class="l2" data-id="compiler-optimizations">Compiler Optimizations</a><a href="#hotcold-path-fixes-scheduler-level" class="l3" data-id="hotcold-path-fixes-scheduler-level">Hot/Cold Path Fixes (scheduler-level)</a><a href="#arithmetic-series-loop-collapse-compilercodegencodegen_stmtc" class="l3" data-id="arithmetic-series-loop-collapse-compilercodegencodegen_stmtc">Arithmetic Series Loop Collapse (compiler/codegen/codegen_stmt.c)</a><a href="#linear-counter-sum-compilercodegencodegen_stmtc" class="l3" data-id="linear-counter-sum-compilercodegencodegen_stmtc">Linear Counter Sum (compiler/codegen/codegen_stmt.c)</a><a href="#cooperative-preemption-opt-in" class="l3" data-id="cooperative-preemption-opt-in">Cooperative Preemption (Opt-In)</a><a href="#actor-timeouts" class="l3" data-id="actor-timeouts">Actor Timeouts</a><a href="#references" class="l2" data-id="references">References</a></nav>
+    <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#overview" class="l2" data-id="overview">Overview</a><a href="#active-optimizations" class="l2" data-id="active-optimizations">Active Optimizations</a><a href="#main-thread-actor-mode" class="l3" data-id="main-thread-actor-mode">Main Thread Actor Mode</a><a href="#thread-local-message-payload-pools" class="l3" data-id="thread-local-message-payload-pools">Thread-Local Message Payload Pools</a><a href="#message-coalescing-with-batch-dequeue" class="l3" data-id="message-coalescing-with-batch-dequeue">Message Coalescing with Batch Dequeue</a><a href="#batch-send-for-fan-out-patterns" class="l3" data-id="batch-send-for-fan-out-patterns">Batch Send for Fan-Out Patterns</a><a href="#adaptive-batch-size" class="l3" data-id="adaptive-batch-size">Adaptive Batch Size</a><a href="#optimized-spinlock-with-platform-specific-yield" class="l3" data-id="optimized-spinlock-with-platform-specific-yield">Optimized Spinlock with Platform-Specific Yield</a><a href="#lock-free-cross-core-queue" class="l3" data-id="lock-free-cross-core-queue">Lock-Free Cross-Core Queue</a><a href="#spsc-queue-for-same-core-messaging" class="l3" data-id="spsc-queue-for-same-core-messaging">SPSC Queue for Same-Core Messaging</a><a href="#direct-mailbox-delivery" class="l3" data-id="direct-mailbox-delivery">Direct Mailbox Delivery</a><a href="#message-driven-actor-migration" class="l3" data-id="message-driven-actor-migration">Message-Driven Actor Migration</a><a href="#inline-single-field-messages" class="l3" data-id="inline-single-field-messages">Inline Single-Field Messages</a><a href="#computed-goto-dispatch" class="l3" data-id="computed-goto-dispatch">Computed Goto Dispatch</a><a href="#progressive-backoff-strategy" class="l3" data-id="progressive-backoff-strategy">Progressive Backoff Strategy</a><a href="#cache-line-alignment" class="l3" data-id="cache-line-alignment">Cache Line Alignment</a><a href="#power-of-2-buffer-sizing" class="l3" data-id="power-of-2-buffer-sizing">Power-of-2 Buffer Sizing</a><a href="#relaxed-atomic-memory-ordering" class="l3" data-id="relaxed-atomic-memory-ordering">Relaxed Atomic Memory Ordering</a><a href="#numa-aware-allocation" class="l3" data-id="numa-aware-allocation">NUMA-Aware Allocation</a><a href="#link-time-optimization" class="l3" data-id="link-time-optimization">Link-Time Optimization</a><a href="#cpu-detection-fallback" class="l3" data-id="cpu-detection-fallback">CPU Detection Fallback</a><a href="#apple-silicon-p-core-detection" class="l3" data-id="apple-silicon-p-core-detection">Apple Silicon P-Core Detection</a><a href="#per-core-message-counters" class="l3" data-id="per-core-message-counters">Per-Core Message Counters</a><a href="#rejected-optimizations" class="l2" data-id="rejected-optimizations">Rejected Optimizations</a><a href="#manual-prefetching" class="l3" data-id="manual-prefetching">Manual Prefetching</a><a href="#simd-message-processing" class="l3" data-id="simd-message-processing">SIMD Message Processing</a><a href="#actor-pooling-1332" class="l3" data-id="actor-pooling-1332">Actor Pooling (#1332)</a><a href="#opt-in-features" class="l2" data-id="opt-in-features">Opt-In Features</a><a href="#compiler-optimizations" class="l2" data-id="compiler-optimizations">Compiler Optimizations</a><a href="#hotcold-path-fixes-scheduler-level" class="l3" data-id="hotcold-path-fixes-scheduler-level">Hot/Cold Path Fixes (scheduler-level)</a><a href="#arithmetic-series-loop-collapse-compilercodegencodegen_stmtc" class="l3" data-id="arithmetic-series-loop-collapse-compilercodegencodegen_stmtc">Arithmetic Series Loop Collapse (compiler/codegen/codegen_stmt.c)</a><a href="#linear-counter-sum-compilercodegencodegen_stmtc" class="l3" data-id="linear-counter-sum-compilercodegencodegen_stmtc">Linear Counter Sum (compiler/codegen/codegen_stmt.c)</a><a href="#cooperative-preemption-opt-in" class="l3" data-id="cooperative-preemption-opt-in">Cooperative Preemption (Opt-In)</a><a href="#actor-timeouts" class="l3" data-id="actor-timeouts">Actor Timeouts</a><a href="#references" class="l2" data-id="references">References</a></nav>
   </div>
 </div>
 <script src="/docs.js" defer></script>
@@ -972,7 +991,7 @@ total = <span class="num">0</span>
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.473 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.553 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

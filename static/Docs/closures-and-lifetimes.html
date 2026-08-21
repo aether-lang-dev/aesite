@@ -4,11 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Closures and Environment Lifetimes · Aether</title>
-<meta name="description" content="This document covers how closure environments are allocated, captured,">
+<meta name="description" content="This document covers how closure environments are allocated, captured, and freed, and the patterns that currently need workarounds.">
 <link rel="canonical" href="https://aether-lang.dev/Docs/closures-and-lifetimes.html">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Closures and Environment Lifetimes · Aether">
-<meta property="og:description" content="This document covers how closure environments are allocated, captured,">
+<meta property="og:description" content="This document covers how closure environments are allocated, captured, and freed, and the patterns that currently need workarounds.">
 <meta property="og:url" content="https://aether-lang.dev/Docs/closures-and-lifetimes.html">
 <meta property="og:image" content="https://aether-lang.dev/og.png">
 <meta name="twitter:card" content="summary_large_image">
@@ -171,7 +171,7 @@ a{color:inherit;text-decoration:none}
 
 /* section head */
 .sec-head{display:flex;align-items:baseline;gap:14px;margin:0 0 22px}
-.sec-head h2{font-family:var(--mono);font-size:1.15rem;font-weight:700;letter-spacing:-.01em;margin:0}
+.sec-head h1,.sec-head h2{font-family:var(--mono);font-size:1.15rem;font-weight:700;letter-spacing:-.01em;margin:0}
 .sec-head .rule{flex:1;height:1px;background:var(--line)}
 
 /* code */
@@ -358,7 +358,7 @@ body::after{content:"";position:fixed;inset:0;z-index:3;pointer-events:none;opac
 
 /* prompt accents on section headings */
 .prompt{color:var(--red);margin-right:.5ch}
-.sec-head h2 .prompt{font-weight:400}
+.sec-head h1 .prompt,.sec-head h2 .prompt{font-weight:400}
 
 /* prompt-styled ghost button */
 .btn-term{font-family:var(--mono);font-size:14px;padding:11px 18px;border-radius:6px;
@@ -570,7 +570,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.473</span>
+      <span class="vtag">v0.553</span>
     </nav>
   </div>
 </header>
@@ -600,6 +600,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/memory-management.html">Aether Memory Management</a>
 <a href="/Docs/runtime-optimizations.html">Runtime Optimizations</a>
 <a href="/Docs/numa-support.html">NUMA Support in Aether</a>
+<a href="/Docs/message-tracing.html">Message tracing</a>
 <div class="grp">Interop</div>
 <a href="/Docs/c-interop.html">C Interoperability</a>
 <a href="/Docs/c-embedding.html">Embedding Aether Actors in C Applications</a>
@@ -624,6 +625,11 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/runtime-config.html">Runtime Configuration - Quick Reference</a>
 <a href="/Docs/per-process-config.html">Per-process configuration in Aether</a>
 <a href="/Docs/cic-help.html">ae help &lt;script&gt; Offline diagnostics for config-IS-code</a>
+<a href="/Docs/cross-ios.html">Cross-compiling for iOS (arm64)</a>
+<div class="grp">Testing</div>
+<a href="/Docs/testing.html">Testing with std.spec and ae test</a>
+<a href="/Docs/mutation-testing.html">Mutation testing, std.mutation</a>
+<a href="/Docs/differential-testing.html">Differential testing across lowering paths</a>
 <div class="grp">Performance</div>
 <a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
 <a href="/Docs/profiling-guide.html">Aether Runtime Profiling Guide</a>
@@ -639,6 +645,9 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
 <a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn't need macro_rules!</a>
 <a href="/Docs/lib-caller-info.html">--emit=lib caller-info channel</a>
+<a href="/Docs/liveview-lite-roadmap.html">LiveView-lite, a roadmap (Phoenix LiveView, on actors, without the framework)</a>
+<a href="/Docs/schema-projection-roadmap.html">std.schema, a projection-first roadmap (Ash, without the framework)</a>
+<a href="/Docs/locale-independent-float-text.html">Plan: locale-independent float text conversion (LC_NUMERIC correctness)</a>
 <div class="grp">Contributing</div>
 <a href="/Docs/stdlib-module-pattern.html">Aether Stdlib Module Pattern</a>
 <a href="/Docs/stdlib-vs-contrib.html">std/ vs contrib/ placement decisions</a>
@@ -684,35 +693,37 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <h2 id="environment-reclamation">Environment reclamation</h2>
 <p>A capturing closure's environment is a heap allocation; two common lifetimes now reclaim it automatically (the canonical reference is <a href="/Docs/memory-management.html"><code>docs/memory-management.md</code></a> → "Closure environment lifetime"):</p>
 <ul><li><strong>Transient callback.</strong> A capturing closure created inline and passed to a parameter that only <em>calls</em> it and neither stores nor returns it (<code>run(cb) { cb() }</code>) is dead once the call returns, so its env is freed right after the call. This is gated on a proven non-escape, invoking a closure parameter (<code>cb()</code>, an indirect-<code>call</code> node whose first child is the callee) is not an escape, whereas a stored or returned closure suppresses the drain so its env follows the owner.</li><li><strong>Stored in a list.</strong> A closure value stored into a list is heap-boxed (the <code>fn → ptr</code> coercion) and the list owns the box; <code>list.free</code> now reclaims the captured env as well as the box (<code>owned_flags == 2</code>).</li></ul>
+<p>Two shapes defeat these paths and leak the env, both bit <code>std.spec</code> (#1577):</p>
+<ul><li><strong>Forwarding a <code>fn</code> parameter.</strong> The transient-callback drain fires only when the callee <em>calls</em> its <code>fn</code> parameter. Passing it on to another function (<code>it(cb) { it_impl(cb) }</code>) is an escape from the callee's point of view, so the caller keeps the env alive forever. Restructure so the exported function invokes the parameter itself, split the shared logic into begin/end halves around the <code>call()</code> if needed (that is exactly how <code>std.spec</code>'s <code>it</code>/<code>it_within</code> are built).</li><li><strong>Explicit <code>box_closure()</code> into a list.</strong> The list-owns-the-env path is keyed off the <code>fn → ptr</code> coercion at the <code>list.add</code> call site. <code>list.add(l, box_closure(f))</code> hands the list a raw pointer it cannot know it owns; nothing reclaims box or env. Add the <code>fn</code> value directly (<code>list.add(l, f)</code>) and the owned coercion does the boxing and the reclamation.</li></ul>
 <p>Still a leak (the safe side of the leak-vs-UAF trade): <strong>L5 below</strong>, reassigning a closure <em>variable</em> drops the previous env, because without whole-program escape analysis the codegen can't prove the old env is unreachable (it may be aliased through a <code>box_closure</code> copy).</p>
 <h2 id="closure-patterns-and-workarounds">Closure patterns and workarounds</h2>
 <p>L1–L3 are ergonomic patterns with known workarounds you can apply today. L4 is a compile-time rejection, previously silent wrong answers, now surfaced at compile time with a clear error. L5 is a memory-handling contract around reassignment. Each has a near-term workaround; the "proper fix" notes describe the larger language work each leans on.</p>
 <h3 id="l1-callx-where-x-comes-from-a-list">L1. <code>call(x)</code> where <code>x</code> comes from a list</h3>
 <pre><code>handlers = list.new()
-list.add(handlers, box_closure(|_| { <span class="kw">return</span> <span class="str">"hello"</span> }))
+list.add(handlers, box_closure(|_| { return "hello" }))
 ...
-boxed = list.get(handlers, <span class="num">0</span>)
+boxed = list.get(handlers, 0)
 h = unbox_closure(boxed)
-r = call(h)                   <span class="com">// h's return type is unknown at codegen</span></code></pre>
+r = call(h)                   // h's return type is unknown at codegen</code></pre>
 <p><code>call(h)</code> falls back to generic dispatch: <code>((int(*)(void*))h.fn)(h.env)</code> it assumes <code>int</code> return even if the stored closure returns a string or pointer. Strings get their pointer truncated; pointers become garbage.</p>
 <p><strong>Workaround:</strong> use a direct-literal closure variable when possible: <code>action = |_| { ... }; call(action)</code> is statically resolved. Or accept that <code>int</code>-returning dynamic closures are the only safely dispatchable kind today.</p>
 <p><strong>Why a quick <code>intptr_t</code> widening doesn't fix it:</strong> the obvious patch, emit <code>((intptr_t(*)(void*))h.fn)(h.env)</code> instead of <code>((int(*)(void*))</code> fixes the cast in isolation but leaves <code>r</code>'s declared C type as <code>int</code>, so the return narrows right back. Widening <code>r</code> requires changing the variable's registration in the symbol table (not just the AST decl); downstream <code>print(r)</code> looks up <code>r</code>'s type from the symbol table and picks <code>%d</code> for anything registered as <code>TYPE_INT</code>. Propagating <code>TYPE_PTR</code> through the AST alone was attempted, it segfaulted four existing tests whose <code>call(x)</code> returns are used in arithmetic or comparisons. A real fix threads through the typechecker.</p>
 <h3 id="l2-callx-where-x-is-chosen-via-matchif">L2. <code>call(x)</code> where <code>x</code> is chosen via <code>match</code>/<code>if</code></h3>
-<pre><code>op = <span class="kw">if</span> user_wants_add { add_fn } <span class="kw">else</span> { mul_fn }
-r = call(op, <span class="num">3</span>, <span class="num">4</span>)            <span class="com">// op's closure id is not knowable</span></code></pre>
+<pre><code>op = if user_wants_add { add_fn } else { mul_fn }
+r = call(op, 3, 4)            // op's closure id is not knowable</code></pre>
 <p>Same failure mode as L1. <code>closure_var_map</code> records a single closure id per name, so branch-selected closures fall through to generic dispatch with the <code>int</code> default.</p>
 <h3 id="l3-callx-where-x-is-threaded-through-intermediate-functions">L3. <code>call(x)</code> where <code>x</code> is threaded through intermediate functions</h3>
-<pre><code>x = setup()                   <span class="com">// setup returns a closure</span>
-y = wrap(x)                   <span class="com">// wrap takes fn, returns fn</span>
-r = call(y)                   <span class="com">// y's underlying closure is two hops away</span></code></pre>
+<pre><code>x = setup()                   // setup returns a closure
+y = wrap(x)                   // wrap takes fn, returns fn
+r = call(y)                   // y's underlying closure is two hops away</code></pre>
 <p><code>closure_var_map</code>'s <code>w = f()</code> inheritance (Bug 5's partial fix) only handles one hop when <code>f</code>'s body ends <code>return &lt;closure_var&gt;</code>. Multi-hop chains fall through to generic dispatch.</p>
 <p><strong>Proper fix for L1/L2/L3:</strong> parameterised closure types (<code>fn[T]</code>, like Rust's <code>Fn(i32) -&gt; i32</code>) or full typechecker return-type propagation. Either is a medium-sized language feature, until it lands, the workaround sections on each limit apply.</p>
 <h3 id="l4-closure-inside-actor-handler-mutating-actor-state">L4. Closure inside actor handler mutating actor state</h3>
-<pre><code><span class="kw">actor</span> Counter {
-    <span class="kw">state</span> count = <span class="num">0</span>
-    <span class="kw">receive</span> {
+<pre><code>actor Counter {
+    state count = 0
+    receive {
         Go() -&gt; {
-            inc = || { count = count + <span class="num">1</span> }   <span class="com">// rejected at compile time</span>
+            inc = || { count = count + 1 }   // rejected at compile time
             call(inc)
         }
     }
@@ -722,8 +733,8 @@ r = call(y)                   <span class="com">// y's underlying closure is two
 <p><strong>Workaround:</strong> copy state into an arm-local first, mutate that, then write back. See <code>tests/syntax/README_closure_actor_state_limitation.md</code> for the full pattern.</p>
 <p><strong>Proper fix:</strong> thread <code>self</code> through the closure's env so state writes compile to <code>self-&gt;field = ...</code>. Medium-sized codegen change; until it lands, the compile-time rejection prevents silent wrong answers.</p>
 <h3 id="l5-closure-var-reassignment-leaks-the-previous-env">L5. Closure-var reassignment leaks the previous env</h3>
-<pre><code>op = |x: <span class="fn">int</span>| { <span class="kw">return</span> x + <span class="num">1</span> }
-op = |x: <span class="fn">int</span>| { <span class="kw">return</span> x * <span class="num">2</span> }  <span class="com">// old env (malloc'd) is leaked</span></code></pre>
+<pre><code>op = |x: int| { return x + 1 }
+op = |x: int| { return x * 2 }  // old env (malloc'd) is leaked</code></pre>
 <p>When a closure variable is reassigned, the auto-defer-free fires only on the first assignment (to avoid double-free at scope exit, since reassignment overwrites <code>.env</code> in the variable). The previous env's heap block is unreachable, leaked.</p>
 <p><strong>Why not just free on reassignment:</strong> the old env may still be reachable via a <code>box_closure()</code> copy or another closure's transitive capture. Without escape analysis we can't tell if it's safe to free, so we lean safe (leak) over unsafe (UAF).</p>
 <p>Paired tests pin this trade-off:</p>
@@ -743,7 +754,7 @@ op = |x: <span class="fn">int</span>| { <span class="kw">return</span> x * <span
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.473 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.553 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

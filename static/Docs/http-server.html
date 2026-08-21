@@ -4,11 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>std.http HTTP Server · Aether</title>
-<meta name="description" content="Aether's built-in HTTP server. Routes, request/response, middleware">
+<meta name="description" content="Aether&#x27;s built-in HTTP server. Routes, request/response, middleware chain, TLS termination, HTTP/1.1 keep-alive, per-connection actor dispatch, HTTP/2 (h2...">
 <link rel="canonical" href="https://aether-lang.dev/Docs/http-server.html">
 <meta property="og:type" content="article">
 <meta property="og:title" content="std.http HTTP Server · Aether">
-<meta property="og:description" content="Aether's built-in HTTP server. Routes, request/response, middleware">
+<meta property="og:description" content="Aether&#x27;s built-in HTTP server. Routes, request/response, middleware chain, TLS termination, HTTP/1.1 keep-alive, per-connection actor dispatch, HTTP/2 (h2...">
 <meta property="og:url" content="https://aether-lang.dev/Docs/http-server.html">
 <meta property="og:image" content="https://aether-lang.dev/og.png">
 <meta name="twitter:card" content="summary_large_image">
@@ -171,7 +171,7 @@ a{color:inherit;text-decoration:none}
 
 /* section head */
 .sec-head{display:flex;align-items:baseline;gap:14px;margin:0 0 22px}
-.sec-head h2{font-family:var(--mono);font-size:1.15rem;font-weight:700;letter-spacing:-.01em;margin:0}
+.sec-head h1,.sec-head h2{font-family:var(--mono);font-size:1.15rem;font-weight:700;letter-spacing:-.01em;margin:0}
 .sec-head .rule{flex:1;height:1px;background:var(--line)}
 
 /* code */
@@ -358,7 +358,7 @@ body::after{content:"";position:fixed;inset:0;z-index:3;pointer-events:none;opac
 
 /* prompt accents on section headings */
 .prompt{color:var(--red);margin-right:.5ch}
-.sec-head h2 .prompt{font-weight:400}
+.sec-head h1 .prompt,.sec-head h2 .prompt{font-weight:400}
 
 /* prompt-styled ghost button */
 .btn-term{font-family:var(--mono);font-size:14px;padding:11px 18px;border-radius:6px;
@@ -570,7 +570,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.473</span>
+      <span class="vtag">v0.553</span>
     </nav>
   </div>
 </header>
@@ -600,6 +600,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/memory-management.html">Aether Memory Management</a>
 <a href="/Docs/runtime-optimizations.html">Runtime Optimizations</a>
 <a href="/Docs/numa-support.html">NUMA Support in Aether</a>
+<a href="/Docs/message-tracing.html">Message tracing</a>
 <div class="grp">Interop</div>
 <a href="/Docs/c-interop.html">C Interoperability</a>
 <a href="/Docs/c-embedding.html">Embedding Aether Actors in C Applications</a>
@@ -624,6 +625,11 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/runtime-config.html">Runtime Configuration - Quick Reference</a>
 <a href="/Docs/per-process-config.html">Per-process configuration in Aether</a>
 <a href="/Docs/cic-help.html">ae help &lt;script&gt; Offline diagnostics for config-IS-code</a>
+<a href="/Docs/cross-ios.html">Cross-compiling for iOS (arm64)</a>
+<div class="grp">Testing</div>
+<a href="/Docs/testing.html">Testing with std.spec and ae test</a>
+<a href="/Docs/mutation-testing.html">Mutation testing, std.mutation</a>
+<a href="/Docs/differential-testing.html">Differential testing across lowering paths</a>
 <div class="grp">Performance</div>
 <a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
 <a href="/Docs/profiling-guide.html">Aether Runtime Profiling Guide</a>
@@ -639,6 +645,9 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
 <a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn't need macro_rules!</a>
 <a href="/Docs/lib-caller-info.html">--emit=lib caller-info channel</a>
+<a href="/Docs/liveview-lite-roadmap.html">LiveView-lite, a roadmap (Phoenix LiveView, on actors, without the framework)</a>
+<a href="/Docs/schema-projection-roadmap.html">std.schema, a projection-first roadmap (Ash, without the framework)</a>
+<a href="/Docs/locale-independent-float-text.html">Plan: locale-independent float text conversion (LC_NUMERIC correctness)</a>
 <div class="grp">Contributing</div>
 <a href="/Docs/stdlib-module-pattern.html">Aether Stdlib Module Pattern</a>
 <a href="/Docs/stdlib-vs-contrib.html">std/ vs contrib/ placement decisions</a>
@@ -667,45 +676,45 @@ main() {
 <p>Run it: <code>ae run server.ae</code>. Hit <code>http://127.0.0.1:8080/</code> from any client.</p>
 <hr>
 <h2 id="routing">Routing</h2>
-<pre><code>http.server_get   (server, <span class="str">"/users"</span>,      handle_list,   <span class="num">0</span>)
-http.server_get   (server, <span class="str">"/users/:id"</span>,  handle_get,    <span class="num">0</span>)
-http.server_post  (server, <span class="str">"/users"</span>,      handle_create, <span class="num">0</span>)
-http.server_put   (server, <span class="str">"/users/:id"</span>,  handle_update, <span class="num">0</span>)
-http.server_delete(server, <span class="str">"/users/:id"</span>,  handle_delete, <span class="num">0</span>)
-http.server_add_route(server, <span class="str">"PATCH"</span>, <span class="str">"/users/:id"</span>, handle_patch, <span class="num">0</span>)</code></pre>
+<pre><code>http.server_get   (server, "/users",      handle_list,   0)
+http.server_get   (server, "/users/:id",  handle_get,    0)
+http.server_post  (server, "/users",      handle_create, 0)
+http.server_put   (server, "/users/:id",  handle_update, 0)
+http.server_delete(server, "/users/:id",  handle_delete, 0)
+http.server_add_route(server, "PATCH", "/users/:id", handle_patch, 0)</code></pre>
 <p>Path parameters (<code>:id</code>) are extracted and reachable via <code>http.get_path_param(req, "id")</code>. Query parameters via <code>http.get_query_param(req, "key")</code>.</p>
 <hr>
 <h2 id="static-files">Static files</h2>
-<pre><code>http.server_get(server, <span class="str">"/report"</span>, handle_report, <span class="num">0</span>)
+<pre><code>http.server_get(server, "/report", handle_report, 0)
 
-handle_report(req: <span class="fn">ptr</span>, res: <span class="fn">ptr</span>, ud: <span class="fn">ptr</span>) {
-    http.serve_file(res, <span class="str">"/srv/reports/latest.pdf"</span>)
+handle_report(req: ptr, res: ptr, ud: ptr) {
+    http.serve_file(res, "/srv/reports/latest.pdf")
 }
 
-<span class="com">// Or serve a whole directory:</span>
-handle_assets(req: <span class="fn">ptr</span>, res: <span class="fn">ptr</span>, ud: <span class="fn">ptr</span>) {
-    http.serve_static(req, res, <span class="str">"/srv/www"</span>)
+// Or serve a whole directory:
+handle_assets(req: ptr, res: ptr, ud: ptr) {
+    http.serve_static(req, res, "/srv/www")
 }</code></pre>
 <p><code>http.serve_file(res, filepath)</code> streams one file with <code>Content-Type</code> resolved via <code>http.mime_type(filepath)</code>. Under HTTP/1.1 cleartext on Linux/macOS it takes a zero-copy <code>sendfile(2)</code> fast path (the body never touches the heap; <code>TCP_CORK</code>/<code>TCP_NOPUSH</code> coalesces headers and body into one segment). TLS, HTTP/2, Range requests, and Windows fall back to a buffered read.</p>
 <p><code>http.serve_static(req, res, base_dir)</code> dispatches the request path against a directory. Path traversal (<code>..</code>, <code>%2e</code> encodings) is rejected with 403, missing files return 404, and <code>Range</code> headers are honoured for partial content.</p>
 <hr>
 <h2 id="tls-termination">TLS termination</h2>
-<pre><code>err = http.server_set_tls(server, <span class="str">"/etc/ssl/cert.pem"</span>, <span class="str">"/etc/ssl/key.pem"</span>)
-<span class="kw">if</span> err != <span class="str">""</span> { println(<span class="str">"TLS setup: ${err}"</span>); exit(<span class="num">1</span>) }</code></pre>
+<pre><code>err = http.server_set_tls(server, "/etc/ssl/cert.pem", "/etc/ssl/key.pem")
+if err != "" { println("TLS setup: ${err}"); exit(1) }</code></pre>
 <p>After this call every accepted connection completes a TLS handshake (<code>TLS 1.2+</code>, compression and renegotiation disabled) before the HTTP parse runs. Plaintext clients hitting the TLS port get rejected at handshake time. The cert and key must be PEM-encoded; the server validates they match.</p>
 <p>When the build does not include OpenSSL (<code>AETHER_HAS_OPENSSL</code> undefined), <code>server_set_tls</code> returns <code>"TLS unavailable: built without OpenSSL"</code>.</p>
 <hr>
 <h2 id="http2-h2--h2c">HTTP/2 (h2 + h2c)</h2>
 <p><code>std.http</code> speaks HTTP/2 server-side via libnghttp2 (server-side HTTP/2 Tier 2). Enable with one call alongside the existing TLS / keep- alive setup:</p>
-<pre><code><span class="kw">import</span> std.http
+<pre><code>import std.http
 
 main() {
-    server = http.server_create(<span class="num">443</span>)
-    http.server_set_tls(server, <span class="str">"/etc/ssl/cert.pem"</span>, <span class="str">"/etc/ssl/key.pem"</span>)
-    http.server_set_h2(server, <span class="num">0</span>)        <span class="com">// 0 = nghttp2 default 100</span>
-    http.server_set_keepalive(server, <span class="num">1</span>, <span class="num">0</span>, 30000ms)
+    server = http.server_create(443)
+    http.server_set_tls(server, "/etc/ssl/cert.pem", "/etc/ssl/key.pem")
+    http.server_set_h2(server, 0)        // 0 = nghttp2 default 100
+    http.server_set_keepalive(server, 1, 0, 30000ms)
 
-    http.server_get(server, <span class="str">"/"</span>, home, <span class="num">0</span>)
+    http.server_get(server, "/", home, 0)
     http.server_start(server)
 }</code></pre>
 <p>What the toggle changes:</p>
@@ -714,8 +723,8 @@ main() {
 <h3 id="per-stream-concurrent-dispatch">Per-stream concurrent dispatch</h3>
 <p>By default, h2 streams within one connection dispatch sequentially on the connection thread, each handler runs to completion before the next stream's handler begins. For workloads where handlers do non-trivial work (database queries, large I/O, downstream HTTP calls), this caps the throughput a single TCP connection can drive.</p>
 <p><code>http.server_set_h2_concurrent_dispatch(server, n)</code> routes stream handlers onto the <strong>shared <code>std.worker</code> pool</strong>, sized to <code>n</code> threads. Handlers run on that pool in parallel; the connection thread keeps reading frames and serialising responses. One process-wide pool serves both <code>worker.run</code> and every h2 connection on every server. POSIX-only (macOS / Linux); on Windows the call is silently ignored and streams stay sequential.</p>
-<pre><code>http.server_set_h2(server, <span class="num">0</span>)                          <span class="com">// h2 enabled</span>
-http.server_set_h2_concurrent_dispatch(server, <span class="num">4</span>)      <span class="com">// 4-way fan-out</span></code></pre>
+<pre><code>http.server_set_h2(server, 0)                          // h2 enabled
+http.server_set_h2_concurrent_dispatch(server, 4)      // 4-way fan-out</code></pre>
 <p>Sizing guidance:</p>
 <div class="tw"><table><thead><tr><th><code>n</code></th><th>When to use</th></tr></thead><tbody><tr><td><code>0</code> (default)</td><td>Handlers are CPU-light or already async. Sequential dispatch keeps memory + thread count low.</td></tr><tr><td><code>4</code></td><td>Most servers, handlers do a DB hit / upstream call per request.</td></tr><tr><td><code>8</code>–<code>16</code></td><td>Heavy fan-out, handlers block on slow I/O.</td></tr><tr><td><code>&gt; 16</code></td><td>Diminishing returns; bound by physical cores and the connection accept queue. The setter caps at 64.</td></tr></tbody></table></div>
 <h4 id="why-pthreads-not-actors">Why pthreads, not actors?</h4>
@@ -743,16 +752,20 @@ curl --http2 https://localhost:<span class="num">443</span>/        <span class=
 <ul><li><em>"HTTP/2 unavailable: built without libnghttp2"</em>, install <code>libnghttp2-dev</code> (or distro equivalent) and rebuild. Auto- detected via <code>pkg-config libnghttp2</code>.</li><li><em>Curl reports <code>http_version=1.1</code> even though h2 is enabled</em> the client either isn't asking for h2 (<code>curl --http2</code> or <code>--http2-prior-knowledge</code>) or is using TLS without ALPN support. Check <code>curl --version</code> mentions <code>nghttp2</code> in the feature list.</li><li><em>Curl <code>--http2</code> over plain HTTP shows <code>1.1</code></em>, this is curl's "passive upgrade", it falls back if the upgrade isn't probed. <code>--http2-prior-knowledge</code> forces h2 from the first byte.</li><li><em>PROTOCOL_ERROR on the wire</em>, the server rejected a malformed request (most likely a forbidden connection- specific header per RFC 7540 §8.1.2.2). Check the access log for the offending stream.</li><li><em>h2c upgrade succeeds but no h2 data follows</em>, keep-alive must be enabled (<code>http.server_set_keepalive(server, 1, …)</code>) for the connection to survive past the upgrade response.</li></ul>
 <hr>
 <h2 id="http11-keep-alive">HTTP/1.1 keep-alive</h2>
-<pre><code>http.server_set_keepalive(server, <span class="num">1</span>, <span class="num">100</span>, 30000ms)
-<span class="com">//                              ^   ^    ^</span>
-<span class="com">//                       enabled max  idle_ms</span></code></pre>
+<p>On by default, unlimited requests per connection and a 30s idle timeout. Call this to change the limits, or to turn it off:</p>
+<pre><code>http.server_set_keepalive(server, 1, 100, 30000ms)
+//                              ^   ^    ^
+//                       enabled max  idle_ms</code></pre>
 <p>Loop terminates when:</p>
-<ul><li>client sends <code>Connection: close</code>,</li><li>HTTP/1.0 default,</li><li><code>max_requests</code> reached (0 = unlimited),</li><li><code>idle_ms</code> elapses with no new bytes (0 = use default 30s),</li><li>response status mandates close (408, 426).</li></ul>
+<ul><li>client sends <code>Connection: close</code>,</li><li>HTTP/1.0 default,</li><li><code>max_requests</code> reached (0 = unlimited),</li><li><code>idle_ms</code> elapses with no new bytes (0 = use default 30s),</li><li>response status mandates close (408, 426),</li><li>the response has no definite body length (a handler that sets no body gets <code>Content-Length: 0</code> rather than a close; anything read until EOF closes),</li><li><strong>another connection is waiting for a worker</strong>.</li></ul>
+<p>That last rule is what makes the default safe here. A worker owns a connection for its whole life (see the section above), so keeping one open while the pool is saturated takes a queued connection's turn instead of saving it a handshake. Measured on an 8-core box (16 workers), 3000 requests:</p>
+<div class="tw"><table><thead><tr><th>concurrent clients</th><th>close per response</th><th>keep-alive</th><th>unconditional keep-alive</th></tr></thead><tbody><tr><td>4</td><td>17,800 rps</td><td>50,900 rps</td><td>65,600 rps</td></tr><tr><td>8</td><td>22,100 rps</td><td>80,800 rps</td><td>60,700 rps</td></tr><tr><td>20</td><td>22,500 rps</td><td>59,100 rps</td><td><strong>99 rps</strong></td></tr><tr><td>50</td><td>22,700 rps</td><td>36,500 rps</td><td>(starves)</td></tr></tbody></table></div>
+<p>The third column is what happens without the rule: past the worker count, connections that never reach a worker stall the client. The second column is the shipped behaviour, which tracks the best of the other two at every point. Lifting the cap itself means parking idle connections in a poller instead of holding a worker.</p>
 <p>Server emits <code>Connection: keep-alive</code> and <code>Keep-Alive: timeout=N, max=M</code> headers per response.</p>
 <hr>
 <h2 id="per-connection-actor-dispatch">Per-connection actor dispatch</h2>
-<pre><code><span class="com">// User actor step function, replaces the thread-pool worker path</span>
-@c_callback worker_step(msg_ptr: <span class="fn">ptr</span>) {
+<pre><code>// User actor step function, replaces the thread-pool worker path
+@c_callback worker_step(msg_ptr: ptr) {
     msg = unwrap_msg_http_connection(msg_ptr)
     http.server_drain_connection(g_server, msg.client_fd)
 }</code></pre>
@@ -760,68 +773,68 @@ curl --http2 https://localhost:<span class="num">443</span>/        <span class=
 <hr>
 <h2 id="middleware">Middleware</h2>
 <p>Eleven production middleware in <code>std.http.middleware</code>. All registered via the existing function-pointer chain, hot path stays C function pointers, no closure indirection.</p>
-<pre><code><span class="kw">import</span> std.http.middleware
+<pre><code>import std.http.middleware
 
-<span class="com">// CORS, open it up to one origin</span>
+// CORS, open it up to one origin
 middleware.use_cors(server,
-    <span class="str">"https://example.com"</span>,
-    <span class="str">"GET, POST, OPTIONS"</span>,
-    <span class="str">"Content-Type, Authorization"</span>,
-    <span class="num">0</span>,        <span class="com">// allow_credentials</span>
-    <span class="num">3600</span>)     <span class="com">// max_age (seconds)</span>
+    "https://example.com",
+    "GET, POST, OPTIONS",
+    "Content-Type, Authorization",
+    0,        // allow_credentials
+    3600)     // max_age (seconds)
 
-<span class="com">// Per-IP token-bucket rate limit: 100 req per 60s</span>
-middleware.use_rate_limit(server, <span class="num">100</span>, <span class="num">60000</span>)
+// Per-IP token-bucket rate limit: 100 req per 60s
+middleware.use_rate_limit(server, 100, 60000)
 
-<span class="com">// Virtual host gate</span>
-middleware.use_vhost(server, <span class="str">"api.example.com,app.example.com"</span>)
+// Virtual host gate
+middleware.use_vhost(server, "api.example.com,app.example.com")
 
-<span class="com">// Basic auth (verifier is a @c_callback Aether function, receives</span>
-<span class="com">// decoded username + password, returns 1 if valid, 0 otherwise)</span>
-middleware.use_basic_auth(server, <span class="str">"Restricted"</span>, verify_creds_cb, <span class="kw">null</span>)
+// Basic auth (verifier is a @c_callback Aether function, receives
+// decoded username + password, returns 1 if valid, 0 otherwise)
+middleware.use_basic_auth(server, "Restricted", verify_creds_cb, null)
 
-<span class="com">// Bearer token auth, RFC 6750. The verifier receives the raw</span>
-<span class="com">// token (the substring after `Bearer `); validation is up to the</span>
-<span class="com">// caller (JWT signature check / opaque-token DB lookup / OAuth</span>
-<span class="com">// introspection). On failure the response is 401 with</span>
-<span class="com">// `WWW-Authenticate: Bearer realm="api"[, error="invalid_token"]`</span>
-<span class="com">// so RFC 6750-aware clients can distinguish "no credentials"</span>
-<span class="com">// from "bad credentials."</span>
-middleware.use_bearer_auth(server, <span class="str">"api"</span>, verify_token_cb, <span class="kw">null</span>)
+// Bearer token auth, RFC 6750. The verifier receives the raw
+// token (the substring after `Bearer `); validation is up to the
+// caller (JWT signature check / opaque-token DB lookup / OAuth
+// introspection). On failure the response is 401 with
+// `WWW-Authenticate: Bearer realm="api"[, error="invalid_token"]`
+// so RFC 6750-aware clients can distinguish "no credentials"
+// from "bad credentials."
+middleware.use_bearer_auth(server, "api", verify_token_cb, null)
 
-<span class="com">// Session-cookie auth, reads a named cookie and hands the value</span>
-<span class="com">// to a verifier (DB lookup / signed-token verify). On failure,</span>
-<span class="com">// when redirect_url is non-empty, browsers get a 302 to the</span>
-<span class="com">// login page; pass "" to return a JSON-API-style 401 instead.</span>
-middleware.use_session_auth(server, <span class="str">"SESSIONID"</span>, <span class="str">"/login"</span>,
-                             verify_session_cb, <span class="kw">null</span>)
+// Session-cookie auth, reads a named cookie and hands the value
+// to a verifier (DB lookup / signed-token verify). On failure,
+// when redirect_url is non-empty, browsers get a 302 to the
+// login page; pass "" to return a JSON-API-style 401 instead.
+middleware.use_session_auth(server, "SESSIONID", "/login",
+                             verify_session_cb, null)
 
-<span class="com">// Response-side gzip (skips bodies &lt; min_size, skips when client</span>
-<span class="com">// did not advertise Accept-Encoding: gzip, etc)</span>
-middleware.use_gzip(server, <span class="num">1024</span>, <span class="num">6</span>)
+// Response-side gzip (skips bodies &lt; min_size, skips when client
+// did not advertise Accept-Encoding: gzip, etc)
+middleware.use_gzip(server, 1024, 6)
 
-<span class="com">// Static files</span>
-middleware.use_static_files(server, <span class="str">"/assets"</span>, <span class="str">"/var/www/static"</span>)
+// Static files
+middleware.use_static_files(server, "/assets", "/var/www/static")
 
-<span class="com">// URL rewriting</span>
+// URL rewriting
 opts = aether_rewrite_opts_new()
-middleware.rewrite_add_rule(opts, <span class="str">"/old/"</span>, <span class="str">"/new/"</span>)
+middleware.rewrite_add_rule(opts, "/old/", "/new/")
 middleware.use_rewrite(server, opts)
 
-<span class="com">// Custom error pages</span>
+// Custom error pages
 ep = aether_error_pages_opts_new()
-middleware.error_pages_register(ep, <span class="num">404</span>, <span class="str">"&lt;h1&gt;Not found&lt;/h1&gt;"</span>, <span class="str">"text/html"</span>)
-middleware.error_pages_register(ep, <span class="num">500</span>, <span class="str">"&lt;h1&gt;Server error&lt;/h1&gt;"</span>, <span class="str">"text/html"</span>)
+middleware.error_pages_register(ep, 404, "&lt;h1&gt;Not found&lt;/h1&gt;", "text/html")
+middleware.error_pages_register(ep, 500, "&lt;h1&gt;Server error&lt;/h1&gt;", "text/html")
 middleware.use_error_pages(server, ep)
 
-<span class="com">// Real-IP / X-Forwarded-For, extracts the original client IP</span>
-<span class="com">// when the server is behind a load balancer / reverse proxy / CDN.</span>
-<span class="com">// Reads the configured header (default "X-Forwarded-For"), takes</span>
-<span class="com">// the leftmost IP, and adds X-Real-IP to the request so downstream</span>
-<span class="com">// handlers / ratelimit / access logs see the real client identity.</span>
-<span class="com">// Pass "" for the default header name; alternatives include</span>
-<span class="com">// "Forwarded", "CF-Connecting-IP", "True-Client-IP".</span>
-middleware.use_real_ip(server, <span class="str">""</span>)</code></pre>
+// Real-IP / X-Forwarded-For, extracts the original client IP
+// when the server is behind a load balancer / reverse proxy / CDN.
+// Reads the configured header (default "X-Forwarded-For"), takes
+// the leftmost IP, and adds X-Real-IP to the request so downstream
+// handlers / ratelimit / access logs see the real client identity.
+// Pass "" for the default header name; alternatives include
+// "Forwarded", "CF-Connecting-IP", "True-Client-IP".
+middleware.use_real_ip(server, "")</code></pre>
 <p>Middleware shape: each is a function-pointer chain entry. Pre-handler middleware (cors / basic_auth / rate_limit / vhost / static_files / rewrite / real_ip) run before route dispatch and can short-circuit; response transformers (gzip / error_pages) run after the route handler emits the response. Order is registration order.</p>
 <p><strong>Real-IP trust model.</strong> <code>use_real_ip</code> does NOT validate that the request actually came through a trusted proxy. Operators must only run it behind trusted edge infrastructure that strips any client-supplied X-Forwarded-For, typical setups are a firewall- restricted port plus a load-balancer rule, or a CDN that overwrites X-Forwarded-For. Without that guarantee, callers can spoof their apparent client IP. The middleware is idempotent, running it twice (or running it after the edge already set X-Real-IP) doesn't double-tag the request.</p>
 <hr>
@@ -840,68 +853,68 @@ main() {
 <hr>
 <h2 id="connect-tunnels">CONNECT Tunnels</h2>
 <p>Handlers for <code>CONNECT</code> can accept the request and take over the underlying cleartext HTTP/1.1 connection as a <code>std.tcp</code> socket. This is the primitive for forward-proxy tunnels and other protocols where HTTP is only the setup handshake.</p>
-<pre><code><span class="kw">import</span> std.http
-<span class="kw">import</span> std.tcp
+<pre><code>import std.http
+import std.tcp
 
-handle_connect(req: <span class="fn">ptr</span>, res: <span class="fn">ptr</span>, ud: <span class="fn">ptr</span>) {
-    authority = http.request_path(req)  <span class="com">// e.g. "example.com:443"</span>
-    <span class="kw">if</span> allowed(authority) == <span class="num">0</span> {
-        http.response_set_status(res, <span class="num">403</span>)
-        http.response_set_body(res, <span class="str">"forbidden"</span>)
-        <span class="kw">return</span>
+handle_connect(req: ptr, res: ptr, ud: ptr) {
+    authority = http.request_path(req)  // e.g. "example.com:443"
+    if allowed(authority) == 0 {
+        http.response_set_status(res, 403)
+        http.response_set_body(res, "forbidden")
+        return
     }
 
-    http.response_set_status(res, <span class="num">200</span>)
+    http.response_set_status(res, 200)
     tunnel = http.response_accept_tunnel(res)
-    <span class="kw">if</span> tunnel == <span class="kw">null</span> { <span class="kw">return</span> }
+    if tunnel == null { return }
 
-    <span class="com">// The HTTP server has stopped managing this connection.</span>
-    <span class="com">// Relay with tcp.read_n / tcp.write_n, then close it.</span>
+    // The HTTP server has stopped managing this connection.
+    // Relay with tcp.read_n / tcp.write_n, then close it.
     tcp.close(tunnel)
 }
 
-http.server_add_route(server, <span class="str">"CONNECT"</span>, <span class="str">"*"</span>, handle_connect, <span class="num">0</span>)</code></pre>
+http.server_add_route(server, "CONNECT", "*", handle_connect, 0)</code></pre>
 <p><code>response_accept_tunnel</code> sends the current response head immediately, then transfers socket ownership to the handler. The normal HTTP serializer, response transformers, keep-alive handling, and server socket close are skipped for that connection. Rejected requests still use the ordinary response path.</p>
 <p>The returned handle is a normal <code>std.tcp</code> socket, so use <code>tcp.read_n</code> / <code>tcp.write_n</code> when the tunnel may carry binary bytes or embedded NULs. It returns <code>null</code> when called outside a live HTTP/1.1 request, on a TLS-wrapped server connection, or if the HTTP parser has already buffered bytes that a raw socket could not replay.</p>
 <hr>
 <h2 id="websocket-rfc-6455">WebSocket (RFC 6455)</h2>
-<pre><code>@c_callback echo_handler(req: <span class="fn">ptr</span>, ws: <span class="fn">ptr</span>, ud: <span class="fn">ptr</span>) {
-    kind = http.ws_recv(ws)         <span class="com">// 1 = text, 2 = binary, -1 = closed</span>
-    <span class="kw">if</span> kind != -<span class="num">1</span> {
+<pre><code>@c_callback echo_handler(req: ptr, ws: ptr, ud: ptr) {
+    kind = http.ws_recv(ws)         // 1 = text, 2 = binary, -1 = closed
+    if kind != -1 {
         msg = http.ws_message(ws)
-        http.ws_send_text(ws, <span class="str">"echo: ${msg}"</span>)
+        http.ws_send_text(ws, "echo: ${msg}")
     }
 }
 
-http.server_websocket(server, <span class="str">"/echo"</span>, echo_handler, <span class="kw">null</span>)</code></pre>
+http.server_websocket(server, "/echo", echo_handler, null)</code></pre>
 <p>Same handler-owns-the-connection shape as SSE. The server runs the upgrade handshake first (computes <code>Sec-WebSocket-Accept = Base64(SHA-1(client_key + magic-uuid))</code>), sends <code>101 Switching Protocols</code>, then hands an <code>HttpWsConn*</code> to the handler. Inside the handler:</p>
 <div class="tw"><table><thead><tr><th>Call</th><th>Behaviour</th></tr></thead><tbody><tr><td><code>ws_recv(ws)</code></td><td>block for next data frame; returns <code>1</code> (text), <code>2</code> (binary), <code>-1</code> (closed). Auto-handles ping/pong; reassembles continuation frames.</td></tr><tr><td><code>ws_message(ws)</code></td><td>the message contents from the most recent <code>ws_recv</code> (NUL-terminated for text).</td></tr><tr><td><code>ws_message_length(ws)</code></td><td>byte length of the most recent message.</td></tr><tr><td><code>ws_send_text(ws, text)</code></td><td>emit one text frame; <code>0</code> on success, <code>-1</code> on transport error.</td></tr><tr><td><code>ws_send_binary(ws, data, len)</code></td><td>emit one binary frame, binary-safe via explicit length.</td></tr><tr><td><code>ws_close(ws, code, reason)</code></td><td>emit a close frame; <code>1000</code> = normal, <code>1001</code> = going away, <code>1011</code> = internal error.</td></tr></tbody></table></div>
 <p>Returning from the handler closes with code <code>1000</code> automatically.</p>
 <h2 id="server-sent-events">Server-Sent Events</h2>
-<pre><code>@c_callback events_handler(req: <span class="fn">ptr</span>, sse: <span class="fn">ptr</span>, ud: <span class="fn">ptr</span>) {
-    http.sse_send(sse, <span class="str">"tick"</span>, <span class="str">"1"</span>)
-    http.sse_send(sse, <span class="str">"tick"</span>, <span class="str">"2"</span>)
-    http.sse_send_id(sse, <span class="str">"tick"</span>, <span class="str">"3"</span>, <span class="str">"evt-3"</span>)
-    <span class="com">// Falling out of the handler closes the connection.</span>
+<pre><code>@c_callback events_handler(req: ptr, sse: ptr, ud: ptr) {
+    http.sse_send(sse, "tick", "1")
+    http.sse_send(sse, "tick", "2")
+    http.sse_send_id(sse, "tick", "3", "evt-3")
+    // Falling out of the handler closes the connection.
 }
 
-http.server_sse(server, <span class="str">"/events"</span>, events_handler, <span class="kw">null</span>)</code></pre>
+http.server_sse(server, "/events", events_handler, null)</code></pre>
 <p>The handler owns the connection lifetime. Server emits the standard SSE response head (<code>200 OK</code>, <code>Content-Type: text/event-stream</code>, <code>Cache-Control: no-cache</code>, <code>Connection: close</code>) before invoking the handler. <code>sse_send</code> returns -1 on transport error so the handler can stop emitting on disconnect.</p>
 <p>Multi-line <code>data:</code> payloads are split on <code>\n</code> per the spec. Optional <code>id:</code> field via <code>sse_send_id</code> lets clients reconnect with <code>Last-Event-ID</code>.</p>
 <hr>
 <h2 id="structured-access-logging">Structured access logging</h2>
-<pre><code>http.server_set_access_log(server, <span class="str">"json"</span>, <span class="str">"/var/log/api.log"</span>)
-<span class="com">//                                  ^         ^</span>
-<span class="com">//                            "json" or       file path,</span>
-<span class="com">//                            "combined"      "-" for stderr,</span>
-<span class="com">//                            (NCSA fmt)      "" disables</span></code></pre>
+<pre><code>http.server_set_access_log(server, "json", "/var/log/api.log")
+//                                  ^         ^
+//                            "json" or       file path,
+//                            "combined"      "-" for stderr,
+//                            (NCSA fmt)      "" disables</code></pre>
 <p>JSON format example output:</p>
 <pre><code>{"ts":"2026-04-27T11:32:14Z","method":"GET","path":"/api/users",
  "status":200,"bytes":342,"dur_us":1247,"ua":"curl/8.4.0","ref":""}</code></pre>
 <p>NCSA Combined Log Format is the Apache default. File is opened <code>"ab"</code> so process restarts append rather than truncate.</p>
 <hr>
 <h2 id="prometheus-metrics">Prometheus metrics</h2>
-<pre><code>http.server_set_metrics(server, <span class="str">"/metrics"</span>)</code></pre>
+<pre><code>http.server_set_metrics(server, "/metrics")</code></pre>
 <p>Exposes per-route counters and latency histograms on the configured endpoint:</p>
 <pre><code># TYPE aether_http_requests_total counter
 # TYPE aether_http_errors_total counter
@@ -918,8 +931,8 @@ aether_http_request_duration_seconds_count{method="GET",path="/api/users"} 4239<
 <p>Custom hooks: <code>http_server_use_request_hook(server, hook, ud)</code> is a C-level extension point (declared in <code>std/net/aether_http_server.c</code>, not exported from <code>std.http</code>) used internally by the access-log and metrics hooks. Multiple hooks may register; they fire in registration order after the response transformer chain. It is not currently callable from Aether code.</p>
 <hr>
 <h2 id="graceful-shutdown">Graceful shutdown</h2>
-<pre><code>err = http.server_shutdown_graceful(server, 5000ms)  <span class="com">// 5-second deadline</span>
-<span class="kw">if</span> err != <span class="str">""</span> { println(<span class="str">"warning: ${err}"</span>) }       <span class="com">// "timeout" if not drained</span></code></pre>
+<pre><code>err = http.server_shutdown_graceful(server, 5000ms)  // 5-second deadline
+if err != "" { println("warning: ${err}") }       // "timeout" if not drained</code></pre>
 <p>Stops accepting new connections (closes the listen socket), then waits up to the supplied <code>Duration</code> for in-flight ones to drain. Backed by an atomic <code>inflight_connections</code> counter accurate across both thread-pool and actor-dispatch modes. Typically wired into a SIGTERM handler.</p>
 <hr>
 <h2 id="embedded--background-servers">Embedded / background servers</h2>
@@ -928,23 +941,23 @@ aether_http_request_duration_seconds_count{method="GET",path="/api/users"} 4239<
 <p><strong>Reap it, don't leave it lingering.</strong> A backgrounded server left alive past the end of a command is a finite process the surrounding harness (a sandboxed agent, CI runner, build tool) must still account for; some supervisors charge the <em>foreground</em> command a non-zero/SIGURG exit for a lingering multi-threaded child. Always tear an embedded server down explicitly, <code>http_server_stop</code> (or <code>server_shutdown_graceful</code>), then let the process exit, rather than orphaning it.</p>
 <hr>
 <h2 id="lifecycle-hooks">Lifecycle hooks</h2>
-<pre><code>@c_callback on_started(server: <span class="fn">ptr</span>, ud: <span class="fn">ptr</span>) {
-    println(<span class="str">"server is ready"</span>)
+<pre><code>@c_callback on_started(server: ptr, ud: ptr) {
+    println("server is ready")
 }
-@c_callback on_stopped(server: <span class="fn">ptr</span>, ud: <span class="fn">ptr</span>) {
-    println(<span class="str">"server stopped"</span>)
+@c_callback on_stopped(server: ptr, ud: ptr) {
+    println("server stopped")
 }
 
-http.server_on_start(server, on_started, <span class="kw">null</span>)
-http.server_on_stop (server, on_stopped, <span class="kw">null</span>)</code></pre>
+http.server_on_start(server, on_started, null)
+http.server_on_stop (server, on_stopped, null)</code></pre>
 <p><code>on_start</code> fires once after the listen socket is bound, before the accept loop runs. <code>on_stop</code> fires after the accept loop exits, before sockets close.</p>
 <hr>
 <h2 id="health-probes">Health probes</h2>
-<pre><code>@c_callback ready_check(ud: <span class="fn">ptr</span>) -&gt; <span class="fn">int</span> {
-    <span class="kw">return</span> database_is_healthy()
+<pre><code>@c_callback ready_check(ud: ptr) -&gt; int {
+    return database_is_healthy()
 }
 
-http.server_set_health_probes(server, <span class="str">"/healthz"</span>, <span class="str">"/readyz"</span>, ready_check, <span class="kw">null</span>)</code></pre>
+http.server_set_health_probes(server, "/healthz", "/readyz", ready_check, null)</code></pre>
 <p>Registers two routes:</p>
 <ul><li><code>/healthz</code> always 200 "ok" (process is up)</li><li><code>/readyz</code> calls <code>ready_check</code> (1 → 200 "ready", 0 → 503 "not ready")</li></ul>
 <p>Either path may be <code>""</code> to skip; <code>ready_check</code> may be null. Mirrors Kubernetes / Docker probe conventions.</p>
@@ -963,7 +976,7 @@ http.server_set_health_probes(server, <span class="str">"/healthz"</span>, <span
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.473 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.553 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

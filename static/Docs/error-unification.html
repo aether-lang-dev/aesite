@@ -4,11 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Unifying T? and (value, err), costed design · Aether</title>
-<meta name="description" content="The survey proposed C3's literal shape: make T? carry a fault, so none">
+<meta name="description" content="The survey proposed C3&#x27;s literal shape: make T? carry a fault, so none and &quot;failed&quot; share one channel.">
 <link rel="canonical" href="https://aether-lang.dev/Docs/error-unification.html">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Unifying T? and (value, err), costed design · Aether">
-<meta property="og:description" content="The survey proposed C3's literal shape: make T? carry a fault, so none">
+<meta property="og:description" content="The survey proposed C3&#x27;s literal shape: make T? carry a fault, so none and &quot;failed&quot; share one channel.">
 <meta property="og:url" content="https://aether-lang.dev/Docs/error-unification.html">
 <meta property="og:image" content="https://aether-lang.dev/og.png">
 <meta name="twitter:card" content="summary_large_image">
@@ -171,7 +171,7 @@ a{color:inherit;text-decoration:none}
 
 /* section head */
 .sec-head{display:flex;align-items:baseline;gap:14px;margin:0 0 22px}
-.sec-head h2{font-family:var(--mono);font-size:1.15rem;font-weight:700;letter-spacing:-.01em;margin:0}
+.sec-head h1,.sec-head h2{font-family:var(--mono);font-size:1.15rem;font-weight:700;letter-spacing:-.01em;margin:0}
 .sec-head .rule{flex:1;height:1px;background:var(--line)}
 
 /* code */
@@ -358,7 +358,7 @@ body::after{content:"";position:fixed;inset:0;z-index:3;pointer-events:none;opac
 
 /* prompt accents on section headings */
 .prompt{color:var(--red);margin-right:.5ch}
-.sec-head h2 .prompt{font-weight:400}
+.sec-head h1 .prompt,.sec-head h2 .prompt{font-weight:400}
 
 /* prompt-styled ghost button */
 .btn-term{font-family:var(--mono);font-size:14px;padding:11px 18px;border-radius:6px;
@@ -570,7 +570,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.473</span>
+      <span class="vtag">v0.553</span>
     </nav>
   </div>
 </header>
@@ -600,6 +600,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/memory-management.html">Aether Memory Management</a>
 <a href="/Docs/runtime-optimizations.html">Runtime Optimizations</a>
 <a href="/Docs/numa-support.html">NUMA Support in Aether</a>
+<a href="/Docs/message-tracing.html">Message tracing</a>
 <div class="grp">Interop</div>
 <a href="/Docs/c-interop.html">C Interoperability</a>
 <a href="/Docs/c-embedding.html">Embedding Aether Actors in C Applications</a>
@@ -624,6 +625,11 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/runtime-config.html">Runtime Configuration - Quick Reference</a>
 <a href="/Docs/per-process-config.html">Per-process configuration in Aether</a>
 <a href="/Docs/cic-help.html">ae help &lt;script&gt; Offline diagnostics for config-IS-code</a>
+<a href="/Docs/cross-ios.html">Cross-compiling for iOS (arm64)</a>
+<div class="grp">Testing</div>
+<a href="/Docs/testing.html">Testing with std.spec and ae test</a>
+<a href="/Docs/mutation-testing.html">Mutation testing, std.mutation</a>
+<a href="/Docs/differential-testing.html">Differential testing across lowering paths</a>
 <div class="grp">Performance</div>
 <a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
 <a href="/Docs/profiling-guide.html">Aether Runtime Profiling Guide</a>
@@ -639,6 +645,9 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
 <a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn't need macro_rules!</a>
 <a href="/Docs/lib-caller-info.html">--emit=lib caller-info channel</a>
+<a href="/Docs/liveview-lite-roadmap.html">LiveView-lite, a roadmap (Phoenix LiveView, on actors, without the framework)</a>
+<a href="/Docs/schema-projection-roadmap.html">std.schema, a projection-first roadmap (Ash, without the framework)</a>
+<a href="/Docs/locale-independent-float-text.html">Plan: locale-independent float text conversion (LC_NUMERIC correctness)</a>
 <div class="grp">Contributing</div>
 <a href="/Docs/stdlib-module-pattern.html">Aether Stdlib Module Pattern</a>
 <a href="/Docs/stdlib-vs-contrib.html">std/ vs contrib/ placement decisions</a>
@@ -688,19 +697,19 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <p><strong>Discarding a <code>T!</code> result is a compile error.</strong> A call to a <code>T!</code>-returning function used as a bare expression statement must be consumed: destructured, <code>!</code>-propagated, <code>or</code>-handled, or explicitly discarded (<code>_, _ = f()</code>).</p>
 <ul><li>This is the survey's <code>@nodiscard</code> (§7) arriving through the type system, scoped to exactly the resource that matters most, the error channel which was always its best half. (§7's remaining half, memory, is already RAII's job here.)</li><li><strong>Gradualism is structural, not scheduled:</strong> enforcement keys on <code>is_result</code>, so raw <code>(T, string)</code> tuples are untouched forever, and each signature opts in the moment its module migrates in Phase 1. No flag day exists to schedule. This is the same shape that made contract folding's behavioural change safe (~zero blast radius at ship time).</li><li>Implementation: a typechecker check on expression-statements whose type <code>is_result</code>, same neighbourhood as the existing statement walks. The hard part is enumerating the legitimate consumers; the <code>e &amp;&amp; e[0]</code> site list (§1.1) is the checklist.</li></ul>
 <h3 id="phase-3-identity-declared-faults-over-const-char">Phase 3, identity: declared faults over <code>const char*</code></h3>
-<pre><code><span class="com">// std/fs/module.ae</span>
+<pre><code>// std/fs/module.ae
 fault NotFound, PermissionDenied, IsDirectory
 
-read(path: <span class="fn">string</span>) -&gt; <span class="fn">string</span>! {
+read(path: string) -&gt; string! {
     ...
-    <span class="kw">if</span> missing { <span class="kw">return</span> <span class="str">""</span>, fs.NotFound }        <span class="com">// a fault IS a string value</span>
-    <span class="kw">if</span> denied  { <span class="kw">return</span> <span class="str">""</span>, fs.PermissionDenied }
+    if missing { return "", fs.NotFound }        // a fault IS a string value
+    if denied  { return "", fs.PermissionDenied }
 }
 
-<span class="com">// caller</span>
+// caller
 data, err = fs.read(p)
-<span class="kw">if</span> err == fs.NotFound { <span class="kw">return</span> default_config() }   <span class="com">// identity compare, NEW</span>
-<span class="kw">if</span> err != <span class="str">""</span> { <span class="kw">return</span> <span class="str">""</span>, err }                      <span class="com">// presence, unchanged</span></code></pre>
+if err == fs.NotFound { return default_config() }   // identity compare, NEW
+if err != "" { return "", err }                      // presence, unchanged</code></pre>
 <p>Design pinned by the compilation model (§1.3):</p>
 <ul><li><strong>A <code>fault</code> declaration mints an interned global whose content is its qualified name</strong>: <code>static const char aether_fault_fs_NotFound[] = "fs.NotFound";</code>, and the fault <em>value</em> is that pointer. The error slot's type does not change: it is still a string. Consequences, each verified against an inventory item:<ul><li>Every <code>e &amp;&amp; e[0]</code> site (§1.1) works untouched, a fault is non-empty.</li><li>Printing works untouched, the value <em>is</em> its name (C3's trick).</li><li>Dynamic error strings remain legal, the payload door stays open, unlike C3.</li><li>The ABI does not move, <code>const char*</code> in the same tuple slot.</li></ul></li><li><strong><code>err == fs.NotFound</code> lowers to pointer-compare-then-content-compare</strong> (<code>err == F || (err &amp;&amp; strcmp(err, F) == 0)</code>). In the ordinary one-TU world the pointer path always hits. Across a <code>binary_import</code> boundary where the <code>.so</code>'s descriptor is a different global, the <code>strcmp</code> fallback keeps identity correct. Classic interning; no registry, no ordinals, no catalog changes required (though <code>aether_lib_meta</code> <em>may</em> later advertise fault tables for tooling).</li><li><strong><code>fault</code> is a contextual keyword</strong> at top level (the <code>enum</code>/<code>bitstruct</code> interception pattern, <code>parse_top_level_decl</code>); member access <code>fs.NotFound</code> rides the existing namespaced-constant rewrite.</li><li><strong>What this deliberately does not do:</strong> no exhaustiveness over fault sets (C3 doesn't have it either, its <code>@return?</code> is a partially-checked lint, survey §4.5), no fault payloads-with-data in v1 (a <code>fault_is(err, F)</code> prefix-match helper over <code>"fs.NotFound: /etc/foo"</code>-style strings is a clean later extension), no changes to <code>T?</code>.</li></ul>
 <h3 id="what-option-b-never-touches">What Option B never touches</h3>
@@ -726,7 +735,7 @@ data, err = fs.read(p)
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.473 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.553 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

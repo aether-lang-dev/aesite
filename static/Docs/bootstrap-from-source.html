@@ -4,11 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Bootstrapping Aether from source (HEAD) · Aether</title>
-<meta name="description" content="For consumers who want to build and use Aether straight from this">
+<meta name="description" content="For consumers who want to build and use Aether straight from this repository, because they&#x27;re tracking HEAD, or want a feature that hasn&#x27;t reached a...">
 <link rel="canonical" href="https://aether-lang.dev/Docs/bootstrap-from-source.html">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Bootstrapping Aether from source (HEAD) · Aether">
-<meta property="og:description" content="For consumers who want to build and use Aether straight from this">
+<meta property="og:description" content="For consumers who want to build and use Aether straight from this repository, because they&#x27;re tracking HEAD, or want a feature that hasn&#x27;t reached a...">
 <meta property="og:url" content="https://aether-lang.dev/Docs/bootstrap-from-source.html">
 <meta property="og:image" content="https://aether-lang.dev/og.png">
 <meta name="twitter:card" content="summary_large_image">
@@ -171,7 +171,7 @@ a{color:inherit;text-decoration:none}
 
 /* section head */
 .sec-head{display:flex;align-items:baseline;gap:14px;margin:0 0 22px}
-.sec-head h2{font-family:var(--mono);font-size:1.15rem;font-weight:700;letter-spacing:-.01em;margin:0}
+.sec-head h1,.sec-head h2{font-family:var(--mono);font-size:1.15rem;font-weight:700;letter-spacing:-.01em;margin:0}
 .sec-head .rule{flex:1;height:1px;background:var(--line)}
 
 /* code */
@@ -358,7 +358,7 @@ body::after{content:"";position:fixed;inset:0;z-index:3;pointer-events:none;opac
 
 /* prompt accents on section headings */
 .prompt{color:var(--red);margin-right:.5ch}
-.sec-head h2 .prompt{font-weight:400}
+.sec-head h1 .prompt,.sec-head h2 .prompt{font-weight:400}
 
 /* prompt-styled ghost button */
 .btn-term{font-family:var(--mono);font-size:14px;padding:11px 18px;border-radius:6px;
@@ -570,7 +570,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.473</span>
+      <span class="vtag">v0.553</span>
     </nav>
   </div>
 </header>
@@ -600,6 +600,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/memory-management.html">Aether Memory Management</a>
 <a href="/Docs/runtime-optimizations.html">Runtime Optimizations</a>
 <a href="/Docs/numa-support.html">NUMA Support in Aether</a>
+<a href="/Docs/message-tracing.html">Message tracing</a>
 <div class="grp">Interop</div>
 <a href="/Docs/c-interop.html">C Interoperability</a>
 <a href="/Docs/c-embedding.html">Embedding Aether Actors in C Applications</a>
@@ -624,6 +625,11 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/runtime-config.html">Runtime Configuration - Quick Reference</a>
 <a href="/Docs/per-process-config.html">Per-process configuration in Aether</a>
 <a href="/Docs/cic-help.html">ae help &lt;script&gt; Offline diagnostics for config-IS-code</a>
+<a href="/Docs/cross-ios.html">Cross-compiling for iOS (arm64)</a>
+<div class="grp">Testing</div>
+<a href="/Docs/testing.html">Testing with std.spec and ae test</a>
+<a href="/Docs/mutation-testing.html">Mutation testing, std.mutation</a>
+<a href="/Docs/differential-testing.html">Differential testing across lowering paths</a>
 <div class="grp">Performance</div>
 <a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
 <a href="/Docs/profiling-guide.html">Aether Runtime Profiling Guide</a>
@@ -639,6 +645,9 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
 <a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn't need macro_rules!</a>
 <a href="/Docs/lib-caller-info.html">--emit=lib caller-info channel</a>
+<a href="/Docs/liveview-lite-roadmap.html">LiveView-lite, a roadmap (Phoenix LiveView, on actors, without the framework)</a>
+<a href="/Docs/schema-projection-roadmap.html">std.schema, a projection-first roadmap (Ash, without the framework)</a>
+<a href="/Docs/locale-independent-float-text.html">Plan: locale-independent float text conversion (LC_NUMERIC correctness)</a>
 <div class="grp">Contributing</div>
 <a href="/Docs/stdlib-module-pattern.html">Aether Stdlib Module Pattern</a>
 <a href="/Docs/stdlib-vs-contrib.html">std/ vs contrib/ placement decisions</a>
@@ -649,7 +658,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
         <div class="bc"><span class="prompt">$</span>docs / contributing</div>
 <h1 id="bootstrapping-aether-from-source-head">Bootstrapping Aether from source (HEAD)</h1>
 <p>For <strong>consumers</strong> who want to build and use Aether straight from this repository, because they're tracking <code>HEAD</code>, or want a feature that hasn't reached a tagged release / package manager yet, or are a downstream project (avn, aether-ui, aeb, servirtium-dotnet, …) that links against the toolchain.</p>
-<p>This is <strong>not</strong> the contributor flow. You do <strong>not</strong> need to run the test suite to use Aether, building the binaries and (optionally) the contrib libraries is enough. The test targets (<code>make test</code>, <code>make test-ae</code>, <code>make ci</code>) are entirely separate and only matter if you're changing Aether itself. See <a href="/Docs/CONTRIBUTING.html">CONTRIBUTING.md</a> for that.</p>
+<p>This is <strong>not</strong> the contributor flow. You do <strong>not</strong> need to run the test suite to use Aether, building the binaries and (optionally) the contrib libraries is enough. The test targets (<code>make test</code>, <code>make test-ae</code>, <code>make ci</code>) are entirely separate and only matter if you're changing Aether itself. See <a href="https://github.com/aether-lang-dev/aether/blob/main/CONTRIBUTING.md">CONTRIBUTING.md</a> for that.</p>
 <p>If you just want the latest <em>released</em> build, prefer <code>./install.sh</code> (see the README) or <code>ae version install &lt;vX.Y.Z&gt;</code> this document is for the from-source / HEAD case specifically.</p>
 <hr>
 <h2 id="tldr">TL;DR</h2>
@@ -719,7 +728,8 @@ link_flags = <span class="str">"-laether_sqlite -lsqlite3"</span></code></pre>
 make clean &amp;&amp; make ae        <span class="com"># clean rebuild, incremental sometimes misses aetherc reshapes</span>
 sudo make install
 make contrib &amp;&amp; sudo make install-contrib   <span class="com"># if you use contrib</span></code></pre>
-<p>The version (<code>ae version</code>) is derived from the highest <code>v*.*.*</code> git tag, falling back to the <code>VERSION</code> file. After a <code>git pull</code> that introduced a new tag, a <code>make clean</code> ensures the stamp isn't stale.</p>
+<p><code>ae --version</code> describes the binary in front of you: the version it was compiled from, its own path, and the <code>aetherc</code> it will actually run with that one's version. It says so because the two can differ, and <code>aetherc</code> is what performs codegen; a mismatch is printed as a warning rather than left to be discovered later. A pinned release (<code>~/.aether/active_version</code>, written by <code>ae version use</code>) is reported as a pin and never as the binary's version.</p>
+<p>The version stamp itself comes from the <code>VERSION</code> file in the tree. After a <code>git pull</code>, a <code>make clean</code> ensures it isn't stale.</p>
 <hr>
 <h2 id="for-llms--automation">For LLMs / automation</h2>
 <p>Deterministic, non-interactive recipe. Assumes a POSIX shell at the repo root with a C toolchain, GNU make, and git present.</p>
@@ -738,10 +748,10 @@ make install-contrib PREFIX=<span class="str">"$PWD/.aether-prefix"</span>
 printf <span class="str">'main() { println("ok") }\n'</span> &gt; /tmp/smoke.ae
 <span class="str">"$PWD/.aether-prefix/bin/ae"</span> run /tmp/smoke.ae <span class="com"># prints "ok"</span></code></pre>
 <p>Rules of thumb:</p>
-<ul><li><strong>Do not run the test suite</strong> (<code>make test</code>, <code>make test-ae</code>, <code>make ci</code>) to <em>use</em> Aether, those validate changes <em>to</em> Aether and are slow. Building + installing is sufficient and touches no test code.</li><li><strong>Treat contrib <code>SKIP</code> lines as success</strong>, not failure, they mean a dev library is absent. Only a non-zero exit from <code>make contrib</code> / <code>make install-contrib</code> is a real failure.</li><li><strong>Always link downstream C with <code>$(ae cflags)</code></strong>, do not synthesize <code>-I</code> / <code>-L</code> / <code>-laether</code> by hand; the include path and the <code>lib/aether/</code> archive location vary by install mode and <code>ae cflags</code> resolves them.</li><li>Re-running <code>make ae</code> / <code>make install</code> is safe. After a <code>git pull</code>, run <code>make clean &amp;&amp; make ae</code> before reinstalling so the version stamp and any compiler reshape are picked up.</li><li>Use a writable <code>PREFIX=…</code> to avoid <code>sudo</code>, and make sure <code>$(PREFIX)/bin</code> is on <code>PATH</code> (or invoke <code>ae</code> by absolute path as above). The default <code>PREFIX</code> is <code>/usr/local</code>.</li><li>A <code>--emit=lib</code> link error mentioning <code>recompile with -fPIC</code> means a stale pre-0.181 <code>libaether.a</code>; rebuild from current <code>HEAD</code>. A version mismatch between <code>ae version</code> and the CHANGELOG/<code>VERSION</code> usually means stale git tags: <code>git fetch --tags</code> then <code>make clean &amp;&amp; make ae</code>.</li></ul>
+<ul><li><strong>Do not run the test suite</strong> (<code>make test</code>, <code>make test-ae</code>, <code>make ci</code>) to <em>use</em> Aether, those validate changes <em>to</em> Aether and are slow. Building + installing is sufficient and touches no test code.</li><li><strong>Treat contrib <code>SKIP</code> lines as success</strong>, not failure, they mean a dev library is absent. Only a non-zero exit from <code>make contrib</code> / <code>make install-contrib</code> is a real failure.</li><li><strong>Always link downstream C with <code>$(ae cflags)</code></strong>, do not synthesize <code>-I</code> / <code>-L</code> / <code>-laether</code> by hand; the include path and the <code>lib/aether/</code> archive location vary by install mode and <code>ae cflags</code> resolves them.</li><li>Re-running <code>make ae</code> / <code>make install</code> is safe. After a <code>git pull</code>, run <code>make clean &amp;&amp; make ae</code> before reinstalling so the version stamp and any compiler reshape are picked up.</li><li>Use a writable <code>PREFIX=…</code> to avoid <code>sudo</code>, and make sure <code>$(PREFIX)/bin</code> is on <code>PATH</code> (or invoke <code>ae</code> by absolute path as above). The default <code>PREFIX</code> is <code>/usr/local</code>.</li><li>A <code>--emit=lib</code> link error mentioning <code>recompile with -fPIC</code> means a stale pre-0.181 <code>libaether.a</code>; rebuild from current <code>HEAD</code>.</li><li>If <code>ae --version</code> and the <code>VERSION</code> file disagree, the binary is stale: <code>make clean &amp;&amp; make ae</code>. If it warns that its <code>aetherc</code> is a different version, two installs are mixed; <code>install.sh</code> defaults to <code>~/.aether/bin</code> and <code>get.sh</code> to <code>~/.local/bin</code>, and whichever is earlier on <code>PATH</code> wins. Both installers now name the shadowing binary when they see one.</li></ul>
 <hr>
 <h2 id="see-also">See also</h2>
-<ul><li><a href="/Docs/install-layout.html">install-layout.md</a>, exactly what <code>make install</code> / <code>install.sh</code> lay down, and the MANIFEST contract aeb relies on.</li><li><a href="/Docs/getting-started.html">getting-started.md</a>, first program, project config, error handling, the language tour.</li><li><a href="/Docs/emit-lib.html">emit-lib.md</a>, building Aether as a <code>.so</code>/<code>.dylib</code> for FFI hosts (<code>--emit=lib</code>).</li><li><a href="/Docs/CONTRIBUTING.html">CONTRIBUTING.md</a>, the contributor flow, including the full CI suite you'd run if you were changing Aether itself.</li></ul>
+<ul><li><a href="/Docs/install-layout.html">install-layout.md</a>, exactly what <code>make install</code> / <code>install.sh</code> lay down, and the MANIFEST contract aeb relies on.</li><li><a href="/Docs/getting-started.html">getting-started.md</a>, first program, project config, error handling, the language tour.</li><li><a href="/Docs/emit-lib.html">emit-lib.md</a>, building Aether as a <code>.so</code>/<code>.dylib</code> for FFI hosts (<code>--emit=lib</code>).</li><li><a href="https://github.com/aether-lang-dev/aether/blob/main/CONTRIBUTING.md">CONTRIBUTING.md</a>, the contributor flow, including the full CI suite you'd run if you were changing Aether itself.</li></ul>
 <nav class="doc-prevnext" aria-label="Previous and next page"><a class="pn-prev" href="/Docs/stdlib-vs-contrib.html"><span class="pn-k">Previous</span><span class="pn-t">std/ vs contrib/ placement decisions</span></a><a class="pn-next" href="/Docs/release-glibc-portability.html"><span class="pn-k">Next</span><span class="pn-t">Release binary portability across glibc versions</span></a></nav>
       </article>
     </main>
@@ -754,7 +764,7 @@ printf <span class="str">'main() { println("ok") }\n'</span> &gt; /tmp/smoke.ae
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.473 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.553 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

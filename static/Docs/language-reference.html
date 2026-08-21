@@ -171,7 +171,7 @@ a{color:inherit;text-decoration:none}
 
 /* section head */
 .sec-head{display:flex;align-items:baseline;gap:14px;margin:0 0 22px}
-.sec-head h2{font-family:var(--mono);font-size:1.15rem;font-weight:700;letter-spacing:-.01em;margin:0}
+.sec-head h1,.sec-head h2{font-family:var(--mono);font-size:1.15rem;font-weight:700;letter-spacing:-.01em;margin:0}
 .sec-head .rule{flex:1;height:1px;background:var(--line)}
 
 /* code */
@@ -358,7 +358,7 @@ body::after{content:"";position:fixed;inset:0;z-index:3;pointer-events:none;opac
 
 /* prompt accents on section headings */
 .prompt{color:var(--red);margin-right:.5ch}
-.sec-head h2 .prompt{font-weight:400}
+.sec-head h1 .prompt,.sec-head h2 .prompt{font-weight:400}
 
 /* prompt-styled ghost button */
 .btn-term{font-family:var(--mono);font-size:14px;padding:11px 18px;border-radius:6px;
@@ -570,7 +570,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.473</span>
+      <span class="vtag">v0.553</span>
     </nav>
   </div>
 </header>
@@ -600,6 +600,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/memory-management.html">Aether Memory Management</a>
 <a href="/Docs/runtime-optimizations.html">Runtime Optimizations</a>
 <a href="/Docs/numa-support.html">NUMA Support in Aether</a>
+<a href="/Docs/message-tracing.html">Message tracing</a>
 <div class="grp">Interop</div>
 <a href="/Docs/c-interop.html">C Interoperability</a>
 <a href="/Docs/c-embedding.html">Embedding Aether Actors in C Applications</a>
@@ -624,6 +625,11 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/runtime-config.html">Runtime Configuration - Quick Reference</a>
 <a href="/Docs/per-process-config.html">Per-process configuration in Aether</a>
 <a href="/Docs/cic-help.html">ae help &lt;script&gt; Offline diagnostics for config-IS-code</a>
+<a href="/Docs/cross-ios.html">Cross-compiling for iOS (arm64)</a>
+<div class="grp">Testing</div>
+<a href="/Docs/testing.html">Testing with std.spec and ae test</a>
+<a href="/Docs/mutation-testing.html">Mutation testing, std.mutation</a>
+<a href="/Docs/differential-testing.html">Differential testing across lowering paths</a>
 <div class="grp">Performance</div>
 <a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
 <a href="/Docs/profiling-guide.html">Aether Runtime Profiling Guide</a>
@@ -639,6 +645,9 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
 <a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn't need macro_rules!</a>
 <a href="/Docs/lib-caller-info.html">--emit=lib caller-info channel</a>
+<a href="/Docs/liveview-lite-roadmap.html">LiveView-lite, a roadmap (Phoenix LiveView, on actors, without the framework)</a>
+<a href="/Docs/schema-projection-roadmap.html">std.schema, a projection-first roadmap (Ash, without the framework)</a>
+<a href="/Docs/locale-independent-float-text.html">Plan: locale-independent float text conversion (LC_NUMERIC correctness)</a>
 <div class="grp">Contributing</div>
 <a href="/Docs/stdlib-module-pattern.html">Aether Stdlib Module Pattern</a>
 <a href="/Docs/stdlib-vs-contrib.html">std/ vs contrib/ placement decisions</a>
@@ -650,7 +659,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <h1 id="aether-language-reference">Aether Language Reference</h1>
 <p>Complete syntax and semantics of the Aether programming language.</p>
 <h2 id="overview">Overview</h2>
-<p>Aether is a statically-typed, compiled language combining Erlang-inspired actor concurrency with type inference. It features clean, minimal syntax and compiles to C code.</p>
+<p>Aether is a statically-typed compiled language with actor-based concurrency and type inference. It compiles to C.</p>
 <h2 id="paradigm-placement">Paradigm placement</h2>
 <p>Aether is a <strong>hybrid that leans closer to functional than object-oriented</strong>, sitting next to Go and Rust in the middle of the paradigm spectrum:</p>
 <pre><code>   pure FP                    OO + FP hybrid                  pure OO
@@ -660,11 +669,11 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
                               Aether</code></pre>
 <p>The placement is deliberate, Aether picks the pieces of each tradition that compose cleanly and skips the ones (deep inheritance hierarchies, monad transformers, etc.) that don't earn their cost in a compiles-to-C language. Concretely:</p>
 <h3 id="where-aether-leans-functional">Where Aether leans functional</h3>
-<ul><li><strong>Closures + trailing blocks are first-class</strong> and are <em>the</em> idiomatic control-flow construction. The "DSL with scope" pattern (<code>window("Demo") { vg { circle(...) { fill("#F00") } } }</code>) is built from closures running in the caller's lexical scope, not from method dispatch on a builder object. See <a href="/Docs/closures-and-builder-dsl.html">Closures and Builder DSL</a>.</li><li><strong>No classes, no inheritance, no <code>self</code> / <code>this</code>.</strong> Structs are plain data records (<code>struct Circle { cx: float, cy: float, r: float }</code>) with no methods attached. Behaviour comes from free functions taking the struct as an argument: <code>circle_area(c)</code> not <code>c.area()</code>.</li><li><strong>Type-annotated parameters with full inference</strong> and <strong>Go-style multi-return</strong> (<code>-&gt; (long, string)</code> for value+error tuples), result-type-via-tuple rather than exceptions on the happy path. This is the Go / Rust functional-pragmatic family, not OO error handling.</li><li><strong>Modules with explicit <code>exports</code></strong>, namespaced free functions, not classes-as-namespaces. The visible surface of a module is the export list, not a public-method set.</li><li><strong><code>fn</code> as a first-class type</strong>, passed, stored, boxed, unboxed. Aether's closures lower to <code>_AeClosure { void(*fn)(void); void* env; }</code> with structural sharing through ref cells (<code>ref()</code> / <code>ref_get</code> / <code>ref_set</code>); the runtime treats them as values, not as method receivers.</li><li><strong>No method-dispatch machinery in the compiler.</strong> There's no vtable, no virtual call. Every function call resolves to a direct C function call. The bare-fn-to-closure adapter machinery and the <code>fn ↔ ptr</code> coercion rules exist to make first-class function values work end-to-end, a strictly functional priority.</li></ul>
+<ul><li><strong>Closures + trailing blocks are first-class</strong> and are <em>the</em> idiomatic control-flow construction. The "DSL with scope" pattern (<code>window("Demo") { vg { circle(...) { fill("#F00") } } }</code>) is built from closures running in the caller's lexical scope, not from method dispatch on a builder object. See <a href="/Docs/closures-and-builder-dsl.html">Closures and Builder DSL</a>.</li><li><strong>No classes, no inheritance, no <code>self</code> / <code>this</code>.</strong> Structs are plain data records (<code>struct Circle { cx: float, cy: float, r: float }</code>) with no methods attached. Behaviour comes from free functions taking the struct as an argument: <code>circle_area(c)</code> not <code>c.area()</code>.</li><li><strong>Type-annotated parameters with full inference</strong> and <strong>multi-value returns</strong> (<code>-&gt; (long, string)</code> for value-and-error tuples). Failure is carried in the return value rather than thrown, so the happy path has no exception machinery in it.</li><li><strong>Modules with explicit <code>exports</code></strong>, namespaced free functions, not classes-as-namespaces. The visible surface of a module is the export list, not a public-method set.</li><li><strong><code>fn</code> as a first-class type</strong>, passed, stored, boxed, unboxed. Aether's closures lower to <code>_AeClosure { void(*fn)(void); void* env; }</code> with structural sharing through ref cells (<code>ref()</code> / <code>ref_get</code> / <code>ref_set</code>); the runtime treats them as values, not as method receivers.</li><li><strong>No method-dispatch machinery in the compiler.</strong> There's no vtable, no virtual call. Every function call resolves to a direct C function call. The bare-fn-to-closure adapter machinery and the <code>fn ↔ ptr</code> coercion rules exist to make first-class function values work end-to-end, a strictly functional priority.</li></ul>
 <h3 id="where-aether-borrows-from-oo-in-a-limited-way">Where Aether borrows from OO (in a limited way)</h3>
 <ul><li><strong>Actors</strong> with state and message-receive handlers are the one piece of OO-shape machinery present, encapsulated state behind a message boundary. This is the Erlang / Pony actor model rather than Smalltalk-OO: no polymorphism, no inheritance, no method overriding. An actor is a stateful object reachable only through messages.</li><li><strong>The <code>_ctx</code> / builder-context stack DSL</strong> lets you write code that <em>reads</em> like a fluent OO method chain (<code>panel("Settings") { button("OK") }</code>), but the underlying mechanism is closure scope + an implicit context argument, not method dispatch. The compiler injects <code>_ctx</code> automatically; no receiver is involved.</li><li><strong>Receiver-namespace fallback</strong> for trailing blocks (<code>bash.test(b) { script("...") }</code> resolves <code>script</code> as <code>bash_script</code>) makes free-function calls look OO at the call site, but it's a name-resolution rule, not method dispatch.</li><li><strong>Struct-field assignment and member access</strong> (<code>h.cb = c</code>, <code>c.r</code>) are present, but they're data-oriented (record reads/writes), the same shape Go and C have without claiming OO.</li></ul>
 <h3 id="where-aether-is-neither-its-just-systems-pragmatic">Where Aether is neither, it's just systems-pragmatic</h3>
-<ul><li>Manual heap discipline is visible, <code>box_closure</code> / <code>unbox_closure</code>, <code>ref()</code> cells, the automatic heap-string ownership tracker (<code>_heap_&lt;name&gt;</code> companion flags), <code>defer</code> for resource cleanup. Closer to Rust's explicit ownership story than to either paradigm's purist position.</li><li>Aether's closure model deliberately trades Lisp/Smalltalk-style runtime-owned environments for generated C structs whose lifetimes are mostly inferred by the compiler. See <a href="/Docs/closure-lineage-and-runtime-tradeoffs.html">Closure lineage and runtime tradeoffs</a> for the comparison.</li><li>The C ABI / <code>extern</code> boundary is a first-class concern, not a hidden detail. The typechecker pragmatically allows <code>int ↔ ptr</code> and <code>fn ↔ ptr</code> coercions because surface ergonomics matter more than type-purity at the FFI boundary.</li><li>The capability + sandbox system (compile-time module gate / scope-level <code>hide</code> / <code>seal except</code> / LD_PRELOAD libc gate) is its own concern, orthogonal to both paradigms.</li></ul>
+<ul><li>Manual heap discipline is visible, <code>box_closure</code> / <code>unbox_closure</code>, <code>ref()</code> cells, the automatic heap-string ownership tracker (<code>_heap_&lt;name&gt;</code> companion flags), <code>defer</code> for resource cleanup. Closer to Rust's explicit ownership story than to either paradigm's purist position.</li><li>Aether's closure model deliberately trades Lisp/Smalltalk-style runtime-owned environments for generated C structs whose lifetimes are mostly inferred by the compiler. See <a href="https://github.com/aether-lang-dev/aether/blob/main/docs/design/closure-lineage-and-runtime-tradeoffs.md">Closure lineage and runtime tradeoffs</a> for the comparison.</li><li>The C ABI / <code>extern</code> boundary is a first-class concern, not a hidden detail. The typechecker pragmatically allows <code>int ↔ ptr</code> and <code>fn ↔ ptr</code> coercions because surface ergonomics matter more than type-purity at the FFI boundary.</li><li>The capability + sandbox system (compile-time module gate / scope-level <code>hide</code> / <code>seal except</code> / LD_PRELOAD libc gate) is its own concern, orthogonal to both paradigms.</li></ul>
 <h3 id="what-this-means-in-practice">What this means in practice</h3>
 <p>If you've written Go, you'll recognise the shape immediately: free functions, structs, channels (<code>!</code> send, <code>?</code> ask), explicit error returns, no classes. If you've written Elixir, the actor model and trailing-block DSLs will feel familiar. If you've written Ruby or Groovy, the "DSL with scope" idiom is borrowed directly from your lineage (Matz's term for it). If you're coming from Java or Python, the biggest adjustment is the absence of method dispatch (<code>circle_area(c)</code> instead of <code>c.area()</code>); the rest of the surface is approachable.</p>
 <p>Aether is not, and has no plans to be, a pure FP language (no Hindley-Milner inference, no purity tracking, no monadic effects). It's also not, and has no plans to be, a class-based OO language (no inheritance, no virtual dispatch, no <code>self</code>). It picks the cross-paradigm subset that survives compilation to readable C and stays useful for systems work, concurrent servers, language ports, build tooling, embedded scripting.</p>
@@ -708,16 +717,16 @@ main() {
 <h3 id="composite-types">Composite Types</h3>
 <div class="tw"><table><thead><tr><th>Type</th><th>Description</th></tr></thead><tbody><tr><td><code>struct</code></td><td>User-defined composite data</td></tr><tr><td><code>actor</code></td><td>Concurrency primitive with state</td></tr><tr><td><code>message</code></td><td>Structured data for actor communication</td></tr><tr><td><code>array</code></td><td>Fixed-size homogeneous collections</td></tr></tbody></table></div>
 <h3 id="array-types">Array Types</h3>
-<pre><code><span class="fn">int</span>[<span class="num">10</span>] numbers;           <span class="com">// Array of 10 integers</span>
-<span class="fn">string</span>[<span class="num">5</span>] names;           <span class="com">// Array of 5 strings</span>
-<span class="fn">float</span>[<span class="num">100</span>] values;         <span class="com">// Array of 100 floats</span></code></pre>
+<pre><code>int[10] numbers;           // Array of 10 integers
+string[5] names;           // Array of 5 strings
+float[100] values;         // Array of 100 floats</code></pre>
 <p><strong>Array-to-pointer decay.</strong> A named fixed-size array decays to a pointer to its first element in pointer context, when assigned to an inferred binding, passed as a <code>ptr</code>-typed argument, or compared against a pointer (the same rule C uses):</p>
-<pre><code><span class="fn">byte</span>[<span class="num">128</span>] static_ids
-ids = static_ids           <span class="com">// `ids` is inferred as a `ptr` (decays), not an array</span>
-heap = <span class="kw">null</span>
-<span class="kw">if</span> id_count &gt; <span class="num">8</span> {
-    heap = malloc(<span class="num">256</span>)
-    ids = heap             <span class="com">// legal: `ids` is a reassignable pointer</span>
+<pre><code>byte[128] static_ids
+ids = static_ids           // `ids` is inferred as a `ptr` (decays), not an array
+heap = null
+if id_count &gt; 8 {
+    heap = malloc(256)
+    ids = heap             // legal: `ids` is a reassignable pointer
 }</code></pre>
 <p>This is the stack-buffer-with-heap-fallback idiom (<code>T buf[N]; T* p = buf; if (n &gt; N) p = malloc(...)</code>). Only a <em>named array</em> decays; an array <em>literal</em> initializer (<code>x = [1, 2, 3]</code>) still binds a real array. To keep the array type, annotate the binding explicitly (<code>x: byte[128] = ...</code>).</p>
 <h3 id="sequence-types-stringseq">Sequence Types (<code>*StringSeq</code>)</h3>
@@ -746,23 +755,23 @@ main() {
 <pre><code>mask = 0xFF
 flags = 0b1010_0101
 perms = 0o755
-big = <span class="num">1_000_000</span></code></pre>
+big = 1_000_000</code></pre>
 <p>All numeric literal formats work with bitwise operators and in any expression context.</p>
 <hr>
 <h2 id="variables">Variables</h2>
 <p>Variables support both explicit types and automatic type inference:</p>
-<pre><code><span class="com">// Type inference (recommended), bare assignment is the canonical form</span>
-x = <span class="num">10</span>
-y = <span class="num">20</span>
-name = <span class="str">"Alice"</span>
-pi = <span class="num">3.14159</span>
+<pre><code>// Type inference (recommended), bare assignment is the canonical form
+x = 10
+y = 20
+name = "Alice"
+pi = 3.14159
 
-<span class="com">// Explicit types (optional)</span>
-<span class="fn">int</span> z = <span class="num">30</span>
-<span class="fn">string</span> greeting = <span class="str">"Hello"</span>
-<span class="fn">float</span> temperature = <span class="num">98.6</span></code></pre>
+// Explicit types (optional)
+int z = 30
+string greeting = "Hello"
+float temperature = 98.6</code></pre>
 <p>Variables are inferred from their initialization or usage context.</p>
-<p><strong><code>let</code> / <code>var</code> are optional keywords</strong>, accepted but not required. Bare Python-style assignment is the canonical form and is what most stdlib code uses. <code>let x = 10</code> and <code>var x = 10</code> parse identically to <code>x = 10</code>. There is no semantic distinction between <code>let</code> and <code>var</code> Aether is not Rust; mutability is a property of the binding's later use, not its declaration.</p>
+<p><strong><code>let</code> / <code>var</code> are optional keywords</strong>, accepted but not required. Bare Python-style assignment is the canonical form and is what most stdlib code uses. <code>let x = 10</code> and <code>var x = 10</code> parse identically to <code>x = 10</code>. There is no semantic distinction between <code>let</code> and <code>var</code> Aether is not Rust; mutability is a property of the binding's later use, not its declaration. There is no <code>mut</code>: <code>let mut x = 0</code> is an error, because a <code>let</code> must bind something and <code>mut</code> is not a keyword the language has. A typed declaration is written without <code>let</code> (<code>int n = 0</code>, <code>Pair p</code>), so two names after <code>let</code> is always a mistake.</p>
 <p><strong>Semicolons are optional.</strong> Aether parses end-of-line as a statement terminator. The samples above use no semicolons; older samples in this doc may show <code>;</code> for clarity. Either is fine.</p>
 <h3 id="casting-between-types">Casting between types</h3>
 <p>Aether has <strong>no general-purpose cast operator</strong>. The <code>as</code> keyword is reserved for module aliasing and three specific value-cast forms:</p>
@@ -771,9 +780,9 @@ pi = <span class="num">3.14159</span>
 <div class="tw"><table><thead><tr><th>From → To</th><th>How</th></tr></thead><tbody><tr><td><code>int</code> → <code>ptr</code> (e.g. passing an int to a <code>ptr</code>-typed extern param)</td><td>Implicit. The compiler emits <code>(void*)(intptr_t)</code> automatically at the call site.</td></tr><tr><td><code>string</code> → C <code>const char*</code> (passing a <code>string</code> to a C extern)</td><td>Implicit. The auto-unwrap injects <code>aether_string_data(arg)</code> at call sites for <code>string</code>-typed extern parameters.</td></tr><tr><td><code>int</code> → <code>string</code></td><td><code>string.from_int(n)</code> (and <code>string.from_long(n)</code>, <code>string.from_float(f)</code>).</td></tr><tr><td>C <code>const char*</code> → Aether <code>string</code></td><td>Assignment to a <code>string</code>-typed variable, or returning from a function declared <code>-&gt; string</code>. The returned <code>ptr</code> is treated as a borrowed C-string until it crosses into refcounted-string territory.</td></tr><tr><td><code>int</code> ↔ <code>int64</code> / <code>byte</code> ↔ <code>int</code></td><td>Implicit safe widenings (<code>byte → int</code>, <code>int → int64</code>). The narrowing direction (<code>int → byte</code>) requires a literal-range check and truncates non-literals at runtime. See <a href="#byte-unsigned-8-bit">§ <code>byte</code></a>.</td></tr><tr><td>Reinterpret a raw <code>ptr</code> as a typed struct view, function pointer, or array</td><td><code>expr as *StructName</code>, <code>expr as fn(...) -&gt; R</code>, or <code>expr as T[]</code> (the only <code>as</code> forms for values).</td></tr></tbody></table></div>
 <h3 id="null">Null</h3>
 <p>The <code>null</code> keyword represents a null pointer, typed as <code>ptr</code>:</p>
-<pre><code>x = <span class="kw">null</span>             <span class="com">// inferred: ptr</span>
-<span class="kw">if</span> x == <span class="kw">null</span> {
-    println(<span class="str">"no value"</span>)
+<pre><code>x = null             // inferred: ptr
+if x == null {
+    println("no value")
 }</code></pre>
 <h3 id="constants">Constants</h3>
 <p>Top-level constants are declared with <code>const</code>:</p>
@@ -788,55 +797,55 @@ main() {
 <p>Constants are emitted as <code>#define</code> in generated C, zero runtime cost.</p>
 <h4 id="module-level-constant-arrays-lookup-tables">Module-level constant arrays, lookup tables</h4>
 <p>A <code>const</code> array lowers to a file-scope <code>static const</code> table, allocated once and shared across every call (not re-initialised per call), the right shape for a table-driven algorithm:</p>
-<pre><code><span class="kw">const</span> PRIMES[] = [<span class="num">2</span>, <span class="num">3</span>, <span class="num">5</span>, <span class="num">7</span>, <span class="num">11</span>]          <span class="com">// element type inferred (int)</span>
-<span class="kw">const</span> CRC16TAB: <span class="fn">uint16</span>[<span class="num">256</span>] = [ 0x0000, 0x1021, <span class="com">/* ... */</span> ]   <span class="com">// element type pinned</span></code></pre>
+<pre><code>const PRIMES[] = [2, 3, 5, 7, 11]          // element type inferred (int)
+const CRC16TAB: uint16[256] = [ 0x0000, 0x1021, /* ... */ ]   // element type pinned</code></pre>
 <ul><li><code>const NAME[] = [...]</code> infers the element type from the literals (<code>int</code> for integer literals).</li><li><code>const NAME: T[N] = [...]</code> pins the C element type, <code>T</code> may be <code>uint8</code> / <code>uint16</code> / <code>uint32</code> / <code>uint64</code> / <code>int</code> / <code>long</code> so e.g. a CRC16 table emits <code>static const uint16_t NAME[256]</code> rather than a 4×-wider <code>int[]</code>, and matches a C header that expects the packed type. Integer literals narrow to the chosen element type (the explicit, compile-time-constant intent, like <code>byte b = 5</code>). Indexed access (<code>NAME[i]</code>) emits <code>NAME[i]</code>; the array is read-only.</li></ul>
 <p><strong>The RHS of <code>const</code> must be a compile-time constant expression.</strong> Allowed forms: literals (int / float / bool / string / null), other consts referenced by name, unary / binary expressions over those, and string interpolation where every interpolated value is itself const. <strong>Function calls are rejected</strong> at typecheck time:</p>
-<pre><code><span class="kw">const</span> G_BUF = malloc(<span class="num">64</span>)        <span class="com">// ERROR: const initializer must be a</span>
-                                 <span class="com">// compile-time constant expression</span></code></pre>
+<pre><code>const G_BUF = malloc(64)        // ERROR: const initializer must be a
+                                 // compile-time constant expression</code></pre>
 <p>The reason is <code>const</code>'s substitution-at-each-use semantics: the compiler inlines the RHS at every reference rather than storing the value. For literal RHSs this is fine; for <code>make_thing()</code> it would re-call the function on every reference, allocating fresh state. If you need a process-global heap object initialised once and read everywhere, use <a href="/Docs/stdlib-reference.html#stdconfig-stringstring-kv"><code>std.config</code></a> for string state or <a href="/Docs/stdlib-reference.html#stdactors-name--actor_ref-registry"><code>std.actors</code></a> for actor references, both are described in the stdlib reference.</p>
 <p><strong>Exception, <code>sizeof</code> / <code>offsetof</code>.</strong> The two layout builtins <code>sizeof(T)</code> and <code>offsetof(T, field)</code> <em>are</em> allowed in a <code>const</code> initializer (and arithmetic over them), even though they are spelled with call syntax. They lower to C compile-time constant expressions (<code>(int)sizeof(struct T)</code> / <code>(int)offsetof(struct T, field)</code>), no evaluation, allocation, or side effect, so the substitution-at-each-use semantics are harmless:</p>
-<pre><code><span class="kw">extern</span> <span class="kw">struct</span> JSString { gc_mark: <span class="fn">uint64</span> : <span class="num">1</span>  len: <span class="fn">uint64</span> : <span class="num">60</span>  buf: <span class="fn">byte</span>[] }
+<pre><code>extern struct JSString { gc_mark: uint64 : 1  len: uint64 : 60  buf: byte[] }
 
-<span class="kw">const</span> SIZEOF_JSSTRING = sizeof(JSString)          <span class="com">// ok, folds to a C constant</span>
-<span class="kw">const</span> STR_BUF_OFFSET  = offsetof(JSString, buf)   <span class="com">// ok</span>
-<span class="kw">const</span> STR_PADDED      = sizeof(JSString) + <span class="num">8</span>      <span class="com">// arithmetic over them is ok too</span></code></pre>
+const SIZEOF_JSSTRING = sizeof(JSString)          // ok, folds to a C constant
+const STR_BUF_OFFSET  = offsetof(JSString, buf)   // ok
+const STR_PADDED      = sizeof(JSString) + 8      // arithmetic over them is ok too</code></pre>
 <p>This lets a port that mirrors C structs as <code>extern struct</code> overlays centralise its offset/size table as named consts that are <strong>self-verifying by construction</strong>, the C compiler computes each value, so it cannot drift from the real layout, instead of hand-maintaining numeric offsets plus <code>_Static_assert</code> drift guards. The general "no function calls in a <code>const</code> initializer" rule is unchanged; these two layout builtins are the only carve-out.</p>
 <h3 id="mutable-module-level-globals">Mutable module-level globals</h3>
 <p>Where a <code>const</code> is a fixed value, a module-level <code>var</code> is <strong>one persistent, mutable word of state</strong> shared by every function in the module, a PRNG seed, a monotonic counter, a one-slot cache:</p>
-<pre><code><span class="kw">var</span> rand48_x: <span class="fn">uint64</span> = 0x1234ABCD330E      <span class="com">// module scope, mutable</span>
+<pre><code>var rand48_x: uint64 = 0x1234ABCD330E      // module scope, mutable
 
-next_rand() -&gt; <span class="fn">uint64</span> {
+next_rand() -&gt; uint64 {
     rand48_x = (rand48_x * 0x5DEECE66D + 0xB) &amp; 0xFFFFFFFFFFFF
-    <span class="kw">return</span> (rand48_x &gt;&gt; <span class="num">17</span>) &amp; 0x7FFFFFFF
+    return (rand48_x &gt;&gt; 17) &amp; 0x7FFFFFFF
 }</code></pre>
 <ul><li>The type annotation is optional: <code>var hits = 0</code> infers <code>int</code> from the initializer, exactly like a local.</li><li>A <code>var</code> lowers to a <strong>file-scope <code>static</code></strong> in the generated C. Reads and writes from same-module functions are plain identifier access, no accessors, no indirection. A <code>name = expr</code> statement whose name is a module <code>var</code> always writes that global (the name is in scope everywhere in the module); pick a different name for a function-local.</li><li>The <strong>initializer must be a compile-time constant expression</strong>, the same restriction as <code>const</code> (and for the same underlying reason, C requires a <code>static</code>'s initializer to be constant). Initialize to a constant and compute the live value from a function at startup if you need more.</li><li>Globals are <strong>module-private</strong> and <strong>non-atomic</strong>, matching the C statics they replace. They are not shared across modules and carry no built-in synchronization; guard concurrent access yourself (or keep such state on an <a href="/Docs/actor-concurrency.html">actor</a>).</li></ul>
 <hr>
 <h2 id="functions">Functions</h2>
 <p>Aether functions have <strong>two canonical declaration forms</strong>, pick by whether you want explicit types:</p>
-<pre><code><span class="com">// 1. Inferred (no type annotations), the most compact form</span>
+<pre><code>// 1. Inferred (no type annotations), the most compact form
 add(a, b) {
-    <span class="kw">return</span> a + b
+    return a + b
 }
 
 greet(name) {
-    println(<span class="str">"Hello, ${name}"</span>)
+    println("Hello, ${name}")
 }
 
-<span class="com">// 2. Explicit types, the recommended form for stdlib / public APIs.</span>
-<span class="com">//    Parameter types after `:`, return type after `-&gt;`.</span>
-add(a: <span class="fn">int</span>, b: <span class="fn">int</span>) -&gt; <span class="fn">int</span> {
-    <span class="kw">return</span> a + b
+// 2. Explicit types, the recommended form for stdlib / public APIs.
+//    Parameter types after `:`, return type after `-&gt;`.
+add(a: int, b: int) -&gt; int {
+    return a + b
 }
 
-greet(name: <span class="fn">string</span>) -&gt; <span class="fn">string</span> {
-    <span class="kw">return</span> <span class="str">"Hello, ${name}"</span>
+greet(name: string) -&gt; string {
+    return "Hello, ${name}"
 }</code></pre>
 <p>Both forms parse cleanly. The <code>name(params) -&gt; ReturnType { … }</code> shape is what every stdlib module uses (<code>std/string/module.ae</code>, <code>std/bytes/module.ae</code>, …), match that style for new code.</p>
 <p><strong>Form to avoid: C-style prefix <code>int add(int a, int b) { … }</code>.</strong> This form parses for backwards compatibility but is not the recommended style and isn't used in any stdlib module. New code should use the arrow form (<code>add(a: int, b: int) -&gt; int { … }</code>) instead.</p>
 <p><strong>Void functions</strong> simply omit the <code>-&gt; Type</code> annotation:</p>
 <pre><code>print_hello() {
-    println(<span class="str">"Hello"</span>)
+    println("Hello")
 }</code></pre>
 <p>There is no <code>void</code> keyword in the return-type position, a missing return-type annotation IS the void declaration. The <code>main()</code> function is the entry point and is always void.</p>
 <p><strong><code>main()</code> takes no parameters.</strong> There is no Aether-side <code>main(argc, argv)</code> form, the signature is uniform across every program. The runtime stashes the C-side <code>argc</code> / <code>argv</code> at startup (the codegen wraps your zero-arg <code>main()</code> in a C <code>int main(int argc, char** argv)</code> that calls <code>aether_args_init(argc, argv)</code> before any user code runs), and Aether code reaches command-line arguments through <code>std.os</code>:</p>
@@ -853,12 +862,12 @@ main() {
 <p><code>os.argv0()</code> returns argv[0] as a string (empty if uninitialised). <code>os.aether_argv_raw()</code> exposes the original <code>char**</code> for C-interop callers that need to forward it unchanged. Shorter ergonomic spellings exist: <code>os.args_count()</code> and <code>os.args_get(i)</code> (the latter returns an owned copy, <code>""</code> when out of range). See <a href="/Docs/stdlib-reference.html">Standard Library Reference § <code>std.os</code></a> for the full surface.</p>
 <h3 id="default-arguments">Default arguments</h3>
 <p>Parameters can carry a default expression:</p>
-<pre><code>greet(name: <span class="fn">string</span>, greeting: <span class="fn">string</span> = <span class="str">"Hello"</span>) -&gt; <span class="fn">string</span> {
-    <span class="kw">return</span> <span class="str">"${greeting}, ${name}!"</span>
+<pre><code>greet(name: string, greeting: string = "Hello") -&gt; string {
+    return "${greeting}, ${name}!"
 }
 
-greet(<span class="str">"Ada"</span>)        <span class="com">// -&gt; "Hello, Ada!"</span>
-greet(<span class="str">"Ada"</span>, <span class="str">"Hi"</span>)  <span class="com">// -&gt; "Hi, Ada!"</span></code></pre>
+greet("Ada")        // -&gt; "Hello, Ada!"
+greet("Ada", "Hi")  // -&gt; "Hi, Ada!"</code></pre>
 <p>Rules:</p>
 <ul><li>By convention, defaults should trail required parameters (the Python shape): once a default appears, every subsequent parameter should also have one. This is a style convention, not a compiler-enforced rule, the typechecker does not currently reject a default that is followed by a required parameter, but positional calls to such a function are awkward, so don't write them.</li><li>The default expression is evaluated at the <strong>call site</strong>, not the declaration site. Default expressions cannot reference other parameters of the same function (they're typechecked in the caller's scope where parameter values aren't visible).</li><li>The default-fill happens at typecheck time, codegen sees a fully-populated call.</li></ul>
 <h3 id="source-location-intrinsics">Source-location intrinsics</h3>
@@ -888,141 +897,141 @@ main() {
 <p>The substitution happens at typecheck time: the typechecker clones the default expression into the call's argument list and rewrites any embedded <code>__LINE__</code> / <code>__FILE__</code> / <code>__func__</code> to use the call site's metadata.</p>
 <hr>
 <h2 id="pattern-matching-functions">Pattern Matching Functions</h2>
-<p>Aether supports Erlang-style function clauses with pattern matching and guard clauses:</p>
+<p>A function can be written as several clauses, each matching a different shape of argument, with guards to narrow a clause further:</p>
 <h3 id="basic-pattern-matching">Basic Pattern Matching</h3>
-<pre><code><span class="com">// Match on literal values</span>
-factorial(<span class="num">0</span>) -&gt; <span class="num">1</span>;
-factorial(n) -&gt; n * factorial(n - <span class="num">1</span>);
+<pre><code>// Match on literal values
+factorial(0) -&gt; 1
+factorial(n) -&gt; n * factorial(n - 1)
 
-<span class="com">// Fibonacci with multiple clauses</span>
-fib(<span class="num">0</span>) -&gt; <span class="num">0</span>;
-fib(<span class="num">1</span>) -&gt; <span class="num">1</span>;
-fib(n) -&gt; fib(n - <span class="num">1</span>) + fib(n - <span class="num">2</span>);</code></pre>
+// Fibonacci with multiple clauses
+fib(0) -&gt; 0
+fib(1) -&gt; 1
+fib(n) -&gt; fib(n - 1) + fib(n - 2)</code></pre>
 <h3 id="guard-clauses">Guard Clauses</h3>
 <p>Guards add conditions using the <code>when</code> keyword:</p>
-<pre><code><span class="com">// Classify numbers using guards</span>
-classify(x) <span class="kw">when</span> x &lt; <span class="num">0</span> -&gt; print(<span class="str">"negative\n"</span>);
-classify(x) <span class="kw">when</span> x == <span class="num">0</span> -&gt; print(<span class="str">"zero\n"</span>);
-classify(x) <span class="kw">when</span> x &gt; <span class="num">0</span> -&gt; print(<span class="str">"positive\n"</span>);
+<pre><code>// Classify numbers using guards
+classify(x) when x &lt; 0 -&gt; print("negative\n")
+classify(x) when x == 0 -&gt; print("zero\n")
+classify(x) when x &gt; 0 -&gt; print("positive\n")
 
-<span class="com">// Factorial with guard</span>
-factorial(<span class="num">0</span>) -&gt; <span class="num">1</span>;
-factorial(n) <span class="kw">when</span> n &gt; <span class="num">0</span> -&gt; n * factorial(n - <span class="num">1</span>);
+// Factorial with guard
+factorial(0) -&gt; 1
+factorial(n) when n &gt; 0 -&gt; n * factorial(n - 1)
 
-<span class="com">// Grade calculation with multiple ranges</span>
-grade(score) <span class="kw">when</span> score &gt;= <span class="num">90</span> -&gt; <span class="str">"A"</span>;
-grade(score) <span class="kw">when</span> score &gt;= <span class="num">80</span> -&gt; <span class="str">"B"</span>;
-grade(score) <span class="kw">when</span> score &gt;= <span class="num">70</span> -&gt; <span class="str">"C"</span>;
-grade(score) <span class="kw">when</span> score &gt;= <span class="num">60</span> -&gt; <span class="str">"D"</span>;
-grade(score) <span class="kw">when</span> score &lt; <span class="num">60</span> -&gt; <span class="str">"F"</span>;</code></pre>
+// Grade calculation with multiple ranges
+grade(score) when score &gt;= 90 -&gt; "A"
+grade(score) when score &gt;= 80 -&gt; "B"
+grade(score) when score &gt;= 70 -&gt; "C"
+grade(score) when score &gt;= 60 -&gt; "D"
+grade(score) when score &lt; 60 -&gt; "F"</code></pre>
 <h3 id="multi-statement-arrow-bodies">Multi-Statement Arrow Bodies</h3>
 <p>Arrow functions can have block bodies with <code>-&gt; { ... }</code>. The last expression is the implicit return value:</p>
-<pre><code><span class="com">// Single expression (existing)</span>
-twice(x) -&gt; x * <span class="num">2</span>
+<pre><code>// Single expression (existing)
+twice(x) -&gt; x * 2
 
-<span class="com">// Multi-statement with implicit return</span>
+// Multi-statement with implicit return
 sum_squares(a, b) -&gt; {
     sq_a = a * a
     sq_b = b * b
     sq_a + sq_b
 }
 
-<span class="com">// Multi-statement with early return</span>
+// Multi-statement with early return
 clamp(x, lo, hi) -&gt; {
-    <span class="kw">if</span> x &lt; lo {
-        <span class="kw">return</span> lo
+    if x &lt; lo {
+        return lo
     }
-    <span class="kw">if</span> x &gt; hi {
-        <span class="kw">return</span> hi
+    if x &gt; hi {
+        return hi
     }
     x
 }</code></pre>
 <p>This allows complex logic in arrow-style functions without switching to block syntax.</p>
 <h3 id="multi-parameter-guards">Multi-parameter Guards</h3>
-<pre><code><span class="com">// Max of two numbers</span>
-max(a, b) <span class="kw">when</span> a &gt;= b -&gt; a;
-max(a, b) <span class="kw">when</span> a &lt; b -&gt; b;
+<pre><code>// Max of two numbers
+max(a, b) when a &gt;= b -&gt; a
+max(a, b) when a &lt; b -&gt; b
 
-<span class="com">// GCD with pattern matching</span>
-gcd(a, <span class="num">0</span>) -&gt; a;
-gcd(a, b) <span class="kw">when</span> b &gt; <span class="num">0</span> -&gt; gcd(b, a - (a / b) * b);</code></pre>
+// GCD with pattern matching
+gcd(a, 0) -&gt; a
+gcd(a, b) when b &gt; 0 -&gt; gcd(b, a - (a / b) * b)</code></pre>
 <h3 id="mutual-recursion-with-guards">Mutual Recursion with Guards</h3>
-<pre><code>is_even(n) <span class="kw">when</span> n == <span class="num">0</span> -&gt; <span class="num">1</span>;
-is_even(n) <span class="kw">when</span> n &gt; <span class="num">0</span> -&gt; is_odd(n - <span class="num">1</span>);
+<pre><code>is_even(n) when n == 0 -&gt; 1
+is_even(n) when n &gt; 0 -&gt; is_odd(n - 1)
 
-is_odd(n) <span class="kw">when</span> n == <span class="num">0</span> -&gt; <span class="num">0</span>;
-is_odd(n) <span class="kw">when</span> n &gt; <span class="num">0</span> -&gt; is_even(n - <span class="num">1</span>);</code></pre>
+is_odd(n) when n == 0 -&gt; 0
+is_odd(n) when n &gt; 0 -&gt; is_even(n - 1)</code></pre>
 <hr>
 <h2 id="control-flow">Control Flow</h2>
 <h3 id="if-statements">If Statements</h3>
-<pre><code><span class="kw">if</span> (x &gt; <span class="num">0</span>) {
-    print(<span class="str">"Positive\n"</span>);
-} <span class="kw">else</span> <span class="kw">if</span> (x &lt; <span class="num">0</span>) {
-    print(<span class="str">"Negative\n"</span>);
-} <span class="kw">else</span> {
-    print(<span class="str">"Zero\n"</span>);
+<pre><code>if (x &gt; 0) {
+    print("Positive\n");
+} else if (x &lt; 0) {
+    print("Negative\n");
+} else {
+    print("Zero\n");
 }</code></pre>
 <h3 id="if-expressions">If-Expressions</h3>
 <p><code>if</code>/<code>else</code> can be used as an expression that produces a value (like a ternary operator):</p>
-<pre><code><span class="com">// Assign based on condition</span>
-max = <span class="kw">if</span> a &gt; b { a } <span class="kw">else</span> { b }
+<pre><code>// Assign based on condition
+max = if a &gt; b { a } else { b }
 
-<span class="com">// Use inline in function calls</span>
-println(<span class="kw">if</span> x &gt; <span class="num">0</span> { x } <span class="kw">else</span> { <span class="num">0</span> - x })
+// Use inline in function calls
+println(if x &gt; 0 { x } else { 0 - x })
 
-<span class="com">// Nested if-expressions</span>
-grade = <span class="kw">if</span> score &gt;= <span class="num">90</span> { <span class="num">4</span> } <span class="kw">else</span> { <span class="kw">if</span> score &gt;= <span class="num">80</span> { <span class="num">3</span> } <span class="kw">else</span> { <span class="num">2</span> } }</code></pre>
+// Nested if-expressions
+grade = if score &gt;= 90 { 4 } else { if score &gt;= 80 { 3 } else { 2 } }</code></pre>
 <p>Both branches must produce a value of the same type. The <code>else</code> branch is required.</p>
 <h3 id="while-loops">While Loops</h3>
-<pre><code>i = <span class="num">0</span>;
-<span class="kw">while</span> (i &lt; <span class="num">10</span>) {
+<pre><code>i = 0;
+while (i &lt; 10) {
     print(i);
-    print(<span class="str">"\n"</span>);
-    i = i + <span class="num">1</span>;
+    print("\n");
+    i = i + 1;
 }</code></pre>
 <h3 id="for-loops">For Loops</h3>
-<pre><code><span class="kw">for</span> (i = <span class="num">0</span>; i &lt; <span class="num">10</span>; i = i + <span class="num">1</span>) {
+<pre><code>for (i = 0; i &lt; 10; i = i + 1) {
     print(i);
-    print(<span class="str">"\n"</span>);
+    print("\n");
 }</code></pre>
 <h3 id="range-based-for-loops">Range-Based For Loops</h3>
 <p>Iterate over a range with <code>for VAR in START..END</code>:</p>
-<pre><code><span class="com">// Prints 0 1 2 3 4</span>
-<span class="kw">for</span> i <span class="kw">in</span> <span class="num">0</span>..<span class="num">5</span> {
+<pre><code>// Prints 0 1 2 3 4
+for i in 0..5 {
     print(i)
-    print(<span class="str">" "</span>)
+    print(" ")
 }
 
-<span class="com">// Sum with variable bound</span>
-sum = <span class="num">0</span>
-<span class="kw">for</span> i <span class="kw">in</span> <span class="num">1</span>..n {
+// Sum with variable bound
+sum = 0
+for i in 1..n {
     sum += i
 }</code></pre>
 <p>The range <code>start..end</code> is exclusive of <code>end</code> (like Python's <code>range(start, end)</code>). It desugars to a C-style for loop internally.</p>
 <h3 id="loop-control">Loop Control</h3>
-<pre><code><span class="com">// Break - exit loop early</span>
-<span class="kw">for</span> (i = <span class="num">0</span>; i &lt; <span class="num">100</span>; i = i + <span class="num">1</span>) {
-    <span class="kw">if</span> (i == <span class="num">50</span>) {
-        <span class="kw">break</span>;
+<pre><code>// Break - exit loop early
+for (i = 0; i &lt; 100; i = i + 1) {
+    if (i == 50) {
+        break;
     }
 }
 
-<span class="com">// Continue - skip to next iteration</span>
-<span class="kw">for</span> (i = <span class="num">0</span>; i &lt; <span class="num">10</span>; i = i + <span class="num">1</span>) {
-    <span class="kw">if</span> (i == <span class="num">5</span>) {
-        <span class="kw">continue</span>;
+// Continue - skip to next iteration
+for (i = 0; i &lt; 10; i = i + 1) {
+    if (i == 5) {
+        continue;
     }
     print(i);
 }</code></pre>
 <h4 id="labeled-break--continue">Labeled break / continue</h4>
 <p>A <code>while</code> or <code>for</code> loop may carry a label (<code>label: while ...</code>), and <code>break label</code> / <code>continue label</code> then target that loop from inside a nested loop, <code>break label</code> exits the labeled loop, <code>continue label</code> jumps to its next iteration. This replaces the boolean-flag dance a C port would otherwise need for a nested-loop early exit (the C <code>goto cleanup</code> / labeled-break idiom):</p>
-<pre><code>outer: <span class="kw">while</span> have_more() {
-    <span class="kw">while</span> scan_row() {
-        <span class="kw">if</span> found_match() {
-            <span class="kw">break</span> outer        <span class="com">// exit BOTH loops</span>
+<pre><code>outer: while have_more() {
+    while scan_row() {
+        if found_match() {
+            break outer        // exit BOTH loops
         }
-        <span class="kw">if</span> skip_row() {
-            <span class="kw">continue</span> outer     <span class="com">// stop this row, advance the outer loop</span>
+        if skip_row() {
+            continue outer     // stop this row, advance the outer loop
         }
     }
 }</code></pre>
@@ -1031,59 +1040,59 @@ sum = <span class="num">0</span>
 <h2 id="match-statements">Match Statements</h2>
 <p>Match statements provide pattern-based dispatch:</p>
 <h3 id="integer-matching">Integer Matching</h3>
-<pre><code><span class="kw">match</span> (value) {
-    <span class="num">0</span> -&gt; { print(<span class="str">"zero\n"</span>); }
-    <span class="num">1</span> -&gt; { print(<span class="str">"one\n"</span>); }
-    <span class="num">2</span> -&gt; { print(<span class="str">"two\n"</span>); }
-    _ -&gt; { print(<span class="str">"other\n"</span>); }
+<pre><code>match (value) {
+    0 -&gt; { print("zero\n"); }
+    1 -&gt; { print("one\n"); }
+    2 -&gt; { print("two\n"); }
+    _ -&gt; { print("other\n"); }
 }</code></pre>
 <h3 id="string-matching">String Matching</h3>
 <p>Strings are compared by content (via <code>strcmp</code>), so string literal arms work correctly:</p>
-<pre><code><span class="kw">match</span> (command) {
-    <span class="str">"start"</span> -&gt; { println(<span class="str">"starting..."</span>) }
-    <span class="str">"stop"</span> -&gt; { println(<span class="str">"stopping..."</span>) }
-    <span class="str">"help"</span> -&gt; { println(<span class="str">"available: start, stop, help"</span>) }
-    _ -&gt; { println(<span class="str">"unknown command"</span>) }
+<pre><code>match (command) {
+    "start" -&gt; { println("starting...") }
+    "stop" -&gt; { println("stopping...") }
+    "help" -&gt; { println("available: start, stop, help") }
+    _ -&gt; { println("unknown command") }
 }</code></pre>
 <h3 id="ranged-and-multi-value-cases">Ranged and multi-value cases</h3>
 <p>A <code>match</code> arm (and a <code>switch</code> case) can match a <strong>range</strong> of ordinal values or a <strong>comma-separated list</strong> of values and ranges, instead of a single literal:</p>
-<pre><code>grade = <span class="kw">match</span> score {
-    <span class="num">90</span>..=<span class="num">100</span>   -&gt; <span class="str">"A"</span>     <span class="com">// ..= inclusive:  90 through 100</span>
-    <span class="num">80</span>..&lt;<span class="num">90</span>    -&gt; <span class="str">"B"</span>     <span class="com">// ..&lt; half-open:  80 through 89 (excludes 90)</span>
-    <span class="num">70</span>..&lt;<span class="num">80</span>    -&gt; <span class="str">"C"</span>
-    <span class="num">60</span>, <span class="num">61</span>, <span class="num">62</span> -&gt; <span class="str">"D"</span>     <span class="com">// comma-list of values</span>
-    _          -&gt; <span class="str">"F"</span>
+<pre><code>grade = match score {
+    90..=100   -&gt; "A"     // ..= inclusive:  90 through 100
+    80..&lt;90    -&gt; "B"     // ..&lt; half-open:  80 through 89 (excludes 90)
+    70..&lt;80    -&gt; "C"
+    60, 61, 62 -&gt; "D"     // comma-list of values
+    _          -&gt; "F"
 }</code></pre>
 <ul><li><code>..=</code> is an <strong>inclusive</strong> range (both ends match); <code>..&lt;</code> is <strong>half-open</strong> (the high end is excluded), consistent with the exclusive <code>for i in 0..5</code>.</li><li>Comma-separated elements in one arm match if <strong>any</strong> of them matches, and each element may itself be a value or a range: <code>97..=122, 65..=90 -&gt; "letter"</code>.</li><li>Ranges are over integer ordinals (<code>int</code>, <code>long</code>, <code>byte</code>). Aether has no character literals, so a character class matches the byte's integer value, e.g. from <code>string.char_at</code>:</li></ul>
-<pre><code>kind = <span class="kw">match</span> <span class="fn">string</span>.char_at(s, i) {
-    <span class="num">97</span>..=<span class="num">122</span>, <span class="num">65</span>..=<span class="num">90</span> -&gt; <span class="str">"letter"</span>   <span class="com">// a-z, A-Z</span>
-    <span class="num">48</span>..=<span class="num">57</span>           -&gt; <span class="str">"digit"</span>    <span class="com">// 0-9</span>
-    _                 -&gt; <span class="str">"other"</span>
+<pre><code>kind = match string.char_at(s, i) {
+    97..=122, 65..=90 -&gt; "letter"   // a-z, A-Z
+    48..=57           -&gt; "digit"    // 0-9
+    _                 -&gt; "other"
 }</code></pre>
 <p>A ranged arm lowers to a plain comparison (<code>x &gt;= lo &amp;&amp; x &lt;= hi</code>) in the branch chain, with no runtime support and no allocation. Existing single-literal arms are unaffected.</p>
 <h3 id="list-pattern-matching">List Pattern Matching</h3>
 <p>Arrays can be matched with list patterns. Requires a corresponding <code>_len</code> variable:</p>
-<pre><code>nums = [<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>];
-nums_len = <span class="num">3</span>;
+<pre><code>nums = [1, 2, 3];
+nums_len = 3;
 
-<span class="kw">match</span> (nums) {
-    [] -&gt; { print(<span class="str">"empty list\n"</span>); }
+match (nums) {
+    [] -&gt; { print("empty list\n"); }
     [x] -&gt; {
-        print(<span class="str">"single element: "</span>);
+        print("single element: ");
         print(x);
-        print(<span class="str">"\n"</span>);
+        print("\n");
     }
     [a, b] -&gt; {
-        print(<span class="str">"pair: "</span>);
+        print("pair: ");
         print(a);
-        print(<span class="str">", "</span>);
+        print(", ");
         print(b);
-        print(<span class="str">"\n"</span>);
+        print("\n");
     }
     [h|t] -&gt; {
-        print(<span class="str">"head: "</span>);
+        print("head: ");
         print(h);
-        print(<span class="str">", tail has rest\n"</span>);
+        print(", tail has rest\n");
     }
 }</code></pre>
 <h3 id="list-pattern-types">List Pattern Types</h3>
@@ -1091,19 +1100,19 @@ nums_len = <span class="num">3</span>;
 <hr>
 <h2 id="switch-statements">Switch Statements</h2>
 <p>C-style switch for simple value dispatch:</p>
-<pre><code><span class="kw">switch</span> (month) {
-    <span class="kw">case</span> <span class="num">1</span>: name = <span class="str">"January"</span>;
-    <span class="kw">case</span> <span class="num">2</span>: name = <span class="str">"February"</span>;
-    <span class="kw">case</span> <span class="num">3</span>: name = <span class="str">"March"</span>;
-    <span class="com">// ... more cases</span>
-    <span class="kw">default</span>: name = <span class="str">"Invalid"</span>;
+<pre><code>switch (month) {
+    case 1: name = "January";
+    case 2: name = "February";
+    case 3: name = "March";
+    // ... more cases
+    default: name = "Invalid";
 }</code></pre>
 <p>Aether's <code>switch</code> has <strong>no fall-through</strong>: each case auto-breaks after its body. Cases also accept comma-lists and ranges, the same as <code>match</code> arms:</p>
-<pre><code><span class="kw">switch</span> code {
-<span class="kw">case</span> <span class="num">200</span>, <span class="num">201</span>, <span class="num">204</span>: kind = <span class="str">"success"</span>;
-<span class="kw">case</span> <span class="num">300</span>..&lt;<span class="num">400</span>:     kind = <span class="str">"redirect"</span>;   <span class="com">// ranged case (lowered to an if-chain)</span>
-<span class="kw">case</span> <span class="num">400</span>..&lt;<span class="num">500</span>:     kind = <span class="str">"client-error"</span>;
-<span class="kw">default</span>:            kind = <span class="str">"other"</span>;
+<pre><code>switch code {
+case 200, 201, 204: kind = "success";
+case 300..&lt;400:     kind = "redirect";   // ranged case (lowered to an if-chain)
+case 400..&lt;500:     kind = "client-error";
+default:            kind = "other";
 }</code></pre>
 <p>A comma-list case lowers to several C <code>case</code> labels sharing one body; a <code>switch</code> containing any ranged case is lowered to an equivalent if-else chain (safe because there is no fall-through to preserve).</p>
 <h3 id="switch-vs-match">Switch vs Match</h3>
@@ -1113,40 +1122,40 @@ nums_len = <span class="num">3</span>;
 <p>The <code>defer</code> statement schedules code to run when leaving the current scope:</p>
 <pre><code>process_file() {
     handle = open_resource();
-    <span class="kw">defer</span> close_resource(handle);  <span class="com">// Runs when function exits</span>
+    defer close_resource(handle);  // Runs when function exits
 
     use_resource(handle);
     use_resource(handle);
-    <span class="com">// close_resource(handle) called automatically here</span>
+    // close_resource(handle) called automatically here
 }</code></pre>
 <h3 id="lifo-order">LIFO Order</h3>
 <p>Multiple defers execute in Last-In-First-Out order:</p>
 <pre><code>example() {
-    <span class="kw">defer</span> print(<span class="str">"First\n"</span>);   <span class="com">// Runs third</span>
-    <span class="kw">defer</span> print(<span class="str">"Second\n"</span>);  <span class="com">// Runs second</span>
-    <span class="kw">defer</span> print(<span class="str">"Third\n"</span>);   <span class="com">// Runs first</span>
+    defer print("First\n");   // Runs third
+    defer print("Second\n");  // Runs second
+    defer print("Third\n");   // Runs first
 }
-<span class="com">// Output: Third, Second, First</span></code></pre>
+// Output: Third, Second, First</code></pre>
 <h3 id="defer-try-and-defer-catch-cleanup-for-one-outcome-only"><code>defer try</code> and <code>defer catch</code>, cleanup for one outcome only</h3>
 <p>A plain <code>defer</code> runs on <strong>every</strong> exit. Two qualified forms run on only one:</p>
-<pre><code><span class="kw">defer</span>       cleanup()    <span class="com">// always, on every exit</span>
-<span class="kw">defer</span> <span class="kw">try</span>   commit()     <span class="com">// only when the function returns SUCCESSFULLY</span>
-<span class="kw">defer</span> <span class="kw">catch</span> rollback()   <span class="com">// only when the function returns an ERROR</span></code></pre>
+<pre><code>defer       cleanup()    // always, on every exit
+defer try   commit()     // only when the function returns SUCCESSFULLY
+defer catch rollback()   // only when the function returns an ERROR</code></pre>
 <p>"Error" means the function returned a <strong>non-empty error slot</strong>, Aether's <code>(value, err)</code> convention, and <code>T!</code>, which is the same shape.</p>
 <p>Together they give you the transactional shape in three lines: acquire, register the rollback, register the commit, and then let any error path bail out without the acquire leaking and without a half-built result being published.</p>
-<pre><code>acquire(path: <span class="fn">string</span>) -&gt; (<span class="fn">ptr</span>, <span class="fn">string</span>) {
+<pre><code>acquire(path: string) -&gt; (ptr, string) {
     p = malloc(SIZE)
-    <span class="kw">defer</span> <span class="kw">catch</span> free(p)              <span class="com">// we bailed, release it</span>
+    defer catch free(p)              // we bailed, release it
     cfg, err = parse(path)
-    <span class="kw">if</span> err != <span class="str">""</span> { <span class="kw">return</span> <span class="kw">null</span>, err } <span class="com">// ...and `p` is freed on the way out</span>
+    if err != "" { return null, err } // ...and `p` is freed on the way out
     init(p, cfg)
-    <span class="kw">return</span> p, <span class="str">""</span>                     <span class="com">// succeeded, the caller owns `p` now</span>
+    return p, ""                     // succeeded, the caller owns `p` now
 }</code></pre>
 <p>Without them, every early return needs its own <code>if err != "" { free(p); return }</code>, and the one you forget is the leak.</p>
 <p>Ordering is unchanged: <strong>all</strong> defers still run in LIFO order, and the conditional ones interleave with the unconditional ones by registration order they are not hoisted into separate groups. In</p>
-<pre><code><span class="kw">defer</span>       log(<span class="str">"A"</span>)
-<span class="kw">defer</span> <span class="kw">catch</span> log(<span class="str">"C"</span>)
-<span class="kw">defer</span> <span class="kw">try</span>   log(<span class="str">"T"</span>)</code></pre>
+<pre><code>defer       log("A")
+defer catch log("C")
+defer try   log("T")</code></pre>
 <p>a successful return logs <code>T</code>, <code>A</code>; an error return logs <code>C</code>, <code>A</code>.</p>
 <p><strong>Cost.</strong> One predictable compare on the return path, and not even that where the outcome is known at compile time. An <code>expr!</code> propagation is <em>always</em> an error exit and a bare <code>return v</code> is <em>always</em> a success exit, so in a <code>T!</code> function both are resolved statically and no guard is emitted at all. There is no runtime defer stack; as with a plain <code>defer</code>, the bodies are emitted inline at each exit.</p>
 <p><strong>They only mean something in a function that can fail.</strong> In a function with no error channel, a <code>defer catch</code> could never fire and a <code>defer try</code> is just a plain <code>defer</code>, so the compiler warns rather than silently accepting code that does not do what it says:</p>
@@ -1159,15 +1168,15 @@ Give the function an error result (`-&gt; (T, string)` or `-&gt; T!`), or use a 
 <p>Two scope-level directives let a block decline to see selected names from its enclosing lexical scopes. Both are compile-time only, no runtime overhead, no codegen change. Error code: <code>E0304</code>.</p>
 <h3 id="hide-blacklist-specific-names"><code>hide</code> blacklist specific names</h3>
 <pre><code>{
-    <span class="kw">hide</span> secret_token, db_handle
-    <span class="com">// secret_token and db_handle from outer scopes are invisible here.</span>
-    <span class="com">// Reading, writing, or redeclaring them is a compile error.</span>
+    hide secret_token, db_handle
+    // secret_token and db_handle from outer scopes are invisible here.
+    // Reading, writing, or redeclaring them is a compile error.
 }</code></pre>
 <h3 id="seal-except-whitelist"><code>seal except</code> whitelist</h3>
 <pre><code>handler(req, res) {
-    <span class="kw">seal</span> <span class="kw">except</span> req, res, inventory, response_write
-    <span class="com">// Every outer name is invisible EXCEPT the four listed.</span>
-    <span class="com">// Local bindings created inside this block are still visible.</span>
+    seal except req, res, inventory, response_write
+    // Every outer name is invisible EXCEPT the four listed.
+    // Local bindings created inside this block are still visible.
 }</code></pre>
 <h3 id="key-semantics">Key semantics</h3>
 <p>A directive is scope-level: its position within the block doesn't matter, and it blocks both reads and writes of the affected names. The denial propagates into nested blocks, with no way to un-hide deeper in. It does not reach through call boundaries, though: a visible function can still use hidden names via its own lexical chain, since this is name-resolution denial, not an effect system. Local bindings created inside the block stay visible, because directives only affect lookups that walk out to parent scopes. Qualified names are covered too, so <code>hide http</code> also blocks <code>http.get(url)</code>. The directives work inside actor receive arms (handler bodies are block scopes), and a hidden name cannot be redeclared in the same scope, though a nested child scope may.</p>
@@ -1237,56 +1246,60 @@ main() {
 <p>Tuple destructuring creates typed local variables. The compiler generates C structs for each unique tuple type (<code>_tuple_int_string</code>, etc.).</p>
 <h4 id="explicit-tuple-return-type">Explicit tuple return type</h4>
 <p>The compiler infers the return tuple from <code>return a, b</code> statements in the body, but you can also declare it up front using the same parenthesised form accepted on <code>extern</code>:</p>
-<pre><code>safe_divide(a: <span class="fn">int</span>, b: <span class="fn">int</span>) -&gt; (<span class="fn">int</span>, <span class="fn">string</span>) {
-    <span class="kw">if</span> b == <span class="num">0</span> { <span class="kw">return</span> <span class="num">0</span>, <span class="str">"division by zero"</span> }
-    <span class="kw">return</span> a / b, <span class="str">""</span>
+<pre><code>safe_divide(a: int, b: int) -&gt; (int, string) {
+    if b == 0 { return 0, "division by zero" }
+    return a / b, ""
 }</code></pre>
 <p>Stating the return type at the signature is preferred when the function is part of a public API or when readers shouldn't have to scan the body to know the return shape. The two forms (<code>-&gt; { ... }</code> with inference vs. <code>-&gt; (T1, T2) { ... }</code> explicit) are interchangeable from the caller's perspective and produce the same C struct return.</p>
 <p>Error propagation across function boundaries works correctly:</p>
-<pre><code>checked_op(x: <span class="fn">int</span>) -&gt; {
-    val, err = safe_divide(x, <span class="num">2</span>)
-    <span class="kw">if</span> err != <span class="str">""</span> {
-        <span class="kw">return</span> <span class="num">0</span>, err    <span class="com">// propagate the error</span>
+<pre><code>checked_op(x: int) -&gt; {
+    val, err = safe_divide(x, 2)
+    if err != "" {
+        return 0, err    // propagate the error
     }
-    <span class="kw">return</span> val, <span class="str">""</span>
+    return val, ""
 }</code></pre>
 <h4 id="the-t-result-type-and-or---sugar">The <code>T!</code> result type and <code>or</code> / <code>!</code> sugar</h4>
 <p><code>-&gt; T!</code> is shorthand for the <code>(T, string)</code> result tuple above, it <em>names</em> the convention and unlocks ergonomic sugar for the three things you do with a fallible call. There is no hidden machinery: <code>T!</code> is the same tuple you can always destructure by hand, so the sugar and the manual form interoperate freely.</p>
-<pre><code><span class="com">// `return v` auto-wraps to (v, ""); the error path is explicit.</span>
-safe_divide(a: <span class="fn">int</span>, b: <span class="fn">int</span>) -&gt; <span class="fn">int</span>! {
-    <span class="kw">if</span> b == <span class="num">0</span> { <span class="kw">return</span> <span class="num">0</span>, <span class="str">"division by zero"</span> }
-    <span class="kw">return</span> a / b
+<pre><code>// `return v` auto-wraps to (v, ""); the error path is explicit.
+safe_divide(a: int, b: int) -&gt; int! {
+    if b == 0 { return 0, "division by zero" }
+    return a / b
 }</code></pre>
 <p><strong><code>expr or default</code> use the value, or a fallback on error:</strong></p>
-<pre><code>q = safe_divide(<span class="num">10</span>, <span class="num">0</span>) or -<span class="num">1</span>      <span class="com">// q == -1</span></code></pre>
+<pre><code>q = safe_divide(10, 0) or -1      // q == -1</code></pre>
 <p><strong><code>expr or { ... }</code> run a block on error, with <code>err</code> bound to the message.</strong> The block's <strong>last statement is its value</strong>, so a handler can log, compute, and still yield a fallback, or the block exits (<code>return</code>, <code>break</code>, <code>continue</code>, <code>panic</code>) and never falls through:</p>
 <pre><code>q = safe_divide(x, y) or {
-    println(<span class="str">"math failed: ${err}"</span>)   <span class="com">// `err` is the error string</span>
-    <span class="kw">return</span>
+    println("math failed: ${err}")   // `err` is the error string
+    return
 }
 
 r = safe_divide(x, y) or {
-    println(<span class="str">"using fallback: ${err}"</span>)
-    -<span class="num">1</span>                                <span class="com">// the block's value on the error path</span>
+    println("using fallback: ${err}")
+    -1                                // the block's value on the error path
 }</code></pre>
 <p>A block that neither yields a value of the right type nor exits is a compile error (`<code> </code>or { }<code> handler must end with a value … or exit </code>`), previously that shape compiled and read an <strong>uninitialized</strong> result on the error path.</p>
 <p><strong><code>expr!</code> propagate the error.</strong> Inside a function that itself returns <code>T!</code>, <code>!</code> returns <code>(zero, err)</code> to the caller when the error slot is non-empty, so an inner failure short-circuits without manual <code>if err != ""</code> plumbing:</p>
-<pre><code>checked_divide(x: <span class="fn">int</span>, d: <span class="fn">int</span>) -&gt; <span class="fn">int</span>! {
-    <span class="kw">return</span> safe_divide(x, d)!   <span class="com">// forwards safe_divide's error unchanged</span>
+<pre><code>checked_divide(x: int, d: int) -&gt; int! {
+    return safe_divide(x, d)!   // forwards safe_divide's error unchanged
 }</code></pre>
 <p>Used outside a <code>T!</code> function, <code>expr!</code> is <em>unwrap-or-trap</em>: it panics on a non-empty error slot (catchable with <code>try</code>/<code>catch</code>). Both <code>!</code> and <code>or</code> accept any <code>(value, err)</code> tuple, not just <code>T!</code> returns.</p>
 <h3 id="function-contracts-requires--ensures">Function contracts: <code>requires</code> / <code>ensures</code></h3>
 <p>Eiffel-style runtime-checked preconditions and postconditions. Clauses appear after the typed return arrow and before the body; each is a single boolean expression, panic on violation.</p>
-<pre><code>add(a: <span class="fn">int</span>, b: <span class="fn">int</span>) -&gt; <span class="fn">int</span>
-    <span class="kw">requires</span> a &gt;= <span class="num">0</span>
-    <span class="kw">requires</span> b &gt;= <span class="num">0</span>
-    <span class="kw">ensures</span> result &gt;= a
-    <span class="kw">ensures</span> result &gt;= b
+<pre><code>add(a: int, b: int) -&gt; int
+    requires a &gt;= 0
+    requires b &gt;= 0
+    ensures result &gt;= a
+    ensures result &gt;= b
 {
-    <span class="kw">return</span> a + b
+    return a + b
 }</code></pre>
 <p><strong>Lowering</strong>:</p>
-<ul><li><code>requires &lt;expr&gt;</code> lowers to <code>if (!(&lt;expr&gt;)) aether_panic("precondition violation: &lt;expr&gt; in &lt;fn&gt;");</code> emitted at function entry, after parameters are declared and before any user code runs. Parameters are in scope.</li><li><code>ensures &lt;expr&gt;</code> lowers to a pre-return wrapper <code>{ &lt;T&gt; result = &lt;return-expr&gt;; if (!(&lt;expr&gt;)) aether_panic("postcondition violation: &lt;expr&gt; in &lt;fn&gt;"); return result; }</code> emitted before each <code>return</code> statement. The synthetic <code>result</code> local is the return value about to be returned and is scoped to the wrapper block, it shadows any outer <code>result</code> cleanly.</li></ul>
+<h4 id="panic-categories">Panic categories</h4>
+<p>Every unrecoverable failure prints a stable category token, then a colon, then the human detail and the source location. The token is the contract: CI and downstream triage match on it, so it does not change with the prose after it.</p>
+<div class="tw"><table><thead><tr><th>category</th><th>raised by</th></tr></thead><tbody><tr><td><code>precondition_violation</code></td><td>a <code>requires</code> clause that evaluated false</td></tr><tr><td><code>postcondition_violation</code></td><td>an <code>ensures</code> clause that evaluated false</td></tr><tr><td><code>forced_unwrap_none</code></td><td><code>x!</code> on an optional holding <code>none</code></td></tr></tbody></table></div>
+<p>A failure that forwards an existing error value (<code>expr!</code> on a fallible) prints that error's own message rather than a category, because the message came from the callee and is not one of these classes.</p>
+<ul><li><code>requires &lt;expr&gt;</code> lowers to <code>if (!(&lt;expr&gt;)) aether_panic("precondition_violation: &lt;expr&gt; in &lt;fn&gt;");</code> emitted at function entry, after parameters are declared and before any user code runs. Parameters are in scope.</li><li><code>ensures &lt;expr&gt;</code> lowers to a pre-return wrapper <code>{ &lt;T&gt; result = &lt;return-expr&gt;; if (!(&lt;expr&gt;)) aether_panic("postcondition violation: &lt;expr&gt; in &lt;fn&gt;"); return result; }</code> emitted before each <code>return</code> statement. The synthetic <code>result</code> local is the return value about to be returned and is scoped to the wrapper block, it shadows any outer <code>result</code> cleanly.</li></ul>
 <p>Multiple clauses in any order, freely interleaved. Each is checked independently, so the panic message names the specific failed predicate. The diagnostic plays nicely with <code>panic</code> stack traces for actionable error reporting.</p>
 <p><strong><code>--no-contracts</code> build flag</strong>:</p>
 <pre><code>aetherc --no-contracts script.ae out.c    <span class="com"># zero per-call cost</span></code></pre>
@@ -1308,83 +1321,83 @@ r = safe_divide(x, y) or {
 <h3 id="string-ownership-for---string-functions">String ownership for <code>-&gt; string</code> functions</h3>
 <p>Strings are special-cased in the memory model: every reassignment to a string variable that previously held a heap-allocated value frees the old buffer through a compiler-emitted wrapper. <strong>You do not write <code>defer string.free(s)</code> for in-Aether assignments</strong>, the compiler tracks ownership transitions automatically per <a href="/Docs/memory-management.html#string-memory-model-heap-string-tracker">docs/memory-management.md "String memory model"</a>.</p>
 <p>A user-defined function declared <code>-&gt; string</code> is treated as <strong>heap-returning</strong> iff every return statement in its body yields a heap-string-expression (recursive structural escape analysis):</p>
-<pre><code>my_concat(a: <span class="fn">string</span>, b: <span class="fn">string</span>) -&gt; <span class="fn">string</span> {
-    <span class="kw">return</span> <span class="fn">string</span>.concat(a, b)        <span class="com">// heap-string-expr return → my_concat is heap-returning</span>
+<pre><code>my_concat(a: string, b: string) -&gt; string {
+    return string.concat(a, b)        // heap-string-expr return → my_concat is heap-returning
 }
 
-s = <span class="str">""</span>
-i = <span class="num">0</span>
-<span class="kw">while</span> i &lt; <span class="num">1000000</span> {
-    s = my_concat(s, <span class="str">"x"</span>)              <span class="com">// O(1) memory, old s freed automatically</span>
-    i = i + <span class="num">1</span>
+s = ""
+i = 0
+while i &lt; 1000000 {
+    s = my_concat(s, "x")              // O(1) memory, old s freed automatically
+    i = i + 1
 }</code></pre>
 <p>A function returning a string literal, or whose returns mix heap and literal sources, is <strong>not</strong> recognised. The wrapper won't try to free its result. This is the conservative stance taken to avoid free-of-literal aborts:</p>
-<pre><code>banner(name: <span class="fn">string</span>) -&gt; <span class="fn">string</span> {
-    <span class="kw">if</span> <span class="fn">string</span>.length(name) == <span class="num">0</span> {
-        <span class="kw">return</span> <span class="str">"guest"</span>                 <span class="com">// literal, banner is NOT heap-returning</span>
+<pre><code>banner(name: string) -&gt; string {
+    if string.length(name) == 0 {
+        return "guest"                 // literal, banner is NOT heap-returning
     }
-    <span class="kw">return</span> <span class="fn">string</span>.concat(<span class="str">"hi "</span>, name)  <span class="com">// heap, but the function as a whole isn't heap-returning</span>
+    return string.concat("hi ", name)  // heap, but the function as a whole isn't heap-returning
 }</code></pre>
 <p>If you want every return from your <code>-&gt; string</code> function to be heap (so the wrapper reclaims it), box any literals: <code>return string.concat("", "guest")</code> makes the literal return a heap-string-expression and pushes the function into the heap-returning set.</p>
 <p>See <a href="https://github.com/aether-lang-dev/aether/tree/main/examples/basics/string-ownership.ae">examples/basics/string-ownership.ae</a> for a runnable demonstration.</p>
 <hr>
 <h2 id="optionals">Optionals</h2>
 <p>An optional type <code>T?</code> holds either a value of type <code>T</code> or the empty sentinel <code>none</code>. It is the type for "maybe a value", distinct from the <code>(value, err)</code> result convention, which is for <em>fallible</em> operations. Use <code>(value, err)</code> when an operation can fail and you want to say why; use <code>T?</code> when a value is simply present or absent (a missing map key, an empty list's first element, a search that found nothing).</p>
-<pre><code><span class="kw">let</span> maybe: <span class="fn">int</span>? = <span class="num">69</span>        <span class="com">// a present value, implicitly wrapped</span>
-<span class="kw">let</span> empty: <span class="fn">int</span>? = none      <span class="com">// the absent sentinel</span></code></pre>
+<pre><code>let maybe: int? = 69        // a present value, implicitly wrapped
+let empty: int? = none      // the absent sentinel</code></pre>
 <p><code>T?</code> works for any element type, value types (<code>int?</code>, <code>float?</code>, <code>bool?</code>) and reference types (<code>string?</code>, <code>*Node?</code>) alike, with one uniform representation, so there is no ambiguity between "the value is a null pointer" and "the key was absent".</p>
 <h3 id="none-and-equality"><code>none</code> and equality</h3>
 <p><code>none</code> is a reserved literal (like <code>true</code>, <code>false</code>, and <code>null</code>), it cannot be used as a variable name. Compare against it with <code>==</code> / <code>!=</code>:</p>
-<pre><code><span class="kw">if</span> empty == none {
-    println(<span class="str">"absent"</span>)
+<pre><code>if empty == none {
+    println("absent")
 }
-<span class="kw">if</span> maybe != none {
-    println(<span class="str">"present"</span>)
+if maybe != none {
+    println("present")
 }</code></pre>
 <p>Two optionals compare equal when they have the same presence and (when present) equal values: <code>a == b</code> for <code>int?</code> compares the ints, and for <code>string?</code> compares the <strong>contents</strong> (via the same header-aware string comparison the language uses elsewhere), not the underlying pointers.</p>
 <p>An optional is a <strong>single</strong> presence layer, <code>T??</code> is rejected at parse time (<em>"nested optional <code>T??</code> is not supported"</em>). If you find yourself wanting one, you almost certainly want the distinct "fallible-and-absent" spelling instead, which composes from a result and an optional rather than nesting two optionals.</p>
 <h3 id="force-unwrap-">Force-unwrap <code>!</code></h3>
 <p>Postfix <code>!</code> yields the wrapped value, or panics if the optional is <code>none</code>:</p>
-<pre><code><span class="kw">let</span> n: <span class="fn">int</span> = maybe!         <span class="com">// 69</span>
-<span class="kw">let</span> boom: <span class="fn">int</span> = empty!      <span class="com">// panics: "forced unwrap of `none`"</span></code></pre>
+<pre><code>let n: int = maybe!         // 69
+let boom: int = empty!      // panics: "forced unwrap of `none`"</code></pre>
 <p>Use it only where absence is a programmer error. For a safe default, prefer <code>??</code>. (Postfix <code>!</code> is shared with the <code>(value, err)</code> unwrap-or-trap: on an optional it unwraps the value, on a tuple it unwraps the first slot and traps on a non-empty error, the meaning follows the operand type.)</p>
 <h3 id="null-coalesce-">Null-coalesce <code>??</code></h3>
 <p><code>opt ?? default</code> yields the wrapped value when present, otherwise <code>default</code>. It binds tighter than arithmetic, so <code>5 + (opt ?? 7)</code> groups as expected:</p>
-<pre><code><span class="kw">let</span> a: <span class="fn">int</span> = maybe ?? <span class="num">0</span>     <span class="com">// 69</span>
-<span class="kw">let</span> b: <span class="fn">int</span> = empty ?? <span class="num">0</span>     <span class="com">// 0</span>
-<span class="kw">let</span> c: <span class="fn">int</span> = <span class="num">5</span> + (empty ?? <span class="num">7</span>)   <span class="com">// 12</span></code></pre>
+<pre><code>let a: int = maybe ?? 0     // 69
+let b: int = empty ?? 0     // 0
+let c: int = 5 + (empty ?? 7)   // 12</code></pre>
 <h3 id="optional-chaining-">Optional chaining <code>?.</code></h3>
 <p><code>opt?.field</code> reads a field through an optional struct and is <em>none-propagating</em>: it yields <code>fieldT?</code>, which is <code>none</code> when the receiver is <code>none</code>. Combine with <code>??</code> to default the result:</p>
-<pre><code><span class="kw">struct</span> Vec2 { x: <span class="fn">int</span>  y: <span class="fn">int</span> }
+<pre><code>struct Vec2 { x: int  y: int }
 
-<span class="kw">let</span> v: Vec2? = Vec2 { x: <span class="num">7</span>, y: <span class="num">8</span> }
-<span class="kw">let</span> xm: <span class="fn">int</span>? = v?.x          <span class="com">// some(7)</span>
-<span class="kw">let</span> x:  <span class="fn">int</span>  = v?.x ?? <span class="num">0</span>     <span class="com">// 7</span>
+let v: Vec2? = Vec2 { x: 7, y: 8 }
+let xm: int? = v?.x          // some(7)
+let x:  int  = v?.x ?? 0     // 7
 
-<span class="kw">let</span> nv: Vec2? = none
-<span class="kw">let</span> zm: <span class="fn">int</span>? = nv?.x         <span class="com">// none, short-circuited</span></code></pre>
+let nv: Vec2? = none
+let zm: int? = nv?.x         // none, short-circuited</code></pre>
 <p>Chain <em>assignment</em> is a no-op when the receiver is <code>none</code>:</p>
-<pre><code>v?.x  = <span class="num">42</span>                   <span class="com">// writes, v is present</span>
-nv?.x = <span class="num">99</span>                   <span class="com">// skipped, nv is none, no crash</span></code></pre>
+<pre><code>v?.x  = 42                   // writes, v is present
+nv?.x = 99                   // skipped, nv is none, no crash</code></pre>
 <h3 id="matching-on-optionals">Matching on optionals</h3>
 <p><code>match</code> destructures an optional with the <code>none</code> and <code>some(binding)</code> arms, as a statement or as an expression:</p>
-<pre><code><span class="kw">match</span> maybe {
-    none    -&gt; println(<span class="str">"missing"</span>)
-    some(v) -&gt; println(<span class="str">"got ${v}"</span>)
+<pre><code>match maybe {
+    none    -&gt; println("missing")
+    some(v) -&gt; println("got ${v}")
 }
 
-<span class="kw">let</span> label: <span class="fn">string</span> = <span class="kw">match</span> maybe {
-    none    -&gt; <span class="str">"missing"</span>
-    some(v) -&gt; <span class="str">"got ${v}"</span>
+let label: string = match maybe {
+    none    -&gt; "missing"
+    some(v) -&gt; "got ${v}"
 }</code></pre>
 <h3 id="narrowing">Narrowing</h3>
 <p>A none-check on an optional variable <strong>narrows</strong> it in the guarded branch: inside <code>if x != none { ... }</code> (and the <code>else</code> of <code>if x == none { ... } else { ... }</code>), <code>x</code> is its inner type <code>T</code> and is used directly, without the <code>!</code> force-unwrap. Presence is proven by the guard, so the runtime none-check is elided, this is a compile-time analysis with zero runtime cost:</p>
-<pre><code>find(id: <span class="fn">int</span>) -&gt; User?
+<pre><code>find(id: int) -&gt; User?
 
-<span class="kw">let</span> u: User? = find(<span class="num">42</span>)
-<span class="kw">if</span> u != none {
-    println(u.name)        <span class="com">// no `!`, `u` is a User here</span>
-    greet(u)              <span class="com">// passed by value as User</span>
+let u: User? = find(42)
+if u != none {
+    println(u.name)        // no `!`, `u` is a User here
+    greet(u)              // passed by value as User
 }</code></pre>
 <p>Narrowing is refused (soundly, the branch is unchanged) when the guarded branch reassigns the variable, or uses it with an optional-only operator (<code>== none</code>, <code>!= none</code>, <code>!</code>, <code>??</code>, or <code>?.</code>), since those need the optional form. A nested guard on the same variable still narrows its own innermost block.</p>
 <p>The narrowed value flows through expressions, field access, and function arguments. Assigning the narrowed variable <em>directly</em> to a pre-existing variable (<code>existing = x</code>) is one spot the inner type does not yet propagate (the outer variable keeps its optional type); use an expression (<code>existing = x + 0</code>) or a fresh <code>let</code> binding there.</p>
@@ -1415,117 +1428,117 @@ main() {
 <hr>
 <h2 id="enums">Enums</h2>
 <p>An <strong>enum</strong> is a named set of integer constants, a distinct type over <code>int</code> with named members. It lowers to a C <code>typedef enum</code> with zero runtime cost.</p>
-<pre><code>enum Direction { North, East, South, West }        <span class="com">// implicit 0, 1, 2, 3</span>
-enum Errno { Ok = <span class="num">0</span>, NotFound = <span class="num">2</span>, Perm = <span class="num">13</span> }      <span class="com">// explicit values</span></code></pre>
+<pre><code>enum Direction { North, East, South, West }        // implicit 0, 1, 2, 3
+enum Errno { Ok = 0, NotFound = 2, Perm = 13 }      // explicit values</code></pre>
 <p>A member with no <code>= value</code> is the previous member's value plus one (the first defaults to <code>0</code>), matching C. Members are separated by commas and/or newlines.</p>
 <p>Members are referenced by their <strong>qualified name</strong>, <code>EnumName.Member</code>:</p>
-<pre><code>d = Direction.East              <span class="com">// d has type Direction</span>
-<span class="kw">if</span> d == Direction.East { ... }  <span class="com">// compare (nominal: same enum only)</span></code></pre>
+<pre><code>d = Direction.East              // d has type Direction
+if d == Direction.East { ... }  // compare (nominal: same enum only)</code></pre>
 <p>An enum is used like any other type, on parameters, returns, and locals, and is matched with member arms. Inside a <code>match</code> on an enum the member may be written qualified (<code>Direction.North</code>) or bare (<code>North</code>), since the scrutinee already fixes the enum:</p>
-<pre><code>label(d: Direction) -&gt; <span class="fn">string</span> {
-    <span class="kw">return</span> <span class="kw">match</span> d {
-        North -&gt; <span class="str">"N"</span>
-        East  -&gt; <span class="str">"E"</span>
-        South -&gt; <span class="str">"S"</span>
-        West  -&gt; <span class="str">"W"</span>
+<pre><code>label(d: Direction) -&gt; string {
+    return match d {
+        North -&gt; "N"
+        East  -&gt; "E"
+        South -&gt; "S"
+        West  -&gt; "W"
     }
 }</code></pre>
 <p>An enum <code>match</code> is <strong>exhaustive-checked</strong>: if it covers every member, no <code>_</code> arm is needed (as above); if a member is left uncovered and there is no <code>_</code>, it is a compile error naming the missing members (the same guarantee sum types give). A <code>_</code> arm still catches the rest when you want a default.</p>
 <p>Because an enum is integer-backed, its members interconvert with integer scalars (<code>x: int = Errno.Perm</code> gives <code>13</code>; <code>code == Errno.NotFound</code> compares as ints), but two <strong>different</strong> enums are never compatible with each other.</p>
 <p>Where the expected type is already a known enum, a member may be written <strong>bare</strong>, without the enum prefix. This applies to a function argument, a typed initializer, an assignment, a return, and either side of an enum comparison:</p>
-<pre><code>paint(c: Color) -&gt; <span class="fn">string</span> { ... }
+<pre><code>paint(c: Color) -&gt; string { ... }
 
-paint(North)                 <span class="com">// function argument</span>
-<span class="kw">let</span> c: Direction = North     <span class="com">// typed initializer</span>
-c = South                    <span class="com">// assignment</span>
-<span class="kw">if</span> c == North { ... }        <span class="com">// comparison (either order)</span>
-heading() -&gt; Direction { <span class="kw">return</span> West }   <span class="com">// return</span></code></pre>
+paint(North)                 // function argument
+let c: Direction = North     // typed initializer
+c = South                    // assignment
+if c == North { ... }        // comparison (either order)
+heading() -&gt; Direction { return West }   // return</code></pre>
 <p>A real binding always wins: if a variable named <code>North</code> is in scope, <code>North</code> refers to it, not the member. A bare name that is not a member of the expected enum stays an ordinary "undefined variable" error.</p>
 <h3 id="enum-indexed-arrays">Enum-indexed arrays</h3>
 <p><code>[E]T</code> is a fixed array with exactly one slot per member of enum <code>E</code>, indexed by an <code>E</code> value rather than a raw integer. It is sized at compile time to the enum's member range and lowers to a plain C array (zero runtime cost):</p>
 <pre><code>enum Dir { N, E, S, W }
-<span class="kw">const</span> LABELS: [Dir]<span class="fn">string</span> = [<span class="str">"north"</span>, <span class="str">"east"</span>, <span class="str">"south"</span>, <span class="str">"west"</span>]  <span class="com">// one per member</span>
+const LABELS: [Dir]string = ["north", "east", "south", "west"]  // one per member
 
-LABELS[Dir.E]        <span class="com">// "east", indexed by the enum member</span>
-<span class="kw">var</span> t: [Dir]<span class="fn">string</span> = [<span class="str">"n"</span>, <span class="str">"e"</span>, <span class="str">"s"</span>, <span class="str">"w"</span>]
-t[Dir.N] = <span class="str">"NORTH"</span>   <span class="com">// element assignment</span></code></pre>
+LABELS[Dir.E]        // "east", indexed by the enum member
+var t: [Dir]string = ["n", "e", "s", "w"]
+t[Dir.N] = "NORTH"   // element assignment</code></pre>
 <p>A positional literal supplies one value per member in declaration order; the count must match. The index must be a value of <code>E</code> (a raw <code>int</code> is rejected), so the type keeps the table and its keys in lockstep. With explicit member values the array spans <code>0 ..= max value</code>, so a sparse enum reserves the intervening slots. Array-typed function parameters and empty <code>[]</code> initialisers share the current fixed-size-array limitations and are a separate follow-up.</p>
 <h2 id="bit-sets">Bit Sets</h2>
 <p>A <strong>bit set</strong> is a set of members of an enum, <code>bit_set[E]</code>. It is backed by a single unsigned 64-bit word (one bit per member, at the member's enum value), so every set operation is a bitwise operation with zero runtime cost.</p>
 <pre><code>enum Perm { Read, Write, Exec }
 
-<span class="kw">let</span> a = bit_set[Perm]{ Perm.Read, Perm.Write }   <span class="com">// a two-member set</span>
-<span class="kw">let</span> b = bit_set[Perm]{ Write, Exec }             <span class="com">// bare member names also work</span>
-<span class="kw">let</span> empty = bit_set[Perm]{}                       <span class="com">// the empty set</span></code></pre>
+let a = bit_set[Perm]{ Perm.Read, Perm.Write }   // a two-member set
+let b = bit_set[Perm]{ Write, Exec }             // bare member names also work
+let empty = bit_set[Perm]{}                       // the empty set</code></pre>
 <p>Inside a <code>bit_set[E]{ ... }</code> literal each element is a member of <code>E</code>, written qualified (<code>Perm.Read</code>) or bare (<code>Read</code>). The type is written the same way it is constructed, so a set is used like any other type, on locals, parameters, return types, and struct fields:</p>
 <pre><code>grant(base: bit_set[Perm]) -&gt; bit_set[Perm] {
-    <span class="kw">return</span> base + bit_set[Perm]{ Perm.Exec }
+    return base + bit_set[Perm]{ Perm.Exec }
 }
 
-<span class="kw">struct</span> File { name: <span class="fn">string</span>, perms: bit_set[Perm] }</code></pre>
+struct File { name: string, perms: bit_set[Perm] }</code></pre>
 <p>The operators:</p>
 <div class="tw"><table><thead><tr><th>Operation</th><th>Syntax</th><th>Result</th><th>Lowers to</th></tr></thead><tbody><tr><td>membership</td><td><code>Perm.Read in a</code></td><td><code>bool</code></td><td><code>(a &gt;&gt; Read) &amp; 1</code></td></tr><tr><td>union</td><td><code>a + b</code></td><td><code>bit_set[E]</code></td><td><code>a \| b</code></td></tr><tr><td>difference</td><td><code>a - b</code></td><td><code>bit_set[E]</code></td><td><code>a &amp; ~b</code></td></tr><tr><td>subset</td><td><code>a &lt;= b</code></td><td><code>bool</code></td><td><code>(a &amp; b) == a</code></td></tr><tr><td>superset</td><td><code>a &gt;= b</code></td><td><code>bool</code></td><td><code>(a &amp; b) == b</code></td></tr><tr><td>equality</td><td><code>a == b</code> / <code>!=</code></td><td><code>bool</code></td><td><code>a == b</code></td></tr><tr><td>cardinality</td><td><code>card(a)</code></td><td><code>int</code></td><td><code>popcount(a)</code></td></tr></tbody></table></div>
-<pre><code><span class="kw">let</span> u = a + b                         <span class="com">// union</span>
-<span class="kw">let</span> d = a - b                         <span class="com">// difference (members of a not in b)</span>
-<span class="kw">if</span> Perm.Exec <span class="kw">in</span> u { ... }             <span class="com">// membership test</span>
-<span class="kw">if</span> a &lt;= u { ... }                     <span class="com">// is a a subset of u?</span>
-<span class="kw">let</span> n = card(u)                       <span class="com">// how many members are set</span></code></pre>
+<pre><code>let u = a + b                         // union
+let d = a - b                         // difference (members of a not in b)
+if Perm.Exec in u { ... }             // membership test
+if a &lt;= u { ... }                     // is a a subset of u?
+let n = card(u)                       // how many members are set</code></pre>
 <p>A bit set is <strong>nominal</strong> and strictly typed: it never implicitly converts to or from an integer, and two bit sets interoperate only when they are over the same enum. Members must have values in <code>0..63</code> (the width of the backing word). <code>card</code> is a reserved call form, like <code>sizeof</code>, and applies only to a bit set.</p>
 <h2 id="bitstructs">Bitstructs</h2>
 <p>A <strong>bitstruct</strong> is a named bit layout over a single unsigned integer. It is the tool for packed headers, hardware registers, and wire formats.</p>
 <pre><code>bitstruct DnsFlags : uint16_t {
-    qr:     <span class="fn">bool</span> <span class="num">15</span>          <span class="com">// a single bit</span>
-    opcode: <span class="fn">int</span>  <span class="num">11</span>..=<span class="num">14</span>     <span class="com">// an inclusive range: bits 11,12,13,14</span>
-    aa:     <span class="fn">bool</span> <span class="num">10</span>
-    rcode:  <span class="fn">int</span>  <span class="num">0</span>..&lt;<span class="num">4</span>       <span class="com">// an exclusive range: bits 0,1,2,3</span>
+    qr:     bool 15          // a single bit
+    opcode: int  11..=14     // an inclusive range: bits 11,12,13,14
+    aa:     bool 10
+    rcode:  int  0..&lt;4       // an exclusive range: bits 0,1,2,3
 }
 
-f = <span class="num">0</span> <span class="kw">as</span> DnsFlags
-f.opcode = <span class="num">2</span>
-f.qr = <span class="kw">true</span>
-w = f <span class="kw">as</span> uint16_t            <span class="com">// 0x9000 | ...</span></code></pre>
+f = 0 as DnsFlags
+f.opcode = 2
+f.qr = true
+w = f as uint16_t            // 0x9000 | ...</code></pre>
 <p><strong>A bitstruct never lowers to a C bitfield.</strong> It lowers to shift-and-mask arithmetic on the backing integer. This is the whole point of the feature: C's <code>:n</code> bitfields have implementation-defined signedness, allocation order, and straddling behaviour, which makes them unusable for anything that has to match a byte-exact layout. In particular gcc gives <code>int x : 3</code> a <strong>signed</strong> representation, so a stored <code>0b111</code> reads back as <code>-1</code>. A bitstruct field cannot do that, the backing word is unsigned and the mask is applied after the shift, so there is nothing to sign-extend from.</p>
 <p>The rules, each of which exists to keep the layout exact:</p>
 <ul><li><strong>The backing type is mandatory</strong> and must be one of <code>uint8_t</code>, <code>uint16_t</code>, <code>uint32_t</code>, <code>uint64_t</code>. Naming the storage explicitly is what fixes its width and its signedness. Omitting it is a compile error, not a default.</li><li><strong>Bit positions are explicit.</strong> A bare index (<code>0</code>) is a one-bit field. A range may be written inclusively (<code>1..=3</code>) or exclusively (<code>1..&lt;4</code>), both denote the same three bits. Aether does not pick one for you (C3, which this borrows from, hardcodes inclusive ranges and leaves you to remember); the source says which it means, using the same <code>..=</code> / <code>..&lt;</code> spellings as match-range labels.</li><li><strong>Overlapping fields are an error</strong> unless the bitstruct is annotated <code>@overlap</code>, which permits union-like views of the same bits.</li><li><strong>A range that runs off the end of the backing integer is an error.</strong></li><li><strong>Fields are <code>bool</code>, an integer type, or an enum.</strong> A <code>bool</code> field is exactly one bit.</li><li><strong>Writing a field never disturbs its neighbours.</strong> An over-wide value truncates to its own field rather than bleeding into the next one.</li><li><strong>A bitstruct is nominal.</strong> It never implicitly converts to or from its backing integer, and two bitstructs over the same backing type are still different types. Crossing the boundary is an explicit <code>as</code> in either direction, a bitstruct is a packed layout, not a number you do arithmetic on.</li></ul>
 <h3 id="bit-layout-and-byte-order-are-separate-concerns">Bit layout and byte order are separate concerns</h3>
 <p>A bitstruct says <strong>which bits</strong>. It deliberately says nothing about <strong>which byte order</strong>, there is no <code>@bigendian</code> annotation, and no hidden byte-swapping on field access. Byte order is a property of <em>serialisation</em>, not of the layout, and Aether already has endian-explicit accessors for it in <a href="https://github.com/aether-lang-dev/aether/tree/main/std/mem/"><code>std.mem</code></a>:</p>
-<pre><code><span class="kw">import</span> std.mem
+<pre><code>import std.mem
 
-<span class="com">// Read a big-endian word off the wire, then interpret its bits.</span>
-w    = mem.get_u16_be(buf, <span class="num">0</span>)
-hdr  = w <span class="kw">as</span> DnsFlags
+// Read a big-endian word off the wire, then interpret its bits.
+w    = mem.get_u16_be(buf, 0)
+hdr  = w as DnsFlags
 kind = hdr.opcode
 
-<span class="com">// ...and back out again.</span>
-mem.set_u16_be(buf, <span class="num">0</span>, hdr <span class="kw">as</span> uint16_t)</code></pre>
+// ...and back out again.
+mem.set_u16_be(buf, 0, hdr as uint16_t)</code></pre>
 <p>Keeping the two apart means there is exactly one place where a byte swap can happen, and it is visible in the source. Folding endianness into the type would make the swap implicit and raise the question "does it happen on every field read, or only at the byte boundary?", the sort of ambiguity that makes C bitfields untrustworthy in the first place.</p>
 <h2 id="sum--variant-types">Sum / Variant Types</h2>
 <p>A <strong>sum type</strong> is a value that is exactly one of N named struct variants:</p>
-<pre><code><span class="kw">struct</span> Circle { r: <span class="fn">float</span> }
-<span class="kw">struct</span> Rect   { w: <span class="fn">float</span>  h: <span class="fn">float</span> }
-<span class="kw">struct</span> Empty  {}
+<pre><code>struct Circle { r: float }
+struct Rect   { w: float  h: float }
+struct Empty  {}
 type Shape = Circle | Rect | Empty</code></pre>
 <p>Each variant is an existing struct. A sum needs at least two variants (a single-name <code>type T = A</code> alias is not a supported form).</p>
 <h3 id="constructing-implicit-wrap">Constructing, implicit wrap</h3>
 <p>A variant struct value flows into a <code>Shape</code> slot directly; there is no <code>some(...)</code>-style constructor. The wrap happens at <code>let</code> bindings, function parameters, return values, and call arguments:</p>
-<pre><code><span class="kw">let</span> s: Shape = Circle { r: <span class="num">2.0</span> }      <span class="com">// Circle wraps into Shape</span>
-draw(Rect { w: <span class="num">3.0</span>, h: <span class="num">4.0</span> })         <span class="com">// wraps at the argument</span>
-<span class="kw">make</span>() -&gt; Shape { <span class="kw">return</span> Empty {} }   <span class="com">// wraps at the return</span></code></pre>
+<pre><code>let s: Shape = Circle { r: 2.0 }      // Circle wraps into Shape
+draw(Rect { w: 3.0, h: 4.0 })         // wraps at the argument
+make() -&gt; Shape { return Empty {} }   // wraps at the return</code></pre>
 <h3 id="matching-narrowing--exhaustiveness">Matching, narrowing + exhaustiveness</h3>
 <p><code>match</code> over a sum dispatches on the variant and <strong>narrows</strong> the scrutinee to that variant struct inside the arm, so <code>s.field</code> reads the right member:</p>
-<pre><code>area(s: Shape) -&gt; <span class="fn">float</span> {
-    <span class="kw">let</span> a: <span class="fn">float</span> = <span class="kw">match</span> s {
-        Circle -&gt; <span class="num">3.14159</span> * s.r * s.r   <span class="com">// here `s` is a Circle</span>
-        Rect   -&gt; s.w * s.h             <span class="com">// here `s` is a Rect</span>
-        Empty  -&gt; <span class="num">0.0</span>
+<pre><code>area(s: Shape) -&gt; float {
+    let a: float = match s {
+        Circle -&gt; 3.14159 * s.r * s.r   // here `s` is a Circle
+        Rect   -&gt; s.w * s.h             // here `s` is a Rect
+        Empty  -&gt; 0.0
     }
-    <span class="kw">return</span> a
+    return a
 }</code></pre>
 <p>The match must be <strong>exhaustive</strong>: every variant must be handled, or a <code>_</code> wildcard arm must catch the rest. Omitting a variant is a compile error, the payoff that tells you, when you add a variant, exactly which matches to update. An arm naming something that isn't a variant is also rejected. Narrowing applies when the scrutinee is a plain variable (<code>match s { … }</code>).</p>
 <h3 id="recursive-sums">Recursive sums</h3>
 <p>Self-referential shapes (trees, ASTs, JSON values) use explicit pointer fields:</p>
-<pre><code><span class="kw">struct</span> Leaf { v: <span class="fn">int</span> }
-<span class="kw">struct</span> Pair { left: *Tree  right: *Tree }
+<pre><code>struct Leaf { v: int }
+struct Pair { left: *Tree  right: *Tree }
 type Tree = Leaf | Pair</code></pre>
 <h3 id="codegen">Codegen</h3>
 <p>A sum lowers to a tag enum plus a tagged union, no allocation, no vtable:</p>
@@ -1551,45 +1564,45 @@ main() {
     print(p.y);  <span class="com">// 20</span>
 }</code></pre>
 <h3 id="explicit-field-types">Explicit Field Types</h3>
-<pre><code><span class="kw">struct</span> Point {
-    <span class="fn">int</span> x,
-    <span class="fn">int</span> y
+<pre><code>struct Point {
+    int x,
+    int y
 }
 
-<span class="kw">struct</span> Config {
-    <span class="fn">string</span> name,
-    <span class="fn">int</span> timeout,
-    <span class="fn">float</span> threshold
+struct Config {
+    string name,
+    int timeout,
+    float threshold
 }</code></pre>
 <h3 id="field-injection-with-using-composition-no-vtables">Field injection with <code>using</code> (composition, no vtables)</h3>
 <p>A field declared <code>using embed: Sub</code> embeds a sub-struct and <strong>promotes its fields</strong> into the outer struct's namespace. This is composition-over-inheritance without method sets or vtables, a pure compile-time member-access rewrite:</p>
-<pre><code><span class="kw">struct</span> Entity { x: <span class="fn">int</span>, y: <span class="fn">int</span> }
+<pre><code>struct Entity { x: int, y: int }
 
-<span class="kw">struct</span> Frog {
-    using entity: Entity    <span class="com">// promotes x, y</span>
-    hops: <span class="fn">int</span>
+struct Frog {
+    using entity: Entity    // promotes x, y
+    hops: int
 }
 
-f = Frog { entity: Entity { x: <span class="num">10</span>, y: <span class="num">20</span> }, hops: <span class="num">3</span> }
-f.x            <span class="com">// == f.entity.x  (reads through the embed)</span>
-f.x = <span class="num">99</span>       <span class="com">// writes through the embed too</span>
-f.entity.x     <span class="com">// the explicit path still works</span></code></pre>
+f = Frog { entity: Entity { x: 10, y: 20 }, hops: 3 }
+f.x            // == f.entity.x  (reads through the embed)
+f.x = 99       // writes through the embed too
+f.entity.x     // the explicit path still works</code></pre>
 <p><code>f.x</code>, when <code>x</code> is not a direct field of <code>Frog</code>, resolves to <code>f.entity.x</code> at compile time (both reads and writes). A name that no direct or <code>using</code> field provides is still a "no field" error. Zero runtime cost: the outer struct just contains the embedded struct as an ordinary field.</p>
 <p>Only the <strong>field form</strong> exists. Odin's <code>using</code> <em>statement</em> (dumping a struct's fields into local scope inside a function body) is deliberately not adopted, it is a readability footgun.</p>
 <h3 id="function-pointer-struct-fields-a-vtable-of-callbacks">Function-pointer struct fields, a vtable of callbacks</h3>
 <p>A struct field can be a function pointer (<code>fn(T1, T2) -&gt; R</code>), the <code>dictType</code>-style vtable. The field emits as the C function-pointer member <code>R (*name)(T1, T2)</code>, and a call through it is a real indirect call:</p>
-<pre><code><span class="kw">struct</span> Ops {
-    hash:    fn(<span class="fn">int</span>) -&gt; <span class="fn">int</span>
-    combine: fn(<span class="fn">int</span>, <span class="fn">int</span>) -&gt; <span class="fn">int</span>
+<pre><code>struct Ops {
+    hash:    fn(int) -&gt; int
+    combine: fn(int, int) -&gt; int
 }
 
 main() {
-    o = Ops { hash: my_hash <span class="kw">as</span> fn(<span class="fn">int</span>) -&gt; <span class="fn">int</span>, combine: my_add <span class="kw">as</span> fn(<span class="fn">int</span>, <span class="fn">int</span>) -&gt; <span class="fn">int</span> }
-    o.hash(<span class="num">5</span>)                       <span class="com">// value struct  → (o.hash)(5)</span>
+    o = Ops { hash: my_hash as fn(int) -&gt; int, combine: my_add as fn(int, int) -&gt; int }
+    o.hash(5)                       // value struct  → (o.hash)(5)
 }
 
-dispatch(p: *Ops, k: <span class="fn">int</span>) -&gt; <span class="fn">int</span> {
-    <span class="kw">return</span> p.hash(k)                <span class="com">// pointer struct → (p-&gt;hash)(k)</span>
+dispatch(p: *Ops, k: int) -&gt; int {
+    return p.hash(k)                // pointer struct → (p-&gt;hash)(k)
 }</code></pre>
 <p>Assign each field an Aether function's address via <code>as fn(...)</code> (or a C function pointer from an extern). Dispatch works for a value struct (<code>o.field(args)</code>) and a pointer-to-struct (<code>p.field(args)</code> lowers to <code>p-&gt;field(args)</code>); the receiver must be a single local, and the field's signature is taken from the struct definition. This is the field form of the same typed-fn-pointer machinery as <code>as fn(...)</code> locals.</p>
 <h3 id="pointer-to-struct-type-structname-and-expr-as-structname">Pointer-to-struct type, <code>*StructName</code> and <code>expr as *StructName</code></h3>
@@ -1622,147 +1635,163 @@ main() {
 <p>The <code>as</code> keyword is the same token used for <code>import x as y</code> aliasing; the two parses don't collide because import-aliasing is recognised only inside <code>import</code> statements. Full semantics (operand type rules, error cases, the shared-token interaction) are in <a href="/Docs/c-interop.html#struct-overlay-on-raw-pointers-structname-and-expr-as-structname">c-interop.md § Struct overlay on raw pointers</a>.</p>
 <h4 id="constructors-returning-structname">Constructors returning <code>*StructName</code></h4>
 <p>The constructor shape, allocate raw storage, overlay the struct, initialise the fields, return the typed view, is the natural way to retire C "container holder" shims to Aether:</p>
-<pre><code><span class="kw">struct</span> Txn {
-    revision: <span class="fn">int</span>
-    paths: <span class="fn">ptr</span>
-    <span class="kw">state</span>: <span class="fn">int</span>
+<pre><code>struct Txn {
+    revision: int
+    paths: ptr
+    state: int
 }
 
-mk_txn(revision: <span class="fn">int</span>) -&gt; *Txn {
-    raw = malloc(<span class="num">64</span>)
-    t = raw <span class="kw">as</span> *Txn
+mk_txn(revision: int) -&gt; *Txn {
+    raw = malloc(64)
+    t = raw as *Txn
     t.revision = revision
-    t.paths    = <span class="num">0</span>
-    t.<span class="kw">state</span>    = <span class="num">0</span>
-    <span class="kw">return</span> t
+    t.paths    = 0
+    t.state    = 0
+    return t
 }</code></pre>
 <p>The pointer-to-struct type is accepted in every type position, including the return-type position used here. Earlier compiler versions tripped on <code>-&gt; *Foo</code> in this slot (the parser's typed-return-vs-arrow-body disambiguator missed <code>TOKEN_MULTIPLY</code>); current builds parse it cleanly.</p>
 <h4 id="self-referential-structs">Self-referential structs</h4>
 <p>Pointer-to-struct fields may point back at the enclosing struct, which is how recursive shapes (linked-list cells, error chains, n-ary tree nodes, dependency graphs) are spelled:</p>
-<pre><code><span class="kw">struct</span> ErrChain {
-    code:  <span class="fn">int</span>
-    msg:   <span class="fn">string</span>
-    cause: *ErrChain      <span class="com">// self-pointer, chain cell or null</span>
-    file:  <span class="fn">string</span>
-    line:  <span class="fn">int</span>
+<pre><code>struct ErrChain {
+    code:  int
+    msg:   string
+    cause: *ErrChain      // self-pointer, chain cell or null
+    file:  string
+    line:  int
 }
 
-mk_err(code: <span class="fn">int</span>, msg: <span class="fn">string</span>, cause: *ErrChain, file: <span class="fn">string</span>, line: <span class="fn">int</span>) -&gt; *ErrChain {
-    raw = malloc(<span class="num">64</span>)
-    e = raw <span class="kw">as</span> *ErrChain
+mk_err(code: int, msg: string, cause: *ErrChain, file: string, line: int) -&gt; *ErrChain {
+    raw = malloc(64)
+    e = raw as *ErrChain
     e.code  = code
     e.msg   = msg
     e.cause = cause
     e.file  = file
     e.line  = line
-    <span class="kw">return</span> e
+    return e
 }
 
 walk(e: *ErrChain) {
-    <span class="kw">if</span> e == <span class="num">0</span> { <span class="kw">return</span> }
-    println(<span class="str">"[${e.code}] ${e.msg} (${e.file}:${e.line})"</span>)
+    if e == 0 { return }
+    println("[${e.code}] ${e.msg} (${e.file}:${e.line})")
     walk(e.cause)
 }</code></pre>
 <p>The recursion above reads naturally and is fine for the short chains errors usually form. But Aether does <strong>not</strong> turn tail calls into loops, so each cell costs one C stack frame: walking (or freeing) a <code>*Struct</code> chain that can grow without bound, a long linked list, a deep tree assembled from untrusted input, an error chain accumulated in a hot retry loop, risks a stack overflow. For unbounded shapes, walk the spine iteratively instead, which is O(1) stack at any depth, exactly as the refcounted <code>*StringSeq</code> does internally (<a href="/Docs/sequences.html">sequences.md</a> documents "O(n) time, O(1) stack" for 10k+ cells):</p>
-<pre><code><span class="com">// Iterative traversal: O(1) stack regardless of depth.</span>
+<pre><code>// Iterative traversal: O(1) stack regardless of depth.
 cur = e
-<span class="kw">while</span> cur != <span class="num">0</span> {
-    println(<span class="str">"[${cur.code}] ${cur.msg} (${cur.file}:${cur.line})"</span>)
+while cur != 0 {
+    println("[${cur.code}] ${cur.msg} (${cur.file}:${cur.line})")
     cur = cur.cause
 }</code></pre>
 <p>Lifetime is the operand's, <code>mk_err</code> owns the raw allocation it returned, and the caller is responsible for freeing the chain. Free it with the same iterative spine walk, capturing each cell's successor <em>before</em> freeing it so the walk never dereferences freed memory:</p>
-<pre><code><span class="com">// Iterative free: capture next before freeing the current cell.</span>
+<pre><code>// Iterative free: capture next before freeing the current cell.
 cur = e
-<span class="kw">while</span> cur != <span class="num">0</span> {
+while cur != 0 {
     next = cur.cause
-    free(cur <span class="kw">as</span> <span class="fn">ptr</span>)
+    free(cur as ptr)
     cur = next
 }</code></pre>
 <p>There is no generic library helper for this: each user shape names its link field differently (<code>cause</code>, <code>next</code>, <code>tail</code>, ...), and the loop is three lines. Prefer it over recursion for any chain whose length you do not control. (For Aether-managed lifetimes on a similar shape with refcount-aware structural sharing, see <code>*StringSeq</code> in <a href="/Docs/sequences.html">sequences.md</a>.)</p>
 <hr>
 <h2 id="messages">Messages</h2>
 <p>Messages define structured data for actor communication:</p>
-<pre><code><span class="kw">message</span> Increment {
-    amount: <span class="fn">int</span>
+<pre><code>message Increment {
+    amount: int
 }
 
-<span class="kw">message</span> Greet {
-    name: <span class="fn">string</span>
+message Greet {
+    name: string
 }
 
-<span class="kw">message</span> SetPosition {
-    x: <span class="fn">int</span>,
-    y: <span class="fn">int</span>
+message SetPosition {
+    x: int,
+    y: int
 }
 
-<span class="kw">message</span> Reset {}  <span class="com">// Empty message</span></code></pre>
+message Reset {}  // Empty message</code></pre>
 <hr>
 <h2 id="actors">Actors</h2>
 <p>Actors are the core concurrency primitive with encapsulated state and message handling.</p>
 <h3 id="actor-definition">Actor Definition</h3>
-<pre><code><span class="kw">actor</span> Counter {
-    <span class="kw">state</span> count = <span class="num">0</span>;
+<pre><code>actor Counter {
+    state count = 0;
 
-    <span class="kw">receive</span> {
+    receive {
         Increment(amount) -&gt; {
             count = count + amount;
         }
         GetCount() -&gt; {
             print(count);
-            print(<span class="str">"\n"</span>);
+            print("\n");
         }
         _ -&gt; {
-            print(<span class="str">"Unknown message\n"</span>);
+            print("Unknown message\n");
         }
     }
 }</code></pre>
 <h3 id="receive-timeouts">Receive Timeouts</h3>
 <p>The <code>after</code> clause fires a handler if no message arrives within N milliseconds:</p>
-<pre><code><span class="kw">actor</span> Monitor {
-    <span class="kw">state</span> alive = <span class="num">1</span>
+<pre><code>actor Monitor {
+    state alive = 1
 
-    <span class="kw">receive</span> {
-        Heartbeat -&gt; { alive = <span class="num">1</span> }
-    } <span class="kw">after</span> <span class="num">5000</span> -&gt; {
-        println(<span class="str">"No heartbeat for 5 seconds"</span>)
-        alive = <span class="num">0</span>
+    receive {
+        Heartbeat -&gt; { alive = 1 }
+    } after 5000 -&gt; {
+        println("No heartbeat for 5 seconds")
+        alive = 0
     }
 }</code></pre>
 <p>The timeout is one-shot: it is cancelled when any message is received. The countdown starts when the actor's mailbox becomes empty.</p>
 <h3 id="state-variables">State Variables</h3>
 <p>State persists across messages:</p>
-<pre><code><span class="kw">actor</span> BankAccount {
-    <span class="kw">state</span> balance = <span class="num">0</span>;
-    <span class="kw">state</span> transactions = <span class="num">0</span>;
-    <span class="kw">state</span> <span class="fn">int</span>[<span class="num">100</span>] history;
+<pre><code>actor BankAccount {
+    state balance = 0;
+    state transactions = 0;
+    state int[100] history;
 }</code></pre>
 <h3 id="spawning-actors">Spawning Actors</h3>
-<pre><code>counter = <span class="kw">spawn</span>(Counter());
-calculator = <span class="kw">spawn</span>(Calculator());</code></pre>
+<pre><code>counter = spawn(Counter());
+calculator = spawn(Calculator());</code></pre>
 <h3 id="sending-messages-fire-and-forget">Sending Messages (Fire-and-Forget)</h3>
-<pre><code>counter ! Increment { amount: <span class="num">10</span> };
+<pre><code>counter ! Increment { amount: 10 };
 counter ! Reset {};</code></pre>
 <h3 id="ask-pattern-request-reply">Ask Pattern (Request-Reply)</h3>
-<p>The <code>?</code> operator sends a message and blocks until the actor replies. The compiler infers the reply type from the actor's receive handler and extracts the first field of the reply message automatically. Multiple concurrent asks to the same actor are supported, each message carries its own reply slot.</p>
-<pre><code><span class="com">// Synchronous request-reply, result is an int (from Result.value)</span>
-result = calculator ? Add { a: <span class="num">5</span>, b: <span class="num">3</span> };</code></pre>
+<p>The <code>?</code> operator sends a message and blocks until the actor replies. The compiler infers the reply type from the actor's receive handler, so the result is typed without an annotation. Multiple concurrent asks to the same actor are supported, each message carries its own reply slot.</p>
+<pre><code>// Synchronous request-reply, result is an int (from Result.value)
+result = calculator ? Add { a: 5, b: 3 };</code></pre>
+<p>A handler replies in one of two ways, and the ask takes its type from whichever it used:</p>
+<pre><code>message GetName {}
+message GetSize {}
+message SizeReply { bytes: int }
+
+actor Store {
+    state name = "primary"
+    receive {
+        GetName() -&gt; { reply name }                    // bare expression
+        GetSize() -&gt; { reply SizeReply { bytes: 4096 } }  // reply message
+    }
+}
+
+label = store ? GetName {}   // string, from the replied expression
+size  = store ? GetSize {}   // int, from the reply message's first field</code></pre>
+<p>A reply message hands back its <strong>first declared field</strong>, so put the value there. A string reply is deep-copied before it crosses back, so the asker's copy outlives the handler's own scope, and the asker owns it: it is reclaimed at scope exit like any other owned string, and freeing it by hand is not required.</p>
 <p>If the handler does not call <code>reply</code> within the timeout (default 5 seconds), <code>?</code> returns 0.</p>
 <h3 id="reply-statement">Reply Statement</h3>
 <p>The <code>reply</code> statement sends a response back to the waiting <code>?</code> caller. Omitting <code>reply</code> in a handler that was invoked via <code>?</code> causes the caller to time out.</p>
 <p>Actors respond using the <code>reply</code> statement:</p>
-<pre><code><span class="kw">actor</span> Calculator {
-    <span class="kw">receive</span> {
+<pre><code>actor Calculator {
+    receive {
         Add(a, b) -&gt; {
             result = a + b;
-            <span class="kw">reply</span> Result { value: result };
+            reply Result { value: result };
         }
     }
 }</code></pre>
 <h3 id="wildcard-handler">Wildcard Handler</h3>
 <p>The <code>_</code> pattern catches unmatched messages:</p>
-<pre><code><span class="kw">receive</span> {
-    Known() -&gt; { <span class="com">/* handle */</span> }
-    _ -&gt; { print(<span class="str">"Unknown message\n"</span>); }
+<pre><code>receive {
+    Known() -&gt; { /* handle */ }
+    _ -&gt; { print("Unknown message\n"); }
 }</code></pre>
 <hr>
 <h2 id="operators">Operators</h2>
@@ -1774,11 +1803,11 @@ result = calculator ? Add { a: <span class="num">5</span>, b: <span class="num">
 <h3 id="bitwise-operators">Bitwise Operators</h3>
 <div class="tw"><table><thead><tr><th>Operator</th><th>Description</th><th>Example</th></tr></thead><tbody><tr><td><code>&amp;</code></td><td>Bitwise AND</td><td><code>flags &amp; mask</code></td></tr><tr><td><code>\|</code></td><td>Bitwise OR</td><td><code>flags \| bit</code></td></tr><tr><td><code>^</code></td><td>Bitwise XOR</td><td><code>a ^ b</code></td></tr><tr><td><code>~</code></td><td>Bitwise NOT</td><td><code>~mask</code></td></tr><tr><td><code>&lt;&lt;</code></td><td>Left shift</td><td><code>1 &lt;&lt; 4</code></td></tr><tr><td><code>&gt;&gt;</code></td><td>Right shift</td><td><code>n &gt;&gt; 2</code></td></tr></tbody></table></div>
 <p>Bitwise operators work on <code>int</code> and <code>long</code> values and map directly to C operators (zero runtime cost).</p>
-<pre><code>flags = <span class="num">255</span>
-mask = flags &amp; <span class="num">15</span>       <span class="com">// 15</span>
-set = flags | <span class="num">256</span>       <span class="com">// 511</span>
-flipped = flags ^ <span class="num">255</span>   <span class="com">// 0</span>
-shifted = <span class="num">1</span> &lt;&lt; <span class="num">4</span>        <span class="com">// 16</span></code></pre>
+<pre><code>flags = 255
+mask = flags &amp; 15       // 15
+set = flags | 256       // 511
+flipped = flags ^ 255   // 0
+shifted = 1 &lt;&lt; 4        // 16</code></pre>
 <h3 id="logical-operators">Logical Operators</h3>
 <div class="tw"><table><thead><tr><th>Operator</th><th>Description</th><th>Example</th></tr></thead><tbody><tr><td><code>&amp;&amp;</code></td><td>Logical AND</td><td><code>a &amp;&amp; b</code></td></tr><tr><td><code>\|\|</code></td><td>Logical OR</td><td><code>a \|\| b</code></td></tr><tr><td><code>!</code></td><td>Logical NOT</td><td><code>!a</code></td></tr></tbody></table></div>
 <h3 id="assignment-operators">Assignment Operators</h3>
@@ -1794,15 +1823,15 @@ shifted = <span class="num">1</span> &lt;&lt; <span class="num">4</span>        
 <hr>
 <h2 id="modules-and-imports">Modules and Imports</h2>
 <h3 id="standard-library-imports">Standard Library Imports</h3>
-<pre><code><span class="kw">import</span> std.file;         <span class="com">// File operations</span>
-<span class="kw">import</span> std.<span class="fn">string</span>;       <span class="com">// String utilities</span>
-<span class="kw">import</span> std.list;         <span class="com">// ArrayList</span>
-<span class="kw">import</span> std.http;         <span class="com">// HTTP client &amp; server</span>
-<span class="kw">import</span> std.json;         <span class="com">// JSON parsing</span>
+<pre><code>import std.file;         // File operations
+import std.string;       // String utilities
+import std.list;         // ArrayList
+import std.http;         // HTTP client &amp; server
+import std.json;         // JSON parsing
 
-<span class="com">// Use with namespace syntax</span>
-result = <span class="fn">string</span>.new(<span class="str">"hello"</span>);
-<span class="kw">if</span> (file.exists(<span class="str">"config.txt"</span>) == <span class="num">1</span>) { }</code></pre>
+// Use with namespace syntax
+result = string.new("hello");
+if (file.exists("config.txt") == 1) { }</code></pre>
 <h3 id="selective-imports">Selective Imports</h3>
 <p>Import only specific symbols from a module:</p>
 <pre><code><span class="kw">import</span> std.math (sqrt, pow)
@@ -1814,24 +1843,24 @@ main() {
 }</code></pre>
 <p>If <code>sqrt</code> internally calls a sibling helper that <em>isn't</em> in the import list, the helper is still pulled into the merged build so the imported function can resolve its calls. Only the names you actually listed are visible to your code; the transitive pull-in is bookkeeping the compiler does on your behalf.</p>
 <h3 id="module-public-api-exports-">Module Public API, <code>exports (…)</code></h3>
-<p>Each module declares its public surface once at the top of the file via an Erlang-style <code>exports (…)</code> list. Names in the list are callable from outside the module via either qualified (<code>mod.name(…)</code>) or short-alias (<code>import mod (*)</code>) forms. Names <strong>not</strong> in the list are private, still callable from inside the module's own functions, but rejected at qualified-call sites from outside.</p>
-<pre><code><span class="com">// At the top of greeter/module.ae:</span>
-<span class="kw">exports</span> (say_hello, greet_world, GREETING)
+<p>Each module declares its public surface once at the top of the file via an <code>exports (…)</code> list. Names in the list are callable from outside the module via either qualified (<code>mod.name(…)</code>) or short-alias (<code>import mod (*)</code>) forms. Names <strong>not</strong> in the list are private, still callable from inside the module's own functions, but rejected at qualified-call sites from outside.</p>
+<pre><code>// At the top of greeter/module.ae:
+exports (say_hello, greet_world, GREETING)
 
-<span class="kw">const</span> GREETING = <span class="str">"hello"</span>
+const GREETING = "hello"
 
 say_hello() {
-    <span class="kw">return</span> GREETING                  <span class="com">// public, listed</span>
+    return GREETING                  // public, listed
 }
 
 greet_world() {
-    <span class="kw">return</span> _format(GREETING, <span class="str">"world"</span>)  <span class="com">// public, listed; calls private helper</span>
+    return _format(GREETING, "world")  // public, listed; calls private helper
 }
 
-<span class="com">// Not listed → private. Leading underscore is a naming convention only;</span>
-<span class="com">// the exports list is the contract that actually enforces visibility.</span>
-_format(prefix: <span class="fn">string</span>, target: <span class="fn">string</span>) {
-    <span class="kw">return</span> <span class="str">"${prefix} ${target}"</span>
+// Not listed → private. Leading underscore is a naming convention only;
+// the exports list is the contract that actually enforces visibility.
+_format(prefix: string, target: string) {
+    return "${prefix} ${target}"
 }</code></pre>
 <p>The form is <em>additive</em> in v1: a module without an <code>exports (…)</code> list keeps the legacy default-public behavior so existing code continues to work unchanged. v2 will flip the default to private once every module in <code>std/</code> and <code>contrib/</code> has been migrated.</p>
 <p>The legacy per-function <code>export &lt;fn&gt;</code> form is still accepted but emits a one-shot deprecation warning per module. Migrate by collecting every <code>export</code>-tagged name into a single <code>exports (…)</code> line at the top, then removing the <code>export</code> keywords from each declaration. Mixing both forms in one module is a hard error.</p>
@@ -1864,79 +1893,101 @@ main() {
 }</code></pre>
 <h3 id="import-with-alias">Import with Alias</h3>
 <p>The <code>import mod as alias</code> syntax parses and records the alias, but calls through the alias prefix (<code>str.new(...)</code>) do not currently resolve, the aliased name is not wired into namespace lookup, so the call fails typechecking. Until that lands, use the module's own namespace directly:</p>
-<pre><code><span class="com">// Aliased-call form parses but does not yet resolve:</span>
-<span class="com">// import std.string as str</span>
-<span class="com">// s = str.new("hello")            // typecheck error: undefined function</span>
+<pre><code>// Aliased-call form parses but does not yet resolve:
+// import std.string as str
+// s = str.new("hello")            // typecheck error: undefined function
 
-<span class="com">// Working form: use the module name directly</span>
-<span class="kw">import</span> std.<span class="fn">string</span>
-s = <span class="fn">string</span>.new(<span class="str">"hello"</span>)
-len = <span class="fn">string</span>.length(s)
-<span class="fn">string</span>.release(s)</code></pre>
+// Working form: use the module name directly
+import std.string
+s = string.new("hello")
+len = string.length(s)
+string.release(s)</code></pre>
 <h3 id="local-module-imports">Local Module Imports</h3>
-<pre><code><span class="kw">import</span> utils;           <span class="com">// Loads lib/utils/module.ae</span>
-<span class="kw">import</span> helpers;         <span class="com">// Loads lib/helpers/module.ae</span>
+<pre><code>import utils;           // Loads lib/utils/module.ae
+import helpers;         // Loads lib/helpers/module.ae
 
-result = utils.double_value(<span class="num">21</span>);</code></pre>
+result = utils.double_value(21);</code></pre>
 <h3 id="available-standard-library-modules">Available Standard Library Modules</h3>
 <div class="tw"><table><thead><tr><th>Module</th><th>Namespace</th><th>Description</th></tr></thead><tbody><tr><td><code>std.file</code></td><td><code>file</code></td><td>File operations (<code>file.open()</code>, <code>file.exists()</code>)</td></tr><tr><td><code>std.dir</code></td><td><code>dir</code></td><td>Directory operations (<code>dir.list()</code>, <code>dir.create()</code>)</td></tr><tr><td><code>std.path</code></td><td><code>path</code></td><td>Path utilities (<code>path.join()</code>, <code>path.basename()</code>)</td></tr><tr><td><code>std.string</code></td><td><code>string</code></td><td>String manipulation (<code>string.new()</code>, <code>string.length()</code>)</td></tr><tr><td><code>std.list</code></td><td><code>list</code></td><td>Dynamic array (<code>list.new()</code>, <code>list.add()</code>)</td></tr><tr><td><code>std.map</code></td><td><code>map</code></td><td>Hash map (<code>map.new()</code>, <code>map.put()</code>)</td></tr><tr><td><code>std.set</code></td><td><code>set</code></td><td>Unique-string set (<code>set.new()</code>, <code>set.add()</code>)</td></tr><tr><td><code>std.pqueue</code></td><td><code>pqueue</code></td><td>Priority queue (<code>pqueue.new()</code>, <code>pqueue.push()</code>)</td></tr><tr><td><code>std.json</code></td><td><code>json</code></td><td>JSON encoding/decoding (<code>json.parse()</code>, <code>json.free()</code>)</td></tr><tr><td><code>std.http</code></td><td><code>http</code></td><td>HTTP client &amp; server (<code>http.get()</code>, <code>http.server_create()</code>)</td></tr><tr><td><code>std.tcp</code></td><td><code>tcp</code></td><td>TCP sockets (<code>tcp.connect()</code>, <code>tcp.write()</code>)</td></tr><tr><td><code>std.math</code></td><td><code>math</code></td><td>Math functions (<code>math.sqrt()</code>, <code>math.sin()</code>)</td></tr><tr><td><code>std.log</code></td><td><code>log</code></td><td>Logging utilities (<code>log.init()</code>, <code>log.write()</code>)</td></tr><tr><td><code>std.io</code></td><td><code>io</code></td><td>Input/output (<code>io.print()</code>, <code>io.getenv()</code>)</td></tr></tbody></table></div>
 <hr>
 <h2 id="extern-functions">Extern Functions</h2>
 <p>Declare external C functions:</p>
-<pre><code><span class="kw">extern</span> puts(s: <span class="fn">string</span>) -&gt; <span class="fn">int</span>;
-<span class="kw">extern</span> malloc(size: <span class="fn">int</span>) -&gt; <span class="fn">ptr</span>;
-<span class="kw">extern</span> free(p: <span class="fn">ptr</span>) -&gt; <span class="fn">void</span>;
+<pre><code><span class="kw">extern</span> puts(s: <span class="fn">string</span>) -&gt; <span class="fn">int</span>
+<span class="kw">extern</span> malloc(size: <span class="fn">int</span>) -&gt; <span class="fn">ptr</span>
+<span class="kw">extern</span> free(p: <span class="fn">ptr</span>) -&gt; <span class="fn">void</span>
 
 main() {
-    puts(<span class="str">"Direct C call!"</span>);
+    puts(<span class="str">"Direct C call!"</span>)
 }</code></pre>
 <p>Externs are useful for:</p>
 <ul><li>Calling C standard library</li><li>Custom C extensions</li><li>Platform-specific APIs</li></ul>
 <h3 id="typed-and-qualified-c-pointers">Typed and qualified C pointers</h3>
 <p>Plain <code>ptr</code> lowers to C <code>void *</code>. C headers use richer pointer spellings, and when an Aether <code>extern</code> (or an Aether-owned public function) must match a header <strong>exactly</strong>, so the generated C compiles with that header force-included, and the C compiler still cross-checks the signature against every caller, use these forms. Each affects only the <em>emitted C spelling</em>; the Aether-side <code>kind</code> (and so all typechecking) is unchanged.</p>
 <div class="tw"><table><thead><tr><th>Aether spelling</th><th>Emitted C</th><th>For</th></tr></thead><tbody><tr><td><code>const ptr</code></td><td><code>const void*</code></td><td><code>memcmp(const void *, const void *, size_t)</code></td></tr><tr><td><code>cstring</code></td><td><code>char*</code></td><td>a mutable C-string parameter</td></tr><tr><td><code>cstring_const</code></td><td><code>const char*</code></td><td><code>strlen(const char *)</code> (plain <code>string</code> also emits <code>const char*</code>)</td></tr><tr><td><code>*T</code></td><td><code>T*</code></td><td>a pointer to a header-defined type <code>T</code></td></tr><tr><td><code>const *T</code></td><td><code>const T*</code></td><td>a const pointer to <code>T</code></td></tr><tr><td><code>const string</code></td><td><code>const char*</code></td><td>qualified string</td></tr></tbody></table></div>
-<pre><code><span class="kw">extern</span> type dictEntry                              <span class="com">// opaque header-defined C type</span>
-<span class="kw">extern</span> dictGenHashFunction(key: <span class="kw">const</span> <span class="fn">ptr</span>, len: size_t) -&gt; uint64_t
-<span class="kw">extern</span> strlen(s: <span class="fn">cstring_const</span>) -&gt; size_t
-<span class="kw">extern</span> dictGetKey(de: *dictEntry) -&gt; <span class="fn">ptr</span>
+<pre><code>extern type dictEntry                              // opaque header-defined C type
+extern dictGenHashFunction(key: const ptr, len: size_t) -&gt; uint64_t
+extern strlen(s: cstring_const) -&gt; size_t
+extern dictGetKey(de: *dictEntry) -&gt; ptr
 
-<span class="com">// An Aether-OWNED public symbol whose prototype must match its header:</span>
-pqsort(a: <span class="fn">ptr</span>, n: size_t, es: size_t, cmp: <span class="kw">const</span> <span class="fn">ptr</span>, lr: size_t, rr: size_t) { ... }</code></pre>
+// An Aether-OWNED public symbol whose prototype must match its header:
+pqsort(a: ptr, n: size_t, es: size_t, cmp: const ptr, lr: size_t, rr: size_t) { ... }</code></pre>
 <p>Passing a plain <code>ptr</code> where the C conversion is safe stays allowed at call sites; only the <em>emitted prototype</em> carries the exact spelling. C ABI scalar aliases (<code>size_t</code>, <code>uint64_t</code>, …) emit their exact C name the same way. <code>const</code>-qualification survives into the generated C so the C compiler diagnoses writes; Aether-side write rejection is not (yet) enforced.</p>
 <h3 id="externc_name-bind-to-a-renamed-c-symbol"><code>@extern("c_name")</code> bind to a renamed C symbol</h3>
 <p>When the Aether-side name should differ from the C symbol (for example, to expose a clean module surface without trailing <code>_raw</code> suffixes), prefix the declaration with <code>@extern("c_symbol")</code>:</p>
-<pre><code>@<span class="kw">extern</span>(<span class="str">"EVP_MD_CTX_new"</span>) md_ctx_new() -&gt; <span class="fn">ptr</span>
-@<span class="kw">extern</span>(<span class="str">"strerror"</span>) describe_errno(errno: <span class="fn">int</span>) -&gt; <span class="fn">string</span></code></pre>
+<pre><code>@extern("EVP_MD_CTX_new") md_ctx_new() -&gt; ptr
+@extern("strerror") describe_errno(errno: int) -&gt; string</code></pre>
 <p>The Aether-side name is what callers write; the annotated C symbol is what the linker sees. No wrapper function is emitted. See <a href="/Docs/c-interop.html#renaming-a-c-symbol-externc_name"><code>docs/c-interop.md</code></a> for the full FFI reference.</p>
 <h3 id="extern-const-name-type-c_import-import-an-object-like-c-macro"><code>extern const NAME: type @c_import</code> import an object-like C macro</h3>
 <p>Object-like C macros (<code>EAGAIN</code>, <code>O_NONBLOCK</code>, <code>LLONG_MAX</code>, a generated <code>REDIS_GIT_SHA1</code>, …) are invisible to Aether, there is no symbol to link against. <code>extern const … @c_import</code> makes one usable by <strong>name</strong>:</p>
-<pre><code><span class="kw">extern</span> <span class="kw">const</span> EAGAIN: <span class="fn">int</span> @c_import
-<span class="kw">extern</span> <span class="kw">const</span> O_NONBLOCK: <span class="fn">int</span> @c_import
-<span class="kw">extern</span> <span class="kw">const</span> REDIS_GIT_SHA1: <span class="fn">ptr</span> @c_import   <span class="com">// string macro -&gt; const char *</span>
+<pre><code>extern const EAGAIN: int @c_import
+extern const O_NONBLOCK: int @c_import
+extern const REDIS_GIT_SHA1: ptr @c_import   // string macro -&gt; const char *
 
-<span class="kw">if</span> syncio_errno() == EAGAIN { ... }</code></pre>
+if syncio_errno() == EAGAIN { ... }</code></pre>
 <ul><li>The declaration teaches the typechecker a name and an Aether type; <strong>the type is trusted as declared</strong>, the same model as <code>extern</code> functions.</li><li>Generated C emits the macro name <strong>verbatim</strong> at every use site and emits <strong>nothing</strong> for the declaration itself, no value, no <code>#define</code>, no forward declaration. The macro's value is never needed at Aether compile time, so per-platform values come out right by construction: the including translation unit's headers are the sole source of truth. Ensure the owning header is in scope (e.g. <code>cflags = "-include errno.h"</code> in <code>aether.toml</code>, or a header your build already force-includes).</li><li>Usable in expression and comparison contexts. <code>@c_import</code> is required, it is the marker that selects the emit-verbatim semantics.</li><li><strong>Object-like macros only.</strong> Function-like macros (<code>CPU_SET(i, &amp;set)</code>) are out of scope; wrap those in a small <code>extern</code> C function.</li></ul>
+<h3 id="extern--c_import-let-a-c-header-own-the-prototype"><code>extern ... @c_import</code> let a C header own the prototype</h3>
+<p>By default Aether emits its own forward declaration for every <code>extern</code>. That declaration is ABI-compatible with the header's but not always spelled the same: <code>int</code> where the header says <code>uint8_t</code>, <code>int</code> where it says <code>size_t</code>, <code>void*</code> where it says a typed pointer. Two differently spelled declarations of one function in the same translation unit are a hard <code>conflicting types</code> error, and under LTO the surviving cases show up as type-mismatch warnings that are hard to tell apart from real porting mistakes.</p>
+<p><code>@c_import</code> after the signature says the header owns the prototype, so Aether emits <strong>none</strong>:</p>
+<pre><code>extern type blob
+
+extern api_scale(v: int) -&gt; int          @c_import   // header: uint8_t api_scale(uint8_t)
+extern api_span(a: int, b: int) -&gt; int   @c_import   // header: size_t api_span(size_t, size_t)
+extern api_blob() -&gt; *blob               @c_import
+extern api_inline_twice(v: int) -&gt; int   @c_import   // static inline in the header</code></pre>
+<ul><li>The Aether-side types are still declared, and are still what the typechecker uses, <strong>the type is trusted as declared</strong>, the same model as every other <code>extern</code>. They just never reach the generated C.</li><li>The header's spelling ends up being the only declaration in the translation unit, so the two cannot disagree. The C compiler still checks every call site against the header, so a genuinely wrong Aether signature is still caught, at the call site rather than as a prototype clash.</li><li>Ensure the owning header is in scope, e.g. <code>cflags = "-include api.h"</code> in <code>aether.toml</code>. Same requirement as <code>extern const @c_import</code> and <code>extern struct @c_import</code>.</li><li>This is the only correct shape for a <strong><code>static inline</code></strong> header helper: it has no linkable symbol, so a non-static prototype referring to it is meaningless. With <code>@c_import</code> the call inlines directly and needs no hand-written C shim.</li><li>Stacks with the other extern attributes: <code>-&gt; string @heap @c_import</code> and variadic <code>extern printf(fmt: string, ...) -&gt; int @c_import</code> are both legal.</li></ul>
+<h3 id="va_list-forward-a-variadic-tail-to-c"><code>va_list</code> forward a variadic tail to C</h3>
+<p>A function declared with a trailing <code>...</code> can open its variadic tail and hand it to the <code>v*</code> half of a printf-style C pair:</p>
+<pre><code>extern vsnprintf(buf: ptr, n: int, fmt: ptr, ap: va_list) -&gt; int
+
+format_into(buf: ptr, n: int, fmt: ptr, ...) -&gt; int {
+    let ap = va_start()
+    let written = vsnprintf(buf, n, fmt, ap)
+    va_end(ap)
+    return written
+}</code></pre>
+<ul><li><code>va_start()</code> opens the tail (valid only inside a <code>...</code> function), <code>va_arg(ap, T)</code> reads the next argument as <code>T</code>, <code>va_end(ap)</code> closes it. The type given to <code>va_arg</code> is trusted, exactly as in C.</li><li><strong>The receiving parameter must be spelled <code>va_list</code>, not <code>ptr</code>.</strong> <code>va_start()</code> yields a cookie that points at the <code>va_list</code> so it can live in an ordinary <code>ptr</code> local, while the callee needs the list itself. Declaring the parameter <code>ptr</code> compiles clean and then formats garbage. <code>va_list</code> typechecks as an opaque <code>ptr</code>; only the emitted C spelling differs.</li></ul>
+<p>See <a href="/Docs/c-interop.html#forwarding-a-variadic-tail-to-c-va_list"><code>docs/c-interop.md</code></a> for the full treatment, including <code>-Wformat</code> checking of literal format strings.</p>
 <h3 id="c_callback-export-an-aether-function-as-a-c-callback"><code>@c_callback</code> export an Aether function as a C callback</h3>
 <p>The inverse of <code>@extern</code>. Marks an Aether function as having a stable, externally-visible C symbol so it can be passed across the linkage boundary as a function pointer to C externs that take callbacks (HTTP route handlers, signal handlers, <code>qsort</code> comparators, libcurl write callbacks, sqlite hooks):</p>
-<pre><code><span class="kw">extern</span> http_server_add_route(server: <span class="fn">ptr</span>, method: <span class="fn">string</span>, path: <span class="fn">string</span>, handler: <span class="fn">ptr</span>, user_data: <span class="fn">ptr</span>)
+<pre><code>extern http_server_add_route(server: ptr, method: string, path: string, handler: ptr, user_data: ptr)
 
 @c_callback
-my_handler(req: <span class="fn">ptr</span>, res: <span class="fn">ptr</span>, ud: <span class="fn">ptr</span>) {
-    <span class="com">// …</span>
+my_handler(req: ptr, res: ptr, ud: ptr) {
+    // …
 }
 
 main() {
-    http_server_add_route(server, <span class="str">"GET"</span>, <span class="str">"/hello"</span>, my_handler, <span class="kw">null</span>)
+    http_server_add_route(server, "GET", "/hello", my_handler, null)
 }</code></pre>
 <p>By default the C symbol matches the Aether-side name (or its namespace-prefixed form when the function lives in an imported module). For a specific C symbol, use the parenthesised form: <code>@c_callback("aether_signal_handler") on_sigint(sig: int) { … }</code>. See <a href="/Docs/c-interop.html#exporting-an-aether-function-as-a-c-callback-c_callback"><code>docs/c-interop.md</code></a> for the full reference.</p>
 <h3 id="function-pointer-parameters-fnt1-t2---r">Function-pointer parameters, <code>fn(T1, T2) -&gt; R</code></h3>
 <p>A parameter typed <code>fn(T1, T2) -&gt; R</code> is a typed C function pointer: it emits the exact <code>R (*name)(T1, T2)</code> in the generated prototype and is directly callable in the body, so callback-taking functions port cleanly:</p>
-<pre><code>walk(cb: fn(<span class="fn">ptr</span>, <span class="fn">ptr</span>) -&gt; <span class="fn">void</span>, a: <span class="fn">ptr</span>, b: <span class="fn">ptr</span>) {
-    cb(a, b)                       <span class="com">// a real indirect call</span>
+<pre><code>walk(cb: fn(ptr, ptr) -&gt; void, a: ptr, b: ptr) {
+    cb(a, b)                       // a real indirect call
 }
 
-reduce(f: fn(<span class="fn">int</span>, <span class="fn">int</span>) -&gt; <span class="fn">int</span>, x: <span class="fn">int</span>, y: <span class="fn">int</span>) -&gt; <span class="fn">int</span> {
-    <span class="kw">return</span> f(x, y)                 <span class="com">// multiple callbacks per signature are fine</span>
+reduce(f: fn(int, int) -&gt; int, x: int, y: int) -&gt; int {
+    return f(x, y)                 // multiple callbacks per signature are fine
 }</code></pre>
 <p>Pass an Aether function's address with the <code>as fn(...)</code> cast, <code>walk(my_handler as fn(ptr, ptr) -&gt; void, p, q)</code> or a C function pointer obtained from an extern. This is the parameter form of the same typed-fn-pointer machinery used by <code>as fn(...)</code> locals and function-pointer struct fields; the prototype matches the C signature exactly (needed for callback APIs like <code>qsort</code>, <code>dictScan</code>, signal handlers, libcurl/sqlite hooks).</p>
 <h3 id="deriveeq-synthesize-an-equality-helper-for-a-struct"><code>@derive(eq)</code> synthesize an equality helper for a struct</h3>
@@ -1956,31 +2007,31 @@ main() {
 <h3 id="io">I/O</h3>
 <div class="tw"><table><thead><tr><th>Function</th><th>Description</th></tr></thead><tbody><tr><td><code>print(value)</code></td><td>Print to stdout (no newline)</td></tr><tr><td><code>println(value)</code></td><td>Print to stdout followed by a newline</td></tr><tr><td><code>print_char(code)</code></td><td>Print a single character by ASCII/Unicode code point</td></tr></tbody></table></div>
 <p>String interpolation is supported inside double-quoted strings using <code>${expr}</code>:</p>
-<pre><code>name = <span class="str">"Alice"</span>
-age = <span class="num">30</span>
-println(<span class="str">"Hello, ${name}! You are ${age} years old."</span>)</code></pre>
+<pre><code>name = "Alice"
+age = 30
+println("Hello, ${name}! You are ${age} years old.")</code></pre>
 <p>Interpolated strings produce a <code>ptr</code> (heap-allocated C string) when used as values:</p>
-<pre><code>msg = <span class="str">"Hello, ${name}!"</span>         <span class="com">// msg is a ptr (char*), not an int</span>
-tcp_send_raw(conn, msg)          <span class="com">// can be passed to any function expecting ptr</span></code></pre>
+<pre><code>msg = "Hello, ${name}!"         // msg is a ptr (char*), not an int
+tcp_send_raw(conn, msg)          // can be passed to any function expecting ptr</code></pre>
 <p>When used directly inside <code>print</code>/<code>println</code>, the compiler optimizes to a <code>printf</code> call (no allocation).</p>
 <h3 id="heredoc-strings">Heredoc strings</h3>
 <p><code>&lt;&lt;MARKER … MARKER</code> captures a multi-line <strong>literal</strong> string, no <code>${}</code> interpolation and no escape processing, so it's ideal for embedding another language's source verbatim (SQL, a <code>contrib.host.*</code> snippet) without escaping the guest's own quotes. The heredoc only triggers when <code>&lt;&lt;</code> is immediately followed by an identifier; <code>1 &lt;&lt; 4</code> stays the left-shift operator.</p>
 <pre><code>sql = &lt;&lt;SQL
 SELECT id, name
 FROM users
-WHERE active = <span class="num">1</span>
+WHERE active = 1
 SQL</code></pre>
 <p>The body runs from the line after <code>&lt;&lt;MARKER</code> to the <strong>closing-marker line</strong>: a line that is, in full, optional leading whitespace followed by exactly <code>MARKER</code> and then the end of the line. The closing marker <strong>may be indented</strong>, it does not have to sit at column 0, but its indentation must be <strong>at or below</strong> the shallowest body line (the terminator lives at the content's base level). Windows <code>\r\n</code> is normalized to <code>\n</code>, and the single newline immediately before the closing marker is dropped (it's syntax, not content).</p>
 <p>Because the terminator sits at the content's base level, a body line that is <em>more</em> indented than the rest but happens to read exactly like the marker is <strong>body content, not a terminator</strong>, so it can never silently truncate the string. (Conversely, a lone marker indented <em>past</em> the body matches nothing and the heredoc is reported as unterminated, rather than dropping content. Put the closing marker at column 0, or aligned with the body's base indent, and it always closes.) The marker must also be alone on its line: <code>done MARKER</code> and <code>xMARKER</code> stay content.</p>
 <p><strong>Common-indent dedent.</strong> The longest run of leading whitespace shared by every <em>non-blank</em> line is stripped, so a heredoc can be indented to match its surrounding code without that indentation leaking into the string:</p>
-<pre><code>fn describe() -&gt; <span class="fn">string</span> {
-    <span class="kw">return</span> &lt;&lt;TEXT
+<pre><code>fn describe() -&gt; string {
+    return &lt;&lt;TEXT
         line one
           line two
     TEXT
 }
-<span class="com">// → "line one\n  line two"   (common 8-space prefix removed; the relative</span>
-<span class="com">//                              2-space indent of "line two" is preserved)</span></code></pre>
+// → "line one\n  line two"   (common 8-space prefix removed; the relative
+//                              2-space indent of "line two" is preserved)</code></pre>
 <p>Rules:</p>
 <ul><li><strong>Blank / whitespace-only lines don't constrain</strong> the common prefix (a single blank line won't force the prefix to zero), but they're still emitted.</li><li>The prefix match is <strong>character-exact</strong>: if one line indents with spaces and another with a tab at the same column, that's a disagreement and the strip stops there, Aether never shifts past a column where lines differ. To keep a literal common indent in the string, indent one line one notch less than the rest (so the common prefix is shorter than the indent you want kept).</li><li>A line indented <em>less</em> than the common prefix simply loses what leading whitespace it has and lands at column 0.</li></ul>
 <h3 id="timing">Timing</h3>
@@ -2002,10 +2053,10 @@ SQL</code></pre>
 }</code></pre>
 <h3 id="unreachable-code-w1002">Unreachable Code [W1002]</h3>
 <p>Code after <code>return</code>, <code>exit()</code>, or exhaustive <code>if</code>/<code>else</code> blocks is flagged:</p>
-<pre><code>check(x: <span class="fn">int</span>) -&gt; {
-    <span class="kw">if</span> x &gt; <span class="num">0</span> { <span class="kw">return</span> <span class="num">1</span> }
-    <span class="kw">else</span> { <span class="kw">return</span> <span class="num">0</span> }
-    println(<span class="str">"never reached"</span>)    <span class="com">// warning[W1002]: unreachable code</span>
+<pre><code>check(x: int) -&gt; {
+    if x &gt; 0 { return 1 }
+    else { return 0 }
+    println("never reached")    // warning[W1002]: unreachable code
 }</code></pre>
 <h3 id="constant-expression-overflow-w1003">Constant-Expression Overflow [W1003]</h3>
 <p>An <code>int</code> expression whose operands are all constants is folded at compile time. When its exact value does not fit 32 bits, the fold wraps exactly as the runtime would and reports what happened:</p>
@@ -2015,24 +2066,56 @@ SQL</code></pre>
     <span class="com">// exact value is 2500000000, which wraps to -1794967296 at runtime.</span>
 }</code></pre>
 <p>Folding wraps rather than keeping the wide value on purpose: otherwise the constant form and the identical expression written over <code>int</code> variables would disagree, and the literal form (the one you reach for while developing) would look correct while production code silently overflowed. Widen a term to keep the value:</p>
-<pre><code><span class="fn">long</span> span = <span class="num">250000000</span> - <span class="num">200000000</span>
-cv = span * <span class="num">50</span> / <span class="num">225000000</span>          <span class="com">// 11, no warning</span></code></pre>
+<pre><code>long span = 250000000 - 200000000
+cv = span * 50 / 225000000          // 11, no warning</code></pre>
 <p>Use <code>ae check file.ae</code> to see warnings without compiling. It skips codegen and linking, so iteration is much faster than <code>ae build</code>.</p>
 <hr>
+<h3 id="unreachable-match-arm-w1004">Unreachable Match Arm [W1004]</h3>
+<p><code>match</code> tries its arms in source order, so an arm that an earlier arm already covers can never run. Two shapes are reported: an arm below a <code>_</code> catch-all, and a second arm for a case already handled.</p>
+<pre><code>main() {
+    x = <span class="num">2</span>
+    <span class="kw">match</span> x {
+        <span class="num">1</span> -&gt; { println(<span class="str">"one"</span>) }
+        <span class="num">2</span> -&gt; { println(<span class="str">"two"</span>) }
+        <span class="num">2</span> -&gt; { println(<span class="str">"never runs"</span>) }
+        <span class="com">// warning[W1004]: unreachable match arm: this case is already</span>
+        <span class="com">// handled on line 5</span>
+        _ -&gt; { println(<span class="str">"other"</span>) }
+    }
+}</code></pre>
+<p>The check reports only where the shadowing is certain. A bare identifier arm binds the value rather than naming a case, so it matches anything and is never compared against other arms:</p>
+<pre><code>match x {
+    1 -&gt; { println("one") }
+    n -&gt; { println("got ${n}") }   // a binding, not a duplicate: no warning
+}</code></pre>
+<p>A third shape is the mirror of the exhaustiveness check: a <code>_</code> arm on a <code>match</code> over a sum type or enum where every case is already handled.</p>
+<pre><code>enum Direction { North, East, South, West }
+
+match d {
+    Direction.North -&gt; { println("N") }
+    Direction.East  -&gt; { println("E") }
+    Direction.South -&gt; { println("S") }
+    Direction.West  -&gt; { println("W") }
+    _ -&gt; { println("?") }
+    // warning[W1004]: every member of enum 'Direction' is already
+    // handled, so the `_` arm cannot run
+}</code></pre>
+<p>Removing the catch-all is worth doing rather than silencing: with it gone, adding a member later becomes a compile error from the exhaustiveness check instead of quietly falling into <code>_</code>. A <code>_</code> over a partially-handled enum is doing real work and is never reported.</p>
+<p>This pairs with the exhaustiveness check, which reports the opposite direction, a <code>match</code> over a sum type or enum that is missing a case.</p>
 <h2 id="match-expressions">Match Expressions</h2>
 <p><code>match</code> can be used as a statement or as an expression:</p>
-<pre><code><span class="com">// Statement, executes the matching arm</span>
-<span class="kw">match</span> status {
-    <span class="num">0</span> -&gt; println(<span class="str">"ok"</span>)
-    <span class="num">1</span> -&gt; println(<span class="str">"warning"</span>)
-    _ -&gt; println(<span class="str">"error"</span>)
+<pre><code>// Statement, executes the matching arm
+match status {
+    0 -&gt; println("ok")
+    1 -&gt; println("warning")
+    _ -&gt; println("error")
 }
 
-<span class="com">// Expression, assigns the matching arm's value</span>
-msg = <span class="kw">match</span> status {
-    <span class="num">0</span> -&gt; <span class="str">"ok"</span>
-    <span class="num">1</span> -&gt; <span class="str">"warning"</span>
-    _ -&gt; <span class="str">"error"</span>
+// Expression, assigns the matching arm's value
+msg = match status {
+    0 -&gt; "ok"
+    1 -&gt; "warning"
+    _ -&gt; "error"
 }
 println(msg)</code></pre>
 <p>Supported patterns: integer literals, string literals, <code>_</code> (wildcard), list patterns.</p>
@@ -2049,25 +2132,71 @@ main() { <span class="kw">let</span> <span class="fn">byte</span> = <span class=
 <p>Note: <code>void</code> is <strong>not</strong> a reserved word, there is no <code>void</code> token. It is a plain identifier used by convention to <em>spell</em> the absence of a return value (e.g. <code>extern free(p: ptr) -&gt; void</code>); a function that omits its <code>-&gt; Type</code> annotation is the canonical void declaration. See <a href="#functions">Functions</a>.</p>
 <h3 id="raw-identifiers-using-a-keyword-as-a-name">Raw identifiers, using a keyword as a name</h3>
 <p>A backtick-delimited identifier, `<code> </code>name<code> </code>`, is always lexed as an ordinary identifier, bypassing keyword reservation. This lets a reserved word be used verbatim wherever an identifier is expected, parameter, local, struct-field, message-field, or function name:</p>
-<pre><code><span class="kw">struct</span> Robj {
-    `<span class="kw">reply</span>`: <span class="fn">int</span>        <span class="com">// `reply` is a keyword; the backtick escape keeps it</span>
-    `<span class="kw">message</span>`: <span class="fn">int</span>
+<pre><code>struct Robj {
+    `reply`: int        // `reply` is a keyword; the backtick escape keeps it
+    `message`: int
 }
 
-addReply(`<span class="kw">reply</span>`: <span class="fn">int</span>, `<span class="kw">after</span>`: <span class="fn">int</span>) -&gt; <span class="fn">int</span> {
-    `<span class="fn">ptr</span>` = `<span class="kw">reply</span>` + `<span class="kw">after</span>`
-    <span class="kw">return</span> `<span class="fn">ptr</span>`
+addReply(`reply`: int, `after`: int) -&gt; int {
+    `ptr` = `reply` + `after`
+    return `ptr`
 }</code></pre>
 <p>The escaped text is the name (`<code> </code>reply<code> </code><code> is the identifier </code>reply<code>), so a raw identifier and the plain spelling refer to the same binding. The primary use is keeping a C→Aether port faithful: C APIs routinely use names like </code>reply<code>, </code>message<code>, and </code>when` that collide with Aether keywords.</p>
 <p>(For the common port collisions <code>ptr</code>, <code>byte</code>, <code>func</code>, <code>state</code> and <code>after</code>, the backtick escape is <strong>not</strong> required, they are accepted bare as value identifiers, see the note under <a href="#keywords">Keywords</a> above. The escape is still the way to use a fully-reserved keyword such as <code>reply</code>, <code>message</code>, <code>when</code>, <code>match</code>, or <code>union</code> as a name.)</p>
 <p>Writing an <em>unescaped</em> reserved keyword where a name is expected is an error (<code>error[E0100]: '&lt;kw&gt;' is a reserved keyword …</code>) whose hint points to both the rename and the `<code> </code>&lt;kw&gt;<code> </code>` escape.</p>
+<p>Module paths are the exception: a segment there is a name and nothing else, so <code>import std.message</code> needs no escape. Calling through the bare module name still would (<code>message.format(...)</code> puts a keyword in expression position), so import the symbols you need by name:</p>
+<pre><code>import std.message (format, catalog_new)   // format(...), catalog_new(...)</code></pre>
+<p>(<code>import std.message as msg</code> parses, but qualified calls through an alias do not resolve yet, see <a href="#import-with-alias">Import with Alias</a>.)</p>
 <hr>
 <h2 id="comments">Comments</h2>
-<pre><code><span class="com">// Single-line comment</span>
+<pre><code>// Single-line comment
 
-<span class="com">/* Multi-line
-   comment */</span></code></pre>
+/* Multi-line
+   comment */</code></pre>
 <hr>
+<h2 id="conditional-compilation">Conditional Compilation</h2>
+<p>Two axes: the platform, which the C compiler knows, and <strong>build symbols</strong>, which the build declares. Both are resolved at compile time.</p>
+<h3 id="build-symbols">Build symbols</h3>
+<p>A symbol is present or absent. It carries no value.</p>
+<pre><code>ae build -D TEST_SERVER app.ae      <span class="com"># or -DTEST_SERVER</span>
+aetherc -D TEST_SERVER app.ae</code></pre>
+<pre><code><span class="com"># aether.toml, for symbols the project always wants</span>
+[build]
+defines = <span class="str">"TEST_SERVER VERBOSE"</span></code></pre>
+<p>A command-line <code>-D</code> adds to what the file declares. A symbol must be an identifier: letters, digits and underscore, not starting with a digit. <code>-D NAME=value</code> is rejected rather than accepted and ignored, because a symbol has no value to carry.</p>
+<h3 id="when-regions"><code>when</code> regions</h3>
+<p><code>when defined(NAME) { … }</code> guards a group of declarations or a group of statements, with an optional <code>else</code>:</p>
+<pre><code><span class="kw">when</span> defined(TEST_SERVER) {
+    driver_port() -&gt; <span class="fn">int</span> { <span class="kw">return</span> <span class="num">9222</span> }
+    start_driver() { println(<span class="str">"driver on ${driver_port()}"</span>) }
+} <span class="kw">else</span> {
+    start_driver() { println(<span class="str">"driver absent"</span>) }
+}
+
+main() {
+    start_driver()
+    <span class="kw">when</span> defined(VERBOSE) {
+        println(<span class="str">"verbose"</span>)
+    }
+}</code></pre>
+<p>Conditions combine with <code>!</code>, <code>&amp;&amp;</code>, <code>||</code> and parentheses:</p>
+<pre><code>when defined(A) &amp;&amp; !defined(B) { … }
+when (defined(A) || defined(B)) &amp;&amp; !defined(C) { … }</code></pre>
+<p><strong>A losing region is dropped, not disabled.</strong> It is removed from the program before type checking, so nothing it names has to exist, and its symbols are not in the binary: <code>nm</code> on a build without <code>TEST_SERVER</code> finds no <code>driver_port</code>. That is the difference between this and wrapping code in a runtime <code>if</code>, which still compiles and links every line of the subsystem you meant to leave out.</p>
+<p><strong>A dropped <code>import</code> takes its native dependencies with it.</strong> The effect is not limited to your own symbols. A module declares its native libraries with <code>@link</code>, and those flags reach the linker only when the module is in the resolved import closure, so guarding the <code>import</code> removes the C library too, transitively and at any depth:</p>
+<pre><code>when defined(WITH_SQLITE) {
+    import contrib.sqlite
+    ...
+}</code></pre>
+<p>Built without <code>WITH_SQLITE</code>, the binary does not link <code>libsqlite3</code> at all, <code>ldd</code> does not list it. That is usually the reason to reach for <code>when</code> in the first place: the measured difference on this example is 4.4x. See <code>docs/module-system-design.md</code> for how <code>@link</code> propagates.</p>
+<p>The corollary is that a disabled region is not type-checked. Code you never build is code you never check, so a symbol that is off in every CI configuration will rot. Build each configuration you ship.</p>
+<h3 id="select-for-values"><code>select</code> for values</h3>
+<p><code>select</code> chooses a value rather than a region. Its keys are the platforms plus any build symbol:</p>
+<pre><code>port = select(DEV_MODE: 8080, other: 80)
+tag  = select(linux: "linux", macos: "macos", windows: "windows", other: "other")</code></pre>
+<p>A build symbol wins outright when it is set, since it is known at compile time; otherwise the platform decides, and <code>other:</code> is the fallback. Every branch must yield the same type, and a mismatch is an error rather than a surprise on whichever platform compiles the odd branch.</p>
+<p>Use <code>select</code> for a value and <code>when</code> for anything larger: <code>select</code> cannot remove a declaration, and both of its branches still compile.</p>
+<p><strong>If you are trying to keep something out of the binary, <code>select</code> is the wrong tool.</strong> It picks between values that both survive to codegen; it cannot guard an <code>import</code> or a declaration, so it never removes a symbol or a native dependency. <code>when</code> is the construct that does that.</p>
 <h2 id="compilation">Compilation</h2>
 <h3 id="using-the-cli">Using the CLI</h3>
 <pre><code>ae run program.ae           <span class="com"># Compile and run (fast, -O0)</span>
@@ -2097,19 +2226,19 @@ aetherc --dump-ast program.ae</code></pre>
 <h3 id="inference-rules">Inference rules</h3>
 <ul><li><strong>Local variables</strong>: Inferred from their initializer (<code>x = 42</code> → <code>int</code>)</li><li><strong>Function parameters</strong>: Inferred from call sites across the whole program, including through deep call chains (<code>main → f → g → h</code>)</li><li><strong>Return types</strong>: Inferred from <code>return</code> statements and arrow-body expressions</li><li><strong>Constraint solving</strong>: Iterative constraint propagation handles complex interdependencies</li></ul>
 <h3 id="type-annotations-are-optional">Type annotations are optional</h3>
-<pre><code><span class="com">// All three are equivalent:</span>
-add(a, b) { <span class="kw">return</span> a + b; }          <span class="com">// fully inferred from call sites</span>
-add(a: <span class="fn">int</span>, b: <span class="fn">int</span>) { <span class="kw">return</span> a + b; } <span class="com">// explicit</span>
-add(a, b: <span class="fn">int</span>) { <span class="kw">return</span> a + b; }     <span class="com">// mixed</span></code></pre>
+<pre><code>// All three are equivalent:
+add(a, b) { return a + b; }          // fully inferred from call sites
+add(a: int, b: int) { return a + b; } // explicit
+add(a, b: int) { return a + b; }     // mixed</code></pre>
 <p>Annotations are useful for documentation or when the type cannot be determined from call sites alone (e.g. a function that is never called, or an <code>extern</code> parameter).</p>
 <h3 id="extern-requires-annotations"><code>extern</code> requires annotations</h3>
 <p>The compiler cannot infer types of external C functions, parameter types must be declared explicitly:</p>
-<pre><code><span class="kw">extern</span> malloc(n: <span class="fn">int</span>) -&gt; <span class="fn">ptr</span>
-<span class="kw">extern</span> free(p: <span class="fn">ptr</span>) -&gt; <span class="fn">void</span></code></pre>
+<pre><code>extern malloc(n: int) -&gt; ptr
+extern free(p: ptr) -&gt; void</code></pre>
 <p>Explicit types are optional but can improve clarity:</p>
-<pre><code><span class="com">// Both are valid:</span>
-x = <span class="num">42</span>;
-<span class="fn">int</span> y = <span class="num">42</span>;</code></pre>
+<pre><code>// Both are valid:
+x = 42;
+int y = 42;</code></pre>
 <hr>
 <h2 id="example-programs">Example Programs</h2>
 <h3 id="hello-world">Hello World</h3>
@@ -2117,11 +2246,11 @@ x = <span class="num">42</span>;
     print(<span class="str">"Hello, World!\n"</span>);
 }</code></pre>
 <h3 id="factorial-with-pattern-matching">Factorial with Pattern Matching</h3>
-<pre><code>factorial(<span class="num">0</span>) -&gt; <span class="num">1</span>;
-factorial(n) <span class="kw">when</span> n &gt; <span class="num">0</span> -&gt; n * factorial(n - <span class="num">1</span>);
+<pre><code>factorial(<span class="num">0</span>) -&gt; <span class="num">1</span>
+factorial(n) <span class="kw">when</span> n &gt; <span class="num">0</span> -&gt; n * factorial(n - <span class="num">1</span>)
 
 main() {
-    print(factorial(<span class="num">10</span>));  <span class="com">// 3628800</span>
+    print(factorial(<span class="num">10</span>))  <span class="com">// 3628800</span>
 }</code></pre>
 <h3 id="counter-actor">Counter Actor</h3>
 <pre><code><span class="kw">message</span> Increment { amount: <span class="fn">int</span> }
@@ -2149,20 +2278,20 @@ main() {
     wait_for_idle();  <span class="com">// Output: 8</span>
 }</code></pre>
 <h3 id="resource-management-with-defer">Resource Management with Defer</h3>
-<pre><code><span class="kw">extern</span> fopen(path: <span class="fn">string</span>, mode: <span class="fn">string</span>) -&gt; <span class="fn">ptr</span>;
-<span class="kw">extern</span> fclose(file: <span class="fn">ptr</span>) -&gt; <span class="fn">int</span>;
+<pre><code>extern fopen(path: string, mode: string) -&gt; ptr
+extern fclose(file: ptr) -&gt; int
 
 process_file(path) {
-    file = fopen(path, <span class="str">"r"</span>);
-    <span class="kw">defer</span> fclose(file);
+    file = fopen(path, "r");
+    defer fclose(file);
 
-    <span class="com">// Process file...</span>
-    <span class="com">// fclose called automatically</span>
+    // Process file...
+    // fclose called automatically
 }</code></pre>
 <nav class="doc-prevnext" aria-label="Previous and next page"><a class="pn-prev" href="/Docs/tutorial.html"><span class="pn-k">Previous</span><span class="pn-t">Aether Language Tutorial</span></a><a class="pn-next" href="/Docs/type-inference-guide.html"><span class="pn-k">Next</span><span class="pn-t">Aether Type Inference Guide</span></a></nav>
       </article>
     </main>
-    <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#overview" class="l2" data-id="overview">Overview</a><a href="#paradigm-placement" class="l2" data-id="paradigm-placement">Paradigm placement</a><a href="#where-aether-leans-functional" class="l3" data-id="where-aether-leans-functional">Where Aether leans functional</a><a href="#where-aether-borrows-from-oo-in-a-limited-way" class="l3" data-id="where-aether-borrows-from-oo-in-a-limited-way">Where Aether borrows from OO (in a limited way)</a><a href="#where-aether-is-neither-its-just-systems-pragmatic" class="l3" data-id="where-aether-is-neither-its-just-systems-pragmatic">Where Aether is neither, it's just systems-pragmatic</a><a href="#what-this-means-in-practice" class="l3" data-id="what-this-means-in-practice">What this means in practice</a><a href="#table-of-contents" class="l2" data-id="table-of-contents">Table of Contents</a><a href="#types" class="l2" data-id="types">Types</a><a href="#primitive-types" class="l3" data-id="primitive-types">Primitive Types</a><a href="#composite-types" class="l3" data-id="composite-types">Composite Types</a><a href="#array-types" class="l3" data-id="array-types">Array Types</a><a href="#sequence-types-stringseq" class="l3" data-id="sequence-types-stringseq">Sequence Types (*StringSeq)</a><a href="#numeric-literal-formats" class="l3" data-id="numeric-literal-formats">Numeric Literal Formats</a><a href="#variables" class="l2" data-id="variables">Variables</a><a href="#casting-between-types" class="l3" data-id="casting-between-types">Casting between types</a><a href="#null" class="l3" data-id="null">Null</a><a href="#constants" class="l3" data-id="constants">Constants</a><a href="#mutable-module-level-globals" class="l3" data-id="mutable-module-level-globals">Mutable module-level globals</a><a href="#functions" class="l2" data-id="functions">Functions</a><a href="#default-arguments" class="l3" data-id="default-arguments">Default arguments</a><a href="#source-location-intrinsics" class="l3" data-id="source-location-intrinsics">Source-location intrinsics</a><a href="#pattern-matching-functions" class="l2" data-id="pattern-matching-functions">Pattern Matching Functions</a><a href="#basic-pattern-matching" class="l3" data-id="basic-pattern-matching">Basic Pattern Matching</a><a href="#guard-clauses" class="l3" data-id="guard-clauses">Guard Clauses</a><a href="#multi-statement-arrow-bodies" class="l3" data-id="multi-statement-arrow-bodies">Multi-Statement Arrow Bodies</a><a href="#multi-parameter-guards" class="l3" data-id="multi-parameter-guards">Multi-parameter Guards</a><a href="#mutual-recursion-with-guards" class="l3" data-id="mutual-recursion-with-guards">Mutual Recursion with Guards</a><a href="#control-flow" class="l2" data-id="control-flow">Control Flow</a><a href="#if-statements" class="l3" data-id="if-statements">If Statements</a><a href="#if-expressions" class="l3" data-id="if-expressions">If-Expressions</a><a href="#while-loops" class="l3" data-id="while-loops">While Loops</a><a href="#for-loops" class="l3" data-id="for-loops">For Loops</a><a href="#range-based-for-loops" class="l3" data-id="range-based-for-loops">Range-Based For Loops</a><a href="#loop-control" class="l3" data-id="loop-control">Loop Control</a><a href="#match-statements" class="l2" data-id="match-statements">Match Statements</a><a href="#integer-matching" class="l3" data-id="integer-matching">Integer Matching</a><a href="#string-matching" class="l3" data-id="string-matching">String Matching</a><a href="#ranged-and-multi-value-cases" class="l3" data-id="ranged-and-multi-value-cases">Ranged and multi-value cases</a><a href="#list-pattern-matching" class="l3" data-id="list-pattern-matching">List Pattern Matching</a><a href="#list-pattern-types" class="l3" data-id="list-pattern-types">List Pattern Types</a><a href="#switch-statements" class="l2" data-id="switch-statements">Switch Statements</a><a href="#switch-vs-match" class="l3" data-id="switch-vs-match">Switch vs Match</a><a href="#defer-statement" class="l2" data-id="defer-statement">Defer Statement</a><a href="#lifo-order" class="l3" data-id="lifo-order">LIFO Order</a><a href="#defer-try-and-defer-catch-cleanup-for-one-outcome-only" class="l3" data-id="defer-try-and-defer-catch-cleanup-for-one-outcome-only">defer try and defer catch, cleanup for one outcome only</a><a href="#use-cases" class="l3" data-id="use-cases">Use Cases</a><a href="#scope-directives-hide-and-seal-except" class="l2" data-id="scope-directives-hide-and-seal-except">Scope Directives: hide and seal except</a><a href="#hide-blacklist-specific-names" class="l3" data-id="hide-blacklist-specific-names">hide blacklist specific names</a><a href="#seal-except-whitelist" class="l3" data-id="seal-except-whitelist">seal except whitelist</a><a href="#key-semantics" class="l3" data-id="key-semantics">Key semantics</a><a href="#memory-management" class="l2" data-id="memory-management">Memory Management</a><a href="#defer-for-cleanup-default" class="l3" data-id="defer-for-cleanup-default">defer for Cleanup (default)</a><a href="#returning-allocated-values" class="l3" data-id="returning-allocated-values">Returning Allocated Values</a><a href="#multiple-return-values-result-types" class="l3" data-id="multiple-return-values-result-types">Multiple Return Values (Result Types)</a><a href="#function-contracts-requires--ensures" class="l3" data-id="function-contracts-requires--ensures">Function contracts: requires / ensures</a><a href="#string-ownership-for---string-functions" class="l3" data-id="string-ownership-for---string-functions">String ownership for -&gt; string functions</a><a href="#optionals" class="l2" data-id="optionals">Optionals</a><a href="#none-and-equality" class="l3" data-id="none-and-equality">none and equality</a><a href="#force-unwrap-" class="l3" data-id="force-unwrap-">Force-unwrap !</a><a href="#null-coalesce-" class="l3" data-id="null-coalesce-">Null-coalesce ??</a><a href="#optional-chaining-" class="l3" data-id="optional-chaining-">Optional chaining ?.</a><a href="#matching-on-optionals" class="l3" data-id="matching-on-optionals">Matching on optionals</a><a href="#narrowing" class="l3" data-id="narrowing">Narrowing</a><a href="#functions" class="l3" data-id="functions">Functions</a><a href="#codegen" class="l3" data-id="codegen">Codegen</a><a href="#enums" class="l2" data-id="enums">Enums</a><a href="#enum-indexed-arrays" class="l3" data-id="enum-indexed-arrays">Enum-indexed arrays</a><a href="#bit-sets" class="l2" data-id="bit-sets">Bit Sets</a><a href="#bitstructs" class="l2" data-id="bitstructs">Bitstructs</a><a href="#bit-layout-and-byte-order-are-separate-concerns" class="l3" data-id="bit-layout-and-byte-order-are-separate-concerns">Bit layout and byte order are separate concerns</a><a href="#sum--variant-types" class="l2" data-id="sum--variant-types">Sum / Variant Types</a><a href="#constructing-implicit-wrap" class="l3" data-id="constructing-implicit-wrap">Constructing, implicit wrap</a><a href="#matching-narrowing--exhaustiveness" class="l3" data-id="matching-narrowing--exhaustiveness">Matching, narrowing + exhaustiveness</a><a href="#recursive-sums" class="l3" data-id="recursive-sums">Recursive sums</a><a href="#codegen" class="l3" data-id="codegen">Codegen</a><a href="#structs" class="l2" data-id="structs">Structs</a><a href="#explicit-field-types" class="l3" data-id="explicit-field-types">Explicit Field Types</a><a href="#field-injection-with-using-composition-no-vtables" class="l3" data-id="field-injection-with-using-composition-no-vtables">Field injection with using (composition, no vtables)</a><a href="#function-pointer-struct-fields-a-vtable-of-callbacks" class="l3" data-id="function-pointer-struct-fields-a-vtable-of-callbacks">Function-pointer struct fields, a vtable of callbacks</a><a href="#pointer-to-struct-type-structname-and-expr-as-structname" class="l3" data-id="pointer-to-struct-type-structname-and-expr-as-structname">Pointer-to-struct type, *StructName and expr as *StructName</a><a href="#messages" class="l2" data-id="messages">Messages</a><a href="#actors" class="l2" data-id="actors">Actors</a><a href="#actor-definition" class="l3" data-id="actor-definition">Actor Definition</a><a href="#receive-timeouts" class="l3" data-id="receive-timeouts">Receive Timeouts</a><a href="#state-variables" class="l3" data-id="state-variables">State Variables</a><a href="#spawning-actors" class="l3" data-id="spawning-actors">Spawning Actors</a><a href="#sending-messages-fire-and-forget" class="l3" data-id="sending-messages-fire-and-forget">Sending Messages (Fire-and-Forget)</a><a href="#ask-pattern-request-reply" class="l3" data-id="ask-pattern-request-reply">Ask Pattern (Request-Reply)</a><a href="#reply-statement" class="l3" data-id="reply-statement">Reply Statement</a><a href="#wildcard-handler" class="l3" data-id="wildcard-handler">Wildcard Handler</a><a href="#operators" class="l2" data-id="operators">Operators</a><a href="#arithmetic-operators" class="l3" data-id="arithmetic-operators">Arithmetic Operators</a><a href="#comparison-operators" class="l3" data-id="comparison-operators">Comparison Operators</a><a href="#bitwise-operators" class="l3" data-id="bitwise-operators">Bitwise Operators</a><a href="#logical-operators" class="l3" data-id="logical-operators">Logical Operators</a><a href="#assignment-operators" class="l3" data-id="assignment-operators">Assignment Operators</a><a href="#postfix-operators" class="l3" data-id="postfix-operators">Postfix Operators</a><a href="#actor-operators" class="l3" data-id="actor-operators">Actor Operators</a><a href="#member-access" class="l3" data-id="member-access">Member Access</a><a href="#operator-precedence-high-to-low" class="l3" data-id="operator-precedence-high-to-low">Operator Precedence (High to Low)</a><a href="#modules-and-imports" class="l2" data-id="modules-and-imports">Modules and Imports</a><a href="#standard-library-imports" class="l3" data-id="standard-library-imports">Standard Library Imports</a><a href="#selective-imports" class="l3" data-id="selective-imports">Selective Imports</a><a href="#module-public-api-exports-" class="l3" data-id="module-public-api-exports-">Module Public API, exports (…)</a><a href="#glob-import-import-mod--aka-unqualified-import" class="l3" data-id="glob-import-import-mod--aka-unqualified-import">Glob Import, import mod (*) (a.k.a. unqualified import)</a><a href="#import-with-alias" class="l3" data-id="import-with-alias">Import with Alias</a><a href="#local-module-imports" class="l3" data-id="local-module-imports">Local Module Imports</a><a href="#available-standard-library-modules" class="l3" data-id="available-standard-library-modules">Available Standard Library Modules</a><a href="#extern-functions" class="l2" data-id="extern-functions">Extern Functions</a><a href="#typed-and-qualified-c-pointers" class="l3" data-id="typed-and-qualified-c-pointers">Typed and qualified C pointers</a><a href="#externc_name-bind-to-a-renamed-c-symbol" class="l3" data-id="externc_name-bind-to-a-renamed-c-symbol">@extern("c_name") bind to a renamed C symbol</a><a href="#extern-const-name-type-c_import-import-an-object-like-c-macro" class="l3" data-id="extern-const-name-type-c_import-import-an-object-like-c-macro">extern const NAME: type @c_import import an object-like C macro</a><a href="#c_callback-export-an-aether-function-as-a-c-callback" class="l3" data-id="c_callback-export-an-aether-function-as-a-c-callback">@c_callback export an Aether function as a C callback</a><a href="#function-pointer-parameters-fnt1-t2---r" class="l3" data-id="function-pointer-parameters-fnt1-t2---r">Function-pointer parameters, fn(T1, T2) -&gt; R</a><a href="#deriveeq-synthesize-an-equality-helper-for-a-struct" class="l3" data-id="deriveeq-synthesize-an-equality-helper-for-a-struct">@derive(eq) synthesize an equality helper for a struct</a><a href="#built-in-functions" class="l2" data-id="built-in-functions">Built-in Functions</a><a href="#io" class="l3" data-id="io">I/O</a><a href="#heredoc-strings" class="l3" data-id="heredoc-strings">Heredoc strings</a><a href="#timing" class="l3" data-id="timing">Timing</a><a href="#concurrency" class="l3" data-id="concurrency">Concurrency</a><a href="#environment--process" class="l3" data-id="environment--process">Environment &amp; Process</a><a href="#compiler-warnings" class="l2" data-id="compiler-warnings">Compiler Warnings</a><a href="#unused-variables-w1001" class="l3" data-id="unused-variables-w1001">Unused Variables [W1001]</a><a href="#unreachable-code-w1002" class="l3" data-id="unreachable-code-w1002">Unreachable Code [W1002]</a><a href="#constant-expression-overflow-w1003" class="l3" data-id="constant-expression-overflow-w1003">Constant-Expression Overflow [W1003]</a><a href="#match-expressions" class="l2" data-id="match-expressions">Match Expressions</a><a href="#keywords" class="l2" data-id="keywords">Keywords</a><a href="#raw-identifiers-using-a-keyword-as-a-name" class="l3" data-id="raw-identifiers-using-a-keyword-as-a-name">Raw identifiers, using a keyword as a name</a><a href="#comments" class="l2" data-id="comments">Comments</a><a href="#compilation" class="l2" data-id="compilation">Compilation</a><a href="#using-the-cli" class="l3" data-id="using-the-cli">Using the CLI</a><a href="#using-the-compiler-directly" class="l3" data-id="using-the-compiler-directly">Using the Compiler Directly</a><a href="#type-system" class="l2" data-id="type-system">Type System</a><a href="#inference-rules" class="l3" data-id="inference-rules">Inference rules</a><a href="#type-annotations-are-optional" class="l3" data-id="type-annotations-are-optional">Type annotations are optional</a><a href="#extern-requires-annotations" class="l3" data-id="extern-requires-annotations">extern requires annotations</a><a href="#example-programs" class="l2" data-id="example-programs">Example Programs</a><a href="#hello-world" class="l3" data-id="hello-world">Hello World</a><a href="#factorial-with-pattern-matching" class="l3" data-id="factorial-with-pattern-matching">Factorial with Pattern Matching</a><a href="#counter-actor" class="l3" data-id="counter-actor">Counter Actor</a><a href="#resource-management-with-defer" class="l3" data-id="resource-management-with-defer">Resource Management with Defer</a></nav>
+    <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#overview" class="l2" data-id="overview">Overview</a><a href="#paradigm-placement" class="l2" data-id="paradigm-placement">Paradigm placement</a><a href="#where-aether-leans-functional" class="l3" data-id="where-aether-leans-functional">Where Aether leans functional</a><a href="#where-aether-borrows-from-oo-in-a-limited-way" class="l3" data-id="where-aether-borrows-from-oo-in-a-limited-way">Where Aether borrows from OO (in a limited way)</a><a href="#where-aether-is-neither-its-just-systems-pragmatic" class="l3" data-id="where-aether-is-neither-its-just-systems-pragmatic">Where Aether is neither, it's just systems-pragmatic</a><a href="#what-this-means-in-practice" class="l3" data-id="what-this-means-in-practice">What this means in practice</a><a href="#table-of-contents" class="l2" data-id="table-of-contents">Table of Contents</a><a href="#types" class="l2" data-id="types">Types</a><a href="#primitive-types" class="l3" data-id="primitive-types">Primitive Types</a><a href="#composite-types" class="l3" data-id="composite-types">Composite Types</a><a href="#array-types" class="l3" data-id="array-types">Array Types</a><a href="#sequence-types-stringseq" class="l3" data-id="sequence-types-stringseq">Sequence Types (*StringSeq)</a><a href="#numeric-literal-formats" class="l3" data-id="numeric-literal-formats">Numeric Literal Formats</a><a href="#variables" class="l2" data-id="variables">Variables</a><a href="#casting-between-types" class="l3" data-id="casting-between-types">Casting between types</a><a href="#null" class="l3" data-id="null">Null</a><a href="#constants" class="l3" data-id="constants">Constants</a><a href="#mutable-module-level-globals" class="l3" data-id="mutable-module-level-globals">Mutable module-level globals</a><a href="#functions" class="l2" data-id="functions">Functions</a><a href="#default-arguments" class="l3" data-id="default-arguments">Default arguments</a><a href="#source-location-intrinsics" class="l3" data-id="source-location-intrinsics">Source-location intrinsics</a><a href="#pattern-matching-functions" class="l2" data-id="pattern-matching-functions">Pattern Matching Functions</a><a href="#basic-pattern-matching" class="l3" data-id="basic-pattern-matching">Basic Pattern Matching</a><a href="#guard-clauses" class="l3" data-id="guard-clauses">Guard Clauses</a><a href="#multi-statement-arrow-bodies" class="l3" data-id="multi-statement-arrow-bodies">Multi-Statement Arrow Bodies</a><a href="#multi-parameter-guards" class="l3" data-id="multi-parameter-guards">Multi-parameter Guards</a><a href="#mutual-recursion-with-guards" class="l3" data-id="mutual-recursion-with-guards">Mutual Recursion with Guards</a><a href="#control-flow" class="l2" data-id="control-flow">Control Flow</a><a href="#if-statements" class="l3" data-id="if-statements">If Statements</a><a href="#if-expressions" class="l3" data-id="if-expressions">If-Expressions</a><a href="#while-loops" class="l3" data-id="while-loops">While Loops</a><a href="#for-loops" class="l3" data-id="for-loops">For Loops</a><a href="#range-based-for-loops" class="l3" data-id="range-based-for-loops">Range-Based For Loops</a><a href="#loop-control" class="l3" data-id="loop-control">Loop Control</a><a href="#match-statements" class="l2" data-id="match-statements">Match Statements</a><a href="#integer-matching" class="l3" data-id="integer-matching">Integer Matching</a><a href="#string-matching" class="l3" data-id="string-matching">String Matching</a><a href="#ranged-and-multi-value-cases" class="l3" data-id="ranged-and-multi-value-cases">Ranged and multi-value cases</a><a href="#list-pattern-matching" class="l3" data-id="list-pattern-matching">List Pattern Matching</a><a href="#list-pattern-types" class="l3" data-id="list-pattern-types">List Pattern Types</a><a href="#switch-statements" class="l2" data-id="switch-statements">Switch Statements</a><a href="#switch-vs-match" class="l3" data-id="switch-vs-match">Switch vs Match</a><a href="#defer-statement" class="l2" data-id="defer-statement">Defer Statement</a><a href="#lifo-order" class="l3" data-id="lifo-order">LIFO Order</a><a href="#defer-try-and-defer-catch-cleanup-for-one-outcome-only" class="l3" data-id="defer-try-and-defer-catch-cleanup-for-one-outcome-only">defer try and defer catch, cleanup for one outcome only</a><a href="#use-cases" class="l3" data-id="use-cases">Use Cases</a><a href="#scope-directives-hide-and-seal-except" class="l2" data-id="scope-directives-hide-and-seal-except">Scope Directives: hide and seal except</a><a href="#hide-blacklist-specific-names" class="l3" data-id="hide-blacklist-specific-names">hide blacklist specific names</a><a href="#seal-except-whitelist" class="l3" data-id="seal-except-whitelist">seal except whitelist</a><a href="#key-semantics" class="l3" data-id="key-semantics">Key semantics</a><a href="#memory-management" class="l2" data-id="memory-management">Memory Management</a><a href="#defer-for-cleanup-default" class="l3" data-id="defer-for-cleanup-default">defer for Cleanup (default)</a><a href="#returning-allocated-values" class="l3" data-id="returning-allocated-values">Returning Allocated Values</a><a href="#multiple-return-values-result-types" class="l3" data-id="multiple-return-values-result-types">Multiple Return Values (Result Types)</a><a href="#function-contracts-requires--ensures" class="l3" data-id="function-contracts-requires--ensures">Function contracts: requires / ensures</a><a href="#string-ownership-for---string-functions" class="l3" data-id="string-ownership-for---string-functions">String ownership for -&gt; string functions</a><a href="#optionals" class="l2" data-id="optionals">Optionals</a><a href="#none-and-equality" class="l3" data-id="none-and-equality">none and equality</a><a href="#force-unwrap-" class="l3" data-id="force-unwrap-">Force-unwrap !</a><a href="#null-coalesce-" class="l3" data-id="null-coalesce-">Null-coalesce ??</a><a href="#optional-chaining-" class="l3" data-id="optional-chaining-">Optional chaining ?.</a><a href="#matching-on-optionals" class="l3" data-id="matching-on-optionals">Matching on optionals</a><a href="#narrowing" class="l3" data-id="narrowing">Narrowing</a><a href="#functions" class="l3" data-id="functions">Functions</a><a href="#codegen" class="l3" data-id="codegen">Codegen</a><a href="#enums" class="l2" data-id="enums">Enums</a><a href="#enum-indexed-arrays" class="l3" data-id="enum-indexed-arrays">Enum-indexed arrays</a><a href="#bit-sets" class="l2" data-id="bit-sets">Bit Sets</a><a href="#bitstructs" class="l2" data-id="bitstructs">Bitstructs</a><a href="#bit-layout-and-byte-order-are-separate-concerns" class="l3" data-id="bit-layout-and-byte-order-are-separate-concerns">Bit layout and byte order are separate concerns</a><a href="#sum--variant-types" class="l2" data-id="sum--variant-types">Sum / Variant Types</a><a href="#constructing-implicit-wrap" class="l3" data-id="constructing-implicit-wrap">Constructing, implicit wrap</a><a href="#matching-narrowing--exhaustiveness" class="l3" data-id="matching-narrowing--exhaustiveness">Matching, narrowing + exhaustiveness</a><a href="#recursive-sums" class="l3" data-id="recursive-sums">Recursive sums</a><a href="#codegen" class="l3" data-id="codegen">Codegen</a><a href="#structs" class="l2" data-id="structs">Structs</a><a href="#explicit-field-types" class="l3" data-id="explicit-field-types">Explicit Field Types</a><a href="#field-injection-with-using-composition-no-vtables" class="l3" data-id="field-injection-with-using-composition-no-vtables">Field injection with using (composition, no vtables)</a><a href="#function-pointer-struct-fields-a-vtable-of-callbacks" class="l3" data-id="function-pointer-struct-fields-a-vtable-of-callbacks">Function-pointer struct fields, a vtable of callbacks</a><a href="#pointer-to-struct-type-structname-and-expr-as-structname" class="l3" data-id="pointer-to-struct-type-structname-and-expr-as-structname">Pointer-to-struct type, *StructName and expr as *StructName</a><a href="#messages" class="l2" data-id="messages">Messages</a><a href="#actors" class="l2" data-id="actors">Actors</a><a href="#actor-definition" class="l3" data-id="actor-definition">Actor Definition</a><a href="#receive-timeouts" class="l3" data-id="receive-timeouts">Receive Timeouts</a><a href="#state-variables" class="l3" data-id="state-variables">State Variables</a><a href="#spawning-actors" class="l3" data-id="spawning-actors">Spawning Actors</a><a href="#sending-messages-fire-and-forget" class="l3" data-id="sending-messages-fire-and-forget">Sending Messages (Fire-and-Forget)</a><a href="#ask-pattern-request-reply" class="l3" data-id="ask-pattern-request-reply">Ask Pattern (Request-Reply)</a><a href="#reply-statement" class="l3" data-id="reply-statement">Reply Statement</a><a href="#wildcard-handler" class="l3" data-id="wildcard-handler">Wildcard Handler</a><a href="#operators" class="l2" data-id="operators">Operators</a><a href="#arithmetic-operators" class="l3" data-id="arithmetic-operators">Arithmetic Operators</a><a href="#comparison-operators" class="l3" data-id="comparison-operators">Comparison Operators</a><a href="#bitwise-operators" class="l3" data-id="bitwise-operators">Bitwise Operators</a><a href="#logical-operators" class="l3" data-id="logical-operators">Logical Operators</a><a href="#assignment-operators" class="l3" data-id="assignment-operators">Assignment Operators</a><a href="#postfix-operators" class="l3" data-id="postfix-operators">Postfix Operators</a><a href="#actor-operators" class="l3" data-id="actor-operators">Actor Operators</a><a href="#member-access" class="l3" data-id="member-access">Member Access</a><a href="#operator-precedence-high-to-low" class="l3" data-id="operator-precedence-high-to-low">Operator Precedence (High to Low)</a><a href="#modules-and-imports" class="l2" data-id="modules-and-imports">Modules and Imports</a><a href="#standard-library-imports" class="l3" data-id="standard-library-imports">Standard Library Imports</a><a href="#selective-imports" class="l3" data-id="selective-imports">Selective Imports</a><a href="#module-public-api-exports-" class="l3" data-id="module-public-api-exports-">Module Public API, exports (…)</a><a href="#glob-import-import-mod--aka-unqualified-import" class="l3" data-id="glob-import-import-mod--aka-unqualified-import">Glob Import, import mod (*) (a.k.a. unqualified import)</a><a href="#import-with-alias" class="l3" data-id="import-with-alias">Import with Alias</a><a href="#local-module-imports" class="l3" data-id="local-module-imports">Local Module Imports</a><a href="#available-standard-library-modules" class="l3" data-id="available-standard-library-modules">Available Standard Library Modules</a><a href="#extern-functions" class="l2" data-id="extern-functions">Extern Functions</a><a href="#typed-and-qualified-c-pointers" class="l3" data-id="typed-and-qualified-c-pointers">Typed and qualified C pointers</a><a href="#externc_name-bind-to-a-renamed-c-symbol" class="l3" data-id="externc_name-bind-to-a-renamed-c-symbol">@extern("c_name") bind to a renamed C symbol</a><a href="#extern-const-name-type-c_import-import-an-object-like-c-macro" class="l3" data-id="extern-const-name-type-c_import-import-an-object-like-c-macro">extern const NAME: type @c_import import an object-like C macro</a><a href="#extern--c_import-let-a-c-header-own-the-prototype" class="l3" data-id="extern--c_import-let-a-c-header-own-the-prototype">extern ... @c_import let a C header own the prototype</a><a href="#va_list-forward-a-variadic-tail-to-c" class="l3" data-id="va_list-forward-a-variadic-tail-to-c">va_list forward a variadic tail to C</a><a href="#c_callback-export-an-aether-function-as-a-c-callback" class="l3" data-id="c_callback-export-an-aether-function-as-a-c-callback">@c_callback export an Aether function as a C callback</a><a href="#function-pointer-parameters-fnt1-t2---r" class="l3" data-id="function-pointer-parameters-fnt1-t2---r">Function-pointer parameters, fn(T1, T2) -&gt; R</a><a href="#deriveeq-synthesize-an-equality-helper-for-a-struct" class="l3" data-id="deriveeq-synthesize-an-equality-helper-for-a-struct">@derive(eq) synthesize an equality helper for a struct</a><a href="#built-in-functions" class="l2" data-id="built-in-functions">Built-in Functions</a><a href="#io" class="l3" data-id="io">I/O</a><a href="#heredoc-strings" class="l3" data-id="heredoc-strings">Heredoc strings</a><a href="#timing" class="l3" data-id="timing">Timing</a><a href="#concurrency" class="l3" data-id="concurrency">Concurrency</a><a href="#environment--process" class="l3" data-id="environment--process">Environment &amp; Process</a><a href="#compiler-warnings" class="l2" data-id="compiler-warnings">Compiler Warnings</a><a href="#unused-variables-w1001" class="l3" data-id="unused-variables-w1001">Unused Variables [W1001]</a><a href="#unreachable-code-w1002" class="l3" data-id="unreachable-code-w1002">Unreachable Code [W1002]</a><a href="#constant-expression-overflow-w1003" class="l3" data-id="constant-expression-overflow-w1003">Constant-Expression Overflow [W1003]</a><a href="#unreachable-match-arm-w1004" class="l3" data-id="unreachable-match-arm-w1004">Unreachable Match Arm [W1004]</a><a href="#match-expressions" class="l2" data-id="match-expressions">Match Expressions</a><a href="#keywords" class="l2" data-id="keywords">Keywords</a><a href="#raw-identifiers-using-a-keyword-as-a-name" class="l3" data-id="raw-identifiers-using-a-keyword-as-a-name">Raw identifiers, using a keyword as a name</a><a href="#comments" class="l2" data-id="comments">Comments</a><a href="#conditional-compilation" class="l2" data-id="conditional-compilation">Conditional Compilation</a><a href="#build-symbols" class="l3" data-id="build-symbols">Build symbols</a><a href="#when-regions" class="l3" data-id="when-regions">when regions</a><a href="#select-for-values" class="l3" data-id="select-for-values">select for values</a><a href="#compilation" class="l2" data-id="compilation">Compilation</a><a href="#using-the-cli" class="l3" data-id="using-the-cli">Using the CLI</a><a href="#using-the-compiler-directly" class="l3" data-id="using-the-compiler-directly">Using the Compiler Directly</a><a href="#type-system" class="l2" data-id="type-system">Type System</a><a href="#inference-rules" class="l3" data-id="inference-rules">Inference rules</a><a href="#type-annotations-are-optional" class="l3" data-id="type-annotations-are-optional">Type annotations are optional</a><a href="#extern-requires-annotations" class="l3" data-id="extern-requires-annotations">extern requires annotations</a><a href="#example-programs" class="l2" data-id="example-programs">Example Programs</a><a href="#hello-world" class="l3" data-id="hello-world">Hello World</a><a href="#factorial-with-pattern-matching" class="l3" data-id="factorial-with-pattern-matching">Factorial with Pattern Matching</a><a href="#counter-actor" class="l3" data-id="counter-actor">Counter Actor</a><a href="#resource-management-with-defer" class="l3" data-id="resource-management-with-defer">Resource Management with Defer</a></nav>
   </div>
 </div>
 <script src="/docs.js" defer></script>
@@ -2171,7 +2300,7 @@ process_file(path) {
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.473 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.553 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

@@ -4,11 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Per-process configuration in Aether · Aether</title>
-<meta name="description" content="Many CLI tools and servers need a per-process key/value: parse it once at startup (from --flag X args, an env var, or a config file), then read it from ...">
+<meta name="description" content="Many CLI tools and servers need a per-process key/value: parse it once at startup (from --flag X args, an env var, or a config file), then read it from...">
 <link rel="canonical" href="https://aether-lang.dev/Docs/per-process-config.html">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Per-process configuration in Aether · Aether">
-<meta property="og:description" content="Many CLI tools and servers need a per-process key/value: parse it once at startup (from --flag X args, an env var, or a config file), then read it from ...">
+<meta property="og:description" content="Many CLI tools and servers need a per-process key/value: parse it once at startup (from --flag X args, an env var, or a config file), then read it from...">
 <meta property="og:url" content="https://aether-lang.dev/Docs/per-process-config.html">
 <meta property="og:image" content="https://aether-lang.dev/og.png">
 <meta name="twitter:card" content="summary_large_image">
@@ -171,7 +171,7 @@ a{color:inherit;text-decoration:none}
 
 /* section head */
 .sec-head{display:flex;align-items:baseline;gap:14px;margin:0 0 22px}
-.sec-head h2{font-family:var(--mono);font-size:1.15rem;font-weight:700;letter-spacing:-.01em;margin:0}
+.sec-head h1,.sec-head h2{font-family:var(--mono);font-size:1.15rem;font-weight:700;letter-spacing:-.01em;margin:0}
 .sec-head .rule{flex:1;height:1px;background:var(--line)}
 
 /* code */
@@ -358,7 +358,7 @@ body::after{content:"";position:fixed;inset:0;z-index:3;pointer-events:none;opac
 
 /* prompt accents on section headings */
 .prompt{color:var(--red);margin-right:.5ch}
-.sec-head h2 .prompt{font-weight:400}
+.sec-head h1 .prompt,.sec-head h2 .prompt{font-weight:400}
 
 /* prompt-styled ghost button */
 .btn-term{font-family:var(--mono);font-size:14px;padding:11px 18px;border-radius:6px;
@@ -570,7 +570,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.473</span>
+      <span class="vtag">v0.553</span>
     </nav>
   </div>
 </header>
@@ -600,6 +600,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/memory-management.html">Aether Memory Management</a>
 <a href="/Docs/runtime-optimizations.html">Runtime Optimizations</a>
 <a href="/Docs/numa-support.html">NUMA Support in Aether</a>
+<a href="/Docs/message-tracing.html">Message tracing</a>
 <div class="grp">Interop</div>
 <a href="/Docs/c-interop.html">C Interoperability</a>
 <a href="/Docs/c-embedding.html">Embedding Aether Actors in C Applications</a>
@@ -624,6 +625,11 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/runtime-config.html">Runtime Configuration - Quick Reference</a>
 <a href="/Docs/per-process-config.html" class="on">Per-process configuration in Aether</a>
 <a href="/Docs/cic-help.html">ae help &lt;script&gt; Offline diagnostics for config-IS-code</a>
+<a href="/Docs/cross-ios.html">Cross-compiling for iOS (arm64)</a>
+<div class="grp">Testing</div>
+<a href="/Docs/testing.html">Testing with std.spec and ae test</a>
+<a href="/Docs/mutation-testing.html">Mutation testing, std.mutation</a>
+<a href="/Docs/differential-testing.html">Differential testing across lowering paths</a>
 <div class="grp">Performance</div>
 <a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
 <a href="/Docs/profiling-guide.html">Aether Runtime Profiling Guide</a>
@@ -639,6 +645,9 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
 <a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn't need macro_rules!</a>
 <a href="/Docs/lib-caller-info.html">--emit=lib caller-info channel</a>
+<a href="/Docs/liveview-lite-roadmap.html">LiveView-lite, a roadmap (Phoenix LiveView, on actors, without the framework)</a>
+<a href="/Docs/schema-projection-roadmap.html">std.schema, a projection-first roadmap (Ash, without the framework)</a>
+<a href="/Docs/locale-independent-float-text.html">Plan: locale-independent float text conversion (LC_NUMERIC correctness)</a>
 <div class="grp">Contributing</div>
 <a href="/Docs/stdlib-module-pattern.html">Aether Stdlib Module Pattern</a>
 <a href="/Docs/stdlib-vs-contrib.html">std/ vs contrib/ placement decisions</a>
@@ -763,12 +772,12 @@ main() {
 <pre><code>cfg ! SetUser { name: parsed_user_arg }</code></pre>
 <p>(A scalar C shim, say a <code>static int g_log_level;</code> with a <code>set</code>/<code>get</code> pair, maps the other way: it's a module-level <code>var log_level = 0</code> plus a <code>set_log_level</code> setter, exactly the <a href="#the-simple-case-a-module-level-var">simple case</a> above. The string shim here needs the actor because the value is heap-owned.)</p>
 <p>Read in the request handler, slightly more involved than a function call because the handler needs an actor_ref to receive the reply. The natural place to plumb that is through whatever spawns the handler:</p>
-<pre><code><span class="com">// At handler-spawn time:</span>
-worker = <span class="kw">spawn</span>(RequestHandler())
-cfg ! GetUser { to: worker }   <span class="com">// worker stashes the reply when it arrives</span>
+<pre><code>// At handler-spawn time:
+worker = spawn(RequestHandler())
+cfg ! GetUser { to: worker }   // worker stashes the reply when it arrives
 
-<span class="com">// In the worker's receive block:</span>
-<span class="kw">receive</span> {
+// In the worker's receive block:
+receive {
     UserReply(value) -&gt; { current_user = value }
     HttpRequest(req) -&gt; { handle_request(req, current_user) }
 }</code></pre>
@@ -787,7 +796,7 @@ cfg ! GetUser { to: worker }   <span class="com">// worker stashes the reply whe
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.473 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.553 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>
