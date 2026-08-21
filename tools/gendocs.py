@@ -21,7 +21,11 @@ import subprocess
 import re
 import sys
 
-VERSION = "0.553"
+# Filled from the source tree's VERSION file in main(); the literal is only a
+# fallback for a checkout that has none. Typing it by hand is what let the site
+# sit 80 releases behind while claiming 0.473, and what let the footer drift
+# independently of the constant.
+VERSION = "0.562"
 GH = "https://github.com/aether-lang-dev/aether"
 SITE = "Aether"
 DOMAIN = "https://aether-lang.dev"
@@ -655,11 +659,58 @@ PAGE = """<!doctype html>
 """
 
 
+def read_version(src_docs_dir):
+    """Version of the tree these docs come from, from its VERSION file.
+
+    The docs being published and the version stamped on them should be the
+    same thing, so it is read rather than typed. Trailing ".0" is dropped to
+    match how the site has always shown it ("v0.562", not "v0.562.0").
+    """
+    path = os.path.join(os.path.dirname(os.path.abspath(src_docs_dir)), "VERSION")
+    try:
+        with open(path, encoding="utf-8") as fh:
+            v = fh.read().strip()
+    except OSError:
+        return None
+    if not re.match(r"^\d+\.\d+(\.\d+)?$", v):
+        return None
+    return v[:-2] if v.endswith(".0") else v
+
+
+def stamp_standalone_pages(root, version):
+    """Put `version` on the hand-written pages (index / 404 / repl).
+
+    These are not generated, so they used to be edited by hand and fell out of
+    step with the docs. One command now leaves the whole site on one version.
+    """
+    n = 0
+    for name in ("index.html", "404.html", "repl.html"):
+        path = os.path.join(root, "static", name)
+        try:
+            with open(path, encoding="utf-8") as fh:
+                page = fh.read()
+        except OSError:
+            continue
+        before = page
+        page = re.sub(r'(?<=>)v\d+\.\d+(?:\.\d+)?(?=</span>)', "v" + version, page)
+        page = re.sub(r'v\d+\.\d+(?:\.\d+)?(?= &middot; pre-1\.0)', "v" + version, page)
+        page = re.sub(r'("softwareVersion":")\d+\.\d+(?:\.\d+)?(")',
+                      lambda m: m.group(1) + version + m.group(2), page)
+        if page != before:
+            with open(path, "w", encoding="utf-8") as fh:
+                fh.write(page)
+            n += 1
+    return n
+
+
 def main():
     here = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     src = os.path.expanduser(sys.argv[1] if len(sys.argv) > 1 else "~/Documents/git/aether/docs")
     out = sys.argv[2] if len(sys.argv) > 2 else os.path.join(here, "static", "Docs")
     os.makedirs(out, exist_ok=True)
+
+    global VERSION
+    VERSION = read_version(src) or VERSION
 
     docs = {}
     for name in sorted(os.listdir(src)):
@@ -734,6 +785,9 @@ def main():
                  '<link rel="canonical" href="/Docs/%s.html">' % (first, first))
 
     print("generated %d docs -> %s" % (len(docs), out))
+
+    stamped = stamp_standalone_pages(here, VERSION)
+    print("version %s stamped onto %d standalone page(s)" % (VERSION, stamped))
 
     # The pages above are emitted with a <link> to aether.css; inline_css.py
     # replaces it with the stylesheet's contents. Run it here so regenerated
