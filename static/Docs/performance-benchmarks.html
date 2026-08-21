@@ -4,11 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Aether Performance Benchmarks · Aether</title>
-<meta name="description" content="The Aether benchmark suite measures message-passing throughput, latency, memory efficiency, and scalability across 11 programming languages using 5 patt...">
+<meta name="description" content="The Aether benchmark suite measures message-passing throughput, latency, memory efficiency, and scalability across 11 programming languages using 5...">
 <link rel="canonical" href="https://aether-lang.dev/Docs/performance-benchmarks.html">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Aether Performance Benchmarks · Aether">
-<meta property="og:description" content="The Aether benchmark suite measures message-passing throughput, latency, memory efficiency, and scalability across 11 programming languages using 5 patt...">
+<meta property="og:description" content="The Aether benchmark suite measures message-passing throughput, latency, memory efficiency, and scalability across 11 programming languages using 5...">
 <meta property="og:url" content="https://aether-lang.dev/Docs/performance-benchmarks.html">
 <meta property="og:image" content="https://aether-lang.dev/og.png">
 <meta name="twitter:card" content="summary_large_image">
@@ -171,7 +171,7 @@ a{color:inherit;text-decoration:none}
 
 /* section head */
 .sec-head{display:flex;align-items:baseline;gap:14px;margin:0 0 22px}
-.sec-head h2{font-family:var(--mono);font-size:1.15rem;font-weight:700;letter-spacing:-.01em;margin:0}
+.sec-head h1,.sec-head h2{font-family:var(--mono);font-size:1.15rem;font-weight:700;letter-spacing:-.01em;margin:0}
 .sec-head .rule{flex:1;height:1px;background:var(--line)}
 
 /* code */
@@ -358,7 +358,7 @@ body::after{content:"";position:fixed;inset:0;z-index:3;pointer-events:none;opac
 
 /* prompt accents on section headings */
 .prompt{color:var(--red);margin-right:.5ch}
-.sec-head h2 .prompt{font-weight:400}
+.sec-head h1 .prompt,.sec-head h2 .prompt{font-weight:400}
 
 /* prompt-styled ghost button */
 .btn-term{font-family:var(--mono);font-size:14px;padding:11px 18px;border-radius:6px;
@@ -570,7 +570,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.473</span>
+      <span class="vtag">v0.562</span>
     </nav>
   </div>
 </header>
@@ -600,6 +600,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/memory-management.html">Aether Memory Management</a>
 <a href="/Docs/runtime-optimizations.html">Runtime Optimizations</a>
 <a href="/Docs/numa-support.html">NUMA Support in Aether</a>
+<a href="/Docs/message-tracing.html">Message tracing</a>
 <div class="grp">Interop</div>
 <a href="/Docs/c-interop.html">C Interoperability</a>
 <a href="/Docs/c-embedding.html">Embedding Aether Actors in C Applications</a>
@@ -624,6 +625,11 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/runtime-config.html">Runtime Configuration - Quick Reference</a>
 <a href="/Docs/per-process-config.html">Per-process configuration in Aether</a>
 <a href="/Docs/cic-help.html">ae help &lt;script&gt; Offline diagnostics for config-IS-code</a>
+<a href="/Docs/cross-ios.html">Cross-compiling for iOS (arm64)</a>
+<div class="grp">Testing</div>
+<a href="/Docs/testing.html">Testing with std.spec and ae test</a>
+<a href="/Docs/mutation-testing.html">Mutation testing, std.mutation</a>
+<a href="/Docs/differential-testing.html">Differential testing across lowering paths</a>
 <div class="grp">Performance</div>
 <a href="/Docs/performance-benchmarks.html" class="on">Aether Performance Benchmarks</a>
 <a href="/Docs/profiling-guide.html">Aether Runtime Profiling Guide</a>
@@ -639,6 +645,9 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
 <a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn't need macro_rules!</a>
 <a href="/Docs/lib-caller-info.html">--emit=lib caller-info channel</a>
+<a href="/Docs/liveview-lite-roadmap.html">LiveView-lite, a roadmap (Phoenix LiveView, on actors, without the framework)</a>
+<a href="/Docs/schema-projection-roadmap.html">std.schema, a projection-first roadmap (Ash, without the framework)</a>
+<a href="/Docs/locale-independent-float-text.html">Plan: locale-independent float text conversion (LC_NUMERIC correctness)</a>
 <div class="grp">Contributing</div>
 <a href="/Docs/stdlib-module-pattern.html">Aether Stdlib Module Pattern</a>
 <a href="/Docs/stdlib-vs-contrib.html">std/ vs contrib/ placement decisions</a>
@@ -712,7 +721,7 @@ BENCH_WARMUP=<span class="num">3</span> make benchmark</code></pre>
 <div class="tw"><table><thead><tr><th>Optimization</th><th>Effect</th><th>File</th></tr></thead><tbody><tr><td>Main Thread Actor Mode</td><td>Single-actor programs bypass scheduler entirely</td><td><code>runtime/actors/aether_send_message.c</code></td></tr><tr><td>Inline message path</td><td>Single-field messages (int, int64, uint64, duration, ptr) skip heap allocation, value stored in <code>Message.payload_int</code></td><td><code>compiler/codegen/codegen.c</code></td></tr><tr><td>Batch send</td><td>Main-thread fan-out groups messages by target core, reducing atomics from N to num_cores</td><td><code>runtime/scheduler/multicore_scheduler.c</code></td></tr><tr><td>Partial batch enqueue</td><td><code>queue_enqueue_batch</code> returns how many fit instead of all-or-nothing</td><td><code>runtime/scheduler/lockfree_queue.h</code></td></tr><tr><td>Work inlining</td><td>Same-core sends invoke <code>actor-&gt;step()</code> immediately, skipping the scheduler drain loop</td><td><code>runtime/scheduler/multicore_scheduler.c</code></td></tr><tr><td>Computed goto dispatch</td><td>Message handlers use GCC computed-goto dispatch tables</td><td><code>compiler/codegen/codegen_actor.c</code></td></tr><tr><td>TLS caching</td><td><code>current_core_id</code> cached in local variables, avoiding repeated <code>tlv_get_addr</code> on macOS</td><td><code>runtime/scheduler/multicore_scheduler.c</code></td></tr><tr><td>SPSC queues</td><td>Lock-free single-producer single-consumer ring buffers for cross-core messaging</td><td><code>runtime/scheduler/lockfree_queue.h</code></td></tr><tr><td>Adaptive batching</td><td>Batch size adjusts dynamically (64–1024) based on queue utilization</td><td><code>runtime/actors/aether_adaptive_batch.h</code></td></tr></tbody></table></div>
 <h2 id="references">References</h2>
 <ul><li><a href="https://dl.acm.org/doi/10.1145/2687357.2687368">Savina, An Actor Benchmark Suite</a> (Imam &amp; Sarkar, 2014)</li><li><a href="https://github.com/aether-lang-dev/aether/tree/main/benchmarks/cross-language/">Cross-Language Benchmark Source</a></li><li><a href="/Docs/runtime-optimizations.html">Runtime Optimizations</a></li><li><a href="/Docs/scheduler-quick-reference.html">Scheduler Architecture</a></li></ul>
-<nav class="doc-prevnext" aria-label="Previous and next page"><a class="pn-prev" href="/Docs/cic-help.html"><span class="pn-k">Previous</span><span class="pn-t">ae help &lt;script&gt; Offline diagnostics for config-IS-code</span></a><a class="pn-next" href="/Docs/profiling-guide.html"><span class="pn-k">Next</span><span class="pn-t">Aether Runtime Profiling Guide</span></a></nav>
+<nav class="doc-prevnext" aria-label="Previous and next page"><a class="pn-prev" href="/Docs/differential-testing.html"><span class="pn-k">Previous</span><span class="pn-t">Differential testing across lowering paths</span></a><a class="pn-next" href="/Docs/profiling-guide.html"><span class="pn-k">Next</span><span class="pn-t">Aether Runtime Profiling Guide</span></a></nav>
       </article>
     </main>
     <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#overview" class="l2" data-id="overview">Overview</a><a href="#benchmark-patterns" class="l2" data-id="benchmark-patterns">Benchmark Patterns</a><a href="#ping-pong" class="l3" data-id="ping-pong">Ping-Pong</a><a href="#counting" class="l3" data-id="counting">Counting</a><a href="#thread-ring" class="l3" data-id="thread-ring">Thread Ring</a><a href="#fork-join" class="l3" data-id="fork-join">Fork-Join</a><a href="#skynet" class="l3" data-id="skynet">Skynet</a><a href="#languages" class="l2" data-id="languages">Languages</a><a href="#methodology" class="l2" data-id="methodology">Methodology</a><a href="#statistical-approach" class="l3" data-id="statistical-approach">Statistical Approach</a><a href="#measurement" class="l3" data-id="measurement">Measurement</a><a href="#fairness" class="l3" data-id="fairness">Fairness</a><a href="#running-benchmarks" class="l2" data-id="running-benchmarks">Running Benchmarks</a><a href="#full-suite-all-languages" class="l3" data-id="full-suite-all-languages">Full Suite (all languages)</a><a href="#aether-only" class="l3" data-id="aether-only">Aether Only</a><a href="#configuration" class="l3" data-id="configuration">Configuration</a><a href="#visualization" class="l3" data-id="visualization">Visualization</a><a href="#active-optimizations" class="l2" data-id="active-optimizations">Active Optimizations</a><a href="#references" class="l2" data-id="references">References</a></nav>
@@ -724,7 +733,7 @@ BENCH_WARMUP=<span class="num">3</span> make benchmark</code></pre>
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.473 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.562 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

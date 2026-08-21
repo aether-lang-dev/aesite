@@ -4,11 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Embedding Aether as a Shared Library (--emit=lib) · Aether</title>
-<meta name="description" content="aetherc --emit=lib (or ae build --emit=lib) compiles a .ae file into">
+<meta name="description" content="aetherc --emit=lib (or ae build --emit=lib) compiles a .ae file into a dynamic library (.so on Linux, .dylib on macOS) with ABI-stable entry points that...">
 <link rel="canonical" href="https://aether-lang.dev/Docs/emit-lib.html">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Embedding Aether as a Shared Library (--emit=lib) · Aether">
-<meta property="og:description" content="aetherc --emit=lib (or ae build --emit=lib) compiles a .ae file into">
+<meta property="og:description" content="aetherc --emit=lib (or ae build --emit=lib) compiles a .ae file into a dynamic library (.so on Linux, .dylib on macOS) with ABI-stable entry points that...">
 <meta property="og:url" content="https://aether-lang.dev/Docs/emit-lib.html">
 <meta property="og:image" content="https://aether-lang.dev/og.png">
 <meta name="twitter:card" content="summary_large_image">
@@ -171,7 +171,7 @@ a{color:inherit;text-decoration:none}
 
 /* section head */
 .sec-head{display:flex;align-items:baseline;gap:14px;margin:0 0 22px}
-.sec-head h2{font-family:var(--mono);font-size:1.15rem;font-weight:700;letter-spacing:-.01em;margin:0}
+.sec-head h1,.sec-head h2{font-family:var(--mono);font-size:1.15rem;font-weight:700;letter-spacing:-.01em;margin:0}
 .sec-head .rule{flex:1;height:1px;background:var(--line)}
 
 /* code */
@@ -358,7 +358,7 @@ body::after{content:"";position:fixed;inset:0;z-index:3;pointer-events:none;opac
 
 /* prompt accents on section headings */
 .prompt{color:var(--red);margin-right:.5ch}
-.sec-head h2 .prompt{font-weight:400}
+.sec-head h1 .prompt,.sec-head h2 .prompt{font-weight:400}
 
 /* prompt-styled ghost button */
 .btn-term{font-family:var(--mono);font-size:14px;padding:11px 18px;border-radius:6px;
@@ -570,7 +570,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.473</span>
+      <span class="vtag">v0.562</span>
     </nav>
   </div>
 </header>
@@ -600,6 +600,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/memory-management.html">Aether Memory Management</a>
 <a href="/Docs/runtime-optimizations.html">Runtime Optimizations</a>
 <a href="/Docs/numa-support.html">NUMA Support in Aether</a>
+<a href="/Docs/message-tracing.html">Message tracing</a>
 <div class="grp">Interop</div>
 <a href="/Docs/c-interop.html">C Interoperability</a>
 <a href="/Docs/c-embedding.html">Embedding Aether Actors in C Applications</a>
@@ -624,6 +625,11 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/runtime-config.html">Runtime Configuration - Quick Reference</a>
 <a href="/Docs/per-process-config.html">Per-process configuration in Aether</a>
 <a href="/Docs/cic-help.html">ae help &lt;script&gt; Offline diagnostics for config-IS-code</a>
+<a href="/Docs/cross-ios.html">Cross-compiling for iOS (arm64)</a>
+<div class="grp">Testing</div>
+<a href="/Docs/testing.html">Testing with std.spec and ae test</a>
+<a href="/Docs/mutation-testing.html">Mutation testing, std.mutation</a>
+<a href="/Docs/differential-testing.html">Differential testing across lowering paths</a>
 <div class="grp">Performance</div>
 <a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
 <a href="/Docs/profiling-guide.html">Aether Runtime Profiling Guide</a>
@@ -639,6 +645,9 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
 <a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn't need macro_rules!</a>
 <a href="/Docs/lib-caller-info.html">--emit=lib caller-info channel</a>
+<a href="/Docs/liveview-lite-roadmap.html">LiveView-lite, a roadmap (Phoenix LiveView, on actors, without the framework)</a>
+<a href="/Docs/schema-projection-roadmap.html">std.schema, a projection-first roadmap (Ash, without the framework)</a>
+<a href="/Docs/locale-independent-float-text.html">Plan: locale-independent float text conversion (LC_NUMERIC correctness)</a>
 <div class="grp">Contributing</div>
 <a href="/Docs/stdlib-module-pattern.html">Aether Stdlib Module Pattern</a>
 <a href="/Docs/stdlib-vs-contrib.html">std/ vs contrib/ placement decisions</a>
@@ -651,14 +660,14 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <p><code>aetherc --emit=lib</code> (or <code>ae build --emit=lib</code>) compiles a <code>.ae</code> file into a dynamic library (<code>.so</code> on Linux, <code>.dylib</code> on macOS) with ABI-stable entry points that any FFI-capable language can call: C, Java (Panama), Python (ctypes or SWIG), Go (cgo), Ruby, Rust (<code>extern "C"</code>), and so on.</p>
 <p>This document covers the v1 contract. For the broader design rationale, see <a href="/Docs/aether-embedded-in-host-applications.html">aether-embedded-in-host-applications.md</a>.</p>
 <h2 id="quick-example">Quick example</h2>
-<pre><code><span class="com">// config.ae</span>
-<span class="kw">import</span> std.map
+<pre><code>// config.ae
+import std.map
 
-build_config(env: <span class="fn">string</span>, port: <span class="fn">int</span>) {
+build_config(env: string, port: int) {
     m = map_new()
-    map_put(m, <span class="str">"env"</span>, env)
-    map_put(m, <span class="str">"port"</span>, port)
-    <span class="kw">return</span> m
+    map_put(m, "env", env)
+    map_put(m, "port", port)
+    return m
 }</code></pre>
 <p>Build:</p>
 <pre><code>ae build --emit=lib config.ae
@@ -682,7 +691,18 @@ build_config(env: <span class="fn">string</span>, port: <span class="fn">int</sp
     dlclose(h);
 }</code></pre>
 <h2 id="the-flag-matrix">The flag matrix</h2>
-<div class="tw"><table><thead><tr><th>Flag</th><th>Effect</th></tr></thead><tbody><tr><td><code>--emit=exe</code> <em>(default)</em></td><td>Current behaviour, produces an executable.</td></tr><tr><td><code>--emit=lib</code></td><td>No <code>main()</code> in the output; every top-level Aether function gets an <code>aether_&lt;name&gt;()</code> C-ABI alias; built with <code>-fPIC -shared</code>.</td></tr><tr><td><code>--emit=both</code></td><td>Produces both an executable AND a shared library from one source. <code>ae build --emit=both foo.ae -o foo</code> writes <code>foo</code> (the exe) and <code>foo.dylib</code> / <code>foo.so</code> (the lib) side by side. With no <code>-o</code>, defaults are <code>&lt;base&gt;</code> (exe) and <code>lib&lt;base&gt;.&lt;ext&gt;</code> (lib). Internally dispatches <code>cmd_build</code> twice (once per emit mode); the lib pass appends the platform lib extension to the user's <code>-o</code> so the second pass doesn't overwrite the first.</td></tr><tr><td><code>--emit=csrc</code></td><td>Emits the <strong>portable generated C source</strong> (<code>foo.c</code>), a <strong>catalog header</strong> (<code>foo.h</code>, the <code>aether_&lt;name&gt;()</code> prototypes), and a <strong>machine-readable catalog</strong> (<code>foo.catalog.json</code>), and stops. No <code>gcc</code>, no native artifact. Same catalog codegen as <code>--emit=lib</code>; the difference is you get <em>source</em> plus a describable ABI surface, not a host <code>.so</code>.</td></tr></tbody></table></div>
+<div class="tw"><table><thead><tr><th>Flag</th><th>Effect</th></tr></thead><tbody><tr><td><code>--emit=exe</code> <em>(default)</em></td><td>Current behaviour, produces an executable.</td></tr><tr><td><code>--emit=lib</code></td><td>No <code>main()</code> in the output; every top-level Aether function gets an <code>aether_&lt;name&gt;()</code> C-ABI alias; built with <code>-fPIC -shared</code>.</td></tr><tr><td><code>--emit=both</code></td><td>Produces both an executable AND a shared library from one source. <code>ae build --emit=both foo.ae -o foo</code> writes <code>foo</code> (the exe) and <code>foo.dylib</code> / <code>foo.so</code> (the lib) side by side. With no <code>-o</code>, defaults are <code>&lt;base&gt;</code> (exe) and <code>lib&lt;base&gt;.&lt;ext&gt;</code> (lib). Internally dispatches <code>cmd_build</code> twice (once per emit mode); the lib pass appends the platform lib extension to the user's <code>-o</code> so the second pass doesn't overwrite the first.</td></tr><tr><td><code>--emit=csrc</code></td><td>Emits the <strong>portable generated C source</strong> (<code>foo.c</code>), a <strong>catalog header</strong> (<code>foo.h</code>, the <code>aether_&lt;name&gt;()</code> prototypes), and a <strong>machine-readable catalog</strong> (<code>foo.catalog.json</code>), and stops. No <code>gcc</code>, no native artifact. Same catalog codegen as <code>--emit=lib</code>; the difference is you get <em>source</em> plus a describable ABI surface, not a host <code>.so</code>.</td></tr><tr><td><code>--emit=obj</code></td><td>Compiles straight to a single <strong>relocatable object file</strong> (<code>foo.o</code>), no link step. Same catalog codegen as <code>--emit=lib</code>, so the object exports both the bare Aether names and the <code>aether_&lt;name&gt;()</code> C-ABI aliases. For dropping <code>.ae</code> into an existing C link line.</td></tr></tbody></table></div>
+<h2 id="--emitobj-one-object-file-for-an-existing-c-build"><code>--emit=obj</code>: one object file for an existing C build</h2>
+<p><code>--emit=csrc</code> hands you generated C that your build then has to know how to compile. <code>--emit=obj</code> does that step for you and stops at the object:</p>
+<pre><code>ae build --emit=obj lib.ae -o lib.o
+cc main.c lib.o $(ae cflags --libs) -o app</code></pre>
+<p>This is what makes an incremental <code>make</code> correct without checking generated C into the tree. A checked-in <code>*_ae.c</code> is a stale-artifact trap: edit the <code>.ae</code>, restore the <code>.c</code> to keep a diff clean, and the next plain <code>make</code> links the old code with nothing to warn you. With an object rule the <code>.ae</code> is the only source, and the timestamp the build compares is the one that matters:</p>
+<pre><code>%.o: %.ae
+	ae build --emit=obj $&lt; -o $@
+
+app: main.o lib.o
+	$(CC) $^ $(shell ae cflags --libs) -o $@</code></pre>
+<p>The C compiler used for the object is <code>$AE_CC</code>, else <code>$CC</code>, else <code>gcc</code> when present, else <code>cc</code>, the same resolution order as the other build paths, so a cross build picks up the same toolchain. Because the object carries the <code>aether_&lt;name&gt;()</code> aliases, a C caller can <code>#include</code> a header generated by <code>--emit=csrc</code> (or declare the prototypes itself) and call in directly. Note that a <code>-&gt; string</code> export returns an <code>AetherString*</code>, so read its bytes with <code>aether_string_data()</code> rather than treating it as a <code>char*</code>.</p>
 <h2 id="--emitcsrc-distribute-source-not-n-native-libs"><code>--emit=csrc</code>: distribute source, not N native libs</h2>
 <p>A single <strong>native</strong> lib can't be universal across OSes, ELF vs Mach-O vs PE/COFF are different loader formats. But the <strong>pre-native</strong> artifact can be: the generated C is portable, so <code>--emit=csrc</code> moves the "which platform" decision from <em>distribution time</em> (ship 6 natives) to the consumer's build:</p>
 <pre><code>ae build --emit=csrc mylib.ae -o mylib
@@ -769,7 +789,7 @@ ae build --emit=lib --with=all          file.ae   <span class="com"># alias for 
 <p>What gets <code>static</code> storage class versus external linkage in the generated <code>.c</code> file, by function origin × emit mode. This determines which symbols collide when multiple <code>.c</code> files compiled from different <code>.ae</code> sources are linked into one binary.</p>
 <div class="tw"><table><thead><tr><th>Function origin</th><th><code>--emit=exe</code></th><th><code>--emit=lib</code></th></tr></thead><tbody><tr><td>Local (defined in this <code>.ae</code>)</td><td>external</td><td>external + <code>aether_&lt;name&gt;</code> alias</td></tr><tr><td>Local with trailing <code>_</code> (<code>helper_</code>)</td><td><strong><code>static</code></strong></td><td><strong><code>static</code></strong> (no <code>aether_&lt;name&gt;</code> alias)</td></tr><tr><td>Local with tuple return type</td><td>external</td><td>external (no <code>aether_&lt;name&gt;</code> alias)</td></tr><tr><td>Imported Aether wrapper</td><td><strong><code>static</code></strong></td><td><strong><code>static</code></strong> (no <code>aether_&lt;name&gt;</code> alias)</td></tr><tr><td><code>extern</code> declaration (any module)</td><td>declaration only, refers to external symbol from <code>libaether.a</code> or another TU</td></tr><tr><td>Stdlib C externs (<code>std/*/aether_*.c</code>)</td><td>linked from <code>libaether.a</code>; no per-TU duplication</td></tr></tbody></table></div>
 <p>Two consequences worth highlighting:</p>
-<p><strong>Imported Aether wrappers are private to each TU.</strong> When module A and module B both <code>import std.string</code>, both generated <code>.c</code> files contain <code>static const char* string_copy(...)</code> a private copy each. Linking the two <code>.o</code> files together produces no duplicate-symbol errors, even on linkers that don't support <code>-Wl,--allow-multiple-definition</code> (notably macOS ld64). This is deliberate; see <a href="https://github.com/aether-lang-dev/aether/tree/main/compiler/aether_module.c"><code>compiler/aether_module.c</code></a> where cloned imported functions get <code>clone-&gt;is_imported = 1</code>, and <a href="https://github.com/aether-lang-dev/aether/tree/main/compiler/codegen/codegen_func.c"><code>compiler/codegen/codegen_func.c</code></a> where the <code>static </code> prefix is emitted for functions guarded by <code>func-&gt;is_imported || trailing_underscore_private</code>.</p>
+<p><strong>Imported Aether wrappers are private to each TU.</strong> When module A and module B both <code>import std.string</code>, both generated <code>.c</code> files contain <code>static AETHER_MAYBE_UNUSED const char* string_copy(...)</code> a private copy each. The attribute is there because a TU that calls part of a module leaves the rest of the private copies uncalled, and a consumer building the generated <code>.c</code> with <code>-Wall -Werror</code> would otherwise fail on <code>-Wunused-function</code> in code it did not write. Linking the two <code>.o</code> files together produces no duplicate-symbol errors, even on linkers that don't support <code>-Wl,--allow-multiple-definition</code> (notably macOS ld64). This is deliberate; see <a href="https://github.com/aether-lang-dev/aether/tree/main/compiler/aether_module.c"><code>compiler/aether_module.c</code></a> where cloned imported functions get <code>clone-&gt;is_imported = 1</code>, and <a href="https://github.com/aether-lang-dev/aether/tree/main/compiler/codegen/codegen_func.c"><code>compiler/codegen/codegen_func.c</code></a> where the <code>static AETHER_MAYBE_UNUSED </code> prefix is emitted for functions guarded by <code>func-&gt;is_imported || trailing_underscore_private</code>.</p>
 <p><strong>Locally-defined functions retain external linkage.</strong> If two <code>.ae</code> files both define a function with the same name (e.g. both define <code>helper</code>), they DO collide at link time. <code>--emit=lib</code> adds an <code>aether_&lt;name&gt;</code> alias on top, but the un-aliased local symbol is still external. This is the symmetric opposite of the imported case and is intentional, local functions are the unit of inter-TU linking; the user program structures around their names.</p>
 <p><strong>Implication for downstream tools.</strong> Multi-TU binaries that import the same SDK module across many <code>.ae</code> files do not need <code>-Wl,--allow-multiple-definition</code>. The static-marking on imported wrappers handles deduplication at the source level. Tools building this shape can drop the link flag and gain macOS compatibility for free, <code>ld64</code> (Apple's linker) silently rejects <code>--allow-multiple-definition</code>, and the static-marking removes the need for it.</p>
 <h2 id="using-swig-to-generate-javapythonrubygo-bindings">Using SWIG to generate Java/Python/Ruby/Go bindings</h2>
@@ -837,6 +857,7 @@ aether_config_free_deep(root);   <span class="com">/* nested map + list freed to
 <p>Every <code>--emit=lib</code> artifact exports a single reflection entry point:</p>
 <pre><code><span class="kw">const</span> AetherLibMeta* aether_lib_meta(<span class="kw">void</span>);</code></pre>
 <p>declared in <code>runtime/aether_lib_meta.h</code>. The returned struct describes every exported function, Aether name, C symbol, public signature, source file, source line, in a layout-stable, allocation-free form that any FFI consumer (Python ctypes, Java Panama, Ruby Fiddle, Node-API, hand-rolled <code>dlsym</code>) can walk directly.</p>
+<p>The entry point is emitted <strong>weak</strong> (<code>__attribute__((weak))</code> under GCC/Clang, #1590), so an orchestrator that links several <code>--emit=lib</code> TUs into one artifact (aeb's regen shape: one C per module, one final link) needs no <code>-Wl,--allow-multiple-definition</code>, the multi-TU static-clone link model of 0.539 holds for lib TUs too, on ld64 as well as GNU ld. In a lone <code>.so</code> nothing changes: one definition, same dlsym contract. In a deliberate multi-TU link the first TU's catalog wins; treat <code>aether_lib_meta</code> as meaningful only on single-module artifacts.</p>
 <pre><code><span class="kw">typedef</span> <span class="kw">struct</span> {
     <span class="kw">const</span> <span class="kw">char</span>* aether_name;     <span class="com">/* "double_int", "std.fs.copy"      */</span>
     <span class="kw">const</span> <span class="kw">char</span>* c_symbol;         <span class="com">/* unmangled symbol to dlsym         */</span>
@@ -876,12 +897,12 @@ aether_config_free_deep(root);   <span class="com">/* nested map + list freed to
 <p>Closure-literal return types are best-effort: rendered when resolved, <code>?</code> when the body type-checks lazily and the type isn't known at emit time. Captures and parameter types are exact.</p>
 <h4 id="consuming-a-published-library-from-aether-import">Consuming a published library from Aether (<code>import</code>)</h4>
 <p>The records above are not just for inspection, they are what lets an <em>Aether</em> program consume a precompiled <code>--emit=lib</code> artifact as a first-class <code>import</code>, with the call site reading as if the library were compiled in the same cycle:</p>
-<pre><code><span class="kw">import</span> std.map        <span class="com">// builder default factory (map_new) lives here</span>
-<span class="kw">import</span> gizmo          <span class="com">// resolves libgizmo.so, no gizmo.ae source needed</span>
+<pre><code>import std.map        // builder default factory (map_new) lives here
+import gizmo          // resolves libgizmo.so, no gizmo.ae source needed
 
 main() {
-    println(gizmo.greet(<span class="str">"world"</span>))     <span class="com">// a function export</span>
-    s = gizmo.section(<span class="str">"intro"</span>) { }    <span class="com">// a builder (trailing-block DSL) export</span>
+    println(gizmo.greet("world"))     // a function export
+    s = gizmo.section("intro") { }    // a builder (trailing-block DSL) export
     println(s)
 }</code></pre>
 <p>When <code>ae run</code> / <code>ae build</code> sees an <code>import foo</code> that has no <code>foo</code> source module but a <code>libfoo.so</code> / <code>foo.so</code> on the search path, it reads that artifact's <code>aether_lib_meta()</code> catalog and synthesizes a small Aether interface stub: an <code>@extern("&lt;c_symbol&gt;") name(...) -&gt; R</code> for each function export, and a trailing-block <code>builder</code> wrapper for each <code>builder</code> record (forwarding the block's config map to the library function's <code>(..., _builder)</code> entry point). The stub is dropped onto the module search path, so the <em>existing</em> source-import machinery (typecheck, namespace prefixing, builder registration) rehydrates the library, no special call-site syntax. The artifact is linked in (absolute path + <code>-rpath</code>), and the host's <code>-rdynamic</code> + static <code>libaether</code> satisfy the <code>.so</code>'s runtime symbols.</p>
@@ -938,7 +959,7 @@ for i in range(meta.function_count):
 <nav class="doc-prevnext" aria-label="Previous and next page"><a class="pn-prev" href="/Docs/c-embedding.html"><span class="pn-k">Previous</span><span class="pn-t">Embedding Aether Actors in C Applications</span></a><a class="pn-next" href="/Docs/embedded-namespaces-and-host-bindings.html"><span class="pn-k">Next</span><span class="pn-t">Aether as a Configuration Language, v2: Namespaces and Generated Bindings</span></a></nav>
       </article>
     </main>
-    <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#quick-example" class="l2" data-id="quick-example">Quick example</a><a href="#the-flag-matrix" class="l2" data-id="the-flag-matrix">The flag matrix</a><a href="#--emitcsrc-distribute-source-not-n-native-libs" class="l2" data-id="--emitcsrc-distribute-source-not-n-native-libs">--emit=csrc: distribute source, not N native libs</a><a href="#the-json-catalog-namecatalogjson" class="l3" data-id="the-json-catalog-namecatalogjson">The JSON catalog (&lt;name&gt;.catalog.json)</a><a href="#naming" class="l2" data-id="naming">Naming</a><a href="#type-mapping" class="l2" data-id="type-mapping">Type mapping</a><a href="#the-aethervalue-accessor-api" class="l2" data-id="the-aethervalue-accessor-api">The AetherValue* accessor API</a><a href="#ownership" class="l3" data-id="ownership">Ownership</a><a href="#behaviour-of-missing-keys--out-of-range-indices" class="l3" data-id="behaviour-of-missing-keys--out-of-range-indices">Behaviour of missing keys / out-of-range indices</a><a href="#type-contract" class="l3" data-id="type-contract">Type contract</a><a href="#capability-empty-default" class="l2" data-id="capability-empty-default">Capability-empty default</a><a href="#opting-in---withcapabilities" class="l3" data-id="opting-in---withcapabilities">Opting in: --with=&lt;capabilities&gt;</a><a href="#symbol-visibility-matrix" class="l2" data-id="symbol-visibility-matrix">Symbol visibility matrix</a><a href="#using-swig-to-generate-javapythonrubygo-bindings" class="l2" data-id="using-swig-to-generate-javapythonrubygo-bindings">Using SWIG to generate Java/Python/Ruby/Go bindings</a><a href="#per-call-resource-caps" class="l2" data-id="per-call-resource-caps">Per-call resource caps</a><a href="#whats-out-of-scope-for-v1" class="l2" data-id="whats-out-of-scope-for-v1">What's out of scope for v1</a><a href="#kind-discrimination--deep-free-aether_value_kind-aether_config_free_deep" class="l2" data-id="kind-discrimination--deep-free-aether_value_kind-aether_config_free_deep">Kind discrimination + deep-free (aether_value_kind, aether_config_free_deep)</a><a href="#reflection-the-symbol-catalog-aether_lib_meta" class="l2" data-id="reflection-the-symbol-catalog-aether_lib_meta">Reflection: the symbol catalog (aether_lib_meta)</a><a href="#ae-lib-info-path-inspect-any-artifact" class="l3" data-id="ae-lib-info-path-inspect-any-artifact">ae lib-info &lt;path&gt; inspect any artifact</a><a href="#what-this-enables-for-ffi-hosts" class="l3" data-id="what-this-enables-for-ffi-hosts">What this enables for FFI hosts</a><a href="#working-tests" class="l2" data-id="working-tests">Working tests</a></nav>
+    <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#quick-example" class="l2" data-id="quick-example">Quick example</a><a href="#the-flag-matrix" class="l2" data-id="the-flag-matrix">The flag matrix</a><a href="#--emitobj-one-object-file-for-an-existing-c-build" class="l2" data-id="--emitobj-one-object-file-for-an-existing-c-build">--emit=obj: one object file for an existing C build</a><a href="#--emitcsrc-distribute-source-not-n-native-libs" class="l2" data-id="--emitcsrc-distribute-source-not-n-native-libs">--emit=csrc: distribute source, not N native libs</a><a href="#the-json-catalog-namecatalogjson" class="l3" data-id="the-json-catalog-namecatalogjson">The JSON catalog (&lt;name&gt;.catalog.json)</a><a href="#naming" class="l2" data-id="naming">Naming</a><a href="#type-mapping" class="l2" data-id="type-mapping">Type mapping</a><a href="#the-aethervalue-accessor-api" class="l2" data-id="the-aethervalue-accessor-api">The AetherValue* accessor API</a><a href="#ownership" class="l3" data-id="ownership">Ownership</a><a href="#behaviour-of-missing-keys--out-of-range-indices" class="l3" data-id="behaviour-of-missing-keys--out-of-range-indices">Behaviour of missing keys / out-of-range indices</a><a href="#type-contract" class="l3" data-id="type-contract">Type contract</a><a href="#capability-empty-default" class="l2" data-id="capability-empty-default">Capability-empty default</a><a href="#opting-in---withcapabilities" class="l3" data-id="opting-in---withcapabilities">Opting in: --with=&lt;capabilities&gt;</a><a href="#symbol-visibility-matrix" class="l2" data-id="symbol-visibility-matrix">Symbol visibility matrix</a><a href="#using-swig-to-generate-javapythonrubygo-bindings" class="l2" data-id="using-swig-to-generate-javapythonrubygo-bindings">Using SWIG to generate Java/Python/Ruby/Go bindings</a><a href="#per-call-resource-caps" class="l2" data-id="per-call-resource-caps">Per-call resource caps</a><a href="#whats-out-of-scope-for-v1" class="l2" data-id="whats-out-of-scope-for-v1">What's out of scope for v1</a><a href="#kind-discrimination--deep-free-aether_value_kind-aether_config_free_deep" class="l2" data-id="kind-discrimination--deep-free-aether_value_kind-aether_config_free_deep">Kind discrimination + deep-free (aether_value_kind, aether_config_free_deep)</a><a href="#reflection-the-symbol-catalog-aether_lib_meta" class="l2" data-id="reflection-the-symbol-catalog-aether_lib_meta">Reflection: the symbol catalog (aether_lib_meta)</a><a href="#ae-lib-info-path-inspect-any-artifact" class="l3" data-id="ae-lib-info-path-inspect-any-artifact">ae lib-info &lt;path&gt; inspect any artifact</a><a href="#what-this-enables-for-ffi-hosts" class="l3" data-id="what-this-enables-for-ffi-hosts">What this enables for FFI hosts</a><a href="#working-tests" class="l2" data-id="working-tests">Working tests</a></nav>
   </div>
 </div>
 <script src="/docs.js" defer></script>
@@ -947,7 +968,7 @@ for i in range(meta.function_count):
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.473 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.562 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

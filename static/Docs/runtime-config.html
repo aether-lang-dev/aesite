@@ -4,11 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Runtime Configuration - Quick Reference · Aether</title>
-<meta name="description" content="Multiple threads work simultaneously.">
+<meta name="description" content="Performance varies by hardware and workload. Use the profiling tools to measure throughput on your target platform.">
 <link rel="canonical" href="https://aether-lang.dev/Docs/runtime-config.html">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Runtime Configuration - Quick Reference · Aether">
-<meta property="og:description" content="Multiple threads work simultaneously.">
+<meta property="og:description" content="Performance varies by hardware and workload. Use the profiling tools to measure throughput on your target platform.">
 <meta property="og:url" content="https://aether-lang.dev/Docs/runtime-config.html">
 <meta property="og:image" content="https://aether-lang.dev/og.png">
 <meta name="twitter:card" content="summary_large_image">
@@ -171,7 +171,7 @@ a{color:inherit;text-decoration:none}
 
 /* section head */
 .sec-head{display:flex;align-items:baseline;gap:14px;margin:0 0 22px}
-.sec-head h2{font-family:var(--mono);font-size:1.15rem;font-weight:700;letter-spacing:-.01em;margin:0}
+.sec-head h1,.sec-head h2{font-family:var(--mono);font-size:1.15rem;font-weight:700;letter-spacing:-.01em;margin:0}
 .sec-head .rule{flex:1;height:1px;background:var(--line)}
 
 /* code */
@@ -358,7 +358,7 @@ body::after{content:"";position:fixed;inset:0;z-index:3;pointer-events:none;opac
 
 /* prompt accents on section headings */
 .prompt{color:var(--red);margin-right:.5ch}
-.sec-head h2 .prompt{font-weight:400}
+.sec-head h1 .prompt,.sec-head h2 .prompt{font-weight:400}
 
 /* prompt-styled ghost button */
 .btn-term{font-family:var(--mono);font-size:14px;padding:11px 18px;border-radius:6px;
@@ -570,7 +570,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.473</span>
+      <span class="vtag">v0.562</span>
     </nav>
   </div>
 </header>
@@ -600,6 +600,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/memory-management.html">Aether Memory Management</a>
 <a href="/Docs/runtime-optimizations.html">Runtime Optimizations</a>
 <a href="/Docs/numa-support.html">NUMA Support in Aether</a>
+<a href="/Docs/message-tracing.html">Message tracing</a>
 <div class="grp">Interop</div>
 <a href="/Docs/c-interop.html">C Interoperability</a>
 <a href="/Docs/c-embedding.html">Embedding Aether Actors in C Applications</a>
@@ -624,6 +625,11 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/runtime-config.html" class="on">Runtime Configuration - Quick Reference</a>
 <a href="/Docs/per-process-config.html">Per-process configuration in Aether</a>
 <a href="/Docs/cic-help.html">ae help &lt;script&gt; Offline diagnostics for config-IS-code</a>
+<a href="/Docs/cross-ios.html">Cross-compiling for iOS (arm64)</a>
+<div class="grp">Testing</div>
+<a href="/Docs/testing.html">Testing with std.spec and ae test</a>
+<a href="/Docs/mutation-testing.html">Mutation testing, std.mutation</a>
+<a href="/Docs/differential-testing.html">Differential testing across lowering paths</a>
 <div class="grp">Performance</div>
 <a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
 <a href="/Docs/profiling-guide.html">Aether Runtime Profiling Guide</a>
@@ -639,6 +645,9 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
 <a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn't need macro_rules!</a>
 <a href="/Docs/lib-caller-info.html">--emit=lib caller-info channel</a>
+<a href="/Docs/liveview-lite-roadmap.html">LiveView-lite, a roadmap (Phoenix LiveView, on actors, without the framework)</a>
+<a href="/Docs/schema-projection-roadmap.html">std.schema, a projection-first roadmap (Ash, without the framework)</a>
+<a href="/Docs/locale-independent-float-text.html">Plan: locale-independent float text conversion (LC_NUMERIC correctness)</a>
 <div class="grp">Contributing</div>
 <a href="/Docs/stdlib-module-pattern.html">Aether Stdlib Module Pattern</a>
 <a href="/Docs/stdlib-vs-contrib.html">std/ vs contrib/ placement decisions</a>
@@ -720,25 +729,30 @@ aether_runtime_init(<span class="num">8</span>, flags);</code></pre>
 <hr>
 <h2 id="examples">Examples</h2>
 <h3 id="example-1-simple-program">Example 1: Simple Program</h3>
+<p>Actors are produced by the Aether compiler: an <code>actor</code> block becomes a struct carrying a mailbox, and the runtime flags below decide which mailbox and pool implementations it uses. A C program embedding the runtime configures it and then drives compiler-generated actors, or its own structs built on the mailbox API in <code>runtime/actors/actor_state_machine.h</code>.</p>
 <pre><code>#include <span class="str">"runtime/aether_runtime.h"</span>
-#include <span class="str">"runtime/actors/aether_actor.h"</span>
+#include <span class="str">"runtime/actors/actor_state_machine.h"</span>
 
-<span class="kw">void</span> my_actor_process(Actor* self, <span class="kw">void</span>* msg, <span class="kw">int</span> size) {
-    <span class="com">// Process message</span>
-}
+<span class="kw">typedef</span> <span class="kw">struct</span> Counter {
+    <span class="kw">int</span> id;
+    atomic_int active;
+    Mailbox mailbox;
+    <span class="kw">int</span> count;
+} Counter;
 
 <span class="kw">int</span> main() {
     <span class="com">// Initialize with auto-detect</span>
     aether_runtime_init(<span class="num">0</span>, AETHER_FLAG_AUTO_DETECT);
-    
-    <span class="com">// Create actor (automatically uses configured optimizations)</span>
-    Actor* actor = aether_actor_create(my_actor_process);
-    aether_actor_start(actor);
-    
-    <span class="com">// Send messages...</span>
-    
-    aether_actor_stop(actor);
-    aether_actor_destroy(actor);
+
+    Counter c = {<span class="num">0</span>};
+    mailbox_init(&amp;c.mailbox);
+
+    Message msg = {<span class="num">1</span>, <span class="num">0</span>, <span class="num">42</span>, NULL};
+    mailbox_send(&amp;c.mailbox, msg);
+    <span class="kw">if</span> (mailbox_receive(&amp;c.mailbox, &amp;msg)) {
+        c.count++;
+    }
+
     aether_runtime_shutdown();
     <span class="kw">return</span> <span class="num">0</span>;
 }</code></pre>
@@ -763,41 +777,30 @@ aether_runtime_init(<span class="num">8</span>, flags);</code></pre>
 <pre><code>aether_runtime_init(<span class="num">0</span>, AETHER_FLAG_AUTO_DETECT | AETHER_FLAG_VERBOSE);</code></pre>
 <h3 id="run-configuration-example">Run Configuration Example</h3>
 <p>Build and run the C example under <code>runtime/examples/</code>:</p>
-<pre><code>cd runtime/examples
-gcc -O2 -o runtime_config runtime_config_example.c ../../runtime/*.c -I../..
+<pre><code>gcc -O2 -o runtime_config runtime/examples/runtime_config_example.c \
+    runtime/aether_runtime.c runtime/config/aether_optimization_config.c \
+    runtime/utils/aether_cpu_detect.c -Iruntime
 ./runtime_config</code></pre>
 <hr>
 <h2 id="how-it-works-internally">How It Works Internally</h2>
-<h3 id="mailbox-selection">Mailbox Selection</h3>
-<pre><code><span class="com">// In aether_actor_create()</span>
-Actor* actor = aether_actor_create(process_fn);
-
-<span class="com">// Runtime automatically selects mailbox type:</span>
-<span class="kw">if</span> (runtime_config-&gt;use_lockfree_mailbox) {
-    <span class="com">// Use atomic SPSC queue (no mutex)</span>
-    lockfree_mailbox_init(&amp;actor-&gt;mailbox.lockfree);
+<h3 id="where-a-message-goes">Where a message goes</h3>
+<p>Every actor carries one <code>Mailbox</code> (the ring buffer in <a href="https://github.com/aether-lang-dev/aether/tree/main/runtime/actors/actor_state_machine.h"><code>runtime/actors/actor_state_machine.h</code></a>). The send path in <a href="https://github.com/aether-lang-dev/aether/tree/main/runtime/actors/aether_send_message.c"><code>runtime/actors/aether_send_message.c</code></a> picks how it gets there:</p>
+<pre><code><span class="com">// aether_send_message(), abridged</span>
+<span class="kw">const</span> <span class="kw">int</span> my_core = current_core_id;
+<span class="kw">if</span> (my_core &gt;= <span class="num">0</span> &amp;&amp; my_core == atomic_load(&amp;actor-&gt;assigned_core)) {
+    scheduler_send_local(actor, msg);     <span class="com">// same core: lock-free SPSC queue</span>
 } <span class="kw">else</span> {
-    <span class="com">// Use simple ring buffer</span>
-    mailbox_init(&amp;actor-&gt;mailbox.simple);
+    scheduler_send_remote(actor, msg, my_core);
 }</code></pre>
-<h3 id="message-send">Message Send</h3>
-<pre><code><span class="com">// In aether_send_message()</span>
-<span class="kw">if</span> (actor-&gt;use_lockfree) {
-    lockfree_mailbox_send(&amp;actor-&gt;mailbox.lockfree, msg);  <span class="com">// Atomic</span>
-} <span class="kw">else</span> {
-    mailbox_send(&amp;actor-&gt;mailbox.simple, msg);  <span class="com">// Simple</span>
-}</code></pre>
+<p>A single-actor program takes an earlier path still: main-thread mode runs <code>step()</code> inline on the sender's thread rather than queueing at all. The SPSC queue is allocated on first use (<code>ensure_spsc_queue</code> in <a href="https://github.com/aether-lang-dev/aether/tree/main/runtime/scheduler/multicore_scheduler.c"><code>runtime/scheduler/multicore_scheduler.c</code></a>), so an actor that never receives a same-core send does not pay for one.</p>
 <h3 id="message-pool-allocation">Message Pool Allocation</h3>
-<pre><code><span class="com">// In message_pool_alloc()</span>
-<span class="kw">if</span> (pool-&gt;is_thread_local) {
-    <span class="com">// LOCK-FREE PATH (no mutex)</span>
-    buffer = pool-&gt;buffers[pool-&gt;head];
-    pool-&gt;head = (pool-&gt;head + <span class="num">1</span>) % MESSAGE_POOL_SIZE;
-    <span class="kw">return</span> buffer;
-} <span class="kw">else</span> {
-    <span class="com">// Shared pool (with mutex)</span>
-    pthread_mutex_lock(&amp;pool-&gt;lock);
-    <span class="com">// ...</span>
+<pre><code><span class="com">// runtime/actors/aether_message_pool.h, per-thread pool, abridged</span>
+<span class="kw">static</span> <span class="kw">inline</span> Message* message_pool_alloc(<span class="kw">void</span>) {
+    <span class="kw">if</span> (!g_msg_pool) message_pool_init_thread();
+    <span class="kw">if</span> (atomic_load_explicit(&amp;g_msg_pool-&gt;count, memory_order_relaxed) == <span class="num">0</span>) {
+        <span class="kw">return</span> malloc(<span class="kw">sizeof</span>(Message));   <span class="com">// pool exhausted: fall back to heap</span>
+    }
+    <span class="com">// pop an index off the thread's free list</span>
 }</code></pre>
 <hr>
 <h2 id="environment-variables">Environment Variables</h2>
@@ -839,7 +842,7 @@ AETHER_VERBOSE=<span class="num">1</span> ./program</code></pre>
 <nav class="doc-prevnext" aria-label="Previous and next page"><a class="pn-prev" href="/Docs/install-layout.html"><span class="pn-k">Previous</span><span class="pn-t">Aether install layout</span></a><a class="pn-next" href="/Docs/per-process-config.html"><span class="pn-k">Next</span><span class="pn-t">Per-process configuration in Aether</span></a></nav>
       </article>
     </main>
-    <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#what-does-lock-free-mean" class="l2" data-id="what-does-lock-free-mean">What Does "Lock-Free" Mean?</a><a href="#integrated-optimizations" class="l2" data-id="integrated-optimizations">Integrated Optimizations</a><a href="#what-was-implemented" class="l3" data-id="what-was-implemented">What Was Implemented</a><a href="#usage" class="l2" data-id="usage">Usage</a><a href="#option-1-auto-detect-recommended" class="l3" data-id="option-1-auto-detect-recommended">Option 1: Auto-Detect (Recommended)</a><a href="#option-2-manual-control" class="l3" data-id="option-2-manual-control">Option 2: Manual Control</a><a href="#option-3-compatibility-mode" class="l3" data-id="option-3-compatibility-mode">Option 3: Compatibility Mode</a><a href="#option-4-debugverbose" class="l3" data-id="option-4-debugverbose">Option 4: Debug/Verbose</a><a href="#available-flags" class="l2" data-id="available-flags">Available Flags</a><a href="#performance-expectations" class="l2" data-id="performance-expectations">Performance Expectations</a><a href="#examples" class="l2" data-id="examples">Examples</a><a href="#example-1-simple-program" class="l3" data-id="example-1-simple-program">Example 1: Simple Program</a><a href="#example-2-query-configuration" class="l3" data-id="example-2-query-configuration">Example 2: Query Configuration</a><a href="#example-3-feature-check" class="l3" data-id="example-3-feature-check">Example 3: Feature Check</a><a href="#testing" class="l2" data-id="testing">Testing</a><a href="#check-cpu-features" class="l3" data-id="check-cpu-features">Check CPU Features</a><a href="#run-configuration-example" class="l3" data-id="run-configuration-example">Run Configuration Example</a><a href="#how-it-works-internally" class="l2" data-id="how-it-works-internally">How It Works Internally</a><a href="#mailbox-selection" class="l3" data-id="mailbox-selection">Mailbox Selection</a><a href="#message-send" class="l3" data-id="message-send">Message Send</a><a href="#message-pool-allocation" class="l3" data-id="message-pool-allocation">Message Pool Allocation</a><a href="#environment-variables" class="l2" data-id="environment-variables">Environment Variables</a><a href="#best-practices" class="l2" data-id="best-practices">Best Practices</a><a href="#cross-platform-support" class="l2" data-id="cross-platform-support">Cross-Platform Support</a><a href="#cooperative-mode" class="l3" data-id="cooperative-mode">Cooperative Mode</a><a href="#platform-capability-flags" class="l3" data-id="platform-capability-flags">Platform Capability Flags</a><a href="#troubleshooting" class="l2" data-id="troubleshooting">Troubleshooting</a><a href="#issue-optimization-not-enabled" class="l3" data-id="issue-optimization-not-enabled">Issue: "Optimization not enabled"</a><a href="#issue-performance-not-as-expected" class="l3" data-id="issue-performance-not-as-expected">Issue: "Performance not as expected"</a><a href="#issue-works-on-development-machine-not-on-server" class="l3" data-id="issue-works-on-development-machine-not-on-server">Issue: "Works on development machine, not on server"</a></nav>
+    <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#what-does-lock-free-mean" class="l2" data-id="what-does-lock-free-mean">What Does "Lock-Free" Mean?</a><a href="#integrated-optimizations" class="l2" data-id="integrated-optimizations">Integrated Optimizations</a><a href="#what-was-implemented" class="l3" data-id="what-was-implemented">What Was Implemented</a><a href="#usage" class="l2" data-id="usage">Usage</a><a href="#option-1-auto-detect-recommended" class="l3" data-id="option-1-auto-detect-recommended">Option 1: Auto-Detect (Recommended)</a><a href="#option-2-manual-control" class="l3" data-id="option-2-manual-control">Option 2: Manual Control</a><a href="#option-3-compatibility-mode" class="l3" data-id="option-3-compatibility-mode">Option 3: Compatibility Mode</a><a href="#option-4-debugverbose" class="l3" data-id="option-4-debugverbose">Option 4: Debug/Verbose</a><a href="#available-flags" class="l2" data-id="available-flags">Available Flags</a><a href="#performance-expectations" class="l2" data-id="performance-expectations">Performance Expectations</a><a href="#examples" class="l2" data-id="examples">Examples</a><a href="#example-1-simple-program" class="l3" data-id="example-1-simple-program">Example 1: Simple Program</a><a href="#example-2-query-configuration" class="l3" data-id="example-2-query-configuration">Example 2: Query Configuration</a><a href="#example-3-feature-check" class="l3" data-id="example-3-feature-check">Example 3: Feature Check</a><a href="#testing" class="l2" data-id="testing">Testing</a><a href="#check-cpu-features" class="l3" data-id="check-cpu-features">Check CPU Features</a><a href="#run-configuration-example" class="l3" data-id="run-configuration-example">Run Configuration Example</a><a href="#how-it-works-internally" class="l2" data-id="how-it-works-internally">How It Works Internally</a><a href="#where-a-message-goes" class="l3" data-id="where-a-message-goes">Where a message goes</a><a href="#message-pool-allocation" class="l3" data-id="message-pool-allocation">Message Pool Allocation</a><a href="#environment-variables" class="l2" data-id="environment-variables">Environment Variables</a><a href="#best-practices" class="l2" data-id="best-practices">Best Practices</a><a href="#cross-platform-support" class="l2" data-id="cross-platform-support">Cross-Platform Support</a><a href="#cooperative-mode" class="l3" data-id="cooperative-mode">Cooperative Mode</a><a href="#platform-capability-flags" class="l3" data-id="platform-capability-flags">Platform Capability Flags</a><a href="#troubleshooting" class="l2" data-id="troubleshooting">Troubleshooting</a><a href="#issue-optimization-not-enabled" class="l3" data-id="issue-optimization-not-enabled">Issue: "Optimization not enabled"</a><a href="#issue-performance-not-as-expected" class="l3" data-id="issue-performance-not-as-expected">Issue: "Performance not as expected"</a><a href="#issue-works-on-development-machine-not-on-server" class="l3" data-id="issue-works-on-development-machine-not-on-server">Issue: "Works on development machine, not on server"</a></nav>
   </div>
 </div>
 <script src="/docs.js" defer></script>
@@ -848,7 +851,7 @@ AETHER_VERBOSE=<span class="num">1</span> ./program</code></pre>
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.473 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.562 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

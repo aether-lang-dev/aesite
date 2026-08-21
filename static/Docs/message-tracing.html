@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Structured Concurrency for Aether, Design Direction · Aether</title>
-<meta name="description" content="Status: proposal. Nothing shipped yet. This doc captures the design choices we&#x27;ve committed to before writing code, so the implementation PRs have a...">
-<link rel="canonical" href="https://aether-lang.dev/Docs/structured-concurrency.html">
+<title>Message tracing · Aether</title>
+<meta name="description" content="When an actor program misbehaves, the question is almost always &quot;what actually happened, in what order, and on which core&quot;.">
+<link rel="canonical" href="https://aether-lang.dev/Docs/message-tracing.html">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Structured Concurrency for Aether, Design Direction · Aether">
-<meta property="og:description" content="Status: proposal. Nothing shipped yet. This doc captures the design choices we&#x27;ve committed to before writing code, so the implementation PRs have a...">
-<meta property="og:url" content="https://aether-lang.dev/Docs/structured-concurrency.html">
+<meta property="og:title" content="Message tracing · Aether">
+<meta property="og:description" content="When an actor program misbehaves, the question is almost always &quot;what actually happened, in what order, and on which core&quot;.">
+<meta property="og:url" content="https://aether-lang.dev/Docs/message-tracing.html">
 <meta property="og:image" content="https://aether-lang.dev/og.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="/favicon.png">
@@ -600,7 +600,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/memory-management.html">Aether Memory Management</a>
 <a href="/Docs/runtime-optimizations.html">Runtime Optimizations</a>
 <a href="/Docs/numa-support.html">NUMA Support in Aether</a>
-<a href="/Docs/message-tracing.html">Message tracing</a>
+<a href="/Docs/message-tracing.html" class="on">Message tracing</a>
 <div class="grp">Interop</div>
 <a href="/Docs/c-interop.html">C Interoperability</a>
 <a href="/Docs/c-embedding.html">Embedding Aether Actors in C Applications</a>
@@ -635,7 +635,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/profiling-guide.html">Aether Runtime Profiling Guide</a>
 <a href="/Docs/allocators.html">Allocators</a>
 <div class="grp">Design & RFCs</div>
-<a href="/Docs/structured-concurrency.html" class="on">Structured Concurrency for Aether, Design Direction</a>
+<a href="/Docs/structured-concurrency.html">Structured Concurrency for Aether, Design Direction</a>
 <a href="/Docs/contract-folding.html">Compile-time contract folding, costed design</a>
 <a href="/Docs/error-unification.html">Unifying T? and (value, err), costed design</a>
 <a href="/Docs/compiler-trust-boundary.html">The Compiler Trust Boundary</a>
@@ -655,88 +655,51 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/release-glibc-portability.html">Release binary portability across glibc versions</a></nav>
     <main class="doc-main">
       <article class="doc-body" id="doc">
-        <div class="bc"><span class="prompt">$</span>docs / design &amp; rfcs</div>
-<h1 id="structured-concurrency-for-aether-design-direction">Structured Concurrency for Aether, Design Direction</h1>
-<p>Status: <strong>proposal</strong>. Nothing shipped yet. This doc captures the design choices we've committed to before writing code, so the implementation PRs have a target to aim at.</p>
-<h2 id="what-were-trying-to-fix">What we're trying to fix</h2>
-<p>Aether has actors. It does not have:</p>
-<ul><li><strong>A way for a parent to know when its children die.</strong> If an actor handler panics or exits, no notification reaches the actor that spawned it. Long-running supervisor patterns (Erlang-style restart-on-crash, graceful shutdown of a subtree) can't be written.</li><li><strong>Any containment on which actors a block can reach.</strong> A function body can send a message to any actor reference it can name, and <code>hide</code> / <code>seal except</code> don't extend that restriction to concurrency sites (spawn, <code>!</code>, <code>ask</code>). A sealed block can still talk to any actor whose handle happens to be in scope.</li></ul>
-<p>Both are fixable without fundamentally changing the actor model.</p>
-<h2 id="the-design-space-and-why-we-picked-what-we-picked">The design space, and why we picked what we picked</h2>
-<p>Six families of structured concurrency exist. The summary table:</p>
-<div class="tw"><table><thead><tr><th>Model</th><th>Fit for Aether</th><th>Verdict</th></tr></thead><tbody><tr><td>Nurseries / TaskGroups (Trio, Swift, Kotlin <code>coroutineScope</code>)</td><td>Needs a new "task" primitive distinct from actors</td><td>Possible, high cost</td></tr><tr><td>Supervision trees (Erlang/OTP, Akka)</td><td>Natural extension of existing actors</td><td><strong>Strong candidate</strong></td></tr><tr><td>Async/await (Rust, Kotlin, Swift)</td><td>Breaks run-to-completion, requires coloured functions</td><td>Ruled out</td></tr><tr><td>CSP / channels (Go, Clojure core.async)</td><td>Duplicates actor mailboxes</td><td>Ruled out</td></tr><tr><td>Fork-join (Cilk, Rayon, Java ForkJoinPool)</td><td>Complements actors for data parallelism</td><td>Nice-to-have, not core</td></tr><tr><td>Capability-scoped (E, Monte, Pony refcaps)</td><td>Builds on hide/seal, unique to Aether</td><td><strong>Strong candidate</strong></td></tr></tbody></table></div>
-<h3 id="the-two-rulings-worth-unpacking">The two rulings worth unpacking</h3>
-<p><strong>Async/await is ruled out</strong> because Aether's handlers are run-to-completion. Introducing suspension points inside a handler would break the invariant that makes the shared-nothing actor model safe: a handler either finishes or panics, it doesn't yield. Async/await would also force <strong>coloured functions</strong> (async vs sync), which splits the ecosystem, every stdlib function becomes two functions, every actor becomes two kinds. Aether's cooperative scheduler gets its simplicity from the run-to-completion rule, and async/await would throw that away.</p>
-<p><strong>CSP channels are ruled out</strong> because Aether already has actor mailboxes. A channel is a point-to-point typed queue with a send and a receive end; an actor's mailbox is exactly that with an identity attached. Adding channels on top would give users two ways to do the same thing and force stdlib authors to pick one, usually the wrong one for half their callers.</p>
-<h3 id="the-two-were-building">The two we're building</h3>
-<p><strong>Supervision trees</strong> solve the "who's responsible when a child dies" problem. They're a library-level pattern on top of primitives the runtime <em>doesn't yet expose but easily could</em>: actor failure notification. Parents register interest in a child; if the child dies, the parent gets a <code>Down { ref, reason }</code> message. Everything else, restart strategies, escalation, graceful shutdown, is ordinary actor code on top of that one primitive.</p>
-<p><strong>Capability-scoped concurrency</strong> solves the "who can reach whom" problem. Aether already has <code>hide</code> and <code>seal except</code> for compile-time capability denial on <em>variable</em> references. Extending that enforcement to <em>actor</em> references means a sealed block cannot <code>spawn</code> a type it can't name, cannot <code>!</code> a reference it can't see, and cannot <code>ask</code> an actor outside its whitelist. <strong>No new mechanism is needed</strong>, just the existing scope-denial check applied at two more compile-time sites (spawn, send).</p>
-<p>The two compose: a supervised subtree that is also sealed gives you both bounded lifetime and bounded blast radius.</p>
-<h2 id="phase-1-supervision-primitives">Phase 1, supervision primitives</h2>
-<p>The runtime change needed is small: actor failure notification.</p>
-<h3 id="what-the-runtime-must-expose">What the runtime must expose</h3>
-<ol><li>When an actor's handler returns abnormally (an explicit <code>exit(reason)</code>, or a panic caught by the scheduler), the scheduler delivers a <code>Down { ref, reason }</code> message to every actor that registered interest in the failed actor.</li><li>Registration is one of two kinds:<ul><li><strong>Monitor</strong>, one-way. I get a <code>Down</code> if it dies; it doesn't hear about me dying.</li><li><strong>Link</strong>, two-way (Erlang semantics). If either of us dies, the other gets a <code>Down</code>.</li></ul></li><li>Delivery is best-effort at-most-once, routed through the normal mailbox. No new transport.</li></ol>
-<h3 id="language--stdlib-surface">Language / stdlib surface</h3>
-<pre><code>// Builtins
-monitor(actor_ref) -&gt; monitor_id   // one-way
-link(actor_ref)                     // two-way
-demonitor(monitor_id)               // cancel monitor
-unlink(actor_ref)                   // cancel link
+        <div class="bc"><span class="prompt">$</span>docs / runtime</div>
+<h1 id="message-tracing">Message tracing</h1>
+<p>When an actor program misbehaves, the question is almost always "what actually happened, in what order, and on which core". Message tracing answers it by recording every step a message takes through the runtime and writing the result as JSONL.</p>
+<pre><code>ae build --trace myprog.ae -o myprog
+AETHER_TRACE=trace.jsonl ./myprog</code></pre>
+<pre><code>{<span class="str">"ts_ns"</span>:<span class="num">221234006688000</span>,<span class="str">"core"</span>:-<span class="num">1</span>,<span class="str">"event"</span>:<span class="str">"send_remote"</span>,<span class="str">"actor"</span>:<span class="num">1</span>,<span class="str">"msg"</span>:<span class="num">0</span>,<span class="str">"msg_name"</span>:<span class="str">"Ping"</span>,<span class="str">"sender"</span>:<span class="num">0</span>}
+{<span class="str">"ts_ns"</span>:<span class="num">221234006692000</span>,<span class="str">"core"</span>:-<span class="num">1</span>,<span class="str">"event"</span>:<span class="str">"step_begin"</span>,<span class="str">"actor"</span>:<span class="num">1</span>,<span class="str">"msg"</span>:-<span class="num">1</span>}
+{<span class="str">"ts_ns"</span>:<span class="num">221234006697000</span>,<span class="str">"core"</span>:-<span class="num">1</span>,<span class="str">"event"</span>:<span class="str">"step_end"</span>,<span class="str">"actor"</span>:<span class="num">1</span>,<span class="str">"msg"</span>:-<span class="num">1</span>}
+{<span class="str">"summary"</span>:<span class="kw">true</span>,<span class="str">"events"</span>:<span class="num">9</span>,<span class="str">"dropped"</span>:<span class="num">0</span>,<span class="str">"capacity_per_core"</span>:<span class="num">65536</span>}</code></pre>
+<h2 id="it-is-absent-unless-you-ask-for-it">It is absent unless you ask for it</h2>
+<p>Tracing is a <strong>compile-time</strong> feature, not a runtime switch. A normal build contains no tracing code: the hooks compile to <code>((void)0)</code> and the tracing translation unit compiles to nothing.</p>
+<p>This is not a claim about the cost being small. Building <code>runtime/scheduler/multicore_scheduler.c</code> before and after the tracing hooks were added produces a <strong>byte-identical object file</strong> (same size, same disassembly), because the macros vanish before the optimiser ever sees them. Message send is the runtime's core loop, and that is the only way to promise it is untouched.</p>
+<p><code>ae build --trace</code> compiles both your program and the runtime with <code>-DAETHER_TRACE</code>. Because a prebuilt <code>libaether.a</code> was compiled without the flag, a traced build compiles the runtime from source; that is why it takes longer than a normal build.</p>
+<p>The build cache distinguishes traced from untraced builds, so <code>--trace</code> after a normal build of the same source rebuilds rather than handing back the cached untraced binary.</p>
+<h2 id="turning-it-on-at-run-time">Turning it on at run time</h2>
+<p>A traced binary still writes nothing until <code>AETHER_TRACE</code> names an output file. That keeps a traced build usable for ordinary runs while you are iterating.</p>
+<div class="tw"><table><thead><tr><th>Variable</th><th>Meaning</th></tr></thead><tbody><tr><td><code>AETHER_TRACE=&lt;path&gt;</code></td><td>Write the trace to <code>&lt;path&gt;</code>. Unset means record nothing.</td></tr></tbody></table></div>
+<h2 id="events">Events</h2>
+<div class="tw"><table><thead><tr><th>Event</th><th>Meaning</th></tr></thead><tbody><tr><td><code>send_local</code></td><td><code>scheduler_send_local</code> entered, the same-core path</td></tr><tr><td><code>send_remote</code></td><td><code>scheduler_send_remote</code> entered, the cross-core path</td></tr><tr><td><code>spsc_enqueue</code></td><td>delivered through an <code>auto_process</code> actor's SPSC queue</td></tr><tr><td><code>mailbox_send</code></td><td>delivered through the actor's mailbox</td></tr><tr><td><code>receive</code></td><td>dequeued for processing</td></tr><tr><td><code>step_begin</code> / <code>step_end</code></td><td>the actor's <code>step()</code> ran</td></tr><tr><td><code>drop_dead</code></td><td>dropped because the recipient was already dead</td></tr></tbody></table></div>
+<p>The queue choices are separate events rather than a flag on one "sent" event, because "which path did this actually take" is usually the question a trace is opened to answer. A message that went through the SPSC queue and one that went through the mailbox are exactly the two cases whose difference matters.</p>
+<p>Each event carries the timestamp, the core (<code>-1</code> is the main thread), the actor id, and the message id with its name.</p>
+<h2 id="where-names-come-from">Where names come from</h2>
+<p>The runtime only ever sees a message as an integer: the id the message registry assigned. The compiler knows the names, so it emits an id-to-name table into the generated C and registers it at startup. Without that a trace reads as bare ordinals, which is not much better than no trace.</p>
+<p>The table is emitted inside the <code>AETHER_TRACE</code> guard, so an ordinary build carries neither the strings nor the registration call.</p>
+<h2 id="cost-when-it-is-on">Cost when it is on</h2>
+<p>One timestamp and one 32-byte append to a per-core ring buffer. There are no locks and no atomics on the hot path: a core only ever writes its own buffer, and the buffers are read after <code>scheduler_shutdown()</code> has joined every thread, so the join supplies the ordering the merge needs.</p>
+<p>The trace is written from <code>scheduler_shutdown()</code> rather than <code>atexit</code>, which keeps the exit path free of the hang that teardown-at-exit caused for the worker pool.</p>
+<h2 id="completeness">Completeness</h2>
+<p>Each core's buffer holds 65536 events (2 MiB) and wraps, keeping the most recent events. The trailing <code>summary</code> line reports how many events were written and how many were dropped:</p>
+<pre><code>{<span class="str">"summary"</span>:<span class="kw">true</span>,<span class="str">"events"</span>:<span class="num">9</span>,<span class="str">"dropped"</span>:<span class="num">0</span>,<span class="str">"capacity_per_core"</span>:<span class="num">65536</span>}</code></pre>
+<p>A non-zero <code>dropped</code> means the ring wrapped and the beginning of the run is gone. It is reported rather than inferred, because a truncated trace that looks complete is worse than no trace. Raise the capacity at build time with <code>-DAETHER_TRACE_CAPACITY=&lt;power of two&gt;</code> if you need a longer window.</p>
+<h2 id="reading-a-trace">Reading a trace</h2>
+<p>JSONL, one event per line, ordered by timestamp across all cores, because a trace is read with <code>grep</code> and <code>jq</code> far more often than with a viewer.</p>
+<pre><code><span class="com"># every message a given actor received</span>
+jq -c <span class="str">'select(.actor == 3)'</span> trace.jsonl
 
-// System message
-message Down {
-    ref: actor_ref
-    reason: string    // "normal", "killed", or a user-supplied atom
-}</code></pre>
-<h3 id="supervisor-as-a-library-actor">Supervisor as a library actor</h3>
-<p>No language-level supervisor primitive. A <code>std.supervise</code> module provides an ordinary actor type:</p>
-<pre><code>import std.supervise
+<span class="com"># just the sends, by name</span>
+jq -r <span class="str">'select(.msg_name) | .msg_name'</span> trace.jsonl | sort | uniq -c
 
-main() {
-    sup = spawn(supervisor(strategy: "one_for_one")) {
-        child("worker_a", || spawn(WorkerA()))
-        child("worker_b", || spawn(WorkerB()))
-        child("db_writer", || spawn(DbWriter()))
-    }
-}</code></pre>
-<p>The supervisor actor internally links each child, handles <code>Down</code> messages according to its strategy, and decides whether to restart, escalate, or shut the subtree down. Strategies mirror Erlang: <code>one_for_one</code> (restart just the dead one), <code>one_for_all</code> (restart all siblings on any death), <code>rest_for_one</code> (restart the dead one and everything started after it).</p>
-<p>Note the builder-DSL shape (<code>spawn(...) { child(...) child(...) }</code>) uses the trailing-block + closure pattern that shipped with the closures and embedded-namespaces features. The supervisor actor is the <code>_ctx</code> holder; <code>child()</code> registers into it.</p>
-<h2 id="phase-2-capability-scoped-concurrency">Phase 2, capability-scoped concurrency</h2>
-<p>Once Phase 1 is in, this is a compile-time-only change. No new runtime mechanism.</p>
-<h3 id="what-the-compiler-must-enforce">What the compiler must enforce</h3>
-<p>In a block that contains <code>hide X</code> or <code>seal except Y, Z</code>, every concurrency site is checked against the same visibility rules already applied to ordinary reads:</p>
-<ul><li><code>spawn(X())</code> rejected if <code>X</code> is hidden or not on the seal whitelist.</li><li><code>ref ! Msg {}</code> rejected if <code>ref</code> is hidden or not whitelisted.</li><li><code>ref ? Request {}</code> (the <code>?</code> ask operator), same check on <code>ref</code>.</li></ul>
-<p>The error message reuses the existing <code>E0304</code> (hidden in this scope) diagnostic.</p>
-<h3 id="worked-example">Worked example</h3>
-<pre><code>sandbox("payment-handler") {
-    grant_tcp("payments.example.com")
-    seal except req, res, payment_client, logger
-
-    // This block can only see the five whitelisted names.
-    // It cannot spawn any actor type not named here.
-    // It cannot send to any actor reference not named here.
-    // It cannot ask any outside service.
-
-    result = payment_client ? Charge { amount: req.amount }
-    if result != null {
-        logger ! Audit { who: req.user, what: "charged", amount: req.amount }
-        res.status = 200
-    } else {
-        res.status = 502
-    }
-}</code></pre>
-<p>The subtree rooted at this block has both lifetime containment (the <code>sandbox</code> scope's containment runtime) and capability containment (the <code>seal except</code> list). A malicious or buggy handler cannot spawn a crypto-miner actor because it cannot name one.</p>
-<h2 id="whats-not-in-scope">What's not in scope</h2>
-<ul><li><strong>Fork-join / <code>parallel_for</code></strong>, useful for data parallelism, does not solve the lifecycle or reachability problem. Can be added later as a narrow stdlib feature layered on the existing work-stealing scheduler. Not part of this design.</li><li><strong>Nurseries</strong>, would require a second concurrency primitive (lightweight tasks distinct from actors). High cost for small marginal benefit given the actor model already exists. Revisit only if users ask for it after Phases 1 and 2 ship.</li><li><strong>Channels</strong>, actors already cover this. No plan.</li></ul>
-<h2 id="order-of-work">Order of work</h2>
-<ol><li><strong>Runtime, <code>Down</code> message delivery.</strong> Scheduler catches handler exits, iterates the monitor/link table, enqueues <code>Down</code> messages.</li><li><strong>Builtins, <code>monitor</code>, <code>link</code>, <code>demonitor</code>, <code>unlink</code>.</strong> Thin wrappers over the runtime table.</li><li><strong><code>std.supervise</code> module.</strong> Supervisor actor type with the three strategies. Builder DSL for child registration.</li><li><strong>Tests.</strong> Restart-on-crash, escalation, graceful shutdown, monitor vs link asymmetry, double-death ordering.</li><li><strong>Compiler, capability-scoped spawn/send/ask.</strong> Extend existing <code>hide</code>/<code>seal except</code> denial to concurrency sites.</li><li><strong>Docs and worked example.</strong> Update <code>docs/actor-concurrency.md</code> with the supervision section. One worked example in <code>examples/actors/</code> showing a supervised, sealed subtree.</li></ol>
-<p>Phase 1 can ship without Phase 2. Phase 2 can ship independently once Phase 1 is in, they touch different compiler subsystems.</p>
-<h2 id="references">References</h2>
-<ul><li><a href="/Docs/actor-concurrency.html"><code>docs/actor-concurrency.md</code></a>, current actor runtime.</li><li><a href="/Docs/hide-and-seal.html"><code>docs/hide-and-seal.md</code></a>, existing capability-denial primitive that Phase 2 extends.</li><li><a href="/Docs/containment-sandbox.html"><code>docs/containment-sandbox.md</code></a>, filesystem / network capability grants, natural pairing with Phase 2.</li><li><a href="https://www.erlang.org/doc/design_principles/des_princ.html">Erlang OTP design principles</a> the supervision-tree pattern we're borrowing.</li><li><a href="https://vorpus.org/blog/notes-on-structured-concurrency-or-go-statement-considered-harmful/">Nathaniel Smith, <em>Notes on structured concurrency</em></a> the Trio post that named the pattern. Aether takes the "structure" part but not the nursery/task primitive.</li></ul>
-<nav class="doc-prevnext" aria-label="Previous and next page"><a class="pn-prev" href="/Docs/allocators.html"><span class="pn-k">Previous</span><span class="pn-t">Allocators</span></a><a class="pn-next" href="/Docs/contract-folding.html"><span class="pn-k">Next</span><span class="pn-t">Compile-time contract folding, costed design</span></a></nav>
+<span class="com"># was anything dropped?</span>
+jq -c <span class="str">'select(.summary)'</span> trace.jsonl</code></pre>
+<nav class="doc-prevnext" aria-label="Previous and next page"><a class="pn-prev" href="/Docs/numa-support.html"><span class="pn-k">Previous</span><span class="pn-t">NUMA Support in Aether</span></a><a class="pn-next" href="/Docs/c-interop.html"><span class="pn-k">Next</span><span class="pn-t">C Interoperability</span></a></nav>
       </article>
     </main>
-    <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#what-were-trying-to-fix" class="l2" data-id="what-were-trying-to-fix">What we're trying to fix</a><a href="#the-design-space-and-why-we-picked-what-we-picked" class="l2" data-id="the-design-space-and-why-we-picked-what-we-picked">The design space, and why we picked what we picked</a><a href="#the-two-rulings-worth-unpacking" class="l3" data-id="the-two-rulings-worth-unpacking">The two rulings worth unpacking</a><a href="#the-two-were-building" class="l3" data-id="the-two-were-building">The two we're building</a><a href="#phase-1-supervision-primitives" class="l2" data-id="phase-1-supervision-primitives">Phase 1, supervision primitives</a><a href="#what-the-runtime-must-expose" class="l3" data-id="what-the-runtime-must-expose">What the runtime must expose</a><a href="#language--stdlib-surface" class="l3" data-id="language--stdlib-surface">Language / stdlib surface</a><a href="#supervisor-as-a-library-actor" class="l3" data-id="supervisor-as-a-library-actor">Supervisor as a library actor</a><a href="#phase-2-capability-scoped-concurrency" class="l2" data-id="phase-2-capability-scoped-concurrency">Phase 2, capability-scoped concurrency</a><a href="#what-the-compiler-must-enforce" class="l3" data-id="what-the-compiler-must-enforce">What the compiler must enforce</a><a href="#worked-example" class="l3" data-id="worked-example">Worked example</a><a href="#whats-not-in-scope" class="l2" data-id="whats-not-in-scope">What's not in scope</a><a href="#order-of-work" class="l2" data-id="order-of-work">Order of work</a><a href="#references" class="l2" data-id="references">References</a></nav>
+    <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#it-is-absent-unless-you-ask-for-it" class="l2" data-id="it-is-absent-unless-you-ask-for-it">It is absent unless you ask for it</a><a href="#turning-it-on-at-run-time" class="l2" data-id="turning-it-on-at-run-time">Turning it on at run time</a><a href="#events" class="l2" data-id="events">Events</a><a href="#where-names-come-from" class="l2" data-id="where-names-come-from">Where names come from</a><a href="#cost-when-it-is-on" class="l2" data-id="cost-when-it-is-on">Cost when it is on</a><a href="#completeness" class="l2" data-id="completeness">Completeness</a><a href="#reading-a-trace" class="l2" data-id="reading-a-trace">Reading a trace</a></nav>
   </div>
 </div>
 <script src="/docs.js" defer></script>

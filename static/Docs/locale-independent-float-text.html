@@ -1,0 +1,825 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Plan: locale-independent float text conversion (LC_NUMERIC correctness) · Aether</title>
+<meta name="description" content="Status: IMPLEMENTED on fix/locale-independent-float-text (2026-08-08), commit 2ee0371f.">
+<link rel="canonical" href="https://aether-lang.dev/Docs/locale-independent-float-text.html">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Plan: locale-independent float text conversion (LC_NUMERIC correctness) · Aether">
+<meta property="og:description" content="Status: IMPLEMENTED on fix/locale-independent-float-text (2026-08-08), commit 2ee0371f.">
+<meta property="og:url" content="https://aether-lang.dev/Docs/locale-independent-float-text.html">
+<meta property="og:image" content="https://aether-lang.dev/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="/favicon.png">
+<link rel="preload" href="/fonts/bricolagegrotesque-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/dmsans-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/dmmono-latin.woff2" as="font" type="font/woff2" crossorigin>
+<style id="aether-inline">
+/* Self-hosted webfonts. Previously three families were pulled from
+   fonts.googleapis.com, which chained a stylesheet request and then the
+   font files from a second origin before any text could paint. These are
+   the same faces served from this origin.
+   Variable fonts: one file covers each family's whole weight range.
+   The opsz axis is dropped (nothing here sets font-optical-sizing) which
+   halves Bricolage. latin-ext is listed but only fetched when a character
+   needs it, unicode-range keeps it lazy.
+   font-display is `optional`, not `swap`: these faces are preloaded from
+   this origin, so they land before first paint on any normal connection and
+   are used with no swap. On a connection too slow for that they are skipped
+   for the load rather than swapped in late. `swap` was measurably shifting
+   the layout (CLS 0.117) when the real metrics replaced the fallback's. */
+/* latin-ext */
+@font-face {
+  font-family: 'Bricolage Grotesque';
+  font-style: normal;
+  font-weight: 700;
+  font-stretch: 100%;
+  font-display: optional;
+  src: url(fonts/bricolagegrotesque-latinext.woff2) format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Bricolage Grotesque';
+  font-style: normal;
+  font-weight: 700;
+  font-stretch: 100%;
+  font-display: optional;
+  src: url(fonts/bricolagegrotesque-latin.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Bricolage Grotesque';
+  font-style: normal;
+  font-weight: 800;
+  font-stretch: 100%;
+  font-display: optional;
+  src: url(fonts/bricolagegrotesque-latinext.woff2) format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Bricolage Grotesque';
+  font-style: normal;
+  font-weight: 800;
+  font-stretch: 100%;
+  font-display: optional;
+  src: url(fonts/bricolagegrotesque-latin.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'DM Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: optional;
+  src: url(fonts/dmmono-latinext.woff2) format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'DM Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: optional;
+  src: url(fonts/dmmono-latin.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'DM Sans';
+  font-style: normal;
+  font-weight: 400;
+  font-display: optional;
+  src: url(fonts/dmsans-latinext.woff2) format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'DM Sans';
+  font-style: normal;
+  font-weight: 400;
+  font-display: optional;
+  src: url(fonts/dmsans-latin.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'DM Sans';
+  font-style: normal;
+  font-weight: 700;
+  font-display: optional;
+  src: url(fonts/dmsans-latinext.woff2) format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'DM Sans';
+  font-style: normal;
+  font-weight: 700;
+  font-display: optional;
+  src: url(fonts/dmsans-latin.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* Aether design system. Red-on-black, monospace, elegant.
+   Brand: red #cc1a1a "ae" on near-black, from the VS Code icon. */
+:root{
+  --bg:#0c0b0b; --bg-2:#121111; --bg-3:#0a0909; --panel:#100f0f;
+  --line:#1e1c1c; --line-2:#2a2727;
+  --ink:#eceae7; --dim:#9b9693; --faint:#6b6663;
+  --red:#cc1a1a; --red-hi:#e63a2f;
+  --c-kw:#c76b60; --c-str:#93a07f; --c-num:#c19a6b; --c-fn:#88a3ad; --c-com:#615c59; --c-pn:#8f8a86;
+  --mono:"DM Mono",ui-monospace,"SF Mono","JetBrains Mono",Menlo,Consolas,monospace;
+  --sans:"DM Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --wrap:1120px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15.5px;line-height:1.6;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+::selection{background:var(--red);color:#fff}
+:focus-visible{outline:2px solid var(--red-hi);outline-offset:2px;border-radius:2px}
+.wrap{max-width:var(--wrap);margin:0 auto;padding:0 26px}
+.mono{font-family:var(--mono)}
+.eyebrow{font-family:var(--mono);font-size:11.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--faint)}
+
+/* wordmark */
+.ae{font-family:var(--mono);font-weight:700;letter-spacing:-.085em;transform:scale(.95,1.2);display:inline-block;color:var(--red)}
+
+/* header */
+.site-head{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 82%,transparent);backdrop-filter:blur(9px);border-bottom:1px solid var(--line)}
+.site-head .bar{display:flex;align-items:center;gap:22px;height:58px}
+.brand{display:flex;align-items:baseline;gap:9px}
+.brand .ae{font-size:21px}
+.brand .nm{font-family:var(--mono);font-size:13.5px;color:var(--ink)}
+.site-head nav{margin-left:auto;display:flex;align-items:center;gap:22px}
+.site-head nav a{font-family:var(--mono);font-size:13px;color:var(--dim);transition:color .15s}
+.site-head nav a:hover,.site-head nav a.on{color:var(--ink)}
+.site-head nav a.on{color:var(--red)}
+.vtag{font-family:var(--mono);font-size:11.5px;color:var(--faint);border:1px solid var(--line-2);border-radius:999px;padding:2px 9px}
+
+/* buttons */
+.btn{font-family:var(--mono);font-size:14px;padding:11px 19px;border-radius:6px;border:1px solid transparent;display:inline-flex;align-items:center;gap:8px;transition:all .16s;cursor:pointer}
+.btn-red{background:var(--red);color:#fff}
+.btn-red:hover{background:var(--red-hi);transform:translateY(-1px)}
+.btn-ghost{border-color:var(--line-2);color:var(--ink)}
+.btn-ghost:hover{border-color:var(--faint);background:var(--bg-2)}
+
+/* section head */
+.sec-head{display:flex;align-items:baseline;gap:14px;margin:0 0 22px}
+.sec-head h1,.sec-head h2{font-family:var(--mono);font-size:1.15rem;font-weight:700;letter-spacing:-.01em;margin:0}
+.sec-head .rule{flex:1;height:1px;background:var(--line)}
+
+/* code */
+pre,code{font-family:var(--mono)}
+pre.code{background:var(--bg-3);border:1px solid var(--line);border-radius:8px;padding:16px;overflow-x:auto;font-size:12.8px;line-height:1.7;color:var(--ink);margin:0 0 16px}
+.kw{color:var(--c-kw)}.str{color:var(--c-str)}.num{color:var(--c-num)}.fn{color:var(--c-fn)}.com{color:var(--c-com)}.pn{color:var(--c-pn)}
+
+/* footer */
+.site-foot{border-top:1px solid var(--line);margin-top:80px;padding:40px 0}
+.site-foot .foot{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.site-foot .ae{font-size:17px}
+.site-foot .m{font-family:var(--mono);font-size:12px;color:var(--faint)}
+.site-foot nav{margin-left:auto;display:flex;gap:20px}
+.site-foot nav a{font-family:var(--mono);font-size:12.5px;color:var(--dim)}
+.site-foot nav a:hover{color:var(--ink)}
+
+/* ---- docs layout ---- */
+.doc-shell{display:grid;grid-template-columns:250px minmax(0,1fr) 210px;gap:0;align-items:start;min-height:70vh}
+.doc-nav{position:sticky;top:58px;align-self:start;max-height:calc(100vh - 58px);overflow:auto;border-right:1px solid var(--line);padding:26px 0 40px}
+.doc-nav .grp{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint);padding:18px 24px 8px}
+.doc-nav a{display:block;font-family:var(--mono);font-size:12.7px;color:var(--dim);padding:6px 24px;border-left:2px solid transparent;transition:.13s}
+.doc-nav a:hover{color:var(--ink);background:var(--bg-3)}
+.doc-nav a.on{color:var(--ink);border-left-color:var(--red);background:var(--bg-3)}
+.doc-main{padding:40px 0 60px 44px;min-width:0}
+.doc-body{max-width:760px}
+.doc-body .bc{font-family:var(--mono);font-size:12px;color:var(--faint);margin-bottom:20px}
+.doc-body h1{font-family:var(--mono);font-size:1.9rem;letter-spacing:-.02em;margin:0 0 10px;line-height:1.15}
+.doc-body h2{font-family:var(--mono);font-size:1.15rem;color:var(--ink);margin:34px 0 12px;padding-top:16px;border-top:1px solid var(--line)}
+.doc-body h3{font-family:var(--mono);font-size:1rem;color:var(--ink);margin:26px 0 8px}
+.doc-body p{color:var(--dim);margin:0 0 15px}
+.doc-body a{color:var(--red);text-decoration:none}
+.doc-body a:hover{text-decoration:underline}
+.doc-body code{font-family:var(--mono);font-size:.86em;background:var(--bg-2);border:1px solid var(--line);border-radius:4px;padding:1px 5px;color:var(--ink)}
+.doc-body pre{background:var(--bg-3);border:1px solid var(--line);border-radius:8px;padding:16px;overflow-x:auto;font-size:12.8px;line-height:1.7;color:var(--ink);margin:0 0 16px}
+.doc-body pre code{background:none;border:0;padding:0}
+.doc-body ul,.doc-body ol{color:var(--dim);padding-left:22px;margin:0 0 15px}
+.doc-body li{margin:4px 0}
+.doc-body blockquote{border-left:2px solid var(--red);margin:0 0 15px;padding:2px 0 2px 16px;color:var(--dim)}
+.doc-body hr{border:0;border-top:1px solid var(--line);margin:26px 0}
+.doc-body table{border-collapse:collapse;width:100%;margin:0 0 18px;font-size:13.5px}
+.doc-body th,.doc-body td{border:1px solid var(--line);padding:8px 12px;text-align:left;vertical-align:top}
+.doc-body th{font-family:var(--mono);color:var(--ink);background:var(--bg-2);font-weight:700}
+.doc-body td{color:var(--dim)}
+
+@media(max-width:860px){
+  .doc-shell{grid-template-columns:1fr}
+  .doc-nav{position:static;max-height:none;border-right:0;border-bottom:1px solid var(--line);display:flex;overflow-x:auto;padding:8px}
+  .doc-nav .grp{display:none}
+  .doc-nav a{white-space:nowrap;border-left:0}
+  .doc-main{padding:26px 0}
+  .site-head nav a.hidem{display:none}
+}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.btn-red:hover{transform:none}}
+
+/* ---- home + shared components ---- */
+.hero{padding:82px 0 60px}
+.hero-grid{display:grid;grid-template-columns:1.02fr .98fr;gap:52px;align-items:center}
+.hero .eyebrow{margin:0 0 20px}
+.hero h1{font-family:var(--mono);font-weight:700;font-size:clamp(2.3rem,5.2vw,3.5rem);line-height:1.04;letter-spacing:-.03em;margin:0 0 20px;text-wrap:balance}
+.hero h1 .hl{color:var(--red)}
+.hero .lede{font-size:1.1rem;color:var(--dim);max-width:42ch;margin:0 0 30px}
+.cta{display:flex;gap:13px;flex-wrap:wrap}
+.metaline{display:flex;gap:24px;flex-wrap:wrap;margin-top:26px;font-family:var(--mono);font-size:12.5px;color:var(--faint)}
+.metaline b{color:var(--ink);font-weight:400}
+
+/* code panel: filename label + red top accent, no traffic lights */
+.panel{background:var(--bg-3);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.panel-bar{display:flex;align-items:center;gap:10px;padding:11px 16px;border-bottom:1px solid var(--line);background:var(--bg-2)}
+.panel-bar::before{content:"";width:18px;height:2px;background:var(--red);border-radius:2px}
+.panel-bar .file{font-family:var(--mono);font-size:12.5px;color:var(--faint)}
+.panel pre{margin:0;padding:20px;overflow-x:auto;font-family:var(--mono);font-size:13.4px;line-height:1.75;color:var(--ink)}
+
+.block{padding:74px 0;border-top:1px solid var(--line)}
+.feat{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.feat .cell{background:var(--bg);padding:26px 22px}
+.feat .k{font-family:var(--mono);font-size:12.5px;color:var(--red);margin-bottom:12px}
+.feat h3{font-family:var(--mono);font-size:15px;margin:0 0 8px;font-weight:700;letter-spacing:-.01em}
+.feat p{margin:0;font-size:13.7px;color:var(--dim);line-height:1.6}
+.cc{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.cc-h{font-family:var(--mono);font-size:1.5rem;letter-spacing:-.02em;margin:0 0 10px}
+.cc-note{color:var(--dim);max-width:54ch;margin:0 0 30px}
+@media(max-width:860px){.hero-grid{grid-template-columns:1fr;gap:38px}.feat{grid-template-columns:repeat(2,1fr)}.cc{grid-template-columns:1fr}}
+
+/* ---- REPL / playground ---- */
+.repl{display:grid;grid-template-columns:184px 1fr;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--panel)}
+.lessons{border-right:1px solid var(--line);background:var(--bg-2);padding:14px 0}
+.lessons .lh{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--faint);padding:4px 18px 10px}
+.lessons button{display:block;width:100%;text-align:left;background:none;border:0;color:var(--dim);font-family:var(--mono);font-size:12.5px;line-height:1.5;padding:9px 18px;cursor:pointer;border-left:2px solid transparent;transition:.14s}
+.lessons button:hover{color:var(--ink);background:var(--bg-3)}
+.lessons button.on{color:var(--ink);border-left-color:var(--red);background:var(--bg-3)}
+.lessons button .idx{color:var(--faint);margin-right:8px}
+.lessons button.on .idx{color:var(--red)}
+.stage{display:grid;grid-template-rows:auto 1fr auto auto;min-height:360px}
+.theory{padding:16px 20px;border-bottom:1px solid var(--line)}
+.theory h3{font-family:var(--mono);font-size:14px;margin:0 0 6px}
+.theory p{margin:0;font-size:13.5px;color:var(--dim)}
+.editwrap{position:relative;background:var(--bg-3);min-height:200px}
+.editwrap pre,.editwrap textarea{margin:0;padding:18px 20px;font-family:var(--mono);font-size:13.4px;line-height:1.7;letter-spacing:0;tab-size:4;white-space:pre;overflow:auto;border:0}
+.editwrap pre{position:absolute;inset:0;pointer-events:none;color:var(--ink);z-index:0;margin:0}
+.editwrap textarea{position:relative;z-index:1;width:100%;height:100%;min-height:200px;background:transparent;color:transparent;caret-color:var(--red);resize:vertical;outline:none}
+.runbar{display:flex;align-items:center;gap:14px;padding:12px 20px;border-top:1px solid var(--line);background:var(--bg-2)}
+.run{font-family:var(--mono);font-size:13px;background:var(--red);color:#fff;border:0;border-radius:6px;padding:9px 18px;cursor:pointer;transition:.15s}
+.run:hover{background:var(--red-hi)}
+.run:disabled{opacity:.55;cursor:default}
+.runbar .hint{font-family:var(--mono);font-size:11.5px;color:var(--faint)}
+.runbar .lnav{margin-left:auto;display:flex;gap:6px}
+.runbar .lnav button{font-family:var(--mono);font-size:12px;color:var(--dim);background:none;border:1px solid var(--line-2);border-radius:6px;padding:6px 11px;cursor:pointer;transition:.14s}
+.runbar .lnav button:hover{color:var(--ink);border-color:var(--faint)}
+.output{border-top:1px solid var(--line);background:var(--bg-3);padding:14px 20px;font-family:var(--mono);font-size:13px;line-height:1.7;min-height:76px;white-space:pre-wrap}
+.output .op{color:var(--red);user-select:none}
+.output .err{color:var(--c-kw)}
+.output .muted{color:var(--faint)}
+@media(max-width:860px){
+  .repl{grid-template-columns:1fr}
+  .lessons{display:flex;overflow-x:auto;border-right:0;border-bottom:1px solid var(--line);padding:8px}
+  .lessons .lh{display:none}
+  .lessons button{white-space:nowrap;border-left:0;border-bottom:2px solid transparent}
+  .lessons button.on{border-left:0;border-bottom-color:var(--red)}
+}
+
+/* skip-to-content (a11y): hidden until keyboard-focused */
+.skip{position:absolute;left:-9999px;top:0;z-index:50;background:var(--red);color:#fff;font-family:var(--mono);font-size:13px;padding:9px 16px;border-radius:0 0 6px 0}
+.skip:focus{left:0}
+
+/* responsive containment: grid children must shrink so wide code/tables
+   scroll inside their own box and the page body never scrolls sideways */
+.hero-grid>*,.feat>*,.cc>*,.repl>*,.doc-main,.doc-body{min-width:0}
+.doc-body pre,.panel pre,.editwrap pre{max-width:100%}
+.doc-body code{overflow-wrap:anywhere}
+.tw{overflow-x:auto;max-width:100%;margin:0 0 18px}
+.tw table{margin:0}
+@media(max-width:860px){
+  .site-head .bar{gap:14px}
+  .site-head nav{gap:15px}
+  .vtag{display:none}
+  .site-head nav a.src{display:none}
+}
+
+/* secondary playground button (Copy) */
+.ghostbtn{font-family:var(--mono);font-size:12.5px;color:var(--dim);background:none;border:1px solid var(--line-2);border-radius:6px;padding:8px 13px;cursor:pointer;transition:.14s}
+.ghostbtn:hover{color:var(--ink);border-color:var(--faint)}
+
+/* ============================================================
+   RETRO TERMINAL LAYER
+   CRT character on the brand: subtle scanlines, phosphor glow,
+   blinking cursor, terminal-window chrome. Kept restrained so it
+   reads as a real terminal, not a novelty.
+   ============================================================ */
+
+/* CRT overlays: fine scanlines + a soft vignette. Never block input. */
+body::before{content:"";position:fixed;inset:0;z-index:2;pointer-events:none;
+  background:
+    radial-gradient(130% 100% at 50% -10%, transparent 62%, rgba(0,0,0,.45) 100%);}
+body::after{content:"";position:fixed;inset:0;z-index:3;pointer-events:none;opacity:.5;
+  background:repeating-linear-gradient(to bottom,
+    rgba(255,255,255,.020) 0 1px, transparent 1px 3px);}
+.site-head,.wrap,main,footer{position:relative;z-index:4}
+
+/* phosphor glow on the brand red */
+.ae{text-shadow:0 0 14px rgba(204,26,26,.45)}
+.hero h1 .hl,.hl{text-shadow:0 0 18px rgba(230,58,47,.5)}
+
+/* blinking block cursor */
+.cur{display:inline-block;width:.58ch;height:1.02em;margin-left:.12ch;
+  background:var(--red-hi);vertical-align:-0.14em;border-radius:1px;
+  box-shadow:0 0 10px rgba(230,58,47,.7);animation:blink 1.05s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+
+/* terminal window chrome */
+.term{background:var(--bg-3);border:1px solid var(--line-2);border-radius:10px;overflow:hidden;
+  box-shadow:0 0 0 1px rgba(0,0,0,.4),0 24px 60px -30px rgba(230,58,47,.18)}
+.term-bar{display:flex;align-items:center;gap:9px;padding:9px 14px;background:var(--bg-2);
+  border-bottom:1px solid var(--line);font-family:var(--mono);font-size:12px;color:var(--faint)}
+.term-bar::before{content:"";width:9px;height:9px;border-radius:50%;
+  background:var(--red);box-shadow:0 0 8px rgba(204,26,26,.7)}
+.term-bar b{color:var(--dim);font-weight:400}
+.term-body{padding:20px;font-family:var(--mono);font-size:13.2px;line-height:1.7}
+
+/* boot sequence */
+.boot{margin:0 0 18px;font-family:var(--mono);font-size:12.6px;line-height:1.75;color:var(--dim);white-space:pre-wrap;min-height:1.75em}
+.boot .ok{color:var(--c-str)}
+.boot .dim{color:var(--faint)}
+.boot .r{color:var(--red-hi)}
+
+/* prompt accents on section headings */
+.prompt{color:var(--red);margin-right:.5ch}
+.sec-head h1 .prompt,.sec-head h2 .prompt{font-weight:400}
+
+/* prompt-styled ghost button */
+.btn-term{font-family:var(--mono);font-size:14px;padding:11px 18px;border-radius:6px;
+  border:1px solid var(--line-2);color:var(--ink);background:var(--bg-3);display:inline-flex;gap:9px;align-items:center;transition:all .15s}
+.btn-term:hover{border-color:var(--red);box-shadow:0 0 0 1px var(--red),0 0 18px -6px var(--red-hi);transform:translateY(-1px)}
+.btn-term .p{color:var(--red)}
+
+@media(prefers-reduced-motion:reduce){.cur{animation:none}}
+@media(max-width:860px){body::before,body::after{display:none}}
+
+/* code + output inside terminal windows */
+.term .run-src{margin:0;padding:18px 20px;font-family:var(--mono);font-size:13px;line-height:1.72;color:var(--ink);overflow-x:auto;white-space:pre}
+.run-out{margin:0 20px;padding:12px 0 4px;border-top:1px solid var(--line);font-family:var(--mono);font-size:13px;line-height:1.7;min-height:1.7em;color:var(--c-str);white-space:pre-line}
+.hero .boot{margin:0 0 16px}
+
+/* docs search + on-page TOC */
+.docsearch{position:relative;padding:16px 18px 8px}
+.docsearch input{width:100%;background:var(--bg-3);border:1px solid var(--line-2);border-radius:6px;color:var(--ink);font-family:var(--mono);font-size:12.5px;padding:8px 30px 8px 11px;outline:none;transition:border-color .14s}
+.docsearch input:focus{border-color:var(--red)}
+.docsearch kbd{position:absolute;right:27px;top:24px;font-family:var(--mono);font-size:11px;color:var(--faint);border:1px solid var(--line-2);border-radius:4px;padding:0 5px;pointer-events:none}
+.ds-res{position:absolute;left:18px;right:18px;top:50px;z-index:30;background:var(--bg-2);border:1px solid var(--line-2);border-radius:8px;max-height:64vh;overflow:auto;display:none;box-shadow:0 24px 60px -24px #000}
+.ds-res.open{display:block}
+.ds-res a{display:block;padding:9px 12px;border-bottom:1px solid var(--line)}
+.ds-res a:last-child{border-bottom:0}
+.ds-res a.sel,.ds-res a:hover{background:var(--bg-3)}
+.ds-res .rt{font-family:var(--mono);font-size:12.5px;color:var(--ink)}
+.ds-res .rg{font-size:10px;color:var(--faint);text-transform:uppercase;letter-spacing:.12em;margin-left:7px}
+.ds-res .rs{font-size:11.5px;color:var(--dim);margin-top:3px;line-height:1.45}
+.ds-res .rt b,.ds-res .rs b{color:var(--red-hi)}
+.ds-res .none{padding:12px;color:var(--faint);font-size:12.5px}
+.toc{position:sticky;top:58px;align-self:start;max-height:calc(100vh - 58px);overflow:auto;padding:30px 0 40px 22px}
+.toc-h{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint);margin-bottom:12px}
+.toc a{display:block;font-family:var(--mono);font-size:12px;color:var(--dim);padding:4px 0 4px 12px;border-left:2px solid var(--line);transition:.13s;line-height:1.35}
+.toc a.l3{padding-left:24px;font-size:11.5px;color:var(--faint)}
+.toc a:hover{color:var(--ink)}
+.toc a.on{color:var(--red);border-left-color:var(--red)}
+@media(max-width:1080px){.doc-shell{grid-template-columns:250px minmax(0,1fr)}.toc{display:none}}
+
+/* ============================================================
+   REFINE PASS: display type, no gimmicks, install-first hero,
+   show-don't-tell sections. Overrides the earlier terminal layer.
+   ============================================================ */
+:root{ --display:"Bricolage Grotesque","DM Sans",system-ui,sans-serif; }
+
+/* drop the CRT costume */
+body::before,body::after{display:none !important}
+.ae{text-shadow:none}
+.hl,.hero h1 .hl{text-shadow:none}
+
+/* display typeface for headings */
+.hero h1,.feature h2,.feature h3,.col h3,.center-h,.getstarted h2,.cc-h,
+.doc-body h1,.doc-body h2,.doc-body h3{font-family:var(--display)}
+.hero h1{font-size:clamp(2.7rem,6vw,4.3rem);font-weight:800;line-height:1.02;letter-spacing:-.035em;margin:0 0 22px;text-wrap:balance}
+.hero .eyebrow{margin:0 0 18px}
+.hero .lede{font-size:1.12rem;color:var(--dim);max-width:46ch;line-height:1.55;margin:0 0 8px}
+
+/* inline code on the home page */
+main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:1px solid var(--line);border-radius:4px;padding:1px 5px;color:var(--ink)}
+.install-row code,.gs-next code,main code.plain{background:none;border:0;padding:0;font-size:13.5px}
+
+/* install command block */
+.install{margin:28px 0 20px}
+.install-row{display:flex;align-items:center;gap:12px;background:var(--bg-3);border:1px solid var(--line-2);border-radius:9px;padding:13px 15px;font-family:var(--mono);max-width:540px}
+.install-row .dollar{color:var(--red);user-select:none}
+.install-row code{flex:1 1 auto;color:var(--ink);white-space:nowrap;overflow-x:auto}
+.cpy{flex:none;font-family:var(--mono);font-size:11.5px;letter-spacing:.03em;color:var(--dim);background:var(--bg-2);border:1px solid var(--line-2);border-radius:5px;padding:6px 11px;cursor:pointer;transition:.14s}
+.cpy:hover{color:var(--ink);border-color:var(--faint)}
+.cpy.ok{color:var(--c-str);border-color:var(--c-str)}
+.install-note{font-family:var(--mono);font-size:12px;color:var(--faint);margin:11px 0 0}
+.install-note a{color:var(--dim);text-decoration:underline;text-underline-offset:2px}
+.install-note a:hover{color:var(--ink)}
+
+/* hero run panel: real command + output */
+.term .run-out{margin:0 20px;padding:13px 0 4px;border-top:1px solid var(--line);font-family:var(--mono);font-size:12.8px;line-height:1.7;white-space:pre-line;color:var(--c-str)}
+.term .run-out .run-cmd{display:block;color:var(--faint);margin-bottom:7px}
+
+/* one-line value strip */
+.strip{border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:var(--bg-2)}
+.strip .wrap{padding:22px 26px}
+.strip p{margin:0;color:var(--dim);font-size:15px;line-height:1.65;max-width:none}
+.strip code{color:var(--ink)}
+
+/* feature sections (show-don't-tell) */
+.feature{padding:70px 0;border-top:1px solid var(--line)}
+.feature-grid{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center}
+.feature h2{font-size:clamp(1.7rem,3vw,2.2rem);font-weight:700;letter-spacing:-.02em;line-height:1.08;margin:0 0 16px}
+.feature p{color:var(--dim);font-size:15px;line-height:1.65;margin:0 0 13px;max-width:48ch}
+.feature .muted-p{color:var(--faint)}
+.feature .cc{grid-template-columns:1fr;gap:14px}
+.feature.alt{background:var(--bg-3)}
+.two-up{display:grid;grid-template-columns:1fr 1fr;gap:36px}
+.col h3{font-size:1.3rem;font-weight:700;letter-spacing:-.01em;margin:0 0 10px}
+.col p{color:var(--dim);font-size:14.5px;line-height:1.6;margin:0 0 16px;max-width:46ch}
+
+/* "more than a language" rows */
+.center-h{text-align:center;font-size:clamp(1.7rem,3vw,2.2rem);font-weight:700;letter-spacing:-.02em;margin:0 0 8px}
+.rows{max-width:840px;margin:32px auto 0;border-top:1px solid var(--line)}
+.row{display:grid;grid-template-columns:172px 1fr;gap:26px;padding:22px 4px;border-bottom:1px solid var(--line)}
+.row-k{font-family:var(--mono);font-size:12.5px;letter-spacing:.02em;color:var(--red);padding-top:1px}
+.row-v{color:var(--dim);font-size:14.7px;line-height:1.62}
+.row-v code{color:var(--ink)}
+
+/* get started */
+.getstarted{padding:84px 0 96px;border-top:1px solid var(--line);text-align:center}
+.getstarted h2{font-size:clamp(1.9rem,3.5vw,2.7rem);font-weight:800;letter-spacing:-.025em;margin:0 0 26px}
+.getstarted .install{display:flex;justify-content:center;margin:0 0 16px}
+.install-lg .install-row{max-width:580px;padding:15px 17px;font-size:14.5px}
+.gs-next{font-family:var(--mono);font-size:13px;color:var(--faint);margin:0 0 30px}
+.gs-next .dollar{color:var(--red);margin-right:6px}
+.getstarted .cta{justify-content:center}
+
+/* refined docs headings */
+.doc-body h1{font-weight:800;letter-spacing:-.02em;font-size:2.1rem}
+.doc-body h2{font-weight:700;letter-spacing:-.01em}
+.doc-body h3{font-weight:700}
+.doc-body p{line-height:1.7}
+
+@media(max-width:860px){
+  .feature-grid,.two-up{grid-template-columns:1fr;gap:30px}
+  .row{grid-template-columns:1fr;gap:5px;padding:18px 4px}
+  .feature{padding:52px 0}
+}
+
+.feature h2,.col h3,.center-h,.getstarted h2{text-wrap:balance}
+.feature-text{max-width:none}
+
+/* review pass: fix floating sections, tighten rhythm */
+.feature-grid{align-items:start}
+.feature-text{padding-top:2px}
+.feature{padding:62px 0}
+.two-up{gap:40px}
+.col .panel{margin-top:2px}
+.rows{max-width:800px}
+.row{grid-template-columns:150px 1fr;gap:28px;padding:20px 4px}
+.getstarted{padding:78px 0 88px}
+/* give the "you can read" code column a touch of breathing room from the text */
+@media(min-width:861px){.feature-grid{gap:56px}}
+
+/* --- home v3: depth, pipeline diagram, real footer --- */
+.hero{position:relative}
+.hero::before{content:"";position:absolute;inset:-40px 0 0;pointer-events:none;z-index:-1;
+  background:radial-gradient(48% 42% at 20% 26%, rgba(204,26,26,.11), transparent 72%)}
+.feature .muted-p{color:var(--dim)}
+
+.pipe-section{padding:34px 0;border-top:1px solid var(--line);background:var(--bg-2)}
+.pipeline{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;font-family:var(--mono)}
+.pl-node{display:flex;flex-direction:column;align-items:center;gap:5px;padding:15px 26px;border:1px solid var(--line-2);border-radius:10px;background:var(--bg-3);font-size:14px;color:var(--ink);min-width:132px}
+.pl-node .pl-k{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--red)}
+.pl-node .pl-sub{font-size:10.5px;color:var(--faint);text-align:center;line-height:1.6}
+.pl-step{display:flex;flex-direction:column;align-items:center;gap:5px;padding:0 10px;min-width:96px}
+.pl-line{width:100%;height:1px;background:linear-gradient(90deg,var(--line-2),var(--red-hi),var(--line-2));position:relative}
+.pl-line::after{content:"\203A";position:absolute;right:-3px;top:-11px;color:var(--red-hi);font-size:16px}
+.pl-lbl{font-size:11px;color:var(--faint)}
+@media(max-width:720px){.pipeline{flex-direction:column}.pl-step{flex-direction:row;gap:8px;padding:8px 0}.pl-line{width:26px;height:1px}.pl-line::after{top:-10px;right:-3px}}
+
+.site-foot{border-top:1px solid var(--line);margin-top:0;padding:58px 0 28px}
+.foot-grid{display:grid;grid-template-columns:1.7fr 1fr 1fr 1fr;gap:40px}
+.foot-brand .ae{font-size:20px}
+.foot-tag{color:var(--dim);font-size:14px;margin:13px 0 9px;max-width:26ch;line-height:1.5}
+.foot-status{font-family:var(--mono);font-size:12px;color:var(--faint)}
+.foot-col .foot-h{font-family:var(--mono);font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);margin:0 0 13px}
+.foot-col a{display:block;color:var(--dim);font-size:13.5px;padding:5px 0;transition:color .14s}
+.foot-col a:hover{color:var(--ink)}
+.foot-note{margin-top:42px;font-family:var(--mono);font-size:12px;color:var(--faint);line-height:1.7;max-width:78ch}
+.foot-legal{display:flex;justify-content:space-between;margin-top:22px;padding-top:22px;border-top:1px solid var(--line);font-family:var(--mono);font-size:12px;color:var(--faint)}
+@media(max-width:760px){.foot-grid{grid-template-columns:1fr 1fr;gap:26px}.foot-brand{grid-column:1/-1}.foot-legal{flex-direction:column;gap:8px}}
+
+.rows{max-width:920px}
+
+/* alternate section direction for rhythm */
+.feature.flip .feature-grid{direction:rtl}
+.feature.flip .feature-grid > *{direction:ltr}
+
+.hero .lede-2{font-size:15px;color:var(--faint);max-width:52ch;line-height:1.6;margin:0 0 4px}
+
+/* scheduler mechanisms */
+.center-sub{text-align:center;color:var(--dim);max-width:60ch;margin:0 auto 34px;font-size:15px;line-height:1.6}
+.mech{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden;max-width:1000px;margin:0 auto}
+.mech-item{background:var(--bg);padding:22px 20px}
+.mech-k{font-family:var(--mono);font-size:12.5px;color:var(--red);margin-bottom:10px}
+.mech-item p{margin:0;font-size:13.6px;color:var(--dim);line-height:1.6;max-width:none}
+@media(max-width:900px){.mech{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:560px){.mech{grid-template-columns:1fr}}
+
+.mech-note{max-width:1000px;margin:22px auto 0;text-align:center;color:var(--faint);font-size:13.6px;line-height:1.65}
+
+/* install command must shrink inside small viewports: a flex item will not
+   shrink below its content width unless min-width is cleared */
+.install-row{max-width:min(540px,100%)}
+.install-lg .install-row{max-width:min(580px,100%)}
+.install-row code{min-width:0}
+
+/* docs prev / next */
+.doc-prevnext{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:48px 0 0;padding-top:24px;border-top:1px solid var(--line)}
+.doc-prevnext a{min-width:0;display:flex;flex-direction:column;gap:4px;padding:13px 15px;border:1px solid var(--line-2);border-radius:8px;color:var(--ink);transition:border-color .14s}
+.doc-prevnext a:hover{border-color:var(--red);text-decoration:none}
+.doc-prevnext .pn-k{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint)}
+.doc-prevnext .pn-t{font-size:13.5px;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.doc-prevnext .pn-next{grid-column:2;text-align:right}
+@media(max-width:620px){.doc-prevnext{grid-template-columns:1fr}.doc-prevnext .pn-next{grid-column:1;text-align:left}}
+</style>
+</head>
+<body>
+<a class="skip" href="#doc">Skip to content</a>
+<header class="site-head">
+  <div class="wrap bar">
+    <a class="brand" href="/" aria-label="Aether"><span class="ae">ae</span><span class="nm">aether</span></a>
+    <nav>
+      <a href="/repl.html">Examples</a>
+      <a href="/Docs/getting-started.html" class="on">Docs</a>
+      <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
+      <span class="vtag">v0.562</span>
+    </nav>
+  </div>
+</header>
+<div class="wrap">
+  <div class="doc-shell">
+    <nav class="doc-nav" aria-label="Documentation">
+      <div class="docsearch"><input id="ds" type="search" placeholder="Search the docs" aria-label="Search documentation" autocomplete="off" spellcheck="false"><kbd>/</kbd><div class="ds-res" id="dsres" role="listbox"></div></div>
+<div class="grp">Start</div>
+<a href="/Docs/getting-started.html">Getting Started with Aether</a>
+<a href="/Docs/tutorial.html">Aether Language Tutorial</a>
+<div class="grp">Language</div>
+<a href="/Docs/language-reference.html">Aether Language Reference</a>
+<a href="/Docs/type-inference-guide.html">Aether Type Inference Guide</a>
+<a href="/Docs/type-annotation-style-guide.html">Aether Type Annotation Style Guide</a>
+<a href="/Docs/type-inference-multi-value-returns.html">Multi-Value Return Type Inference</a>
+<a href="/Docs/distinct-types.html">Distinct Types</a>
+<a href="/Docs/sequences.html">Sequences (*StringSeq)</a>
+<a href="/Docs/named-args-and-select.html">Named Arguments and select()</a>
+<a href="/Docs/closures-and-builder-dsl.html">Closures and Builder-Style DSL in Aether</a>
+<a href="/Docs/closures-and-lifetimes.html">Closures and Environment Lifetimes</a>
+<a href="/Docs/module-system-design.html">Aether Module System</a>
+<a href="/Docs/when-static-if.html">Compile-time when / static-if</a>
+<div class="grp">Runtime</div>
+<a href="/Docs/architecture.html">Aether Architecture</a>
+<a href="/Docs/actor-concurrency.html">Aether Runtime Guide</a>
+<a href="/Docs/scheduler-quick-reference.html">Aether Scheduler - Quick Reference</a>
+<a href="/Docs/memory-management.html">Aether Memory Management</a>
+<a href="/Docs/runtime-optimizations.html">Runtime Optimizations</a>
+<a href="/Docs/numa-support.html">NUMA Support in Aether</a>
+<a href="/Docs/message-tracing.html">Message tracing</a>
+<div class="grp">Interop</div>
+<a href="/Docs/c-interop.html">C Interoperability</a>
+<a href="/Docs/c-embedding.html">Embedding Aether Actors in C Applications</a>
+<a href="/Docs/emit-lib.html">Embedding Aether as a Shared Library (--emit=lib)</a>
+<a href="/Docs/embedded-namespaces-and-host-bindings.html">Aether as a Configuration Language, v2: Namespaces and Generated Bindings</a>
+<a href="/Docs/aether-embedded-in-host-applications.html">Aether as a Configuration Language for Other Languages</a>
+<div class="grp">Standard library</div>
+<a href="/Docs/stdlib-reference.html">Aether Standard Library Reference</a>
+<a href="/Docs/stdlib-api.html">Aether Standard Library Guide</a>
+<a href="/Docs/http-server.html">std.http HTTP Server</a>
+<a href="/Docs/http-reverse-proxy.html">std.http.proxy reverse proxy</a>
+<a href="/Docs/http-handler-context.html">HTTP handlers with per-server / per-route state</a>
+<div class="grp">Safety</div>
+<a href="/Docs/containment-sandbox.html">Containment and Sandboxing in Aether</a>
+<a href="/Docs/hide-and-seal.html">hide and seal except scope-level capability denial</a>
+<a href="/Docs/config-is-code.html">Config IS Code</a>
+<div class="grp">Build & tooling</div>
+<a href="/Docs/build-system.html">Build System</a>
+<a href="/Docs/formatter.html">ae fmt, the source formatter</a>
+<a href="/Docs/bindgen-consts.html">ae bindgen consts, importing C macro constants</a>
+<a href="/Docs/install-layout.html">Aether install layout</a>
+<a href="/Docs/runtime-config.html">Runtime Configuration - Quick Reference</a>
+<a href="/Docs/per-process-config.html">Per-process configuration in Aether</a>
+<a href="/Docs/cic-help.html">ae help &lt;script&gt; Offline diagnostics for config-IS-code</a>
+<a href="/Docs/cross-ios.html">Cross-compiling for iOS (arm64)</a>
+<div class="grp">Testing</div>
+<a href="/Docs/testing.html">Testing with std.spec and ae test</a>
+<a href="/Docs/mutation-testing.html">Mutation testing, std.mutation</a>
+<a href="/Docs/differential-testing.html">Differential testing across lowering paths</a>
+<div class="grp">Performance</div>
+<a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
+<a href="/Docs/profiling-guide.html">Aether Runtime Profiling Guide</a>
+<a href="/Docs/allocators.html">Allocators</a>
+<div class="grp">Design & RFCs</div>
+<a href="/Docs/structured-concurrency.html">Structured Concurrency for Aether, Design Direction</a>
+<a href="/Docs/contract-folding.html">Compile-time contract folding, costed design</a>
+<a href="/Docs/error-unification.html">Unifying T? and (value, err), costed design</a>
+<a href="/Docs/compiler-trust-boundary.html">The Compiler Trust Boundary</a>
+<a href="/Docs/json-parser-design.html">std.json Design Notes</a>
+<a href="/Docs/aether_compared_to_capsicum.html">Aether Sandbox Model vs. BSD Capsicum: Architecture, Parallels, and FreeBSD Integration</a>
+<a href="/Docs/isolated.html">Isolated[T]: move-only actor message payloads</a>
+<a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
+<a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn't need macro_rules!</a>
+<a href="/Docs/lib-caller-info.html">--emit=lib caller-info channel</a>
+<a href="/Docs/liveview-lite-roadmap.html">LiveView-lite, a roadmap (Phoenix LiveView, on actors, without the framework)</a>
+<a href="/Docs/schema-projection-roadmap.html">std.schema, a projection-first roadmap (Ash, without the framework)</a>
+<a href="/Docs/locale-independent-float-text.html" class="on">Plan: locale-independent float text conversion (LC_NUMERIC correctness)</a>
+<div class="grp">Contributing</div>
+<a href="/Docs/stdlib-module-pattern.html">Aether Stdlib Module Pattern</a>
+<a href="/Docs/stdlib-vs-contrib.html">std/ vs contrib/ placement decisions</a>
+<a href="/Docs/bootstrap-from-source.html">Bootstrapping Aether from source (HEAD)</a>
+<a href="/Docs/release-glibc-portability.html">Release binary portability across glibc versions</a></nav>
+    <main class="doc-main">
+      <article class="doc-body" id="doc">
+        <div class="bc"><span class="prompt">$</span>docs / design &amp; rfcs</div>
+<h1 id="plan-locale-independent-float-text-conversion-lc_numeric-correctness">Plan: locale-independent float text conversion (<code>LC_NUMERIC</code> correctness)</h1>
+<p><strong>Status:</strong> IMPLEMENTED on <code>fix/locale-independent-float-text</code> (2026-08-08), commit <code>2ee0371f</code>.</p>
+<p>Four things the plan got wrong or missed, found only by building and running it, recorded here because each is the kind of thing that reads as fine on paper:</p>
+<ol><li><strong>§3's <code>#error</code> rule was wrong.</strong> <code>make ci-wasm</code> and <code>make ci-embedded</code> compile these files from explicit lists with toolchains that have no locale machinery, so <code>#error</code> would have turned two green gates RED. Replaced with a capability macro degrading to a plain passthrough, correct by construction there, and the codebase's own <code>AETHER_HAS_THREADS</code> idiom.</li><li><strong>§3.2's <code>pthread_once</code> does not exist on Win32.</strong> <code>aether_thread.h</code> maps pthreads to Win32 but omits <code>pthread_once</code>/<code>PTHREAD_ONCE_INIT</code>. Linux compiled clean; <strong>winbaz caught it</strong>. Replaced with an atomic acquire/release lazy init.</li><li><strong>A latent restore bug in the <code>uselocale</code> bracket.</strong> The first draft guarded the restore with <code>previous != NULL</code>, but <code>uselocale</code> returns <code>LC_GLOBAL_LOCALE</code> (not NULL) for a thread that never set one, verified empirically. The guard happened to be true so the bug was latent, but it was wrong in intent and would have stranded a thread in the C locale. Now restores unconditionally, with a test that the caller's locale survives a shim call.</li><li><strong><code>std.number</code> is downstream of the fix, not independent of it.</strong> §7 listed it as "out of scope"; in fact it calls <code>string_from_double</code> as a canonical intermediate, so the fix <em>protects</em> it (that intermediate could previously have been <code>3,14</code>). Verified byte-identical and now asserted in the test.</li></ol>
+<p>Also worth knowing for the next locale-adjacent task: <code>localedef</code> + <code>LOCPATH</code> gives a comma-decimal locale with no root (§4.3a), and the pre-existing <code>integration_http_server_h2</code> failure on <code>main</code> is unrelated, see <code>asks/h2-50-stream-stress-framing-layer-error.md</code>. <strong>Origin:</strong> external review of PR #1429 (IEEE-754 binary64 text-conversion prerequisite for Phase 3.5 of #863) by a Cucumber maintainer. <strong>Scope:</strong> <code>std/string</code>, <code>std/json</code>, <code>runtime/</code>, <em>not</em> <code>contrib/i18n</code> and <em>not</em> <code>std/number</code>. This is <strong>not</strong> an i18n feature; it is close to the opposite, a correctness fix making machine text <strong>locale-<em>independent</strong></em>. See "Framing" below; getting that distinction right is the whole point. (Originally drafted as <code>changes_to_il8n.md</code>, which misled on both counts.)</p>
+<hr>
+<h2 id="1-framing-two-kinds-of-number-text-and-we-conflated-them">1. Framing: two kinds of number text, and we conflated them</h2>
+<p>Aether has two entirely separate needs, and PR #1429 accidentally straddled them:</p>
+<div class="tw"><table><thead><tr><th></th><th><strong>Machine text</strong></th><th><strong>Human text</strong></th></tr></thead><tbody><tr><td>Users</td><td><code>string.from_double</code>, <code>string.to_double</code>, JSON, config files, wire protocols, <code>${}</code> interpolation</td><td><code>std.number</code> (Phase 4 of #863)</td></tr><tr><td>Correct decimal point</td><td><strong>always <code>.</code></strong></td><td>whatever the locale says</td></tr><tr><td>Correct grouping</td><td><strong>never</strong></td><td>locale-defined</td></tr><tr><td>Depends on <code>LC_NUMERIC</code></td><td><strong>must not</strong></td><td>must, via explicit locale argument</td></tr></tbody></table></div>
+<p><code>std/string</code> and <code>std/json</code> are firmly <strong>machine text</strong>. Their output goes into files and onto sockets and must be byte-identical regardless of what locale the host process happens to be in. Today they inherit <code>LC_NUMERIC</code> from the ambient process locale, which makes them environment-dependent. That is the bug.</p>
+<p><code>std/number</code> (Phase 4) is human text and correctly takes an explicit locale argument, it is <strong>not affected by this plan</strong> and must not be "fixed" to use the C locale.</p>
+<hr>
+<h2 id="2-the-defects">2. The defects</h2>
+<h3 id="21-parse-side-is-entirely-unprotected--this-is-a-shipped-bug">2.1 Parse side is entirely unprotected, this is a shipped bug</h3>
+<p><code>std/string/aether_string.c:1066</code>:</p>
+<pre><code><span class="kw">double</span> val = strtod(data, &amp;endptr);   <span class="com">// obeys LC_NUMERIC, no handling whatsoever</span></code></pre>
+<p><code>strtod</code> is locale-sensitive. Under <code>de_DE.UTF-8</code> (decimal point <code>,</code>):</p>
+<ul><li><code>strtod("3.14")</code> consumes only <code>"3"</code>, returns <code>3.0</code>, leaves <code>endptr</code> at <code>"."</code>.</li><li>The trailing-garbage check at <code>:1072</code> then sees a non-space remainder and returns <strong>0 (parse failure)</strong>.</li></ul>
+<p>So <code>string.to_double("3.14")</code> <strong>fails outright</strong> in a comma-decimal locale. The round-trip guarantee that PR #1429 exists to establish does not hold in the very locales the format-side comment claims to have handled. <code>string_to_float_raw</code> (<code>:1046</code>, <code>strtof</code>) has the identical hole.</p>
+<p>This is the finding the reviewer's questions lead to but did not themselves state. It is the strongest item in this plan and the reason the whole thing is worth doing now.</p>
+<p><strong>When does it actually fire?</strong> Be precise about this, because it shapes the test design (§4.3) and the PR narrative. A C program starts in the <code>C</code> locale; <code>LC_NUMERIC</code>/<code>LANG</code> in the environment are <strong>inert</strong> until something calls <code>setlocale(LC_ALL, "")</code>, and nothing in <code>runtime/</code>, <code>std/</code>, or <code>contrib/</code> ever calls <code>setlocale</code> (verified by grep, 2026-08-08). So a standalone Aether binary is safe today <em>by accident</em>. The bug fires when Aether code is <strong>embedded</strong> in a host that has set a locale, GUI toolkits (<code>gtk_init</code> calls <code>setlocale(LC_ALL, "")</code>), PHP, many C/C++ applications, which is <em>exactly</em> the scenario the PR #1429 comment names as its design target ("callers embedding Aether may have selected a non-C locale"). The format side was half-defended for that scenario; the parse side not at all. "Safe by accident" is also fragile: the day anything in the runtime or an app calls <code>setlocale</code> for legitimate i18n reasons (a #863 consumer is the obvious candidate), every standalone binary inherits the bug.</p>
+<h3 id="22-format-side-normalizes-post-hoc-instead-of-formatting-correctly">2.2 Format side normalizes post-hoc instead of formatting correctly</h3>
+<p><code>std/string/aether_string.c:842-860</code> formats under the caller's locale, then rewrites the decimal point afterwards by <code>strstr</code>-ing for <code>localeconv()-&gt;decimal_point</code>. This works for the common cases but is fragile:</p>
+<ul><li>It rewrites only the <strong>first</strong> occurrence. Fine for <code>%.17g</code>; a trap for any future reuse.</li><li>It assumes <code>localeconv()</code> accurately describes what <code>snprintf</code> just did. True in practice, but it is an inference about libc state rather than a guarantee.</li><li>It is a workaround for not controlling the locale, in a codebase that <em>can</em> control the locale.</li></ul>
+<h3 id="23-sibling-sites-with-no-handling-at-all">2.3 Sibling sites with no handling at all</h3>
+<div class="tw"><table><thead><tr><th>Site</th><th>Call</th><th>Direction</th><th>Currently handled?</th></tr></thead><tbody><tr><td><code>std/string/aether_string.c:814</code></td><td><code>snprintf("%g")</code> in <code>string_from_float</code></td><td>emit</td><td><strong>no</strong></td></tr><tr><td><code>std/string/aether_string.c:842</code></td><td><code>snprintf("%.17g")</code> in <code>string_from_double</code></td><td>emit</td><td>post-hoc rewrite</td></tr><tr><td><code>std/string/aether_string.c:1046</code></td><td><code>strtof</code> in <code>string_to_float_raw</code></td><td>parse</td><td><strong>no</strong></td></tr><tr><td><code>std/string/aether_string.c:1066</code></td><td><code>strtod</code> in <code>string_to_double_raw</code></td><td>parse</td><td><strong>no</strong></td></tr><tr><td><code>std/json/aether_json.c:~802</code></td><td><code>strtod</code> slow path</td><td>parse</td><td><strong>no</strong></td></tr><tr><td><code>std/json/aether_json.c</code></td><td>float emit path (locate during impl)</td><td>emit</td><td><strong>no</strong></td></tr><tr><td><code>runtime/aether_runtime_types.c:82</code></td><td><code>snprintf("%f")</code></td><td>emit</td><td><strong>no</strong></td></tr><tr><td><code>runtime/aether_runtime_types.c:98</code></td><td><code>atof</code></td><td>parse</td><td><strong>no</strong></td></tr></tbody></table></div>
+<p>JSON is the most user-visible: RFC 8259 mandates <code>.</code> as the decimal separator. An Aether service running under a European system locale currently emits and rejects non-conforming JSON.</p>
+<p>Audited and <strong>not</strong> sites (recorded so nobody re-checks): <code>string_format</code> (<code>aether_string.c:1128</code>, variadic <code>vsnprintf</code>) has no in-tree callers passing float conversions, C-only surface, flag it in review if one ever appears; <code>string_format_list</code> (<code>:1173</code>, the Aether-facing <code>string.format</code>) is pure <code>{}</code> substitution over pre-stringified args, not locale-sensitive; <code>string_from_int</code> / <code>string_from_long</code> / <code>string_from_int_radix</code> are integer-only (<code>LC_NUMERIC</code> affects only the radix character and <code>%'</code> grouping, neither of which they use).</p>
+<h3 id="24-the-rationale-comment-is-wrong-on-its-facts">2.4 The rationale comment is wrong on its facts</h3>
+<p><code>std/string/aether_string.c:847-849</code> says the process-global locale must not be mutated because "callers embedding Aether may have selected a non-C locale." That conclusion is right; the reasoning given in review, "Aether has no threads", is <strong>false</strong>, and we should not repeat it:</p>
+<ul><li><code>runtime/actors/aether_actor_thread.c</code>, actor threads</li><li><code>runtime/scheduler/multicore_scheduler.c:1054</code>, multicore scheduler threads</li><li><code>std/worker/aether_worker.c:276,318,358</code>, worker pool</li><li><code>std/net/aether_http_server.c:3617,3777</code>, HTTP accept threads</li><li><code>std/net/aether_http_pool.c:100</code>, connection pool</li><li><code>std/http/proxy/aether_proxy_health.c:187</code>, health checker</li></ul>
+<p><code>setlocale</code> is process-global and not thread-safe against concurrent readers. With the above, a <code>setlocale</code>-based fix would be a data race in our <em>own</em> runtime, quite apart from the embedding argument. Both reasons stand independently; the comment should cite the durable one (embedding + our own threads) rather than a claim that is untrue.</p>
+<hr>
+<h2 id="3-chosen-approach">3. Chosen approach</h2>
+<p><strong>A locale-independent conversion shim, used by every machine-text float site.</strong></p>
+<p>Backwards compatibility is explicitly <strong>not</strong> a constraint here (user decision, 2026-08-08). The current behaviour is a bug in every locale where it differs from the new behaviour, so there is nothing worth preserving. Concretely this means:</p>
+<ul><li><strong>No compatibility fallback backend.</strong> Earlier drafting kept the post-hoc <code>localeconv</code> rewrite as a last resort. Drop it, a silent third code path that behaves subtly differently is exactly the failure mode this plan exists to remove.</li><li><strong>CORRECTION (found during implementation, 2026-08-08): <code>#error</code> on "neither backend" is wrong and would break two green CI gates.</strong> An earlier draft said to <code>#error</code> when a platform has neither <code>_l</code> calls nor <code>uselocale</code>. But <code>make ci-wasm</code> (emcc) and <code>make ci-embedded</code> (<code>arm-none-eabi-gcc</code>, newlib, <code>-ffreestanding</code>) both compile <code>std/string/aether_string.c</code> and <code>runtime/aether_runtime_types.c</code> from explicit file lists (<code>Makefile:2509</code>, <code>:2576</code>), and newlib has neither backend. <code>#error</code> would turn both gates RED for a bug that <strong>cannot occur</strong> on those targets, freestanding newlib has no locale support to go wrong, and emcc's musl pins <code>LC_NUMERIC</code> to <code>C</code>. The correct shape is the codebase's own established idiom: a <strong>capability macro</strong> with graceful degradation, exactly like <code>AETHER_HAS_THREADS</code> / <code>AETHER_HAS_FILESYSTEM</code> (<code>runtime/config/aether_optimization_config.h:44-68</code>) and the stub path in <code>runtime/utils/aether_thread.h:24</code>. Define <code>AETHER_HAS_LOCALE_CONV</code>; when it is 0 the shim compiles to a direct <code>snprintf</code>/<code>strtod</code> passthrough, which is <em>correct by construction</em> on a platform whose <code>LC_NUMERIC</code> can never be anything but <code>C</code>. Document that reasoning at the <code>#else</code> so it cannot be mistaken for the fallback we rejected.</li><li><strong>No opt-in flag, no legacy mode.</strong> The old post-hoc block at <code>aether_string.c:847-860</code> is deleted outright, not gated.</li><li><strong>Behaviour changes are allowed to be visible.</strong> <code>string.to_double("3.14")</code> starts succeeding under <code>de_DE.UTF-8</code> where it used to fail; JSON output changes separator in those locales. Both are the fix, not a regression. Document them in the CHANGELOG as fixes, not as breaking changes.</li><li>Free rein to change the internal C signatures (<code>runtime/aether_runtime_types.c:98</code>'s <code>atof</code> → <code>aether_c_strtod</code> with real error reporting) without a deprecation shim.</li></ul>
+<p>Two backends, selected at compile time:</p>
+<ol><li><strong><code>_l</code>-suffixed libc calls</strong>, <code>snprintf_l</code>, <code>strtod_l</code>, <code>strtof_l</code> (macOS, BSD) and <code>_snprintf_l</code>, <code>_strtod_l</code> (Windows/MSVC). Best option: no thread state is mutated at all, the locale is an explicit argument.</li><li><strong><code>uselocale</code> bracket</strong>, glibc and musl, which have <code>strtod_l</code> but not <code>snprintf_l</code>. Swap in a cached <code>locale_t</code> for the duration of the call, restore on <strong>every</strong> return path.</li></ol>
+<p>Rationale for the shim rather than fixing each site inline: eight call sites across three subsystems, two backends, and a strict "restore on every path" obligation. Inline is how you get seven correct sites and one leak.</p>
+<h3 id="31-platform-matrix">3.1 Platform matrix</h3>
+<p><strong>The backend choice is per-function, not per-platform</strong>, glibc has <code>strtod_l</code>/<code>strtof_l</code> (GNU extension, needs <code>_GNU_SOURCE</code>) but no <code>snprintf_l</code>, so on glibc the parse functions use backend 1 and only the emit function needs the <code>uselocale</code> bracket. Structure the <code>#if</code> ladder per function.</p>
+<div class="tw"><table><thead><tr><th>Platform</th><th><code>strtod_l</code></th><th><code>snprintf_l</code></th><th><code>uselocale</code></th><th>parse / emit backend</th></tr></thead><tbody><tr><td>glibc (Linux, CI)</td><td>yes (<code>_GNU_SOURCE</code>)</td><td>no</td><td>yes</td><td>1 / 2</td></tr><tr><td>musl (Alpine)</td><td>verify (see note)</td><td>no</td><td>yes</td><td>1-or-2 / 2</td></tr><tr><td>macOS</td><td>yes</td><td>yes</td><td>yes</td><td>1 / 1</td></tr><tr><td>FreeBSD / GhostBSD</td><td>yes</td><td>yes</td><td>yes</td><td>1 / 1</td></tr><tr><td>MSVC</td><td><code>_strtod_l</code></td><td><code>_snprintf_l</code></td><td>no</td><td>1 / 1 (<code>_</code>-prefixed)</td></tr><tr><td>MinGW / MSYS2</td><td><code>_strtod_l</code> ✓</td><td><code>_snprintf_l</code> ✓</td><td>no</td><td>1 / 1 (<code>_</code>-prefixed), <strong>VERIFIED on winbaz</strong></td></tr></tbody></table></div>
+<p>musl note: musl pins <code>LC_NUMERIC</code> to <code>C</code> regardless of what <code>setlocale</code> is told, so the bug cannot fire there and either backend is a no-op wrapper; don't burn time on the Alpine row, just make sure it compiles.</p>
+<p><strong>MinGW question SETTLED, verified empirically on winbaz, 2026-08-08.</strong> A probe using <code>_create_locale(LC_NUMERIC, "C")</code> + <code>_snprintf_l</code> + <code>_strtod_l</code> + <code>_strtof_l</code> + <code>_free_locale</code> compiled clean (<code>-Wall -Wextra</code>) and ran correctly under <strong>both</strong> MSYS2 environments, GCC 16.1.0:</p>
+<ul><li><strong>MINGW64</strong> (what <code>.github/workflows/ci.yml:292</code> builds under), PROBE OK</li><li><strong>UCRT64</strong>, PROBE OK</li></ul>
+<p>The probe also demonstrated the bug live: with the ambient locale set to German, plain <code>snprintf("%.2f", 3.14)</code> printed <code>3,14</code> while <code>_snprintf_l</code> with the C locale printed <code>3.1400000000000001</code> and <code>_strtod_l("3.14")</code> consumed all four chars. So Windows takes backend 1 (<code>_</code>-prefixed) unconditionally; no <code>#error</code> branch will be reachable on any supported platform.</p>
+<p>Windows locale-name detail for the §4.3 test's candidate list: <code>setlocale(LC_ALL, "de-DE")</code> succeeds on UCRT64 but fails on MINGW64 (msvcrt), which needs <code>"German_Germany.1252"</code>. Try <code>de-DE</code>, then <code>German_Germany.utf8</code>, then <code>German_Germany.1252</code>, and SKIP if all return NULL.</p>
+<h3 id="32-cache-the-locale_t">3.2 Cache the <code>locale_t</code></h3>
+<p>Do <strong>not</strong> <code>newlocale</code>/<code>freelocale</code> per call, <code>string.from_double</code> sits on hot paths (JSON serialization, string interpolation). Create one process-lifetime C locale on first use. The same caching applies to <strong>both</strong> handle types: POSIX <code>locale_t</code> (<code>newlocale</code>) and Windows <code>_locale_t</code> (<code>_create_locale</code>), one static handle each, never per-call.</p>
+<p><strong>Do NOT use <code>pthread_once</code> (found on winbaz during implementation, 2026-08-08).</strong> <code>runtime/utils/aether_thread.h</code> maps pthreads onto Win32 but provides <strong>no</strong> <code>pthread_once</code>/<code>PTHREAD_ONCE_INIT</code>, the first MinGW build failed with <em>"unknown type name <code>pthread_once_t</code>"</em>. Rather than extend that shared header (wide blast radius for one call site), the shim uses an atomic relaxed load/store lazy init: if two threads race, both build a "C" locale and one handle is dropped, at most one small one-per-process allocation, never corrupt state, since each handle is independently valid and immutable. Falls back to a plain <code>if (!ptr)</code> guard when <code>AETHER_HAS_ATOMICS</code> is 0 or the build is single-threaded. <code>freelocale</code> at exit is optional; a single never-freed process-lifetime handle is not a leak worth an atexit hook, but confirm it does not trip the leak-detection CI matrix, if it does, register it with the existing runtime shutdown hook rather than suppressing it.</p>
+<h3 id="33-threadless-builds">3.3 Threadless builds</h3>
+<p><code>AETHER_NO_THREADING</code> / <code>aether_thread.h</code> stubs pthreads out (see <code>std/worker/aether_worker.c:28</code>). The once-init must degrade to a plain <code>if (!initialized)</code> there. Check whether the embedded <code>!AETHER_HAS_FILESYSTEM</code> profile also needs a stub path.</p>
+<hr>
+<h2 id="4-implementation">4. Implementation</h2>
+<h3 id="41-new-shim">4.1 New shim</h3>
+<p>Create <code>runtime/aether_locale_num.h</code> + <code>.c</code> (runtime, not std, <code>runtime/aether_runtime_types.c</code> is one of the consumers and must not depend on <code>std/</code>).</p>
+<p>Surface:</p>
+<pre><code><span class="com">/* Locale-independent ("C" locale) float text conversion.
+ *
+ * Machine text only: wire formats, JSON, config, interpolation. Always uses
+ * '.' as the decimal separator and never groups, regardless of the ambient
+ * process locale. Human-facing formatting belongs in std.number, which takes
+ * an explicit locale and must NOT be routed through here. */</span>
+
+<span class="kw">int</span>    aether_c_snprintf_double(<span class="kw">char</span>* buf, <span class="kw">size_t</span> n, <span class="kw">const</span> <span class="kw">char</span>* fmt, <span class="kw">double</span> v);
+<span class="kw">double</span> aether_c_strtod(<span class="kw">const</span> <span class="kw">char</span>* s, <span class="kw">char</span>** endptr);
+<span class="kw">float</span>  aether_c_strtof(<span class="kw">const</span> <span class="kw">char</span>* s, <span class="kw">char</span>** endptr);</code></pre>
+<p><code>fmt</code> is restricted to a caller-supplied float conversion (<code>"%g"</code>, <code>"%.17g"</code>, <code>"%f"</code>); it is not a general printf passthrough. Document that, and assert/reject anything with more than one conversion specifier if cheap to do so.</p>
+<p>Each backend must:</p>
+<ul><li>preserve <code>errno</code> semantics exactly as the callers expect (<code>ERANGE</code> checks at <code>aether_string.c:1048</code>, <code>:1068</code> depend on it), set <code>errno = 0</code> before, and do not let the locale save/restore clobber it after;</li><li>restore the previous locale on <strong>every</strong> return path including error returns;</li><li>be a straight passthrough when the backend is <code>_l</code>-based (no state to restore);</li><li>degrade to a plain <code>snprintf</code>/<code>strtod</code> passthrough when <code>AETHER_HAS_LOCALE_CONV == 0</code> (WASM, newlib/embedded), correct by construction there, <strong>not</strong> the rejected post-hoc fallback (§3).</li></ul>
+<p>Two <code>_l</code>-backend footguns the implementer must not macro-alias over:</p>
+<ul><li><strong>Argument order differs.</strong> BSD/macOS: <code>snprintf_l(buf, n, loc, fmt, ...)</code>, locale <strong>before</strong> format. Windows: <code>_snprintf_l(buf, n, fmt, loc, ...)</code>, locale <strong>after</strong> format. Write the two wrappers out explicitly; a <code>#define snprintf_l _snprintf_l</code> style alias compiles on neither or miscompiles on one.</li><li><strong>Windows <code>_snprintf_l</code> is not C99-conformant on truncation</strong>: it returns a negative value and does <strong>not</strong> NUL-terminate the buffer, where C99 <code>snprintf</code> returns the would-be length and always terminates. The shim's Windows emit path must force <code>buf[n-1] = '\0'</code> and normalise the return so callers see uniform C99-style semantics (<code>string_from_double</code> checks <code>written &lt; 0 || written &gt;= sizeof(buffer)</code>, both arms must keep working identically on every platform). In practice truncation is unreachable for <code>%.17g</code> in a 128-byte buffer, but <code>runtime/aether_runtime_types.c:82</code>'s <code>%f</code> can exceed its buffer for large magnitudes, so the semantics matter.</li></ul>
+<h3 id="42-call-site-changes">4.2 Call-site changes</h3>
+<p>Replace at all eight sites in §2.3. Delete the post-hoc <code>localeconv</code> block at <code>aether_string.c:847-860</code> outright, with no compatibility fallback it has no remaining home, and <code>&lt;locale.h&gt;</code> may then be droppable from <code>aether_string.c</code>'s includes (<code>:12</code>) if nothing else uses it.</p>
+<p>Rewrite the comment at <code>:847</code> to state the durable rationale: <em>these conversions are machine text and must be locale-independent; the process-global locale is not ours to mutate because Aether runs its own threads and may be embedded in a multithreaded host.</em></p>
+<p><code>runtime/aether_runtime_types.c:98</code> uses <code>atof</code>, which has no error reporting. Switch to <code>aether_c_strtod</code> while there; that is a small behavioural improvement, so call it out in the PR rather than sliding it in.</p>
+<h3 id="43-tests">4.3 Tests</h3>
+<p><strong>a) <code>tests/regression/test_string_double_locale.ae</code></strong>, run the existing round-trip corpus (<code>test_string_double_roundtrip.ae</code>'s <code>check_roundtrip</code> shape) under a non-C locale.</p>
+<p><strong>Mechanism, the test must call <code>setlocale</code> itself.</strong> An earlier draft proposed a driver script re-execing the test with <code>LC_NUMERIC=de_DE.UTF-8</code> in the environment. <strong>That does not work</strong>: a C program starts in the <code>C</code> locale and locale env vars have no effect unless the process calls <code>setlocale(LC_ALL, "")</code>, which nothing in the Aether runtime does (§2.1). The test binary would run in the C locale and pass vacuously, test theatre of exactly the kind §4.3(b) warns about.</p>
+<p>Instead the test sets the locale in-process via a helper <strong>exported from the shim itself</strong> (<code>runtime/aether_locale_num.c</code> ships in every binary, so there is nothing extra to link):</p>
+<pre><code><span class="com">/* TEST-ONLY. Mutates the PROCESS-GLOBAL locale, the exact thing the rest of
+ * this file exists to avoid. Call it only from single-threaded test mains,
+ * before any actor/scheduler/worker threads exist. Returns 1 if the locale
+ * took, 0 if it is not installed (caller prints SKIP). */</span>
+<span class="kw">int</span> aether_test_setlocale(<span class="kw">const</span> <span class="kw">char</span>* name);   <span class="com">/* wraps setlocale(LC_ALL, name) */</span></code></pre>
+<p>with a plain <code>extern aether_test_setlocale(name: string) -&gt; int</code> in the test. Helper-in-shim rather than a raw <code>extern setlocale</code> because the raw route has two traps: <code>LC_ALL</code>'s numeric value is libc-specific (<strong>6</strong> on glibc but <strong>0</strong> on BSD/macOS/Windows, a hardcoded constant silently sets the wrong category somewhere), and the emitted C prototype for <code>setlocale</code> can collide with <code>&lt;locale.h&gt;</code> in generated code, forcing a <code>libc_names[]</code> whitelist detour (memory: <code>feedback_aether_libc_whitelist</code>) for no benefit. The helper contains both problems in one C-compiled line, and its int return is tidier at the Aether boundary than a NULL-checked ptr.</p>
+<p>This is <strong>better</strong> than the env-var driver on every axis:</p>
+<ul><li><strong>SKIP detection is free</strong>: returns 0 when the locale isn't installed → <code>println("SKIP ...: de_DE.UTF-8 not installed")</code>, exit 0, no <code>locale -a</code> parsing, no shell sibling, no <code>.ae</code>-discovery prune-list entry (memory: <code>feedback_integration_test_ae_discovery_prune</code>).</li><li>In-process, so it works identically under the nightly and a hand run.</li><li>It <em>proves the trigger</em>: the test reproduces the embedded-host scenario (§2.1) rather than simulating it.</li></ul>
+<p>Locale-name spelling varies: try <code>de_DE.UTF-8</code> then <code>de_DE.utf8</code> on POSIX (distro-dependent), and on Windows <code>de-DE</code> → <code>German_Germany.utf8</code> → <code>German_Germany.1252</code> (§3.1's winbaz finding: UCRT64 accepts the BCP-47 form, MINGW64/msvcrt does not). SKIP only after the whole candidate list fails.</p>
+<p>The local box currently has only <code>C</code>/<code>C.utf8</code>/<code>en_US.utf8</code> (verified via <code>locale -a</code>), so expect SKIP locally until the CachyOS box is provisioned (b).</p>
+<p><strong>Rootless local testing (found during implementation, 2026-08-08).</strong> You do NOT need sudo or a provisioned box to exercise the real bug, <code>localedef</code> compiles a locale into any writable directory and <code>LOCPATH</code> points libc at it:</p>
+<pre><code>localedef -i de_DE -f UTF-<span class="num">8</span> <span class="str">"$PWD/loc/de_DE.UTF-8"</span>     <span class="com"># no root needed</span>
+LOCPATH=<span class="str">"$PWD/loc"</span> LC_ALL=de_DE.UTF-<span class="num">8</span> locale -k decimal_point   <span class="com"># =&gt; decimal_point=","</span>
+LOCPATH=<span class="str">"$PWD/loc"</span> ./my_test                            <span class="com"># setlocale("de_DE.UTF-8") now succeeds</span></code></pre>
+<p>This was used to validate the shim locally and should be used in dev; it does <strong>not</strong> replace the nightly gate (b), because <code>LOCPATH</code> requires the harness to set it, which a CI runner won't do by itself. The SKIP convention matches <code>tests/regression/test_fs_move.ae:129</code> and <code>test_glob_dir_prefix.ae:22</code>; the SKIP line must be visible in logs, a test that silently passes because it never ran is worse than no test.</p>
+<p><strong>b) Make it actually run somewhere, the CachyOS nightly, NOT <code>ci.yml</code>.</strong></p>
+<p>A test that always skips is theatre, so it has to run on a box that really has the locale. That box is the <strong>CachyOS nightly</strong> (<code>tests/cachyos/nightly.sh</code>), and GitHub Actions is deliberately left out of it (user decision, 2026-08-08).</p>
+<p>Why not <code>ci.yml</code>:</p>
+<ul><li><code>.github/workflows/ci.yml</code> has eleven jobs. The matrix job (<code>:19</code>) spans macOS and Windows where <code>locale-gen</code> doesn't exist, so it would need an OS guard on the most complex job; the Linux-only jobs (<code>:224</code>, <code>:261</code>, <code>:387</code>, ...) are valgrind / embedded / cross-compile, none a natural home for a stdlib regression test.</li><li>On the stock runner image the test would only ever print SKIP unless a <code>locale-gen</code> step is added, so it would be destabilising the merge-blocking path in exchange for a test that does nothing by default.</li><li>One hand-picked locale on one platform guards the specific <code>de_DE</code> regression, not the class of bug. The invariance check in (c) below is the part that generalises.</li></ul>
+<p>Why the nightly:</p>
+<ul><li>We provision the box, so locale generation is one-time setup, not per-run cost across eleven jobs.</li><li>Its stated purpose is covering what the portable CI can't (<code>tests/cachyos/README.md:4-6</code>).</li><li>It has a <strong>fail-on-missing-deps</strong> gate, so an absent locale turns the run <strong>RED</strong> rather than silently skipping, the exact property whose absence let this bug ship.</li></ul>
+<p>Accepted trade-off, state it plainly in the PR: detection moves from per-PR to nightly. Proportionate for a bug that sat unnoticed since #1429 merged.</p>
+<p><strong>Wiring it in</strong> (<code>tests/cachyos/nightly.sh</code>):</p>
+<ol><li>Add a <code>locale</code> kind to <code>have_dep</code> (<code>:94</code>), alongside the existing <code>cmd</code> and <code>lib</code>:</li></ol>
+<pre><code>   locale) for L in <span class="str">"$@"</span>; do locale -a <span class="num">2</span>&gt;/dev/null | grep -qix <span class="str">"$L"</span> &amp;&amp; return <span class="num">0</span>; done ;;</code></pre>
+<p>Match case-insensitively and accept both spellings, <code>locale -a</code> prints <code>de_DE.utf8</code> while the generation input is <code>de_DE.UTF-8</code>.</p>
+<ol><li>Add to the <code>require_deps</code> spec list (<code>:110</code>):</li></ol>
+<pre><code>   <span class="str">"de_DE.UTF-8 locale|locale|de_DE.utf8|de_DE.UTF-8"</span>  \</code></pre>
+<ol><li>Provisioning note in <code>tests/cachyos/README.md</code>: uncomment <code>de_DE.UTF-8 UTF-8</code> in <code>/etc/locale.gen</code> and run <code>locale-gen</code> (Arch ships <code>glibc</code> with the locale <em>sources</em> present but ungenerated, same as this dev box, verified: <code>locale -a</code> lists only C/C.utf8/en_US.utf8 while <code>/usr/share/i18n/locales/de_DE</code> exists).</li></ol>
+<p>The Aether-side test still SKIPs cleanly when the locale is absent (§4.3a), that keeps it harmless for anyone running <code>make test</code> locally. The nightly's dep gate is what makes a missing locale loud in the one place we control.</p>
+<p><strong>c) Locale-invariance test, the part that generalises.</strong> Beyond asserting correct output under <code>de_DE</code>, assert output is <strong>identical</strong> across every locale available on the box: for each candidate locale name, <code>aether_test_setlocale(name)</code> (skipping failures, same helper as (a)), format the corpus, and diff against the C-locale baseline captured first; require zero differences. Candidate list = <code>locale -a</code> output when obtainable (<code>os.run</code>), else a hardcoded candidate set. This degrades to a tautology on a C-only box (which is honest), and it catches the <em>next</em> locale-sensitive libc call someone adds, which the single-locale test would not.</p>
+<p><strong>d) JSON round-trip under the same locale</strong>, emit and re-parse a float-bearing document, assert byte-exact <code>.</code> separators. This is the RFC 8259 conformance guard.</p>
+<p><strong>e) Direct unit test of the shim</strong> in C, if there is an existing C-level test hook; otherwise cover it through the Aether tests.</p>
+<hr>
+<h2 id="5-verification">5. Verification</h2>
+<ol><li><code>make ci</code> green (10 steps).</li><li><code>HARDEN=1 make ci</code>, this touches <code>std/</code> and <code>runtime/</code>, so the <strong>full CI matrix matters</strong>: per memory <code>feedback_skip_actions_scope</code>, <strong><code>[skip actions]</code> must NOT be used on any commit in this branch.</strong></li><li>Leak-detection CI must stay clean, check the cached <code>locale_t</code> (§3.2).</li><li>macOS ARM64 leaks gate, this is the platform that historically catches our C-side slips (memory: <code>feedback_macos_realloc_zero_leaks</code>).</li><li><strong>winbaz</strong> (<code>ssh winbaz</code>, MSYS2 login shell, a bare Git-Bash ssh session can't run the MSYS2 gcc), confirm the real shim compiles under MINGW64 and the float round-trip and locale tests behave. The §3.1 probe validated the primitives; this validates our actual code.</li><li><strong>CachyOS nightly</strong>, after provisioning <code>de_DE.UTF-8</code>, confirm the dep gate reports <code>dep OK: de_DE.UTF-8 locale</code> and the locale tests actually execute (not SKIP). A green nightly whose new test skipped is not verification. Note <code>ci.yml</code> is intentionally untouched (§4.3b).</li><li>Confirm <code>std/number</code> (Phase 4) output is <strong>unchanged</strong>, regression-test it explicitly. If this change alters human-facing formatted numbers, the fix has leaked across the machine/human line and is wrong.</li></ol>
+<hr>
+<h2 id="6-reply-to-the-reviewer">6. Reply to the reviewer</h2>
+<p>Send after the fix is in flight, not before, it concedes a real bug, so it should arrive with a branch attached.</p>
+<blockquote>Good catches, and following the second one through turned up something worse than the missing test.  1. Correct, we don't test under a non-C <code>LC_NUMERIC</code>. Adding that, selecting an installed comma-decimal locale and skipping visibly when the image only has C/POSIX.  2. Agreed that controlling the locale beats formatting under the caller's and rewriting the separator afterwards. We're going with the <code>_l</code>-suffixed calls where the platform has them (<code>strtod_l</code>/<code>snprintf_l</code>) and a <code>uselocale</code> bracket as the glibc fallback, restoring on every path.  One correction to my own earlier framing: Aether <em>is</em> multithreaded, actors, a multicore scheduler, worker pools, HTTP accept threads, and may additionally be embedded in a multithreaded host. So <code>setlocale</code> would be a data race in our own runtime, not merely impolite to the embedder. <code>uselocale</code>/<code>_l</code> is right for both reasons.  The bigger find: the parse side had no handling at all. <code>strtod</code> is equally <code>LC_NUMERIC</code>- sensitive, so under <code>de_DE.UTF-8</code> <code>string.to_double("3.14")</code> stops at the <code>.</code> and reports a parse failure, the round-trip guarantee that PR was meant to establish doesn't hold. Same for JSON number parsing, which is an RFC 8259 conformance issue. Fixing both directions across <code>std/string</code>, <code>std/json</code> and the runtime, with your locale test as the gate.</blockquote>
+<hr>
+<h2 id="7-out-of-scope">7. Out of scope</h2>
+<ul><li><strong>Ryu / Grisu shortest-round-trip formatting.</strong> Would sidestep libc locale handling entirely and give shorter output, but it is a much larger change and <code>%.17g</code> is already round-trip-correct. Worth a separate issue; note it in the PR as the longer-term direction.</li><li><strong><code>std/number</code> (Phase 4).</strong> Human-facing, explicitly locale-parameterised, correct as-is.</li><li><strong>Other locale-sensitive libc</strong> (<code>isspace</code>, <code>tolower</code>, <code>strcoll</code>, <code>strftime</code>, ~34 hits across <code>std/</code>+<code>runtime/</code>). Real, but a separate audit. <code>isspace</code> on a <code>char</code> with the high bit set is the classic UB there. <strong>File a follow-up issue; do not expand this PR into it.</strong></li><li>~~<strong>Renaming this file.</strong>~~ <strong>DONE 2026-08-08</strong>, was <code>changes_to_il8n.md</code> at the repo root, a misnomer twice over (typo, and this is locale-<em>independence</em>, not i18n). Now <code>docs/locale-independent-float-text.md</code>, matching the kebab-case convention of its neighbours. The old name invited exactly the wrong conclusion: that this advanced #863's i18n work, when it actually removes a hazard that i18n work was walking toward.</li></ul>
+<hr>
+<h2 id="8-sequencing">8. Sequencing</h2>
+<ol><li>~~Settle the MinGW question on winbaz (§3.1)~~, <strong>DONE 2026-08-08</strong>, <code>_l</code> family verified present and working on MINGW64 + UCRT64 (see §3.1). No blocker; Windows is backend 1.</li><li>Provision <code>de_DE.UTF-8</code> on the CachyOS box (§4.3b step 3), do this <strong>before</strong> adding it to the dep gate, or the next nightly goes RED on a provisioning gap of our own making. Box state checked 2026-08-08: reachable, <code>/etc/locale.gen:127</code> has the entry commented out, and there is <strong>no passwordless sudo</strong>, so this needs an interactive run (command already given to Paul): <code>ssh -t paul@192.168.0.160 "sudo sed -i 's/^#de_DE.UTF-8 UTF-8/de_DE.UTF-8 UTF-8/' /etc/locale.gen &amp;&amp; sudo locale-gen"</code></li><li>Write the shim + tests; land the parse-side fix and format-side fix together in one PR (they are two halves of one round-trip guarantee). Nightly wiring goes in the same PR.</li><li>Reply to the reviewer with the branch link.</li><li>Watch the first nightly after merge, confirm the locale tests ran rather than skipped (§5.6).</li><li>File the follow-up issue for the broader locale-sensitive-libc audit (§7).</li></ol>
+<nav class="doc-prevnext" aria-label="Previous and next page"><a class="pn-prev" href="/Docs/schema-projection-roadmap.html"><span class="pn-k">Previous</span><span class="pn-t">std.schema, a projection-first roadmap (Ash, without the framework)</span></a><a class="pn-next" href="/Docs/stdlib-module-pattern.html"><span class="pn-k">Next</span><span class="pn-t">Aether Stdlib Module Pattern</span></a></nav>
+      </article>
+    </main>
+    <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#1-framing-two-kinds-of-number-text-and-we-conflated-them" class="l2" data-id="1-framing-two-kinds-of-number-text-and-we-conflated-them">1. Framing: two kinds of number text, and we conflated them</a><a href="#2-the-defects" class="l2" data-id="2-the-defects">2. The defects</a><a href="#21-parse-side-is-entirely-unprotected--this-is-a-shipped-bug" class="l3" data-id="21-parse-side-is-entirely-unprotected--this-is-a-shipped-bug">2.1 Parse side is entirely unprotected, this is a shipped bug</a><a href="#22-format-side-normalizes-post-hoc-instead-of-formatting-correctly" class="l3" data-id="22-format-side-normalizes-post-hoc-instead-of-formatting-correctly">2.2 Format side normalizes post-hoc instead of formatting correctly</a><a href="#23-sibling-sites-with-no-handling-at-all" class="l3" data-id="23-sibling-sites-with-no-handling-at-all">2.3 Sibling sites with no handling at all</a><a href="#24-the-rationale-comment-is-wrong-on-its-facts" class="l3" data-id="24-the-rationale-comment-is-wrong-on-its-facts">2.4 The rationale comment is wrong on its facts</a><a href="#3-chosen-approach" class="l2" data-id="3-chosen-approach">3. Chosen approach</a><a href="#31-platform-matrix" class="l3" data-id="31-platform-matrix">3.1 Platform matrix</a><a href="#32-cache-the-locale_t" class="l3" data-id="32-cache-the-locale_t">3.2 Cache the locale_t</a><a href="#33-threadless-builds" class="l3" data-id="33-threadless-builds">3.3 Threadless builds</a><a href="#4-implementation" class="l2" data-id="4-implementation">4. Implementation</a><a href="#41-new-shim" class="l3" data-id="41-new-shim">4.1 New shim</a><a href="#42-call-site-changes" class="l3" data-id="42-call-site-changes">4.2 Call-site changes</a><a href="#43-tests" class="l3" data-id="43-tests">4.3 Tests</a><a href="#5-verification" class="l2" data-id="5-verification">5. Verification</a><a href="#6-reply-to-the-reviewer" class="l2" data-id="6-reply-to-the-reviewer">6. Reply to the reviewer</a><a href="#7-out-of-scope" class="l2" data-id="7-out-of-scope">7. Out of scope</a><a href="#8-sequencing" class="l2" data-id="8-sequencing">8. Sequencing</a></nav>
+  </div>
+</div>
+<script src="/docs.js" defer></script>
+<footer class="site-foot">
+  <div class="wrap foot-grid">
+    <div class="foot-brand">
+      <span class="ae">ae</span>
+      <p class="foot-tag">Actors that compile to C.</p>
+      <p class="foot-status">v0.562 &middot; pre-1.0, actively developed</p>
+    </div>
+    <div class="foot-col">
+      <h3 class="foot-h">Docs</h3>
+      <a href="/Docs/getting-started.html">Getting Started</a>
+      <a href="/Docs/tutorial.html">Tutorial</a>
+      <a href="/Docs/language-reference.html">Language Reference</a>
+      <a href="/Docs/stdlib-reference.html">Standard Library</a>
+    </div>
+    <div class="foot-col">
+      <h3 class="foot-h">Project</h3>
+      <a href="https://github.com/aether-lang-dev/aether">GitHub</a>
+      <a href="https://github.com/aether-lang-dev/aether/issues">Issues</a>
+      <a href="https://github.com/aether-lang-dev/aether/blob/main/CHANGELOG.md">Changelog</a>
+      <a href="https://github.com/sponsors/nicolas-maman">Sponsor</a>
+    </div>
+    <div class="foot-col">
+      <h3 class="foot-h">Try</h3>
+      <a href="/repl.html">Examples</a>
+      <a href="/Docs/getting-started.html">Install</a>
+      <a href="/Docs/architecture.html">Architecture</a>
+    </div>
+  </div>
+  <div class="wrap foot-note">A lot of AI/LLM use was key in the creation of all corners of this project. Each use was explicitly directed around pattern, language, framework and library ideals, and all of it sits on tiers of automated tests. The LLMs aced the job.</div>
+  <div class="wrap foot-legal"><span>MIT licensed &middot; compiles to C</span><span>aether-lang.dev</span></div>
+</footer>
+</body>
+</html>

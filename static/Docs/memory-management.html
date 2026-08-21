@@ -4,11 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Aether Memory Management · Aether</title>
-<meta name="description" content="Aether's memory model is deterministic scope-exit cleanup, not garbage collection.">
+<meta name="description" content="Aether&#x27;s memory model is deterministic scope-exit cleanup, not garbage collection.">
 <link rel="canonical" href="https://aether-lang.dev/Docs/memory-management.html">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Aether Memory Management · Aether">
-<meta property="og:description" content="Aether's memory model is deterministic scope-exit cleanup, not garbage collection.">
+<meta property="og:description" content="Aether&#x27;s memory model is deterministic scope-exit cleanup, not garbage collection.">
 <meta property="og:url" content="https://aether-lang.dev/Docs/memory-management.html">
 <meta property="og:image" content="https://aether-lang.dev/og.png">
 <meta name="twitter:card" content="summary_large_image">
@@ -171,7 +171,7 @@ a{color:inherit;text-decoration:none}
 
 /* section head */
 .sec-head{display:flex;align-items:baseline;gap:14px;margin:0 0 22px}
-.sec-head h2{font-family:var(--mono);font-size:1.15rem;font-weight:700;letter-spacing:-.01em;margin:0}
+.sec-head h1,.sec-head h2{font-family:var(--mono);font-size:1.15rem;font-weight:700;letter-spacing:-.01em;margin:0}
 .sec-head .rule{flex:1;height:1px;background:var(--line)}
 
 /* code */
@@ -358,7 +358,7 @@ body::after{content:"";position:fixed;inset:0;z-index:3;pointer-events:none;opac
 
 /* prompt accents on section headings */
 .prompt{color:var(--red);margin-right:.5ch}
-.sec-head h2 .prompt{font-weight:400}
+.sec-head h1 .prompt,.sec-head h2 .prompt{font-weight:400}
 
 /* prompt-styled ghost button */
 .btn-term{font-family:var(--mono);font-size:14px;padding:11px 18px;border-radius:6px;
@@ -570,7 +570,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.473</span>
+      <span class="vtag">v0.562</span>
     </nav>
   </div>
 </header>
@@ -600,6 +600,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/memory-management.html" class="on">Aether Memory Management</a>
 <a href="/Docs/runtime-optimizations.html">Runtime Optimizations</a>
 <a href="/Docs/numa-support.html">NUMA Support in Aether</a>
+<a href="/Docs/message-tracing.html">Message tracing</a>
 <div class="grp">Interop</div>
 <a href="/Docs/c-interop.html">C Interoperability</a>
 <a href="/Docs/c-embedding.html">Embedding Aether Actors in C Applications</a>
@@ -624,6 +625,11 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/runtime-config.html">Runtime Configuration - Quick Reference</a>
 <a href="/Docs/per-process-config.html">Per-process configuration in Aether</a>
 <a href="/Docs/cic-help.html">ae help &lt;script&gt; Offline diagnostics for config-IS-code</a>
+<a href="/Docs/cross-ios.html">Cross-compiling for iOS (arm64)</a>
+<div class="grp">Testing</div>
+<a href="/Docs/testing.html">Testing with std.spec and ae test</a>
+<a href="/Docs/mutation-testing.html">Mutation testing, std.mutation</a>
+<a href="/Docs/differential-testing.html">Differential testing across lowering paths</a>
 <div class="grp">Performance</div>
 <a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
 <a href="/Docs/profiling-guide.html">Aether Runtime Profiling Guide</a>
@@ -639,6 +645,9 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
 <a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn't need macro_rules!</a>
 <a href="/Docs/lib-caller-info.html">--emit=lib caller-info channel</a>
+<a href="/Docs/liveview-lite-roadmap.html">LiveView-lite, a roadmap (Phoenix LiveView, on actors, without the framework)</a>
+<a href="/Docs/schema-projection-roadmap.html">std.schema, a projection-first roadmap (Ash, without the framework)</a>
+<a href="/Docs/locale-independent-float-text.html">Plan: locale-independent float text conversion (LC_NUMERIC correctness)</a>
 <div class="grp">Contributing</div>
 <a href="/Docs/stdlib-module-pattern.html">Aether Stdlib Module Pattern</a>
 <a href="/Docs/stdlib-vs-contrib.html">std/ vs contrib/ placement decisions</a>
@@ -723,22 +732,22 @@ main() {
 <hr>
 <h2 id="actor-state">Actor State</h2>
 <p>Actor <code>state</code> variables initialized with <code>*.new()</code> outlive any single message handler. Free them in the actor's <code>Stop</code> handler (or wherever the actor is shut down):</p>
-<pre><code><span class="kw">import</span> std.map
+<pre><code>import std.map
 
-<span class="kw">message</span> Store { key: <span class="fn">string</span>, value: <span class="fn">string</span> }
-<span class="kw">message</span> Lookup { key: <span class="fn">string</span> }
-<span class="kw">message</span> Stop {}
+message Store { key: string, value: string }
+message Lookup { key: string }
+message Stop {}
 
-<span class="kw">actor</span> Cache {
-    <span class="kw">state</span> data = map.new()
+actor Cache {
+    state data = map.new()
 
-    <span class="kw">receive</span> {
+    receive {
         Store(key, value) -&gt; {
             map.put(data, key, value)
         }
         Lookup(key) -&gt; {
             print(map.get(data, key))
-            print(<span class="str">"\n"</span>)
+            print("\n")
         }
         Stop() -&gt; {
             map.free(data)
@@ -750,20 +759,20 @@ main() {
 <h2 id="common-mistakes">Common Mistakes</h2>
 <p><strong>Forgetting <code>defer</code> after allocation:</strong></p>
 <pre><code>m = map.new()
-map.put(m, <span class="str">"k"</span>, <span class="str">"v"</span>)
-<span class="com">// LEAK: m is never freed</span></code></pre>
+map.put(m, "k", "v")
+// LEAK: m is never freed</code></pre>
 <p>Fix: always pair allocation with <code>defer</code>:</p>
 <pre><code>m = map.new()
-<span class="kw">defer</span> map.free(m)</code></pre>
+defer map.free(m)</code></pre>
 <p><strong>Deferring before the allocation succeeds:</strong></p>
 <p><code>defer</code> registers immediately. Place it right after the allocation, not before.</p>
 <p><strong>Allocating inside a loop:</strong></p>
 <p><code>defer</code> is block-scoped: a <code>defer</code> placed inside a loop body fires at the end of each iteration, not just once at function exit. So an allocation made inside the loop is reclaimed every pass, no manual per-iteration free is needed:</p>
-<pre><code><span class="kw">while</span> i &lt; n {
+<pre><code>while i &lt; n {
     item = list.new()
-    <span class="kw">defer</span> list.free(item)   <span class="com">// runs at the end of THIS iteration</span>
-    <span class="com">// ... use item ...</span>
-    i = i + <span class="num">1</span>
+    defer list.free(item)   // runs at the end of THIS iteration
+    // ... use item ...
+    i = i + 1
 }</code></pre>
 <hr>
 <h2 id="summary-when-to-use-what">Summary: When to Use What</h2>
@@ -776,97 +785,99 @@ map.put(m, <span class="str">"k"</span>, <span class="str">"v"</span>)
 <p>Aether takes the same shape, strings are the "standard container" for character data, and the compiler hides allocation and deallocation transitions behind the assignment operator. The user-visible model is "assign and reassign normally"; reclamation is the compiler's job.</p>
 <h3 id="what-gets-freed-automatically">What gets freed automatically</h3>
 <p>For every string variable in a function, the compiler emits a companion <code>int _heap_&lt;name&gt;</code> tracker that's set to <code>1</code> after every heap-string assignment and <code>0</code> after every literal assignment. On reassignment, the wrapper <code>if (_heap_&lt;name&gt;) free(&lt;old&gt;)</code> decides whether to release the previous buffer.</p>
-<pre><code>s = <span class="str">""</span>                          <span class="com">// _heap_s = 0 (literal)</span>
-s = <span class="fn">string</span>.concat(s, <span class="str">"x"</span>)       <span class="com">// free(""): no, _heap_s was 0; _heap_s = 1</span>
-s = <span class="fn">string</span>.concat(s, <span class="str">"y"</span>)       <span class="com">// free(prev concat): yes, _heap_s was 1; _heap_s = 1</span>
-s = <span class="str">"literal end"</span>               <span class="com">// free(prev concat): yes, _heap_s was 1; _heap_s = 0</span></code></pre>
+<pre><code>s = ""                          // _heap_s = 0 (literal)
+s = string.concat(s, "x")       // free(""): no, _heap_s was 0; _heap_s = 1
+s = string.concat(s, "y")       // free(prev concat): yes, _heap_s was 1; _heap_s = 1
+s = "literal end"               // free(prev concat): yes, _heap_s was 1; _heap_s = 0</code></pre>
 <p>The wrapper handles all four transitions (heap→heap, heap→literal, literal→heap, literal→literal) uniformly, so heap memory used by string-returning expressions is reclaimed eagerly without any user-visible <code>defer</code>.</p>
 <p>The same tracker also covers two related cases automatically:</p>
 <ul><li><strong><code>release(s)</code> / <code>string.release(s)</code></strong> on a heap-tracked local lowers to a flag-guarded free (<code>if (_heap_s) { aether_heap_str_free(s); s = NULL; _heap_s = 0; }</code>). It reclaims both a refcounted AetherString (<code>string.from_int</code> / <code>new</code> / …) <em>and</em> a plain malloc'd <code>char*</code> (<code>string.concat</code> / <code>substring</code> / <code>to_upper</code> / <code>to_lower</code> / <code>trim</code>), and clears the tracker so the scope-exit free can't double-free. Safe on a literal, the flag is 0.</li><li>A heap-returning string expression used directly as a <code>==</code>/<code>!=</code> comparison operand (<code>string.substring(s, i, j) == "lit"</code>) is captured in a temp and freed after the compare, the binary-operator analogue of the call-argument drain.</li></ul>
 <p><code>*StringSeq</code> cons-cell locals get an analogous automatic lifecycle (freed on reassignment and at scope exit via the refcount-decrementing <code>string_seq_free</code>); see <a href="/Docs/sequences.html">sequences.md</a> § Automatic ownership.</p>
 <h3 id="heapnewt-boxes-that-own-string-fields"><code>heap.new(T)</code> boxes that own string fields</h3>
 <p><code>heap.new(T)</code> allocates a zero-initialised <code>*T</code> box; <code>heap.free(p)</code> reclaims it. A struct with <code>string</code> fields is allowed (previously POD-only): the box <strong>owns</strong> its string fields under the same tracker model described above. Each string field carries a hidden <code>_heap_&lt;field&gt;</code> companion, so:</p>
-<pre><code><span class="kw">struct</span> AppCtx { db: <span class="fn">ptr</span>; data_dir: <span class="fn">string</span> }
+<pre><code>struct AppCtx { db: ptr; data_dir: string }
 
-ctx = heap.new(AppCtx)                       <span class="com">// calloc, fields NULL, trackers 0</span>
-ctx.data_dir = <span class="fn">string</span>.concat(<span class="str">"/var/"</span>, <span class="str">"data"</span>)<span class="com">// adopt heap string, _heap_data_dir = 1</span>
-ctx.data_dir = <span class="fn">string</span>.concat(<span class="str">"/srv/"</span>, <span class="str">"x"</span>)   <span class="com">// frees the previous buffer first</span>
-ctx.data_dir = <span class="str">"literal"</span>                      <span class="com">// borrowed: _heap_data_dir = 0</span>
-heap.free(ctx)                                <span class="com">// releases owned fields, then frees the box</span></code></pre>
+ctx = heap.new(AppCtx)                       // calloc, fields NULL, trackers 0
+ctx.data_dir = string.concat("/var/", "data")// adopt heap string, _heap_data_dir = 1
+ctx.data_dir = string.concat("/srv/", "x")   // frees the previous buffer first
+ctx.data_dir = "literal"                      // borrowed: _heap_data_dir = 0
+heap.free(ctx)                                // releases owned fields, then frees the box</code></pre>
 <p>A field store adopts a heap string and frees the previous value on reassignment, exactly like a string variable. <code>heap.free(p)</code> routes through a generated <code>&lt;T&gt;_heap_free</code> that releases every owned field before freeing the box; a field last assigned a literal is borrowed and is never freed. This lets a handler/server context own its config strings for its lifetime without dropping back to a raw <code>malloc(...) as *T</code>.</p>
 <h3 id="scoped-bindings-checked-non-escape"><code>@scoped</code> bindings, checked non-escape</h3>
 <p>A <code>let</code>/<code>var</code> declaration can be annotated <code>@scoped</code> to declare that its value <strong>must not outlive the lexical block</strong> that introduced it. This is opt-in escape analysis, not a borrow checker (Aether has none). It turns a footgun into a compile-time invariant and documents intent at the binding site:</p>
-<pre><code>process() -&gt; <span class="fn">long</span> {
-    @scoped buf = make_buffer(<span class="num">64</span> * <span class="num">1024</span>)
-    <span class="kw">return</span> buf.checksum()        <span class="com">// ok, a scalar DERIVED from buf escapes</span>
+<pre><code>process() -&gt; long {
+    @scoped buf = make_buffer(64 * 1024)
+    return buf.checksum()        // ok, a scalar DERIVED from buf escapes
 }
 
 leak() -&gt; *Buffer {
-    @scoped buf = make_buffer(<span class="num">64</span> * <span class="num">1024</span>)
-    <span class="kw">return</span> buf                   <span class="com">// compile error: the @scoped binding escapes</span>
+    @scoped buf = make_buffer(64 * 1024)
+    return buf                   // compile error: the @scoped binding escapes
 }</code></pre>
 <p>The typechecker rejects every way the binding's value could outlive the block:</p>
 <ul><li>returning the binding,</li><li>assigning/aliasing it into another binding or a struct field,</li><li>placing it as an element of an array / struct / message literal,</li><li>capturing it in a closure (closures lower to plain C functions, so their lifetime is statically known),</li><li>inserting it into a container (<code>list.add</code>, <code>map.put</code>, <code>set.add</code>, …).</li></ul>
 <p>Only a value <em>derived</em> from the binding via a call (<code>buf.checksum()</code>, <code>string.length(buf)</code>) may escape, that carries the call result, not the binding. A value handed to a function that retains it beyond the call is governed by that function's own contract; <code>@scoped</code> checks the direct escape sites at the binding's own scope.</p>
 <h3 id="heap-string-sources">Heap-string sources</h3>
 <p>The compiler treats these expressions as heap-allocated:</p>
-<div class="tw"><table><thead><tr><th>Expression</th><th>Reason</th></tr></thead><tbody><tr><td><code>string.concat(a, b)</code></td><td>Stdlib, always <code>malloc</code>'d</td></tr><tr><td><code>string.substring(s, i, j)</code> / <code>string.substring_n(s, n, i, j)</code></td><td>Stdlib, always <code>malloc</code>'d</td></tr><tr><td><code>string.to_upper(s)</code> / <code>string.to_lower(s)</code></td><td>Stdlib, always <code>malloc</code>'d</td></tr><tr><td><code>string.trim(s)</code></td><td>Stdlib, always <code>malloc</code>'d</td></tr><tr><td><code>string_new_with_length(data, n)</code></td><td>Stdlib, the length-aware AetherString constructor (<code>bytes.finish</code> is built on it)</td></tr><tr><td><code>string.from_int</code> / <code>from_long</code> / <code>from_float</code> / <code>from_char</code></td><td>Stdlib, each <code>string_new</code>s a fresh refcounted AetherString</td></tr><tr><td>String interpolation <code>"foo ${x}"</code></td><td>Compiler-allocated via <code>_aether_interp</code></td></tr><tr><td>User-defined <code>-&gt; string</code> function whose body provably returns heap</td><td>Structural escape analysis (see below)</td></tr><tr><td>Tuple-returning function / <code>@heap</code> extern, per position</td><td>Per-position analysis (see below)</td></tr></tbody></table></div>
+<div class="tw"><table><thead><tr><th>Expression</th><th>Reason</th></tr></thead><tbody><tr><td><code>string.concat(a, b)</code></td><td>Stdlib, always <code>malloc</code>'d</td></tr><tr><td><code>string.substring(s, i, j)</code> / <code>string.substring_n(s, n, i, j)</code></td><td>Stdlib, always <code>malloc</code>'d</td></tr><tr><td><code>string.to_upper(s)</code> / <code>string.to_lower(s)</code></td><td>Stdlib, always <code>malloc</code>'d</td></tr><tr><td><code>string.trim(s)</code></td><td>Stdlib, always <code>malloc</code>'d</td></tr><tr><td><code>string_new_with_length(data, n)</code></td><td>Stdlib, the length-aware AetherString constructor (<code>bytes.finish</code> is built on it)</td></tr><tr><td><code>string.from_int</code> / <code>from_long</code> / <code>from_float</code> / <code>from_char</code></td><td>Stdlib, each <code>string_new</code>s a fresh refcounted AetherString</td></tr><tr><td>String interpolation <code>"foo ${x}"</code></td><td>Compiler-allocated via <code>_aether_interp</code>, a refcounted AetherString whose payload shares the header's allocation</td></tr><tr><td>User-defined <code>-&gt; string</code> function whose body provably returns heap</td><td>Structural escape analysis (see below)</td></tr><tr><td>Tuple-returning function / <code>@heap</code> extern, per position</td><td>Per-position analysis (see below)</td></tr></tbody></table></div>
+<p><strong>Interpolation produces the refcounted shape.</strong> It used to hand back a plain <code>malloc</code>'d buffer, and the runtime cannot free one of those: given a bare <code>char*</code> it cannot tell a heap payload from a static literal, so <code>string.free</code> no-ops on it. That was fine while the compiler's per-variable ownership flag was in reach, and a leak the moment the value crossed a boundary where it was not, such as a parameter of a helper that frees what it is handed (#1543).</p>
+<p>The payload lives in the same allocation as the header, so this costs a larger <code>malloc</code> rather than a second one: measured at +1.6% on a loop that does nothing but interpolate two million strings, which is inside that benchmark's run-to-run spread.</p>
 <p>The stdlib entries above are hard-coded as intrinsic heap sources in the codegen's <code>is_heap_string_expr</code> recognised by name regardless of how a module declares the extern, so a <code>-&gt; ptr</code> declaration of one of them can't silently reintroduce a leak. The set is grown by audit: every runtime function that mints a fresh owned buffer belongs here.</p>
 <h3 id="user-defined---string-functions">User-defined <code>-&gt; string</code> functions</h3>
-<p>A user-defined function that returns <code>string</code> is treated as heap-returning <strong>iff <em>any</em> return statement in its body yields a heap-string-expression</strong> (recursively considering other heap-returning user functions), an OR-fold across the return sites. A function whose returns are <em>all</em> string literals or forwarded borrowed parameters is NOT heap-returning, and the wrapper won't try to free its results. A function that <em>mixes</em> the two (one branch <code>return string.concat(...)</code>, another <code>return "constant"</code>) <em>is</em> heap-returning: its literal branches are malloc-duplicated through the uniform-heap return wrap (see <a href="#return-ownership-contract-uniform-heap-return-escape">Return-ownership contract</a> below) so the caller can free every branch identically.</p>
-<pre><code>my_concat(a: <span class="fn">string</span>, b: <span class="fn">string</span>) -&gt; <span class="fn">string</span> {
-    <span class="kw">return</span> <span class="fn">string</span>.concat(a, b)        <span class="com">// RHS is heap → my_concat returns heap</span>
+<p>A user-defined function that returns <code>string</code> is treated as heap-returning <strong>iff <em>any</em> return statement in its body yields a heap-string-expression</strong> (recursively considering other heap-returning user functions), an OR-fold across the return sites. A function whose returns are <em>all</em> string literals or forwarded borrowed parameters is NOT heap-returning, and the wrapper won't try to free its results. A function that <em>mixes</em> the two (one branch <code>return string.concat(...)</code>, another <code>return "constant"</code>) <em>is</em> heap-returning: its literal branches are duplicated into owned strings through the uniform-heap return wrap (see <a href="#return-ownership-contract-uniform-heap-return-escape">Return-ownership contract</a> below) so the caller can free every branch identically.</p>
+<pre><code>my_concat(a: string, b: string) -&gt; string {
+    return string.concat(a, b)        // RHS is heap → my_concat returns heap
 }
 
-format_msg() -&gt; <span class="fn">string</span> {
-    <span class="kw">return</span> <span class="str">"constant"</span>                  <span class="com">// RHS is literal → format_msg does NOT return heap</span>
+format_msg() -&gt; string {
+    return "constant"                  // RHS is literal → format_msg does NOT return heap
 }
 
-s = my_concat(<span class="str">"a"</span>, <span class="str">"b"</span>)               <span class="com">// _heap_s = 1</span>
-s = my_concat(s, <span class="str">"c"</span>)                 <span class="com">// free(prev); _heap_s = 1</span>
-s = format_msg()                       <span class="com">// free(prev); _heap_s = 0, literal preserved</span></code></pre>
+s = my_concat("a", "b")               // _heap_s = 1
+s = my_concat(s, "c")                 // free(prev); _heap_s = 1
+s = format_msg()                       // free(prev); _heap_s = 0, literal preserved</code></pre>
 <p>The recursive walk has cycle detection (mutual recursion through <code>-&gt; string</code> user functions returns "not heap" conservatively, which is the safe answer when the structural analysis can't decide).</p>
 <h3 id="cross-block-reassignment-the-architectural-piece">Cross-block reassignment (the architectural piece)</h3>
 <p><code>_heap_&lt;name&gt;</code> trackers are emitted at <strong>function-entry scope</strong>, not at the C scope where the variable is first assigned. This means a string variable first-assigned in one if-branch and reassigned in another, or first-assigned at the top of a function and reassigned inside a deeply-nested loop, has a tracker visible at every reassignment site:</p>
-<pre><code>result = <span class="str">""</span>                            <span class="com">// _heap_result = 0 at function entry</span>
-<span class="kw">if</span> cond1 {
-    result = my_concat(<span class="str">"a"</span>, <span class="str">"b"</span>)       <span class="com">// _heap_result = 1; tracker is at fn scope</span>
-} <span class="kw">else</span> <span class="kw">if</span> cond2 {
-    result = my_concat(<span class="str">"c"</span>, <span class="str">"d"</span>)       <span class="com">// free(""): no; _heap_result = 1</span>
+<pre><code>result = ""                            // _heap_result = 0 at function entry
+if cond1 {
+    result = my_concat("a", "b")       // _heap_result = 1; tracker is at fn scope
+} else if cond2 {
+    result = my_concat("c", "d")       // free(""): no; _heap_result = 1
 }
-<span class="com">// `result` is heap-allocated here regardless of which branch ran;</span>
-<span class="com">// scope-exit cleanup uses _heap_result to free correctly.</span></code></pre>
+// `result` is heap-allocated here regardless of which branch ran;
+// scope-exit cleanup uses _heap_result to free correctly.</code></pre>
 <p>Pre-fix, the second branch couldn't see the first branch's tracker (it was C-scoped to the first <code>if</code> body) and the build failed with <code>'_heap_result' undeclared</code>. The function-entry hoist closes that scope mismatch.</p>
 <h3 id="tuple-destructures">Tuple destructures</h3>
 <p>The same wrapper fires when a heap string is unpacked from a tuple. For user-defined tuple-returning functions the compiler runs a <strong>per-position structural escape analysis</strong> that mirrors the single-value case. It walks every <code>return e0, e1, …</code> statement and <strong>OR-folds</strong> the heap-classification of each expression, per position: position <code>j</code> is heap-returning if <em>any</em> return-site's <code>j</code>-th expression is heap. Each heap-classified position is then routed through the same <code>aether_uniform_heap_str</code> wrap as a single-value return, so a position that is a fresh allocation on one branch and a borrowed literal on another (<code>return owned, n, ""</code> on success vs <code>return "", 0, "err"</code> on the error path, the shape of every <code>zlib</code> / <code>cryptography</code> / <code>lzf</code> decode function) still hands the caller a freeable pointer on <em>every</em> branch.</p>
 <p>One case vetoes the OR-fold: a <strong>whole-tuple passthrough</strong> return, <code>return g(...)</code> where <code>g</code> is itself tuple-typed, forwards <code>g</code>'s tuple opaquely and cannot be wrapped position-by-position. Such a position is freeable only if <code>g</code> already guarantees it (<code>g</code>'s own per-position analysis); if <code>g</code> doesn't, the position is forced non-heap, so the caller is never told to free a value the passthrough left borrowed.</p>
 <p>(Earlier releases AND-folded instead, a position counted as heap only if <em>every</em> return-site made it heap, which classified the mixed <code>decode</code>-shaped functions non-heap and leaked their success-path allocation at every caller. The OR-fold + uniform-heap wrap + passthrough veto replaced it.)</p>
-<pre><code>build_pair(prefix: <span class="fn">string</span>, name: <span class="fn">string</span>) -&gt; (<span class="fn">string</span>, <span class="fn">string</span>) {
-    <span class="kw">return</span> <span class="fn">string</span>.concat(prefix, name), <span class="fn">string</span>.concat(name, prefix)
-    <span class="com">//     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^^^^^^^^</span>
-    <span class="com">//     position 0 = heap            position 1 = heap</span>
+<pre><code>build_pair(prefix: string, name: string) -&gt; (string, string) {
+    return string.concat(prefix, name), string.concat(name, prefix)
+    //     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^^^^^^^^
+    //     position 0 = heap            position 1 = heap
 }
 
-a = <span class="str">""</span>                              <span class="com">// hoisted; _heap_a = 0</span>
-b = <span class="str">""</span>                              <span class="com">// hoisted; _heap_b = 0</span>
-i = <span class="num">0</span>
-<span class="kw">while</span> i &lt; <span class="num">1000</span> {
-    a, b = build_pair(<span class="str">"p_"</span>, <span class="str">"n_"</span>)   <span class="com">// wrapper fires per position:</span>
-    <span class="com">//                              // free(prev a) if heap; _heap_a = 1</span>
-    <span class="com">//                              // free(prev b) if heap; _heap_b = 1</span>
-    i = i + <span class="num">1</span>
+a = ""                              // hoisted; _heap_a = 0
+b = ""                              // hoisted; _heap_b = 0
+i = 0
+while i &lt; 1000 {
+    a, b = build_pair("p_", "n_")   // wrapper fires per position:
+    //                              // free(prev a) if heap; _heap_a = 1
+    //                              // free(prev b) if heap; _heap_b = 1
+    i = i + 1
 }</code></pre>
 <p>Without the tuple-destructure wrapper the loop would leak 1000×2 heap allocations; with it, steady-state retention is two strings.</p>
 <h3 id="heap--borrow-annotations-on-tuple-returning-externs"><code>@heap</code> / <code>@borrow</code> annotations on tuple-returning externs</h3>
 <p>For C externs there is no body to walk, so the compiler exposes per-position annotations:</p>
-<pre><code><span class="kw">extern</span> decode_b64(b64: <span class="fn">string</span>) -&gt; (<span class="fn">string</span> @heap, <span class="fn">int</span>, <span class="fn">string</span>)
-<span class="com">//                                 ^^^^^^^^^^^^       ^^^^^^</span>
-<span class="com">//                                 fresh malloc       borrow / static literal</span>
-<span class="com">//                                 (auto-free)        (no auto-free)</span></code></pre>
+<pre><code>extern decode_b64(b64: string) -&gt; (string @heap, int, string)
+//                                 ^^^^^^^^^^^^       ^^^^^^
+//                                 fresh malloc       borrow / static literal
+//                                 (auto-free)        (no auto-free)</code></pre>
 <p>Default for unannotated string positions is <code>@borrow</code> preserves the previous silent behaviour for existing tuple-returning externs. Adding <code>@heap</code> to a position is a behaviour change: the wrapper starts auto-freeing previous values on reassignment, so any caller currently doing manual <code>string.release</code> against the returned pointer must drop that call when adopting the annotation.</p>
 <p>Mix-and-match is allowed; trailing positions default to borrow:</p>
-<pre><code><span class="kw">extern</span> realpath_raw(path: <span class="fn">string</span>) -&gt; (<span class="fn">string</span> @heap, <span class="fn">int</span>, <span class="fn">string</span>)
-<span class="kw">extern</span> get_pair(s: <span class="fn">string</span>)        -&gt; (<span class="fn">string</span> @heap, <span class="fn">string</span> @borrow)</code></pre>
+<pre><code>extern realpath_raw(path: string) -&gt; (string @heap, int, string)
+extern get_pair(s: string)        -&gt; (string @heap, string @borrow)</code></pre>
 <h3 id="stdlib-externs-annotated-heap">Stdlib externs annotated <code>@heap</code></h3>
 <p><code>@heap</code> is used across several stdlib externs, it appears today in <code>std.bytes</code>, <code>std.io</code>, <code>std.regex</code>, <code>std.os</code>, <code>std.fs</code>, and <code>std.strbuilder</code>. Each is audited and annotated so that its return (whether a single <code>string @heap</code> or an <code>@heap</code> tuple position) auto-frees at function exit; you do <strong>not</strong> need to call <code>string.release</code> on the resulting strings. Representative carriers:</p>
 <div class="tw"><table><thead><tr><th>Extern</th><th>Heap position</th><th>Notes</th></tr></thead><tbody><tr><td><code>bytes.finish</code> (<code>aether_bytes_finish</code>)</td><td>result string</td><td>length-aware AetherString constructor</td></tr><tr><td><code>strbuilder.finish</code> (<code>aether_strbuilder_finish</code>)</td><td>result string</td><td>caller owns the assembled buffer</td></tr><tr><td><code>regex.replace</code> / <code>regex.replace_all</code> / capture get</td><td>result string</td><td>fresh malloc per call</td></tr><tr><td><code>fs.realpath</code> (<code>fs_realpath_raw</code>)</td><td>resolved path</td><td>POSIX <code>realpath(NULL)</code> / Windows <code>GetFinalPathNameByHandleW</code> + UTF-8 malloc</td></tr><tr><td><code>fs.read_binary</code> (<code>fs_read_binary_tuple</code>)</td><td>bytes</td><td>fresh buffer</td></tr><tr><td><code>io.fd_read_n</code> / <code>io.fd_read_line</code> (tuple)</td><td>read buffer</td><td>fresh buffer per read</td></tr><tr><td><code>os.run_capture_status</code> (<code>os_run_capture_status_raw</code>)</td><td>captured stdout</td><td>realloc-grown buffer</td></tr><tr><td><code>os.run_pipe_drain_and_wait</code> (<code>os_run_pipe_drain_and_wait_raw</code>)</td><td>pipe payload</td><td>realloc-grown buffer</td></tr></tbody></table></div>
@@ -874,32 +885,32 @@ i = <span class="num">0</span>
 <h3 id="function-exit-defer-free-for-hoisted-heap-string-vars">Function-exit defer-free for hoisted heap-string vars</h3>
 <p>The wrapper-on-reassignment frees the <strong>previous</strong> value when a heap-string variable is assigned to. The function-exit defer-free closes the complementary case: a heap-string variable assigned <strong>once</strong> and never reassigned still has a live allocation when the function exits, without an exit-time free, that allocation leaks per-call.</p>
 <p>The codegen now emits <code>if (_heap_&lt;name&gt;) { aether_heap_str_free(&lt;name&gt;); &lt;name&gt; = NULL; _heap_&lt;name&gt; = 0; }</code> at every function-exit and explicit <code>return</code> for every hoisted heap-string variable that is <strong>not</strong> escaped. <code>aether_heap_str_free</code> dispatches on the AetherString magic header: <code>string_release</code> for refcounted AetherStrings, plain <code>free</code> for malloc'd <code>char*</code>. The escape walker (the same one the wrapper consults) decides which variables are held by something that outlives the call (return, closure capture, <code>ptr</code>-typed param, <code>@retain</code>-typed param, recursive escape via another store) and skips the defer for those.</p>
-<pre><code>foo(b64: <span class="fn">string</span>) -&gt; <span class="fn">int</span> {
-    raw = decode_b64(b64)         <span class="com">// _heap_raw = 1</span>
-    n   = check(raw)              <span class="com">// raw is not escaped (read-only)</span>
-    <span class="kw">return</span> n
-    <span class="com">// function-exit: if (_heap_raw) aether_heap_str_free(raw);  ← reclaims the allocation</span>
+<pre><code>foo(b64: string) -&gt; int {
+    raw = decode_b64(b64)         // _heap_raw = 1
+    n   = check(raw)              // raw is not escaped (read-only)
+    return n
+    // function-exit: if (_heap_raw) aether_heap_str_free(raw);  ← reclaims the allocation
 }</code></pre>
 <p>Cost: zero on functions that don't allocate heap strings; one inline conditional per non-escaped heap-string var per return path.</p>
 <h3 id="retain-per-parameter-annotation-on-extern-declarations"><code>@retain</code> per-parameter annotation on extern declarations</h3>
 <p>For functions that <em>store</em> (or take a strong reference on) a string pointer beyond the call, such as refcount operations and owning map keys, the default "string parameter is read-only" treatment from the escape walker is wrong: it would let the function-exit defer-free reclaim the bytes while the recipient still holds the pointer, a use-after-free. The <code>@retain</code> annotation fixes this:</p>
-<pre><code><span class="kw">extern</span> string_retain(str: @retain <span class="fn">string</span>)
-<span class="kw">extern</span> map_put_string_owned(map: <span class="fn">ptr</span>, key: @retain <span class="fn">string</span>, value: <span class="fn">ptr</span>) -&gt; <span class="fn">int</span></code></pre>
+<pre><code>extern string_retain(str: @retain string)
+extern map_put_string_owned(map: ptr, key: @retain string, value: ptr) -&gt; int</code></pre>
 <p>Tells the heap-string-tracker escape walker "this slot stores the pointer; mark the heap-string arg as escaped, skip the function-exit free." Multiple annotations stack (<code>@aether @retain string</code> is legal; order doesn't matter). Default for unannotated string parameters remains "read-only", correct for <code>string.length</code> / <code>string.equals</code> / <code>print</code> / <code>println</code> and other consumers that don't outlive the call.</p>
 <p><code>@retain</code> is <strong>only</strong> correct when the callee keeps (or takes a strong reference on) the <em>caller's</em> pointer. A function that copies its argument is <strong>not</strong> a retainer: <code>map_put_raw</code> interns its key (<code>string_new(key)</code> at put time, released at <code>map_free</code>) and never holds the caller's key bytes after the call, so its <code>key</code> parameter is a plain <code>string</code> (borrowed), a heap key is reclaimed at the caller's scope exit. Marking such a copy-on-store parameter <code>@retain</code> leaks the caller's argument (the callee owns only its copy). The same goes for <code>string_list_add</code> / <code>string_list_set</code>: they <strong>copy</strong> the bytes into the list's own storage, so their <code>s</code> parameter is a plain <code>string</code> (borrowed), deliberately <strong>not</strong> <code>@retain</code> marking it would leak the caller's argument.</p>
 <p>Audited stdlib retainers carrying <code>@retain</code> today: the refcount ops <code>string_retain</code> / <code>string_release</code> / <code>string_free</code> (<code>std.string</code>, each taking a strong reference on the same buffer), and the <code>key</code> parameter of <code>map_put_string_owned</code> (<code>std.collections</code>). Other functions are added as their callers are audited.</p>
 <h3 id="return-ownership-contract-uniform-heap-return-escape">Return-ownership contract (uniform-heap return-escape)</h3>
 <p>Every function whose return type is <code>string</code> honours one rule:</p>
-<blockquote><strong>The caller may always <code>free()</code> the returned pointer exactly once, regardless of which return branch produced the value, regardless of whether the value originated as a literal, a heap allocation, or a heap-tracked local.</strong></blockquote>
+<blockquote><strong>The caller may always release the returned pointer exactly once, regardless of which return branch produced the value, regardless of whether the value originated as a literal, a heap allocation, or a heap-tracked local.</strong></blockquote>
+<p>Release it with <code>string.free</code> / <code>string.release</code>, or leave it to the scope-exit reclaim, both of which route through <code>aether_heap_str_free</code> and handle either physical shape. Not with a plain <code>free()</code>: a refcounted value would lose its payload.</p>
 <p>The classifier OR-folds the function's return statements: a function is <em>heap-returning</em> if <strong>any</strong> return yields a heap expression (<code>string.concat</code>, interpolation, a heap-returning user fn, an <code>@heap</code> extern, or a bare identifier of a heap-tracked local). For such functions the codegen wraps every return value through a small inline helper:</p>
 <pre><code><span class="kw">static</span> <span class="kw">inline</span> <span class="kw">const</span> <span class="kw">char</span>* aether_uniform_heap_str(<span class="kw">const</span> <span class="kw">char</span>* s, <span class="kw">int</span> is_heap) {
     <span class="kw">if</span> (!s) <span class="kw">return</span> NULL;
     <span class="kw">if</span> (is_heap) <span class="kw">return</span> s;                  <span class="com">// fast path, already heap-owned</span>
     <span class="com">/* AetherString-aware length probe (magic-header detect, ASan-clean)... */</span>
-    <span class="kw">char</span>* dup = malloc(n + <span class="num">1</span>);              <span class="com">// cold path, dup the literal</span>
-    memcpy(dup, data, n); dup[n] = <span class="str">'\0'</span>;
-    <span class="kw">return</span> dup;
+    <span class="kw">return</span> string_new_with_length(data, n); <span class="com">// cold path, own the literal</span>
 }</code></pre>
+<p>The cold path mints a refcounted AetherString rather than a bare buffer, because a bare one is not something the caller can release: given a plain <code>char*</code> the runtime cannot tell a heap payload from static storage, so it no-ops and the value leaks. That was one leaked block per call at every error slot a caller dutifully freed. The shape is not new to callers, since the sibling branch of such a function already returns a <code>string.concat</code> result, which is the same shape.</p>
 <p>The flag is resolved at compile time wherever possible:</p>
 <ul><li><code>1</code> (statically) for <code>string.concat</code>, interpolation, heap-returning user fn / extern.</li><li><code>_heap_&lt;name&gt;</code> (one runtime int load) for bare identifiers of heap-tracked locals.</li><li><code>0</code> (statically) for literals.</li></ul>
 <p>Heap branches pass straight through (~2 ns hot-path cost). Literal branches malloc-duplicate so the caller's unconditional <code>free()</code> is always correct. Pure-literal functions (every return is a literal) are not heap-classified and emit no wrap at all, zero overhead.</p>
@@ -925,6 +936,7 @@ i = <span class="num">0</span>
 <p><strong>Ownership through a <code>string</code> parameter, the container borrows.</strong> A value reaching a container <em>through a <code>string</code> parameter</em> of a storing wrapper (<code>pr(m, k, v) { map.put(m, k, v) }</code>) is left on the <strong>non-owning</strong> path: the put site sees only a <code>string</code> param, which can hold either an owned heap string the caller minted <em>or</em> a borrowed/literal one, and the two are indistinguishable there. The container therefore <strong>borrows</strong> such a value (it does not free it at teardown), and the <strong>program</strong> owns and frees it. (Dispatching at runtime on the AetherString magic header is <em>not</em> a sound shortcut: the magic header proves heap <em>representation</em>, not caller-transferred <em>ownership</em>, so a borrowed magic string still owned by another scope would be double-freed. Representation is not ownership, and a double-free is worse than a leak.) This matches the proxy/opts-map idiom (<code>std.map</code> holding both owned and borrowed values): retrieve the heap values via their owning handles and <code>string.free</code> them before <code>map.free</code>.</p>
 <p>The key is always interned by the container (copied via <code>string_new</code>), so a heap key is the caller's to reclaim, see the <code>@retain</code> note above.</p>
 <p><strong>Boxed closures.</strong> A closure value (<code>fn</code>-typed, not a raw fn-pointer) stored into a list is heap-boxed by the <code>fn -&gt; ptr</code> coercion (<code>_aether_box_closure</code>). The list takes ownership of the box (it is stored owned, and <code>list_free</code> reclaims the non-magic box via <code>free</code>); a bare function pointer (<code>is_fnptr</code>, a code address) is not heap and stays on the raw path.</p>
+<p>The box is <code>{fn, env}</code> followed by a tag word. The <code>{fn, env}</code> prefix is the layout C code reads, so it stays first and unchanged: <code>std/collections</code> and <code>std/worker</code> mirror it, and the box pointer is still the <code>malloc</code> base that plain <code>free</code> reclaims. The tag is how <code>unbox_closure</code> tells a real box from a raw code address, which is what a bare function coerced into a <code>ptr</code> slot leaves behind. Unboxing one of those panics naming the cause instead of reading <code>env</code> out of the function's machine code and jumping through it. To make a bare function safe to unbox, pass it through an <code>fn</code>-typed parameter or call <code>box_closure</code> on it.</p>
 <h3 id="closure-environment-lifetime">Closure environment lifetime</h3>
 <p>A closure that captures variables carries them in a heap-allocated environment struct (<code>_aether_box_closure</code> / <code>_aether_make_closure_N</code>). When such a closure <em>escapes</em>, stored in a list/map/struct, returned, or otherwise outliving the creating frame, the environment is reachable through the owner and reclaimed with it.</p>
 <p>A <strong>transient</strong> capturing closure, created inline and passed to a function that only calls it and neither stores nor returns it (the callback shape <code>run(cb) { cb() }</code>), is dead once that call returns, so its environment is freed right after the call. The codegen emits the call in an env-draining form:</p>
@@ -949,7 +961,7 @@ i = <span class="num">0</span>
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.473 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.562 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

@@ -24,10 +24,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install Aether toolchain
+        env:
+          # Pin, so this pipeline's colour depends on a change here rather than
+          # on whatever aether released most recently. Unpinned, get.sh takes
+          # "the latest vX.Y.Z tag": a bad upstream release turns this red with
+          # no commit in this repo, which is exactly how aether-ui#28 went red
+          # on a codegen regression it had nothing to do with.
+          #
+          # Bump deliberately. A repository variable overrides for a one-off.
+          AETHER_REF: ${{ vars.AETHER_REF || 'v0.561.0' }}
         run: |
           curl -sSL https://raw.githubusercontent.com/aether-lang-dev/aether/main/get.sh \
             | PREFIX="$HOME/.local" sh
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          ae --version
       - name: Build serve.ae and run integration test
         run: ./test.sh
 

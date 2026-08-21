@@ -4,11 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Multi-Value Return Type Inference · Aether</title>
-<meta name="description" content="The Go-style (value, err) tuple return migration in stdlib (std.map,">
+<meta name="description" content="The Go-style (value, err) tuple return migration in stdlib (std.map, std.list, std.fs, std.zlib, std.cryptography, …) put a lot of weight on...">
 <link rel="canonical" href="https://aether-lang.dev/Docs/type-inference-multi-value-returns.html">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Multi-Value Return Type Inference · Aether">
-<meta property="og:description" content="The Go-style (value, err) tuple return migration in stdlib (std.map,">
+<meta property="og:description" content="The Go-style (value, err) tuple return migration in stdlib (std.map, std.list, std.fs, std.zlib, std.cryptography, …) put a lot of weight on...">
 <meta property="og:url" content="https://aether-lang.dev/Docs/type-inference-multi-value-returns.html">
 <meta property="og:image" content="https://aether-lang.dev/og.png">
 <meta name="twitter:card" content="summary_large_image">
@@ -171,7 +171,7 @@ a{color:inherit;text-decoration:none}
 
 /* section head */
 .sec-head{display:flex;align-items:baseline;gap:14px;margin:0 0 22px}
-.sec-head h2{font-family:var(--mono);font-size:1.15rem;font-weight:700;letter-spacing:-.01em;margin:0}
+.sec-head h1,.sec-head h2{font-family:var(--mono);font-size:1.15rem;font-weight:700;letter-spacing:-.01em;margin:0}
 .sec-head .rule{flex:1;height:1px;background:var(--line)}
 
 /* code */
@@ -358,7 +358,7 @@ body::after{content:"";position:fixed;inset:0;z-index:3;pointer-events:none;opac
 
 /* prompt accents on section headings */
 .prompt{color:var(--red);margin-right:.5ch}
-.sec-head h2 .prompt{font-weight:400}
+.sec-head h1 .prompt,.sec-head h2 .prompt{font-weight:400}
 
 /* prompt-styled ghost button */
 .btn-term{font-family:var(--mono);font-size:14px;padding:11px 18px;border-radius:6px;
@@ -570,7 +570,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.473</span>
+      <span class="vtag">v0.562</span>
     </nav>
   </div>
 </header>
@@ -600,6 +600,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/memory-management.html">Aether Memory Management</a>
 <a href="/Docs/runtime-optimizations.html">Runtime Optimizations</a>
 <a href="/Docs/numa-support.html">NUMA Support in Aether</a>
+<a href="/Docs/message-tracing.html">Message tracing</a>
 <div class="grp">Interop</div>
 <a href="/Docs/c-interop.html">C Interoperability</a>
 <a href="/Docs/c-embedding.html">Embedding Aether Actors in C Applications</a>
@@ -624,6 +625,11 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/runtime-config.html">Runtime Configuration - Quick Reference</a>
 <a href="/Docs/per-process-config.html">Per-process configuration in Aether</a>
 <a href="/Docs/cic-help.html">ae help &lt;script&gt; Offline diagnostics for config-IS-code</a>
+<a href="/Docs/cross-ios.html">Cross-compiling for iOS (arm64)</a>
+<div class="grp">Testing</div>
+<a href="/Docs/testing.html">Testing with std.spec and ae test</a>
+<a href="/Docs/mutation-testing.html">Mutation testing, std.mutation</a>
+<a href="/Docs/differential-testing.html">Differential testing across lowering paths</a>
 <div class="grp">Performance</div>
 <a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
 <a href="/Docs/profiling-guide.html">Aether Runtime Profiling Guide</a>
@@ -639,6 +645,9 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
 <a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn't need macro_rules!</a>
 <a href="/Docs/lib-caller-info.html">--emit=lib caller-info channel</a>
+<a href="/Docs/liveview-lite-roadmap.html">LiveView-lite, a roadmap (Phoenix LiveView, on actors, without the framework)</a>
+<a href="/Docs/schema-projection-roadmap.html">std.schema, a projection-first roadmap (Ash, without the framework)</a>
+<a href="/Docs/locale-independent-float-text.html">Plan: locale-independent float text conversion (LC_NUMERIC correctness)</a>
 <div class="grp">Contributing</div>
 <a href="/Docs/stdlib-module-pattern.html">Aether Stdlib Module Pattern</a>
 <a href="/Docs/stdlib-vs-contrib.html">std/ vs contrib/ placement decisions</a>
@@ -652,15 +661,15 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <p>The Go-style <code>(value, err)</code> tuple return migration in stdlib (<code>std.map</code>, <code>std.list</code>, <code>std.fs</code>, <code>std.zlib</code>, <code>std.cryptography</code>, …) put a lot of weight on cross-function tuple-return inference. Several latent bugs in <code>compiler/analysis/type_inference.c</code> only surface once a function's body destructures a multi-value call and then itself returns a tuple mixing a destructured local with a literal. This doc catalogs them and describes the fix shape so future regressions in the same area are recognizable.</p>
 <p>For the broader inference flow (constraint collection, propagation, phase ordering), see <a href="/Docs/type-inference-guide.html"><code>type-inference-guide.md</code></a>. This doc covers only multi-value-return-specific edge cases.</p>
 <h2 id="the-shape-that-triggers-the-cluster">The shape that triggers the cluster</h2>
-<pre><code><span class="kw">import</span> std.fs
-<span class="kw">import</span> std.cryptography
+<pre><code>import std.fs
+import std.cryptography
 
-hash_file(p: <span class="fn">string</span>) {
-    bytes, length, rerr = fs.read_binary(p)         <span class="com">// 3-tuple destructure</span>
-    <span class="kw">if</span> <span class="fn">string</span>.length(rerr) &gt; <span class="num">0</span> {
-        <span class="kw">return</span> <span class="str">""</span>, rerr                              <span class="com">// multi-value, mixes literal "" with destructured local</span>
+hash_file(p: string) {
+    bytes, length, rerr = fs.read_binary(p)         // 3-tuple destructure
+    if string.length(rerr) &gt; 0 {
+        return "", rerr                              // multi-value, mixes literal "" with destructured local
     }
-    <span class="kw">return</span> cryptography.sha256_hex(bytes, length)    <span class="com">// single-value tuple-typed call</span>
+    return cryptography.sha256_hex(bytes, length)    // single-value tuple-typed call
 }</code></pre>
 <p><code>hash_file</code> returns <code>(string, string)</code> in both branches. Pre-fix, codegen emitted it as <code>_tuple_string_int</code> and every caller produced <code>-Wint-conversion</code> errors. Four distinct bugs combined to produce that result. Each is fixable in isolation; the test <code>tests/integration/multi_return_destructure_chain/</code> exercises the combination.</p>
 <h2 id="bug-1-cross-module-local-var-pollution">Bug 1, cross-module local-var pollution</h2>
@@ -683,12 +692,12 @@ hash_file(p: <span class="fn">string</span>) {
 <p><strong>Fix.</strong> Extend the re-inference gate to also fire when the current type is <code>TUPLE</code> with at least one <code>TYPE_UNKNOWN</code> slot. The companion sync from <code>child-&gt;node_type</code> to <code>func_sym-&gt;type</code> inside the inference loop also needed an extension: previously synced only when func_sym was UNKNOWN/VOID; now also syncs when it's a TUPLE and the new type is <em>strictly</em> more specific (fewer UNKNOWN slots). The strictness is load-bearing: without it, syncing TUPLE(s, UNKNOWN) → TUPLE(s, UNKNOWN) loops forever and exhausts <code>MAX_INFERENCE_ITERATIONS</code>.</p>
 <h2 id="bug-4-nested-return-doesnt-pre-resolve-outer-scope-locals">Bug 4, nested return doesn't pre-resolve outer-scope locals</h2>
 <p><strong>Symptom.</strong> A multi-value <code>return a, b</code> inside an <code>if</code>/<code>while</code>/<code>for</code> body can't see locals defined by destructure in the surrounding block. Specifically, in:</p>
-<pre><code>hash_file(p: <span class="fn">string</span>) {
+<pre><code>hash_file(p: string) {
     bytes, length, rerr = fs.read_binary(p)
-    <span class="kw">if</span> <span class="fn">string</span>.length(rerr) &gt; <span class="num">0</span> {
-        <span class="kw">return</span> <span class="str">""</span>, rerr                              <span class="com">// &lt;-- right here</span>
+    if string.length(rerr) &gt; 0 {
+        return "", rerr                              // &lt;-- right here
     }
-    <span class="kw">return</span> cryptography.sha256_hex(bytes, length)
+    return cryptography.sha256_hex(bytes, length)
 }</code></pre>
 <p><code>rerr</code>'s <code>AST_IDENTIFIER</code> inside the <code>return "", rerr</code> has no <code>node_type</code> set (no symbol-table entry survives across iterations after the bug-1 unwind), and <code>infer_return_type_impl</code> for the nested return falls back to <code>lookup_symbol</code>, which doesn't have it, so the slot is UNKNOWN.</p>
 <p><strong>Cause.</strong> The <code>AST_BLOCK</code> case of <code>infer_return_type_impl</code> had a pre-resolve pass for direct single-value <code>return v</code> returns, calling <code>resolve_local_var_type(v, body, i, symbols)</code> to pull the type from a preceding sibling. But:</p>
@@ -717,7 +726,7 @@ hash_file(p: <span class="fn">string</span>) {
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.473 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.562 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

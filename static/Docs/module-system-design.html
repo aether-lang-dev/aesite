@@ -4,11 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Aether Module System · Aether</title>
-<meta name="description" content="This document describes Aether's module and namespace system.">
+<meta name="description" content="This document describes Aether&#x27;s module and namespace system.">
 <link rel="canonical" href="https://aether-lang.dev/Docs/module-system-design.html">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Aether Module System · Aether">
-<meta property="og:description" content="This document describes Aether's module and namespace system.">
+<meta property="og:description" content="This document describes Aether&#x27;s module and namespace system.">
 <meta property="og:url" content="https://aether-lang.dev/Docs/module-system-design.html">
 <meta property="og:image" content="https://aether-lang.dev/og.png">
 <meta name="twitter:card" content="summary_large_image">
@@ -171,7 +171,7 @@ a{color:inherit;text-decoration:none}
 
 /* section head */
 .sec-head{display:flex;align-items:baseline;gap:14px;margin:0 0 22px}
-.sec-head h2{font-family:var(--mono);font-size:1.15rem;font-weight:700;letter-spacing:-.01em;margin:0}
+.sec-head h1,.sec-head h2{font-family:var(--mono);font-size:1.15rem;font-weight:700;letter-spacing:-.01em;margin:0}
 .sec-head .rule{flex:1;height:1px;background:var(--line)}
 
 /* code */
@@ -358,7 +358,7 @@ body::after{content:"";position:fixed;inset:0;z-index:3;pointer-events:none;opac
 
 /* prompt accents on section headings */
 .prompt{color:var(--red);margin-right:.5ch}
-.sec-head h2 .prompt{font-weight:400}
+.sec-head h1 .prompt,.sec-head h2 .prompt{font-weight:400}
 
 /* prompt-styled ghost button */
 .btn-term{font-family:var(--mono);font-size:14px;padding:11px 18px;border-radius:6px;
@@ -570,7 +570,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.473</span>
+      <span class="vtag">v0.562</span>
     </nav>
   </div>
 </header>
@@ -600,6 +600,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/memory-management.html">Aether Memory Management</a>
 <a href="/Docs/runtime-optimizations.html">Runtime Optimizations</a>
 <a href="/Docs/numa-support.html">NUMA Support in Aether</a>
+<a href="/Docs/message-tracing.html">Message tracing</a>
 <div class="grp">Interop</div>
 <a href="/Docs/c-interop.html">C Interoperability</a>
 <a href="/Docs/c-embedding.html">Embedding Aether Actors in C Applications</a>
@@ -624,6 +625,11 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/runtime-config.html">Runtime Configuration - Quick Reference</a>
 <a href="/Docs/per-process-config.html">Per-process configuration in Aether</a>
 <a href="/Docs/cic-help.html">ae help &lt;script&gt; Offline diagnostics for config-IS-code</a>
+<a href="/Docs/cross-ios.html">Cross-compiling for iOS (arm64)</a>
+<div class="grp">Testing</div>
+<a href="/Docs/testing.html">Testing with std.spec and ae test</a>
+<a href="/Docs/mutation-testing.html">Mutation testing, std.mutation</a>
+<a href="/Docs/differential-testing.html">Differential testing across lowering paths</a>
 <div class="grp">Performance</div>
 <a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
 <a href="/Docs/profiling-guide.html">Aether Runtime Profiling Guide</a>
@@ -639,6 +645,9 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
 <a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn't need macro_rules!</a>
 <a href="/Docs/lib-caller-info.html">--emit=lib caller-info channel</a>
+<a href="/Docs/liveview-lite-roadmap.html">LiveView-lite, a roadmap (Phoenix LiveView, on actors, without the framework)</a>
+<a href="/Docs/schema-projection-roadmap.html">std.schema, a projection-first roadmap (Ash, without the framework)</a>
+<a href="/Docs/locale-independent-float-text.html">Plan: locale-independent float text conversion (LC_NUMERIC correctness)</a>
 <div class="grp">Contributing</div>
 <a href="/Docs/stdlib-module-pattern.html">Aether Stdlib Module Pattern</a>
 <a href="/Docs/stdlib-vs-contrib.html">std/ vs contrib/ placement decisions</a>
@@ -677,58 +686,58 @@ main() {
 <hr>
 <h2 id="export-visibility">Export Visibility</h2>
 <p>Modules declare their public API via a single Erlang-style <code>exports (…)</code> list at the top of the file. Names in the list are accessible from importers; names not in the list are private, still usable inside the module's own functions, but rejected at qualified-call sites.</p>
-<pre><code><span class="com">// lib/geometry/module.ae</span>
+<pre><code>// lib/geometry/module.ae
 
-<span class="kw">exports</span> (PI, distance)
+exports (PI, distance)
 
-<span class="kw">const</span> PI = <span class="num">3</span>
+const PI = 3
 
 distance(x1, y1, x2, y2) {
     dx = x1 - x2
     dy = y1 - y2
-    <span class="kw">return</span> _sqrt_approx(dx * dx + dy * dy)
+    return _sqrt_approx(dx * dx + dy * dy)
 }
 
-<span class="com">// Private helper, not in the exports list, not accessible from outside.</span>
+// Private helper, not in the exports list, not accessible from outside.
 _sqrt_approx(n) {
-    <span class="kw">return</span> n  <span class="com">// placeholder</span>
+    return n  // placeholder
 }</code></pre>
-<pre><code><span class="kw">import</span> geometry
+<pre><code>import geometry
 
 main() {
-    d = geometry.distance(<span class="num">0</span>, <span class="num">0</span>, <span class="num">3</span>, <span class="num">4</span>)   <span class="com">// OK, listed</span>
-    println(geometry.PI)                 <span class="com">// OK, listed</span>
-    <span class="com">// geometry._sqrt_approx(25)         // Error: not in exports list</span>
+    d = geometry.distance(0, 0, 3, 4)   // OK, listed
+    println(geometry.PI)                 // OK, listed
+    // geometry._sqrt_approx(25)         // Error: not in exports list
 }</code></pre>
 <p><strong>Rules:</strong></p>
 <ul><li><code>exports (…)</code> accepts any combination of function names, const names, and struct/actor names. The list is the contract.</li><li>A module that declares an <code>exports (…)</code> list exposes <strong>only</strong> the listed names. Anything else is private.</li><li>A module with no <code>exports (…)</code> list keeps the legacy default-public behavior, every top-level name is callable from outside. v1 is additive; v2 will flip this default to private once every stdlib + contrib module has been migrated.</li><li>Private names can still be referenced from inside the module's own functions, they're merged into the program, just blocked at the external call boundary.</li></ul>
 <h3 id="legacy-export-fn-form-deprecated">Legacy <code>export &lt;fn&gt;</code> form (deprecated)</h3>
 <p>Earlier versions of Aether used a per-function <code>export</code> keyword:</p>
-<pre><code><span class="com">// DEPRECATED, emits a warning at compile time.</span>
-<span class="kw">export</span> <span class="kw">const</span> PI = <span class="num">3</span>
-<span class="kw">export</span> distance(...) { … }</code></pre>
+<pre><code>// DEPRECATED, emits a warning at compile time.
+export const PI = 3
+export distance(...) { … }</code></pre>
 <p>This form is still accepted for one release as a deprecation alias. Modules using it get a one-shot warning to stderr. Migrate by collecting every <code>export</code>-tagged name into one <code>exports (…)</code> line at the top, then removing the per-function keywords. Mixing both forms in one module is a hard error.</p>
 <h2 id="per-symbol-import-aliasing">Per-symbol import aliasing</h2>
 <p>An entry in a selective-import list can be renamed with <code>as</code>, the same token module-level aliasing already uses:</p>
-<pre><code><span class="kw">import</span> vg (rect, fill, path <span class="kw">as</span> vgpath, text_paths)</code></pre>
+<pre><code>import vg (rect, fill, path as vgpath, text_paths)</code></pre>
 <p><code>vgpath</code> now binds <code>vg</code>'s exported <code>path</code>, and the bare name <code>path</code> is free for a local function, parameter, or another import. This is the standard resolution when exactly one name in an otherwise-convenient selective import collides: keep the other names bare, rename the one that clashes, instead of qualifying every call to rescue a single symbol.</p>
-<pre><code><span class="kw">import</span> vg (rect, path <span class="kw">as</span> vgpath)
+<pre><code>import vg (rect, path as vgpath)
 
-path(x: <span class="fn">int</span>) -&gt; <span class="fn">int</span> { … }        <span class="com">// the local `path` is unaffected</span>
+path(x: int) -&gt; int { … }        // the local `path` is unaffected
 
 main() {
-    rect(<span class="num">0.0</span>, <span class="num">0.0</span>, <span class="num">460.0</span>, <span class="num">90.0</span>)  <span class="com">// bare, as before</span>
-    vgpath(d)                    <span class="com">// vg's path, under the alias</span>
-    path(<span class="num">9</span>)                      <span class="com">// the local one</span>
+    rect(0.0, 0.0, 460.0, 90.0)  // bare, as before
+    vgpath(d)                    // vg's path, under the alias
+    path(9)                      // the local one
 }</code></pre>
 <p>Aliases work for constants as well as functions (<code>import cfg (LIMIT as CAP)</code>), inside a module's own imports (the alias resolves when that module's bodies are merged into a consumer), and alongside module-level aliasing. The shadow rejection below applies to the <strong>alias</strong>, the name the program actually binds: <code>import vg (path as vgpath)</code> plus a local <code>vgpath</code> is the collision, while a local <code>path</code> is now fine.</p>
 <h2 id="selective-import-shadow-rejection">Selective-import shadow rejection</h2>
 <p>A module (or main program) that selectively imports a name AND defines a local function with the same name silently shadowed the import:</p>
-<pre><code><span class="kw">import</span> std.<span class="fn">string</span> (length)
+<pre><code>import std.string (length)
 
-length(s: <span class="fn">string</span>) -&gt; <span class="fn">int</span> {
-    <span class="kw">return</span> length(s)        <span class="com">// intent: std.string.length</span>
-                            <span class="com">// reality: self → infinite recursion</span>
+length(s: string) -&gt; int {
+    return length(s)        // intent: std.string.length
+                            // reality: self → infinite recursion
 }</code></pre>
 <p>Pre-fix, the merger renamed the body's bare <code>length(s)</code> to <code>mod_length(s)</code> (matching the local def's namespaced name post-merge), turning the wrapper into self-recursion, a runtime stack overflow with no compile-time signal. The orchestrator rejects this pattern with <code>error[E1000]</code> before merging:</p>
 <pre><code>error[E1000]: module 'mod' (mod/module.ae) defines local function
@@ -750,13 +759,13 @@ length(s: <span class="fn">string</span>) -&gt; <span class="fn">int</span> {
 <p>The merge now injects a <strong>synthetic bare import</strong> for each merged module's own bare imports. A synthetic import marks the namespace non-selective for the unit (re-opening <code>string.X</code>) but is kept out of the user-explicit registry, so sealed-scope isolation is preserved: user code still cannot call into a namespace it never imported. This mirrors how transitive dependencies already get synthetic imports during merge.</p>
 <h2 id="re-exports">Re-exports</h2>
 <p>A module can re-export a symbol it imports from another module by listing that symbol in its own <code>exports</code>. A consumer then reaches it through the re-exporting module even though that module never defined it:</p>
-<pre><code><span class="com">// hub.ae, re-exports DERIVED from an inner module</span>
-<span class="kw">import</span> layout_consts (DERIVED)
-<span class="kw">exports</span> (DERIVED)
+<pre><code>// hub.ae, re-exports DERIVED from an inner module
+import layout_consts (DERIVED)
+exports (DERIVED)
 
-<span class="com">// consumer.ae</span>
-<span class="kw">import</span> hub
-x = hub.DERIVED        <span class="com">// resolves to the definition in layout_consts</span></code></pre>
+// consumer.ae
+import hub
+x = hub.DERIVED        // resolves to the definition in layout_consts</code></pre>
 <p>Re-export is opt-in through the <code>exports</code> list, transitive (a hub may re-export a symbol another hub re-exports), and cycle-guarded. It is also precise: a locally-defined export is never treated as a re-export, so if a module both defines a name and imports one, the local definition wins. The resolver redirects an unresolved <code>hub.X</code> to the origin module that defines it, and the merge pass pulls that origin definition into the program under the origin's namespace.</p>
 <h2 id="cross-module-method-call-syntax-ufcs">Cross-module method-call syntax (UFCS)</h2>
 <p>A method-style call <code>x.f(args)</code> is rewritten to the free-function call <code>f(x, args)</code> when no field or method named <code>f</code> applies. The target <code>f</code> may be defined in an imported module, not only in the same file. Same-file functions take precedence, and the rewrite is a last resort, it fires only when the call does not already resolve as a normal function or a struct field, so it never shadows an existing binding. This is what lets a fluent chain such as <code>expect(x).to_equal(y)</code> span module boundaries.</p>
@@ -817,27 +826,27 @@ target = <span class="str">"native"</span>
 │       └── module.ae        # Pure Aether module
 └── tests/</code></pre>
 <p><strong>lib/utils/module.ae</strong>, define your module:</p>
-<pre><code><span class="kw">export</span> <span class="kw">const</span> MULTIPLIER = <span class="num">2</span>
+<pre><code>export const MULTIPLIER = 2
 
-<span class="kw">export</span> double_value(x) {
-    <span class="kw">return</span> multiply(x, MULTIPLIER)
+export double_value(x) {
+    return multiply(x, MULTIPLIER)
 }
 
-<span class="kw">export</span> triple_value(x) {
-    <span class="kw">return</span> multiply(x, <span class="num">3</span>)
+export triple_value(x) {
+    return multiply(x, 3)
 }
 
-<span class="com">// Private helper</span>
+// Private helper
 multiply(a, b) {
-    <span class="kw">return</span> a * b
+    return a * b
 }</code></pre>
 <p><strong>src/main.ae</strong>, use the module:</p>
-<pre><code><span class="kw">import</span> utils
+<pre><code>import utils
 
 main() {
-    println(utils.double_value(<span class="num">5</span>))   <span class="com">// 10</span>
-    println(utils.triple_value(<span class="num">5</span>))   <span class="com">// 15</span>
-    println(utils.MULTIPLIER)        <span class="com">// 2</span>
+    println(utils.double_value(5))   // 10
+    println(utils.triple_value(5))   // 15
+    println(utils.MULTIPLIER)        // 2
 }</code></pre>
 <h3 id="module-resolution">Module Resolution</h3>
 <p>The compiler searches for local modules in this order:</p>
@@ -873,35 +882,40 @@ lib</code></pre>
 <h3 id="pure-aether-modules">Pure Aether Modules</h3>
 <p>You can write reusable modules in pure Aether, no C backing file required:</p>
 <p><strong>lib/mymath/module.ae:</strong></p>
-<pre><code><span class="kw">export</span> <span class="kw">const</span> PI_APPROX = <span class="num">3</span>
+<pre><code>export const PI_APPROX = 3
 
-<span class="kw">export</span> double_it(x) {
-    <span class="kw">return</span> x * <span class="num">2</span>
+export double_it(x) {
+    return x * 2
 }
 
-<span class="kw">export</span> add(a, b) {
-    <span class="kw">return</span> a + b
+export add(a, b) {
+    return a + b
 }
 
-<span class="com">// Intra-module calls work, functions can call each other</span>
-<span class="kw">export</span> double_and_add(x, y) {
-    <span class="kw">return</span> add(double_it(x), y)
+// Intra-module calls work, functions can call each other
+export double_and_add(x, y) {
+    return add(double_it(x), y)
 }</code></pre>
 <p><strong>src/main.ae:</strong></p>
-<pre><code><span class="kw">import</span> mymath
+<pre><code>import mymath
 
 main() {
-    println(mymath.double_it(<span class="num">5</span>))    <span class="com">// 10</span>
-    println(mymath.add(<span class="num">3</span>, <span class="num">4</span>))       <span class="com">// 7</span>
-    println(mymath.double_and_add(<span class="num">5</span>, <span class="num">3</span>))  <span class="com">// 13</span>
-    println(mymath.PI_APPROX)       <span class="com">// 3</span>
+    println(mymath.double_it(5))    // 10
+    println(mymath.add(3, 4))       // 7
+    println(mymath.double_and_add(5, 3))  // 13
+    println(mymath.PI_APPROX)       // 3
 }</code></pre>
 <p><strong>How it works:</strong></p>
 <p>After module orchestration, the compiler clones each module's function and constant AST nodes into the main program with namespace-prefixed names (<code>double_it</code> → <code>mymath_double_it</code>). Intra-module calls, constant references, and constant-to-constant references (e.g., <code>const DOUBLE_BASE = BASE * 2</code>) are renamed automatically. Function parameters and local variables correctly shadow module constants, <code>check(SCALE) { return SCALE }</code> returns the parameter, not the module constant <code>SCALE</code>. This makes the entire downstream pipeline (type inference, type checking, codegen) work without modification, merged functions are just regular top-level functions.</p>
 <p><strong>Tree-shake of unused merges.</strong> Immediately after merging and before typechecking, <code>module_prune_unreachable</code> runs a mark-and-sweep over the program AST. It seeds reachability from <code>main</code>, every actor handler, every <code>export</code> statement, and every non-imported user function/builder, then closes over <code>AST_FUNCTION_CALL</code>, <code>AST_IDENTIFIER</code>, and <code>AST_MEMBER_ACCESS</code> references, including suffix matches that handle glob-import (<code>import mymath (*)</code>) and selective-import (<code>import mymath [cube]</code>) shorthands. Imported function and builder definitions outside the closure are dropped from the AST so the typechecker doesn't walk them and the C compiler doesn't emit them. Constants stay (cheap, and pruning them would need a separate pass keyed on identifier references). The whole pass is invisible to user code; programs that <em>do</em> call every imported function build identically before and after.</p>
 <p><strong>Native link dependencies (<code>@link</code>).</strong> A module that wraps a native library declares its own link flags at the top of <code>module.ae</code>:</p>
-<pre><code>@link(<span class="str">"-laether_sqlite -lsqlite3"</span>)</code></pre>
-<p>When the module is in a program's resolved import closure, codegen unions every declared flag (first-seen order, deduplicated) into the <code>// aether-link:</code> comment on the first line of the generated C, which downstream C builds read to link without undefined-reference archaeology. Declaring is enough; there is no central registry to edit. Token order within one <code>@link</code> is preserved, which matters for single-pass linkers (veneer archive before the library it references). For an ordinary <code>ae build</code> the consumer still supplies real link flags via <code>aether.toml</code> (<code>link_flags = ...</code>); <code>@link</code> feeds only the whole-program comment.</p>
+<pre><code>@link("-laether_sqlite -lsqlite3")</code></pre>
+<p>When the module is in a program's resolved import closure, codegen unions every declared flag (first-seen order, deduplicated) into the <code>// aether-link:</code> comment on the first line of the generated C, which downstream C builds read to link without undefined-reference archaeology. Declaring is enough; there is no central registry to edit. Token order within one <code>@link</code> is preserved, which matters for single-pass linkers (veneer archive before the library it references).</p>
+<p><code>ae build</code> reads that comment back and puts the tokens on its own link command (#1549), so a consumer does not restate them in <code>aether.toml</code>. They are placed <em>before</em> <code>link_flags</code>, which therefore still wins. <code>-L</code> search paths remain the consumer's job, those are site-specific in a way a module cannot know, except for <code>&lt;lib_dir&gt;/contrib</code>, which is added automatically so the veneer archives <code>make contrib</code> builds resolve without configuration.</p>
+<p><strong>The link line is derived from the AST, which makes it transitive and <code>-D</code>-sensitive.</strong> Both properties matter and neither is obvious:</p>
+<pre><code>-D NAME → `when` region kept or dropped → import in or out of the closure
+        → @link visible or not → // aether-link: → the link command</code></pre>
+<p>Transitive: a program that never names <code>contrib.sqlite</code> still links it when something it imports does, at any depth. <code>-D</code>-sensitive: an <code>import</code> inside a losing <code>when defined(...)</code> region is gone before codegen, so its <code>@link</code> contributes nothing and the library is absent from the binary entirely, not merely uncalled. That is the half a static <code>link_flags</code> cannot express, since it is passed on every build regardless of which regions survived.</p>
 <p><strong>What's supported:</strong></p>
 <ul><li>Functions (with type inference from call sites)</li><li>Constants (<code>const NAME = value</code>), including constants referencing other constants</li><li>Intra-module calls (functions calling other functions and referencing constants in the same module)</li><li>Export visibility (<code>export</code> keyword controls public API)</li><li>Multiple module imports in the same program</li><li>Mixing pure modules with stdlib imports</li><li>Parameter/local variable shadowing of module constants</li><li>Actors and their message types: <code>spawn</code> an <code>actor</code> and send a <code>message</code> declared in an imported module. Both enter the program under their bare name (like structs), so <code>spawn(Worker())</code> and <code>w ! Ping { ... }</code> resolve; the actor's handlers still have their intra-module function/constant references rewritten, and the per-program message registry assigns runtime type ids across the merge.</li></ul>
 <p><strong>On the module-system roadmap (language-level):</strong></p>
@@ -922,7 +936,7 @@ main() {
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.473 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.562 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

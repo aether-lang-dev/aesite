@@ -4,11 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Distinct Types · Aether</title>
-<meta name="description" content="A zero-cost nominal wrapper over a scalar / string / ptr base:">
+<meta name="description" content="A zero-cost nominal wrapper over a scalar / string / ptr base">
 <link rel="canonical" href="https://aether-lang.dev/Docs/distinct-types.html">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Distinct Types · Aether">
-<meta property="og:description" content="A zero-cost nominal wrapper over a scalar / string / ptr base:">
+<meta property="og:description" content="A zero-cost nominal wrapper over a scalar / string / ptr base">
 <meta property="og:url" content="https://aether-lang.dev/Docs/distinct-types.html">
 <meta property="og:image" content="https://aether-lang.dev/og.png">
 <meta name="twitter:card" content="summary_large_image">
@@ -171,7 +171,7 @@ a{color:inherit;text-decoration:none}
 
 /* section head */
 .sec-head{display:flex;align-items:baseline;gap:14px;margin:0 0 22px}
-.sec-head h2{font-family:var(--mono);font-size:1.15rem;font-weight:700;letter-spacing:-.01em;margin:0}
+.sec-head h1,.sec-head h2{font-family:var(--mono);font-size:1.15rem;font-weight:700;letter-spacing:-.01em;margin:0}
 .sec-head .rule{flex:1;height:1px;background:var(--line)}
 
 /* code */
@@ -358,7 +358,7 @@ body::after{content:"";position:fixed;inset:0;z-index:3;pointer-events:none;opac
 
 /* prompt accents on section headings */
 .prompt{color:var(--red);margin-right:.5ch}
-.sec-head h2 .prompt{font-weight:400}
+.sec-head h1 .prompt,.sec-head h2 .prompt{font-weight:400}
 
 /* prompt-styled ghost button */
 .btn-term{font-family:var(--mono);font-size:14px;padding:11px 18px;border-radius:6px;
@@ -570,7 +570,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.473</span>
+      <span class="vtag">v0.562</span>
     </nav>
   </div>
 </header>
@@ -600,6 +600,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/memory-management.html">Aether Memory Management</a>
 <a href="/Docs/runtime-optimizations.html">Runtime Optimizations</a>
 <a href="/Docs/numa-support.html">NUMA Support in Aether</a>
+<a href="/Docs/message-tracing.html">Message tracing</a>
 <div class="grp">Interop</div>
 <a href="/Docs/c-interop.html">C Interoperability</a>
 <a href="/Docs/c-embedding.html">Embedding Aether Actors in C Applications</a>
@@ -624,6 +625,11 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/runtime-config.html">Runtime Configuration - Quick Reference</a>
 <a href="/Docs/per-process-config.html">Per-process configuration in Aether</a>
 <a href="/Docs/cic-help.html">ae help &lt;script&gt; Offline diagnostics for config-IS-code</a>
+<a href="/Docs/cross-ios.html">Cross-compiling for iOS (arm64)</a>
+<div class="grp">Testing</div>
+<a href="/Docs/testing.html">Testing with std.spec and ae test</a>
+<a href="/Docs/mutation-testing.html">Mutation testing, std.mutation</a>
+<a href="/Docs/differential-testing.html">Differential testing across lowering paths</a>
 <div class="grp">Performance</div>
 <a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
 <a href="/Docs/profiling-guide.html">Aether Runtime Profiling Guide</a>
@@ -639,6 +645,9 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
 <a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn't need macro_rules!</a>
 <a href="/Docs/lib-caller-info.html">--emit=lib caller-info channel</a>
+<a href="/Docs/liveview-lite-roadmap.html">LiveView-lite, a roadmap (Phoenix LiveView, on actors, without the framework)</a>
+<a href="/Docs/schema-projection-roadmap.html">std.schema, a projection-first roadmap (Ash, without the framework)</a>
+<a href="/Docs/locale-independent-float-text.html">Plan: locale-independent float text conversion (LC_NUMERIC correctness)</a>
 <div class="grp">Contributing</div>
 <a href="/Docs/stdlib-module-pattern.html">Aether Stdlib Module Pattern</a>
 <a href="/Docs/stdlib-vs-contrib.html">std/ vs contrib/ placement decisions</a>
@@ -665,32 +674,32 @@ main() {
 <p>Original design rationale and open questions follow.</p>
 <h2 id="goal">Goal</h2>
 <p>A zero-runtime-cost way to give Aether's structurally-typed primitives nominal identity. The motivating example:</p>
-<pre><code>type Path = distinct <span class="fn">string</span>
-type ConfigK = distinct <span class="fn">string</span>
-type Port = distinct <span class="fn">int</span>
-type FD = distinct <span class="fn">int</span>
+<pre><code>type Path = distinct string
+type ConfigK = distinct string
+type Port = distinct int
+type FD = distinct int
 
-open(p: Path) -&gt; (FD, <span class="fn">string</span>) { ... }</code></pre>
+open(p: Path) -&gt; (FD, string) { ... }</code></pre>
 <p>A function declared <code>open(p: Path)</code> accepts only values whose static type is <code>Path</code>. A bare <code>string</code> argument is a type error at the call site; an explicit unwrap-and-rewrap is required. The C codegen sees <code>Path</code> as <code>const char*</code> (no wrapper struct, no tag, no boxing); the distinction is entirely in the type checker.</p>
 <h2 id="why-this-matters-for-aether">Why this matters for Aether</h2>
 <p>Four pulls, in order of how directly the language design touches each:</p>
 <ol><li><strong>Capability discipline.</strong> A <code>GrantedFD = distinct int</code> lets the sandbox grant-list contract (<code>docs/containment-sandbox.md</code>) be expressed in types. Today the contract is doc-prose; the compiler can't enforce that a function expecting a granted FD didn't get handed an arbitrary <code>int</code>. Distinct types make the narrowing point, where an <code>int</code> becomes a <code>GrantedFD</code> the obvious place to validate the grant.</li><li><strong>Composes with <code>Isolated[T]</code></strong>. An <code>Isolated[GrantedFD]</code> is a non-aliasable one-shot capability token. The two features stack cleanly.</li><li><strong>Helps the <code>(value, err)</code> convention.</strong> A <code>Sanitized = distinct string</code> return from <code>validate_input(...)</code> makes it a type error to forward an unvalidated string to a sink that requires validation. The Go-style return convention stays; distinct types add a nuance that the type checker can see.</li><li><strong>Stdlib internal hygiene.</strong> <code>*StringSeq</code> vs. <code>string[]</code> is already a documented footgun in <code>LLM.md</code>. A pair of distinct types over the underlying representations would let the compiler diagnose the mistake with a clear message rather than a lowering-time C compile error.</li></ol>
 <p>Two downstream projects (<code>avn / svn-aether</code>, <code>aether-ui</code>) have asked for this in spec form (per <code>LLM.md</code> § "Working with downstream users").</p>
 <h2 id="sketch">Sketch</h2>
-<pre><code>type Path = distinct <span class="fn">string</span>
-type Port = distinct <span class="fn">int</span>
+<pre><code>type Path = distinct string
+type Port = distinct int
 
 main() {
-    p: Path = Path(<span class="str">"/etc/foo"</span>)              <span class="com">// explicit wrap, ok</span>
-    bad: Path = <span class="str">"/etc/foo"</span>                  <span class="com">// type error: string ≠ Path</span>
+    p: Path = Path("/etc/foo")              // explicit wrap, ok
+    bad: Path = "/etc/foo"                  // type error: string ≠ Path
 
-    raw: <span class="fn">string</span> = p                         <span class="com">// type error: Path ≠ string</span>
-    raw: <span class="fn">string</span> = p.<span class="fn">string</span>                  <span class="com">// explicit unwrap, ok</span>
-                                            <span class="com">// (or `string(p)`, see TBD-1)</span>
+    raw: string = p                         // type error: Path ≠ string
+    raw: string = p.string                  // explicit unwrap, ok
+                                            // (or `string(p)`, see TBD-1)
 
-    port: Port = Port(<span class="num">8080</span>)
-    n: <span class="fn">int</span> = port                           <span class="com">// type error</span>
-    n: <span class="fn">int</span> = port.<span class="fn">int</span>                       <span class="com">// ok</span>
+    port: Port = Port(8080)
+    n: int = port                           // type error
+    n: int = port.int                       // ok
 }</code></pre>
 <p>C lowering: <code>Path</code> emits as <code>const char*</code>, <code>Port</code> as <code>int</code>. No tag, no struct wrapper. The same ABI as the underlying type.</p>
 <h2 id="lowering-confirmed-not-tbd">Lowering, confirmed (not TBD)</h2>
@@ -745,7 +754,7 @@ main() {
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.473 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.562 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

@@ -1,0 +1,932 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LiveView-lite, a roadmap (Phoenix LiveView, on actors, without the framework) · Aether</title>
+<meta name="description" content="Phoenix LiveView keeps a stateful, server-rendered view alive over a WebSocket: the server holds per-connection state (assigns), a ~H template compiler...">
+<link rel="canonical" href="https://aether-lang.dev/Docs/liveview-lite-roadmap.html">
+<meta property="og:type" content="article">
+<meta property="og:title" content="LiveView-lite, a roadmap (Phoenix LiveView, on actors, without the framework) · Aether">
+<meta property="og:description" content="Phoenix LiveView keeps a stateful, server-rendered view alive over a WebSocket: the server holds per-connection state (assigns), a ~H template compiler...">
+<meta property="og:url" content="https://aether-lang.dev/Docs/liveview-lite-roadmap.html">
+<meta property="og:image" content="https://aether-lang.dev/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="/favicon.png">
+<link rel="preload" href="/fonts/bricolagegrotesque-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/dmsans-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/dmmono-latin.woff2" as="font" type="font/woff2" crossorigin>
+<style id="aether-inline">
+/* Self-hosted webfonts. Previously three families were pulled from
+   fonts.googleapis.com, which chained a stylesheet request and then the
+   font files from a second origin before any text could paint. These are
+   the same faces served from this origin.
+   Variable fonts: one file covers each family's whole weight range.
+   The opsz axis is dropped (nothing here sets font-optical-sizing) which
+   halves Bricolage. latin-ext is listed but only fetched when a character
+   needs it, unicode-range keeps it lazy.
+   font-display is `optional`, not `swap`: these faces are preloaded from
+   this origin, so they land before first paint on any normal connection and
+   are used with no swap. On a connection too slow for that they are skipped
+   for the load rather than swapped in late. `swap` was measurably shifting
+   the layout (CLS 0.117) when the real metrics replaced the fallback's. */
+/* latin-ext */
+@font-face {
+  font-family: 'Bricolage Grotesque';
+  font-style: normal;
+  font-weight: 700;
+  font-stretch: 100%;
+  font-display: optional;
+  src: url(fonts/bricolagegrotesque-latinext.woff2) format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Bricolage Grotesque';
+  font-style: normal;
+  font-weight: 700;
+  font-stretch: 100%;
+  font-display: optional;
+  src: url(fonts/bricolagegrotesque-latin.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Bricolage Grotesque';
+  font-style: normal;
+  font-weight: 800;
+  font-stretch: 100%;
+  font-display: optional;
+  src: url(fonts/bricolagegrotesque-latinext.woff2) format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Bricolage Grotesque';
+  font-style: normal;
+  font-weight: 800;
+  font-stretch: 100%;
+  font-display: optional;
+  src: url(fonts/bricolagegrotesque-latin.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'DM Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: optional;
+  src: url(fonts/dmmono-latinext.woff2) format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'DM Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: optional;
+  src: url(fonts/dmmono-latin.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'DM Sans';
+  font-style: normal;
+  font-weight: 400;
+  font-display: optional;
+  src: url(fonts/dmsans-latinext.woff2) format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'DM Sans';
+  font-style: normal;
+  font-weight: 400;
+  font-display: optional;
+  src: url(fonts/dmsans-latin.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'DM Sans';
+  font-style: normal;
+  font-weight: 700;
+  font-display: optional;
+  src: url(fonts/dmsans-latinext.woff2) format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'DM Sans';
+  font-style: normal;
+  font-weight: 700;
+  font-display: optional;
+  src: url(fonts/dmsans-latin.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* Aether design system. Red-on-black, monospace, elegant.
+   Brand: red #cc1a1a "ae" on near-black, from the VS Code icon. */
+:root{
+  --bg:#0c0b0b; --bg-2:#121111; --bg-3:#0a0909; --panel:#100f0f;
+  --line:#1e1c1c; --line-2:#2a2727;
+  --ink:#eceae7; --dim:#9b9693; --faint:#6b6663;
+  --red:#cc1a1a; --red-hi:#e63a2f;
+  --c-kw:#c76b60; --c-str:#93a07f; --c-num:#c19a6b; --c-fn:#88a3ad; --c-com:#615c59; --c-pn:#8f8a86;
+  --mono:"DM Mono",ui-monospace,"SF Mono","JetBrains Mono",Menlo,Consolas,monospace;
+  --sans:"DM Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --wrap:1120px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15.5px;line-height:1.6;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+::selection{background:var(--red);color:#fff}
+:focus-visible{outline:2px solid var(--red-hi);outline-offset:2px;border-radius:2px}
+.wrap{max-width:var(--wrap);margin:0 auto;padding:0 26px}
+.mono{font-family:var(--mono)}
+.eyebrow{font-family:var(--mono);font-size:11.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--faint)}
+
+/* wordmark */
+.ae{font-family:var(--mono);font-weight:700;letter-spacing:-.085em;transform:scale(.95,1.2);display:inline-block;color:var(--red)}
+
+/* header */
+.site-head{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 82%,transparent);backdrop-filter:blur(9px);border-bottom:1px solid var(--line)}
+.site-head .bar{display:flex;align-items:center;gap:22px;height:58px}
+.brand{display:flex;align-items:baseline;gap:9px}
+.brand .ae{font-size:21px}
+.brand .nm{font-family:var(--mono);font-size:13.5px;color:var(--ink)}
+.site-head nav{margin-left:auto;display:flex;align-items:center;gap:22px}
+.site-head nav a{font-family:var(--mono);font-size:13px;color:var(--dim);transition:color .15s}
+.site-head nav a:hover,.site-head nav a.on{color:var(--ink)}
+.site-head nav a.on{color:var(--red)}
+.vtag{font-family:var(--mono);font-size:11.5px;color:var(--faint);border:1px solid var(--line-2);border-radius:999px;padding:2px 9px}
+
+/* buttons */
+.btn{font-family:var(--mono);font-size:14px;padding:11px 19px;border-radius:6px;border:1px solid transparent;display:inline-flex;align-items:center;gap:8px;transition:all .16s;cursor:pointer}
+.btn-red{background:var(--red);color:#fff}
+.btn-red:hover{background:var(--red-hi);transform:translateY(-1px)}
+.btn-ghost{border-color:var(--line-2);color:var(--ink)}
+.btn-ghost:hover{border-color:var(--faint);background:var(--bg-2)}
+
+/* section head */
+.sec-head{display:flex;align-items:baseline;gap:14px;margin:0 0 22px}
+.sec-head h1,.sec-head h2{font-family:var(--mono);font-size:1.15rem;font-weight:700;letter-spacing:-.01em;margin:0}
+.sec-head .rule{flex:1;height:1px;background:var(--line)}
+
+/* code */
+pre,code{font-family:var(--mono)}
+pre.code{background:var(--bg-3);border:1px solid var(--line);border-radius:8px;padding:16px;overflow-x:auto;font-size:12.8px;line-height:1.7;color:var(--ink);margin:0 0 16px}
+.kw{color:var(--c-kw)}.str{color:var(--c-str)}.num{color:var(--c-num)}.fn{color:var(--c-fn)}.com{color:var(--c-com)}.pn{color:var(--c-pn)}
+
+/* footer */
+.site-foot{border-top:1px solid var(--line);margin-top:80px;padding:40px 0}
+.site-foot .foot{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.site-foot .ae{font-size:17px}
+.site-foot .m{font-family:var(--mono);font-size:12px;color:var(--faint)}
+.site-foot nav{margin-left:auto;display:flex;gap:20px}
+.site-foot nav a{font-family:var(--mono);font-size:12.5px;color:var(--dim)}
+.site-foot nav a:hover{color:var(--ink)}
+
+/* ---- docs layout ---- */
+.doc-shell{display:grid;grid-template-columns:250px minmax(0,1fr) 210px;gap:0;align-items:start;min-height:70vh}
+.doc-nav{position:sticky;top:58px;align-self:start;max-height:calc(100vh - 58px);overflow:auto;border-right:1px solid var(--line);padding:26px 0 40px}
+.doc-nav .grp{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint);padding:18px 24px 8px}
+.doc-nav a{display:block;font-family:var(--mono);font-size:12.7px;color:var(--dim);padding:6px 24px;border-left:2px solid transparent;transition:.13s}
+.doc-nav a:hover{color:var(--ink);background:var(--bg-3)}
+.doc-nav a.on{color:var(--ink);border-left-color:var(--red);background:var(--bg-3)}
+.doc-main{padding:40px 0 60px 44px;min-width:0}
+.doc-body{max-width:760px}
+.doc-body .bc{font-family:var(--mono);font-size:12px;color:var(--faint);margin-bottom:20px}
+.doc-body h1{font-family:var(--mono);font-size:1.9rem;letter-spacing:-.02em;margin:0 0 10px;line-height:1.15}
+.doc-body h2{font-family:var(--mono);font-size:1.15rem;color:var(--ink);margin:34px 0 12px;padding-top:16px;border-top:1px solid var(--line)}
+.doc-body h3{font-family:var(--mono);font-size:1rem;color:var(--ink);margin:26px 0 8px}
+.doc-body p{color:var(--dim);margin:0 0 15px}
+.doc-body a{color:var(--red);text-decoration:none}
+.doc-body a:hover{text-decoration:underline}
+.doc-body code{font-family:var(--mono);font-size:.86em;background:var(--bg-2);border:1px solid var(--line);border-radius:4px;padding:1px 5px;color:var(--ink)}
+.doc-body pre{background:var(--bg-3);border:1px solid var(--line);border-radius:8px;padding:16px;overflow-x:auto;font-size:12.8px;line-height:1.7;color:var(--ink);margin:0 0 16px}
+.doc-body pre code{background:none;border:0;padding:0}
+.doc-body ul,.doc-body ol{color:var(--dim);padding-left:22px;margin:0 0 15px}
+.doc-body li{margin:4px 0}
+.doc-body blockquote{border-left:2px solid var(--red);margin:0 0 15px;padding:2px 0 2px 16px;color:var(--dim)}
+.doc-body hr{border:0;border-top:1px solid var(--line);margin:26px 0}
+.doc-body table{border-collapse:collapse;width:100%;margin:0 0 18px;font-size:13.5px}
+.doc-body th,.doc-body td{border:1px solid var(--line);padding:8px 12px;text-align:left;vertical-align:top}
+.doc-body th{font-family:var(--mono);color:var(--ink);background:var(--bg-2);font-weight:700}
+.doc-body td{color:var(--dim)}
+
+@media(max-width:860px){
+  .doc-shell{grid-template-columns:1fr}
+  .doc-nav{position:static;max-height:none;border-right:0;border-bottom:1px solid var(--line);display:flex;overflow-x:auto;padding:8px}
+  .doc-nav .grp{display:none}
+  .doc-nav a{white-space:nowrap;border-left:0}
+  .doc-main{padding:26px 0}
+  .site-head nav a.hidem{display:none}
+}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.btn-red:hover{transform:none}}
+
+/* ---- home + shared components ---- */
+.hero{padding:82px 0 60px}
+.hero-grid{display:grid;grid-template-columns:1.02fr .98fr;gap:52px;align-items:center}
+.hero .eyebrow{margin:0 0 20px}
+.hero h1{font-family:var(--mono);font-weight:700;font-size:clamp(2.3rem,5.2vw,3.5rem);line-height:1.04;letter-spacing:-.03em;margin:0 0 20px;text-wrap:balance}
+.hero h1 .hl{color:var(--red)}
+.hero .lede{font-size:1.1rem;color:var(--dim);max-width:42ch;margin:0 0 30px}
+.cta{display:flex;gap:13px;flex-wrap:wrap}
+.metaline{display:flex;gap:24px;flex-wrap:wrap;margin-top:26px;font-family:var(--mono);font-size:12.5px;color:var(--faint)}
+.metaline b{color:var(--ink);font-weight:400}
+
+/* code panel: filename label + red top accent, no traffic lights */
+.panel{background:var(--bg-3);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.panel-bar{display:flex;align-items:center;gap:10px;padding:11px 16px;border-bottom:1px solid var(--line);background:var(--bg-2)}
+.panel-bar::before{content:"";width:18px;height:2px;background:var(--red);border-radius:2px}
+.panel-bar .file{font-family:var(--mono);font-size:12.5px;color:var(--faint)}
+.panel pre{margin:0;padding:20px;overflow-x:auto;font-family:var(--mono);font-size:13.4px;line-height:1.75;color:var(--ink)}
+
+.block{padding:74px 0;border-top:1px solid var(--line)}
+.feat{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.feat .cell{background:var(--bg);padding:26px 22px}
+.feat .k{font-family:var(--mono);font-size:12.5px;color:var(--red);margin-bottom:12px}
+.feat h3{font-family:var(--mono);font-size:15px;margin:0 0 8px;font-weight:700;letter-spacing:-.01em}
+.feat p{margin:0;font-size:13.7px;color:var(--dim);line-height:1.6}
+.cc{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.cc-h{font-family:var(--mono);font-size:1.5rem;letter-spacing:-.02em;margin:0 0 10px}
+.cc-note{color:var(--dim);max-width:54ch;margin:0 0 30px}
+@media(max-width:860px){.hero-grid{grid-template-columns:1fr;gap:38px}.feat{grid-template-columns:repeat(2,1fr)}.cc{grid-template-columns:1fr}}
+
+/* ---- REPL / playground ---- */
+.repl{display:grid;grid-template-columns:184px 1fr;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--panel)}
+.lessons{border-right:1px solid var(--line);background:var(--bg-2);padding:14px 0}
+.lessons .lh{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--faint);padding:4px 18px 10px}
+.lessons button{display:block;width:100%;text-align:left;background:none;border:0;color:var(--dim);font-family:var(--mono);font-size:12.5px;line-height:1.5;padding:9px 18px;cursor:pointer;border-left:2px solid transparent;transition:.14s}
+.lessons button:hover{color:var(--ink);background:var(--bg-3)}
+.lessons button.on{color:var(--ink);border-left-color:var(--red);background:var(--bg-3)}
+.lessons button .idx{color:var(--faint);margin-right:8px}
+.lessons button.on .idx{color:var(--red)}
+.stage{display:grid;grid-template-rows:auto 1fr auto auto;min-height:360px}
+.theory{padding:16px 20px;border-bottom:1px solid var(--line)}
+.theory h3{font-family:var(--mono);font-size:14px;margin:0 0 6px}
+.theory p{margin:0;font-size:13.5px;color:var(--dim)}
+.editwrap{position:relative;background:var(--bg-3);min-height:200px}
+.editwrap pre,.editwrap textarea{margin:0;padding:18px 20px;font-family:var(--mono);font-size:13.4px;line-height:1.7;letter-spacing:0;tab-size:4;white-space:pre;overflow:auto;border:0}
+.editwrap pre{position:absolute;inset:0;pointer-events:none;color:var(--ink);z-index:0;margin:0}
+.editwrap textarea{position:relative;z-index:1;width:100%;height:100%;min-height:200px;background:transparent;color:transparent;caret-color:var(--red);resize:vertical;outline:none}
+.runbar{display:flex;align-items:center;gap:14px;padding:12px 20px;border-top:1px solid var(--line);background:var(--bg-2)}
+.run{font-family:var(--mono);font-size:13px;background:var(--red);color:#fff;border:0;border-radius:6px;padding:9px 18px;cursor:pointer;transition:.15s}
+.run:hover{background:var(--red-hi)}
+.run:disabled{opacity:.55;cursor:default}
+.runbar .hint{font-family:var(--mono);font-size:11.5px;color:var(--faint)}
+.runbar .lnav{margin-left:auto;display:flex;gap:6px}
+.runbar .lnav button{font-family:var(--mono);font-size:12px;color:var(--dim);background:none;border:1px solid var(--line-2);border-radius:6px;padding:6px 11px;cursor:pointer;transition:.14s}
+.runbar .lnav button:hover{color:var(--ink);border-color:var(--faint)}
+.output{border-top:1px solid var(--line);background:var(--bg-3);padding:14px 20px;font-family:var(--mono);font-size:13px;line-height:1.7;min-height:76px;white-space:pre-wrap}
+.output .op{color:var(--red);user-select:none}
+.output .err{color:var(--c-kw)}
+.output .muted{color:var(--faint)}
+@media(max-width:860px){
+  .repl{grid-template-columns:1fr}
+  .lessons{display:flex;overflow-x:auto;border-right:0;border-bottom:1px solid var(--line);padding:8px}
+  .lessons .lh{display:none}
+  .lessons button{white-space:nowrap;border-left:0;border-bottom:2px solid transparent}
+  .lessons button.on{border-left:0;border-bottom-color:var(--red)}
+}
+
+/* skip-to-content (a11y): hidden until keyboard-focused */
+.skip{position:absolute;left:-9999px;top:0;z-index:50;background:var(--red);color:#fff;font-family:var(--mono);font-size:13px;padding:9px 16px;border-radius:0 0 6px 0}
+.skip:focus{left:0}
+
+/* responsive containment: grid children must shrink so wide code/tables
+   scroll inside their own box and the page body never scrolls sideways */
+.hero-grid>*,.feat>*,.cc>*,.repl>*,.doc-main,.doc-body{min-width:0}
+.doc-body pre,.panel pre,.editwrap pre{max-width:100%}
+.doc-body code{overflow-wrap:anywhere}
+.tw{overflow-x:auto;max-width:100%;margin:0 0 18px}
+.tw table{margin:0}
+@media(max-width:860px){
+  .site-head .bar{gap:14px}
+  .site-head nav{gap:15px}
+  .vtag{display:none}
+  .site-head nav a.src{display:none}
+}
+
+/* secondary playground button (Copy) */
+.ghostbtn{font-family:var(--mono);font-size:12.5px;color:var(--dim);background:none;border:1px solid var(--line-2);border-radius:6px;padding:8px 13px;cursor:pointer;transition:.14s}
+.ghostbtn:hover{color:var(--ink);border-color:var(--faint)}
+
+/* ============================================================
+   RETRO TERMINAL LAYER
+   CRT character on the brand: subtle scanlines, phosphor glow,
+   blinking cursor, terminal-window chrome. Kept restrained so it
+   reads as a real terminal, not a novelty.
+   ============================================================ */
+
+/* CRT overlays: fine scanlines + a soft vignette. Never block input. */
+body::before{content:"";position:fixed;inset:0;z-index:2;pointer-events:none;
+  background:
+    radial-gradient(130% 100% at 50% -10%, transparent 62%, rgba(0,0,0,.45) 100%);}
+body::after{content:"";position:fixed;inset:0;z-index:3;pointer-events:none;opacity:.5;
+  background:repeating-linear-gradient(to bottom,
+    rgba(255,255,255,.020) 0 1px, transparent 1px 3px);}
+.site-head,.wrap,main,footer{position:relative;z-index:4}
+
+/* phosphor glow on the brand red */
+.ae{text-shadow:0 0 14px rgba(204,26,26,.45)}
+.hero h1 .hl,.hl{text-shadow:0 0 18px rgba(230,58,47,.5)}
+
+/* blinking block cursor */
+.cur{display:inline-block;width:.58ch;height:1.02em;margin-left:.12ch;
+  background:var(--red-hi);vertical-align:-0.14em;border-radius:1px;
+  box-shadow:0 0 10px rgba(230,58,47,.7);animation:blink 1.05s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+
+/* terminal window chrome */
+.term{background:var(--bg-3);border:1px solid var(--line-2);border-radius:10px;overflow:hidden;
+  box-shadow:0 0 0 1px rgba(0,0,0,.4),0 24px 60px -30px rgba(230,58,47,.18)}
+.term-bar{display:flex;align-items:center;gap:9px;padding:9px 14px;background:var(--bg-2);
+  border-bottom:1px solid var(--line);font-family:var(--mono);font-size:12px;color:var(--faint)}
+.term-bar::before{content:"";width:9px;height:9px;border-radius:50%;
+  background:var(--red);box-shadow:0 0 8px rgba(204,26,26,.7)}
+.term-bar b{color:var(--dim);font-weight:400}
+.term-body{padding:20px;font-family:var(--mono);font-size:13.2px;line-height:1.7}
+
+/* boot sequence */
+.boot{margin:0 0 18px;font-family:var(--mono);font-size:12.6px;line-height:1.75;color:var(--dim);white-space:pre-wrap;min-height:1.75em}
+.boot .ok{color:var(--c-str)}
+.boot .dim{color:var(--faint)}
+.boot .r{color:var(--red-hi)}
+
+/* prompt accents on section headings */
+.prompt{color:var(--red);margin-right:.5ch}
+.sec-head h1 .prompt,.sec-head h2 .prompt{font-weight:400}
+
+/* prompt-styled ghost button */
+.btn-term{font-family:var(--mono);font-size:14px;padding:11px 18px;border-radius:6px;
+  border:1px solid var(--line-2);color:var(--ink);background:var(--bg-3);display:inline-flex;gap:9px;align-items:center;transition:all .15s}
+.btn-term:hover{border-color:var(--red);box-shadow:0 0 0 1px var(--red),0 0 18px -6px var(--red-hi);transform:translateY(-1px)}
+.btn-term .p{color:var(--red)}
+
+@media(prefers-reduced-motion:reduce){.cur{animation:none}}
+@media(max-width:860px){body::before,body::after{display:none}}
+
+/* code + output inside terminal windows */
+.term .run-src{margin:0;padding:18px 20px;font-family:var(--mono);font-size:13px;line-height:1.72;color:var(--ink);overflow-x:auto;white-space:pre}
+.run-out{margin:0 20px;padding:12px 0 4px;border-top:1px solid var(--line);font-family:var(--mono);font-size:13px;line-height:1.7;min-height:1.7em;color:var(--c-str);white-space:pre-line}
+.hero .boot{margin:0 0 16px}
+
+/* docs search + on-page TOC */
+.docsearch{position:relative;padding:16px 18px 8px}
+.docsearch input{width:100%;background:var(--bg-3);border:1px solid var(--line-2);border-radius:6px;color:var(--ink);font-family:var(--mono);font-size:12.5px;padding:8px 30px 8px 11px;outline:none;transition:border-color .14s}
+.docsearch input:focus{border-color:var(--red)}
+.docsearch kbd{position:absolute;right:27px;top:24px;font-family:var(--mono);font-size:11px;color:var(--faint);border:1px solid var(--line-2);border-radius:4px;padding:0 5px;pointer-events:none}
+.ds-res{position:absolute;left:18px;right:18px;top:50px;z-index:30;background:var(--bg-2);border:1px solid var(--line-2);border-radius:8px;max-height:64vh;overflow:auto;display:none;box-shadow:0 24px 60px -24px #000}
+.ds-res.open{display:block}
+.ds-res a{display:block;padding:9px 12px;border-bottom:1px solid var(--line)}
+.ds-res a:last-child{border-bottom:0}
+.ds-res a.sel,.ds-res a:hover{background:var(--bg-3)}
+.ds-res .rt{font-family:var(--mono);font-size:12.5px;color:var(--ink)}
+.ds-res .rg{font-size:10px;color:var(--faint);text-transform:uppercase;letter-spacing:.12em;margin-left:7px}
+.ds-res .rs{font-size:11.5px;color:var(--dim);margin-top:3px;line-height:1.45}
+.ds-res .rt b,.ds-res .rs b{color:var(--red-hi)}
+.ds-res .none{padding:12px;color:var(--faint);font-size:12.5px}
+.toc{position:sticky;top:58px;align-self:start;max-height:calc(100vh - 58px);overflow:auto;padding:30px 0 40px 22px}
+.toc-h{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint);margin-bottom:12px}
+.toc a{display:block;font-family:var(--mono);font-size:12px;color:var(--dim);padding:4px 0 4px 12px;border-left:2px solid var(--line);transition:.13s;line-height:1.35}
+.toc a.l3{padding-left:24px;font-size:11.5px;color:var(--faint)}
+.toc a:hover{color:var(--ink)}
+.toc a.on{color:var(--red);border-left-color:var(--red)}
+@media(max-width:1080px){.doc-shell{grid-template-columns:250px minmax(0,1fr)}.toc{display:none}}
+
+/* ============================================================
+   REFINE PASS: display type, no gimmicks, install-first hero,
+   show-don't-tell sections. Overrides the earlier terminal layer.
+   ============================================================ */
+:root{ --display:"Bricolage Grotesque","DM Sans",system-ui,sans-serif; }
+
+/* drop the CRT costume */
+body::before,body::after{display:none !important}
+.ae{text-shadow:none}
+.hl,.hero h1 .hl{text-shadow:none}
+
+/* display typeface for headings */
+.hero h1,.feature h2,.feature h3,.col h3,.center-h,.getstarted h2,.cc-h,
+.doc-body h1,.doc-body h2,.doc-body h3{font-family:var(--display)}
+.hero h1{font-size:clamp(2.7rem,6vw,4.3rem);font-weight:800;line-height:1.02;letter-spacing:-.035em;margin:0 0 22px;text-wrap:balance}
+.hero .eyebrow{margin:0 0 18px}
+.hero .lede{font-size:1.12rem;color:var(--dim);max-width:46ch;line-height:1.55;margin:0 0 8px}
+
+/* inline code on the home page */
+main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:1px solid var(--line);border-radius:4px;padding:1px 5px;color:var(--ink)}
+.install-row code,.gs-next code,main code.plain{background:none;border:0;padding:0;font-size:13.5px}
+
+/* install command block */
+.install{margin:28px 0 20px}
+.install-row{display:flex;align-items:center;gap:12px;background:var(--bg-3);border:1px solid var(--line-2);border-radius:9px;padding:13px 15px;font-family:var(--mono);max-width:540px}
+.install-row .dollar{color:var(--red);user-select:none}
+.install-row code{flex:1 1 auto;color:var(--ink);white-space:nowrap;overflow-x:auto}
+.cpy{flex:none;font-family:var(--mono);font-size:11.5px;letter-spacing:.03em;color:var(--dim);background:var(--bg-2);border:1px solid var(--line-2);border-radius:5px;padding:6px 11px;cursor:pointer;transition:.14s}
+.cpy:hover{color:var(--ink);border-color:var(--faint)}
+.cpy.ok{color:var(--c-str);border-color:var(--c-str)}
+.install-note{font-family:var(--mono);font-size:12px;color:var(--faint);margin:11px 0 0}
+.install-note a{color:var(--dim);text-decoration:underline;text-underline-offset:2px}
+.install-note a:hover{color:var(--ink)}
+
+/* hero run panel: real command + output */
+.term .run-out{margin:0 20px;padding:13px 0 4px;border-top:1px solid var(--line);font-family:var(--mono);font-size:12.8px;line-height:1.7;white-space:pre-line;color:var(--c-str)}
+.term .run-out .run-cmd{display:block;color:var(--faint);margin-bottom:7px}
+
+/* one-line value strip */
+.strip{border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:var(--bg-2)}
+.strip .wrap{padding:22px 26px}
+.strip p{margin:0;color:var(--dim);font-size:15px;line-height:1.65;max-width:none}
+.strip code{color:var(--ink)}
+
+/* feature sections (show-don't-tell) */
+.feature{padding:70px 0;border-top:1px solid var(--line)}
+.feature-grid{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center}
+.feature h2{font-size:clamp(1.7rem,3vw,2.2rem);font-weight:700;letter-spacing:-.02em;line-height:1.08;margin:0 0 16px}
+.feature p{color:var(--dim);font-size:15px;line-height:1.65;margin:0 0 13px;max-width:48ch}
+.feature .muted-p{color:var(--faint)}
+.feature .cc{grid-template-columns:1fr;gap:14px}
+.feature.alt{background:var(--bg-3)}
+.two-up{display:grid;grid-template-columns:1fr 1fr;gap:36px}
+.col h3{font-size:1.3rem;font-weight:700;letter-spacing:-.01em;margin:0 0 10px}
+.col p{color:var(--dim);font-size:14.5px;line-height:1.6;margin:0 0 16px;max-width:46ch}
+
+/* "more than a language" rows */
+.center-h{text-align:center;font-size:clamp(1.7rem,3vw,2.2rem);font-weight:700;letter-spacing:-.02em;margin:0 0 8px}
+.rows{max-width:840px;margin:32px auto 0;border-top:1px solid var(--line)}
+.row{display:grid;grid-template-columns:172px 1fr;gap:26px;padding:22px 4px;border-bottom:1px solid var(--line)}
+.row-k{font-family:var(--mono);font-size:12.5px;letter-spacing:.02em;color:var(--red);padding-top:1px}
+.row-v{color:var(--dim);font-size:14.7px;line-height:1.62}
+.row-v code{color:var(--ink)}
+
+/* get started */
+.getstarted{padding:84px 0 96px;border-top:1px solid var(--line);text-align:center}
+.getstarted h2{font-size:clamp(1.9rem,3.5vw,2.7rem);font-weight:800;letter-spacing:-.025em;margin:0 0 26px}
+.getstarted .install{display:flex;justify-content:center;margin:0 0 16px}
+.install-lg .install-row{max-width:580px;padding:15px 17px;font-size:14.5px}
+.gs-next{font-family:var(--mono);font-size:13px;color:var(--faint);margin:0 0 30px}
+.gs-next .dollar{color:var(--red);margin-right:6px}
+.getstarted .cta{justify-content:center}
+
+/* refined docs headings */
+.doc-body h1{font-weight:800;letter-spacing:-.02em;font-size:2.1rem}
+.doc-body h2{font-weight:700;letter-spacing:-.01em}
+.doc-body h3{font-weight:700}
+.doc-body p{line-height:1.7}
+
+@media(max-width:860px){
+  .feature-grid,.two-up{grid-template-columns:1fr;gap:30px}
+  .row{grid-template-columns:1fr;gap:5px;padding:18px 4px}
+  .feature{padding:52px 0}
+}
+
+.feature h2,.col h3,.center-h,.getstarted h2{text-wrap:balance}
+.feature-text{max-width:none}
+
+/* review pass: fix floating sections, tighten rhythm */
+.feature-grid{align-items:start}
+.feature-text{padding-top:2px}
+.feature{padding:62px 0}
+.two-up{gap:40px}
+.col .panel{margin-top:2px}
+.rows{max-width:800px}
+.row{grid-template-columns:150px 1fr;gap:28px;padding:20px 4px}
+.getstarted{padding:78px 0 88px}
+/* give the "you can read" code column a touch of breathing room from the text */
+@media(min-width:861px){.feature-grid{gap:56px}}
+
+/* --- home v3: depth, pipeline diagram, real footer --- */
+.hero{position:relative}
+.hero::before{content:"";position:absolute;inset:-40px 0 0;pointer-events:none;z-index:-1;
+  background:radial-gradient(48% 42% at 20% 26%, rgba(204,26,26,.11), transparent 72%)}
+.feature .muted-p{color:var(--dim)}
+
+.pipe-section{padding:34px 0;border-top:1px solid var(--line);background:var(--bg-2)}
+.pipeline{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;font-family:var(--mono)}
+.pl-node{display:flex;flex-direction:column;align-items:center;gap:5px;padding:15px 26px;border:1px solid var(--line-2);border-radius:10px;background:var(--bg-3);font-size:14px;color:var(--ink);min-width:132px}
+.pl-node .pl-k{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--red)}
+.pl-node .pl-sub{font-size:10.5px;color:var(--faint);text-align:center;line-height:1.6}
+.pl-step{display:flex;flex-direction:column;align-items:center;gap:5px;padding:0 10px;min-width:96px}
+.pl-line{width:100%;height:1px;background:linear-gradient(90deg,var(--line-2),var(--red-hi),var(--line-2));position:relative}
+.pl-line::after{content:"\203A";position:absolute;right:-3px;top:-11px;color:var(--red-hi);font-size:16px}
+.pl-lbl{font-size:11px;color:var(--faint)}
+@media(max-width:720px){.pipeline{flex-direction:column}.pl-step{flex-direction:row;gap:8px;padding:8px 0}.pl-line{width:26px;height:1px}.pl-line::after{top:-10px;right:-3px}}
+
+.site-foot{border-top:1px solid var(--line);margin-top:0;padding:58px 0 28px}
+.foot-grid{display:grid;grid-template-columns:1.7fr 1fr 1fr 1fr;gap:40px}
+.foot-brand .ae{font-size:20px}
+.foot-tag{color:var(--dim);font-size:14px;margin:13px 0 9px;max-width:26ch;line-height:1.5}
+.foot-status{font-family:var(--mono);font-size:12px;color:var(--faint)}
+.foot-col .foot-h{font-family:var(--mono);font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);margin:0 0 13px}
+.foot-col a{display:block;color:var(--dim);font-size:13.5px;padding:5px 0;transition:color .14s}
+.foot-col a:hover{color:var(--ink)}
+.foot-note{margin-top:42px;font-family:var(--mono);font-size:12px;color:var(--faint);line-height:1.7;max-width:78ch}
+.foot-legal{display:flex;justify-content:space-between;margin-top:22px;padding-top:22px;border-top:1px solid var(--line);font-family:var(--mono);font-size:12px;color:var(--faint)}
+@media(max-width:760px){.foot-grid{grid-template-columns:1fr 1fr;gap:26px}.foot-brand{grid-column:1/-1}.foot-legal{flex-direction:column;gap:8px}}
+
+.rows{max-width:920px}
+
+/* alternate section direction for rhythm */
+.feature.flip .feature-grid{direction:rtl}
+.feature.flip .feature-grid > *{direction:ltr}
+
+.hero .lede-2{font-size:15px;color:var(--faint);max-width:52ch;line-height:1.6;margin:0 0 4px}
+
+/* scheduler mechanisms */
+.center-sub{text-align:center;color:var(--dim);max-width:60ch;margin:0 auto 34px;font-size:15px;line-height:1.6}
+.mech{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden;max-width:1000px;margin:0 auto}
+.mech-item{background:var(--bg);padding:22px 20px}
+.mech-k{font-family:var(--mono);font-size:12.5px;color:var(--red);margin-bottom:10px}
+.mech-item p{margin:0;font-size:13.6px;color:var(--dim);line-height:1.6;max-width:none}
+@media(max-width:900px){.mech{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:560px){.mech{grid-template-columns:1fr}}
+
+.mech-note{max-width:1000px;margin:22px auto 0;text-align:center;color:var(--faint);font-size:13.6px;line-height:1.65}
+
+/* install command must shrink inside small viewports: a flex item will not
+   shrink below its content width unless min-width is cleared */
+.install-row{max-width:min(540px,100%)}
+.install-lg .install-row{max-width:min(580px,100%)}
+.install-row code{min-width:0}
+
+/* docs prev / next */
+.doc-prevnext{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:48px 0 0;padding-top:24px;border-top:1px solid var(--line)}
+.doc-prevnext a{min-width:0;display:flex;flex-direction:column;gap:4px;padding:13px 15px;border:1px solid var(--line-2);border-radius:8px;color:var(--ink);transition:border-color .14s}
+.doc-prevnext a:hover{border-color:var(--red);text-decoration:none}
+.doc-prevnext .pn-k{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint)}
+.doc-prevnext .pn-t{font-size:13.5px;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.doc-prevnext .pn-next{grid-column:2;text-align:right}
+@media(max-width:620px){.doc-prevnext{grid-template-columns:1fr}.doc-prevnext .pn-next{grid-column:1;text-align:left}}
+</style>
+</head>
+<body>
+<a class="skip" href="#doc">Skip to content</a>
+<header class="site-head">
+  <div class="wrap bar">
+    <a class="brand" href="/" aria-label="Aether"><span class="ae">ae</span><span class="nm">aether</span></a>
+    <nav>
+      <a href="/repl.html">Examples</a>
+      <a href="/Docs/getting-started.html" class="on">Docs</a>
+      <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
+      <span class="vtag">v0.562</span>
+    </nav>
+  </div>
+</header>
+<div class="wrap">
+  <div class="doc-shell">
+    <nav class="doc-nav" aria-label="Documentation">
+      <div class="docsearch"><input id="ds" type="search" placeholder="Search the docs" aria-label="Search documentation" autocomplete="off" spellcheck="false"><kbd>/</kbd><div class="ds-res" id="dsres" role="listbox"></div></div>
+<div class="grp">Start</div>
+<a href="/Docs/getting-started.html">Getting Started with Aether</a>
+<a href="/Docs/tutorial.html">Aether Language Tutorial</a>
+<div class="grp">Language</div>
+<a href="/Docs/language-reference.html">Aether Language Reference</a>
+<a href="/Docs/type-inference-guide.html">Aether Type Inference Guide</a>
+<a href="/Docs/type-annotation-style-guide.html">Aether Type Annotation Style Guide</a>
+<a href="/Docs/type-inference-multi-value-returns.html">Multi-Value Return Type Inference</a>
+<a href="/Docs/distinct-types.html">Distinct Types</a>
+<a href="/Docs/sequences.html">Sequences (*StringSeq)</a>
+<a href="/Docs/named-args-and-select.html">Named Arguments and select()</a>
+<a href="/Docs/closures-and-builder-dsl.html">Closures and Builder-Style DSL in Aether</a>
+<a href="/Docs/closures-and-lifetimes.html">Closures and Environment Lifetimes</a>
+<a href="/Docs/module-system-design.html">Aether Module System</a>
+<a href="/Docs/when-static-if.html">Compile-time when / static-if</a>
+<div class="grp">Runtime</div>
+<a href="/Docs/architecture.html">Aether Architecture</a>
+<a href="/Docs/actor-concurrency.html">Aether Runtime Guide</a>
+<a href="/Docs/scheduler-quick-reference.html">Aether Scheduler - Quick Reference</a>
+<a href="/Docs/memory-management.html">Aether Memory Management</a>
+<a href="/Docs/runtime-optimizations.html">Runtime Optimizations</a>
+<a href="/Docs/numa-support.html">NUMA Support in Aether</a>
+<a href="/Docs/message-tracing.html">Message tracing</a>
+<div class="grp">Interop</div>
+<a href="/Docs/c-interop.html">C Interoperability</a>
+<a href="/Docs/c-embedding.html">Embedding Aether Actors in C Applications</a>
+<a href="/Docs/emit-lib.html">Embedding Aether as a Shared Library (--emit=lib)</a>
+<a href="/Docs/embedded-namespaces-and-host-bindings.html">Aether as a Configuration Language, v2: Namespaces and Generated Bindings</a>
+<a href="/Docs/aether-embedded-in-host-applications.html">Aether as a Configuration Language for Other Languages</a>
+<div class="grp">Standard library</div>
+<a href="/Docs/stdlib-reference.html">Aether Standard Library Reference</a>
+<a href="/Docs/stdlib-api.html">Aether Standard Library Guide</a>
+<a href="/Docs/http-server.html">std.http HTTP Server</a>
+<a href="/Docs/http-reverse-proxy.html">std.http.proxy reverse proxy</a>
+<a href="/Docs/http-handler-context.html">HTTP handlers with per-server / per-route state</a>
+<div class="grp">Safety</div>
+<a href="/Docs/containment-sandbox.html">Containment and Sandboxing in Aether</a>
+<a href="/Docs/hide-and-seal.html">hide and seal except scope-level capability denial</a>
+<a href="/Docs/config-is-code.html">Config IS Code</a>
+<div class="grp">Build & tooling</div>
+<a href="/Docs/build-system.html">Build System</a>
+<a href="/Docs/formatter.html">ae fmt, the source formatter</a>
+<a href="/Docs/bindgen-consts.html">ae bindgen consts, importing C macro constants</a>
+<a href="/Docs/install-layout.html">Aether install layout</a>
+<a href="/Docs/runtime-config.html">Runtime Configuration - Quick Reference</a>
+<a href="/Docs/per-process-config.html">Per-process configuration in Aether</a>
+<a href="/Docs/cic-help.html">ae help &lt;script&gt; Offline diagnostics for config-IS-code</a>
+<a href="/Docs/cross-ios.html">Cross-compiling for iOS (arm64)</a>
+<div class="grp">Testing</div>
+<a href="/Docs/testing.html">Testing with std.spec and ae test</a>
+<a href="/Docs/mutation-testing.html">Mutation testing, std.mutation</a>
+<a href="/Docs/differential-testing.html">Differential testing across lowering paths</a>
+<div class="grp">Performance</div>
+<a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
+<a href="/Docs/profiling-guide.html">Aether Runtime Profiling Guide</a>
+<a href="/Docs/allocators.html">Allocators</a>
+<div class="grp">Design & RFCs</div>
+<a href="/Docs/structured-concurrency.html">Structured Concurrency for Aether, Design Direction</a>
+<a href="/Docs/contract-folding.html">Compile-time contract folding, costed design</a>
+<a href="/Docs/error-unification.html">Unifying T? and (value, err), costed design</a>
+<a href="/Docs/compiler-trust-boundary.html">The Compiler Trust Boundary</a>
+<a href="/Docs/json-parser-design.html">std.json Design Notes</a>
+<a href="/Docs/aether_compared_to_capsicum.html">Aether Sandbox Model vs. BSD Capsicum: Architecture, Parallels, and FreeBSD Integration</a>
+<a href="/Docs/isolated.html">Isolated[T]: move-only actor message payloads</a>
+<a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
+<a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn't need macro_rules!</a>
+<a href="/Docs/lib-caller-info.html">--emit=lib caller-info channel</a>
+<a href="/Docs/liveview-lite-roadmap.html" class="on">LiveView-lite, a roadmap (Phoenix LiveView, on actors, without the framework)</a>
+<a href="/Docs/schema-projection-roadmap.html">std.schema, a projection-first roadmap (Ash, without the framework)</a>
+<a href="/Docs/locale-independent-float-text.html">Plan: locale-independent float text conversion (LC_NUMERIC correctness)</a>
+<div class="grp">Contributing</div>
+<a href="/Docs/stdlib-module-pattern.html">Aether Stdlib Module Pattern</a>
+<a href="/Docs/stdlib-vs-contrib.html">std/ vs contrib/ placement decisions</a>
+<a href="/Docs/bootstrap-from-source.html">Bootstrapping Aether from source (HEAD)</a>
+<a href="/Docs/release-glibc-portability.html">Release binary portability across glibc versions</a></nav>
+    <main class="doc-main">
+      <article class="doc-body" id="doc">
+        <div class="bc"><span class="prompt">$</span>docs / design &amp; rfcs</div>
+<h1 id="liveview-lite--a-roadmap-phoenix-liveview-on-actors-without-the-framework">LiveView-lite, a roadmap (Phoenix LiveView, on actors, without the framework)</h1>
+<h2 id="where-this-comes-from">Where this comes from</h2>
+<p>Phoenix <strong>LiveView</strong> keeps a stateful, server-rendered view alive over a WebSocket: the server holds per-connection state (<code>assigns</code>), a <code>~H</code> template compiler splits markup into static and dynamic parts, and every event pushes only the <em>diff</em> down to a tiny JS client that patches the DOM (morphdom). No client-side framework, no hand-written API, no client state to keep in sync, the server is the source of truth and the wire carries minimal patches.</p>
+<p>The idea maps cleanly onto things Aether already has:</p>
+<div class="tw"><table><thead><tr><th>LiveView concept</th><th>Aether primitive</th></tr></thead><tbody><tr><td>per-connection process holding <code>assigns</code></td><td>an actor / per-connection state keyed by the socket</td></tr><tr><td>the transport</td><td><code>contrib/tinyweb</code> WebSocket (<code>web_socket(path) \|msg, sender, ctx\|</code>)</td></tr><tr><td><code>handle_event</code></td><td>the WS message handler</td></tr><tr><td><code>render</code> → push</td><td><code>ws_send_frame(sender, html)</code></td></tr><tr><td>the JS client</td><td>~15 lines: on message swap innerHTML, on click <code>ws.send(...)</code></td></tr></tbody></table></div>
+<p>The question this doc answers: <em>how much of LiveView is worth building on Aether, and where is the line?</em></p>
+<h2 id="the-thesis-worth-stealing">The thesis worth stealing</h2>
+<p>LiveView's superpower is: <strong>one stateful server-side view, rendered from state, pushing minimal updates over a persistent connection, the client is a thin renderer, not an application.</strong> You write server code; interactivity falls out.</p>
+<p>That is a genuinely good fit for Aether: the state lives in an actor (Aether's native concurrency unit), the render is a pure <code>state -&gt; html</code> function, and the transport already exists in <code>contrib/tinyweb</code>. What LiveView layers on top, the <code>~H</code> diffing compiler, the <code>phx-*</code> binding vocabulary, presence/PubSub, is where the weight is, and where we choose carefully.</p>
+<h2 id="what-the-spike-already-proved">What the spike already proved</h2>
+<p>A working prototype (scratchpad <code>counter_live2.ae</code> + a Python <code>websocket-client</code> driver) drives the <strong>full loop</strong> on Aether's own primitives, with no <code>~H</code> compiler and no JS framework:</p>
+<pre><code>mount        -&gt; 0
+{"event":"inc"} -&gt; 1
+{"event":"inc"} -&gt; 2
+{"event":"dec"} -&gt; 1
+{"event":"reset"} -&gt; 0
+ALL PASS: the LiveView loop (mount/handle_event/render/push) works</code></pre>
+<ul><li>Per-connection state kept server-side, keyed by the connection's socket ptr (<code>mem.ptr_to_long(sender)</code>), tinyweb's <code>web_socket</code> handler is shared, but the <code>sender</code> socket is stable for a connection's lifetime.</li><li><code>render(state) -&gt; html</code> is a pure function; the whole <code>#live</code> region is pushed as one frame (full-HTML replace, no diffing yet; the point was the <em>loop</em>).</li><li>Client events (<code>{"event":"inc"}</code>) arrive, mutate state, re-render, push back.</li></ul>
+<p>The spike's real yield was flushing out that tinyweb's WebSocket/SSE <strong>server</strong> path had never run a live connection and had rotted. The six defects found there (frame unmasking, header-byte encoding, extended-length NUL truncation, tuple drift, boxed-closure dispatch, a request-path use-after-free) shipped in <strong>PR #1449 (merged)</strong>, that is the durable output so far, independent of whether LiveView-lite proceeds.</p>
+<h3 id="spike-artifacts-start-here">Spike artifacts (start here)</h3>
+<p>The prototype is the single most useful thing to read before building, and it is <strong>committed</strong> under <code>contrib/tinyweb/examples/liveview/</code>:</p>
+<ul><li><strong><code>contrib/tinyweb/examples/liveview/example_counter_live.ae</code></strong>, the working WS-only spike. Drives <code>tinyweb.ws_accept_loop</code> directly (see the "structural blocker" section for why it bypasses <code>tw_start</code>). Also reproduced in <a href="#appendix-a-the-working-spike-source">Appendix A</a> for at-a-glance reading.</li><li><strong><code>contrib/tinyweb/examples/liveview/drive_live.py</code></strong>, a Python <code>websocket-client</code> driver asserting <code>mount→0, inc→1, inc→2, dec→1, reset→0</code>. Reproduced in <a href="#appendix-b-the-python-driver">Appendix B</a>.</li><li><strong><code>contrib/tinyweb/examples/liveview/README.md</code></strong>, build/run instructions.</li><li><strong><code>contrib/tinyweb/test_websocket.ae</code></strong> (committed, on <code>main</code>), the WS codec round-trip test written for PR #1449. The <code>live_view</code> round-trip test (A.5) should mirror its structure exactly (server accept loop in an actor, hand-rolled client in <code>main</code>, <code>exit(0)</code>/<code>exit(1)</code>).</li></ul>
+<p>Build the spike with the WS handshake C extern: <code>ae build contrib/tinyweb/examples/liveview/example_counter_live.ae --extra contrib/tinyweb/ws_handshake.c -o /tmp/counter_live</code></p>
+<h2 id="the-honest-strategic-read--how-big-a-bet-is-this">The honest strategic read, how big a bet is this?</h2>
+<p>Be candid, not cheerleading: <strong>full LiveView is a qualitatively bigger and riskier ambition than the Ash/schema projection work.</strong> It is a multi-month flagship project, Aether's most ambitious "we can do full-stack" statement, not a natural next increment. It lands squarely in the runtime/framework tier the schema roadmap flagged as "not yet." Three cost drivers make it a different <em>order</em> of commitment:</p>
+<ol><li><strong>It's inherently stateful and runtime-heavy.</strong> The whole model rests on a persistent per-connection process holding UI state. In Elixir that's a lightweight, supervised, fault-tolerant BEAM process, millions of them, cheap. Aether has actors (<code>spawn</code>/<code>receive</code>), which is the <em>right</em> primitive, but "a supervised stateful process per browser tab, for thousands of tabs" is a serious scheduler/runtime load story on a manual-memory, compiles-to-C model. This is Tier-C framework/runtime weight, not pure projection.</li><li><strong>The magic is a compiler feature, not a library.</strong> LiveView's efficiency comes from its template compiler splitting static vs dynamic and computing minimal diffs. A <code>~H</code>-equivalent template DSL + change-tracking is a real chunk of the Aether compiler, not a <code>contrib</code> module.</li><li><strong>It needs the JS client half.</strong> morphdom-style DOM patching, the WebSocket protocol, event wiring, a client-side runtime (tens of KB of JS) that has to ship and stay in protocol-sync with the server. Owning both sides of a wire protocol is an ongoing maintenance surface.</li></ol>
+<p>But the pieces exist in embryo: tinyweb already does WebSocket (<code>ws_handshake.c</code>, <code>ws_client.ae</code>) and SSE; Aether has actors for per-connection state; <code>std.schema</code> / templating exist. So it's conceivable, not fantasy.</p>
+<p><strong>The on-ramp (why this is not either/or with the schema roadmap):</strong> an Ash-style schema resource is <em>exactly what a LiveView renders and edits</em>, live-beats is Ecto/Ash resources projected into a real-time UI. So projection-first is the on-ramp: once <code>std.schema</code> can <code>to_form_html()</code> (schema roadmap Tier A.5), a "live" version just adds the WebSocket-diff loop on top. The static form is the cheap, safe first surface; the live form is the same declaration with the loop bolted on.</p>
+<p><strong>Decision taken (2026-08-08):</strong> rather than spec the whole flagship unprompted, the chosen first move was a <strong>LiveView-lite spike</strong>, prove the loop end-to-end on the existing primitives, learn what breaks, and defer the compiler/JS/runtime investment until the loop itself is proven and wanted. The spike (above) did exactly that. This roadmap is the "if we swing bigger, here's the staged path" that the spike earned, deliberately incremental, with the flagship-scale pieces (diff compiler, full JS client) explicitly gated behind demonstrated demand.</p>
+<h2 id="the-strategic-line">The strategic line</h2>
+<p>Aether is a systems language that compiles to readable C with <strong>no GC and a manual-memory model</strong>, not an Elixir/OTP application framework. So:</p>
+<ul><li><strong>Lean into the stateful-view loop</strong> (actor holds state, pure render, push over WS). This is LiveView's most distinctive idea and the part that fits Aether best, it is just actors + a pure function + an existing transport.</li><li><strong>Add client-facing machinery only where it removes real boilerplate</strong>, a static/dynamic diff (so pushes are small), and a small <code>phx-*</code> binding vocabulary (so handlers get named events, not raw strings).</li><li><strong>Stay out of the OTP-ecosystem tiers.</strong> Cluster-wide Presence, distributed PubSub, LiveComponents-as-a-framework, live navigation/routing as a subsystem, that's Elixir/BEAM weight (process distribution, a supervision-tree culture) that a single-node systems runtime shouldn't grow into <code>std</code>. If any of it is wanted, it belongs in <code>contrib/*</code>, consumed explicitly.</li></ul>
+<h2 id="the-one-structural-blocker-must-clear-before-tier-a">The one structural blocker (must clear before Tier A)</h2>
+<p>tinyweb has <strong>no working way to run the HTTP loop and the WS/SSE loop concurrently.</strong> <code>tw_start</code> binds the WS listener but then blocks in the HTTP accept loop (<code>http.server_start</code>), so <code>ws_accept_loop</code> never runs. The intended "run <code>server_start_ws</code> from a second actor" path segfaults: <strong>passing the DSL-built server map across an actor message boundary corrupts its nested closure entries</strong> (crash in <code>tw_start.isra -&gt; aether_string_data</code> on the scheduler thread). The existing <code>example_websocket.ae</code> / <code>example_sse.ae</code> call only <code>tw_start</code>, so their WS/SSE handlers have never actually served.</p>
+<p>The spike sidesteps this by driving <code>ws_accept_loop</code> directly, WS-only. A real LiveView page needs to serve the initial HTML <em>and</em> the WebSocket at once, so this is the first thing to fix.</p>
+<p>The corruption is specific to the trailing-block DSL map (nested boxed closures) crossing the actor copy boundary, a <strong>plain</strong> map crosses fine (verified: a <code>map.put(m,"k","v")</code> map round-trips through an actor message intact; the DSL-built server map with its nested <code>ws_handlers</code> list of boxed closures does not).</p>
+<p><strong>Decision: do Option 1.</strong> It is already proven in the spike and needs no compiler/runtime change:</p>
+<blockquote><strong>Option 1 (chosen), never send the DSL map across an actor boundary.</strong> Do not pass the <code>web_server_with_ws</code> map to an actor. Instead give each loop only the two plain values it needs, the bound TCP listener (<code>ptr</code>) and the handler list (<code>ptr</code>, a <code>list</code> of <code>ws_entry</code> maps), either by building them inside the actor that runs the loop, or by extracting them from the server map on the <em>main</em> thread and sending those two ptrs. A <code>list</code> of maps-of-boxed- closures is fine to reference across threads as long as it is not <em>copied</em> by an actor message; send the pointers, not the structure.</blockquote>
+<p>Fallbacks, only if Option 1 proves insufficient (e.g. we later want a single <code>serve()</code> entry point that owns both loops):</p>
+<ol><li>Make the server handle its own fan-out, one entry point that spawns the WS/SSE accept loops on off-scheduler pthreads (blocking IO already must run off the scheduler; see the h2 precedent) rather than via actor messages.</li><li>Root-cause and fix the actor message-copy of nested boxed closures in the compiler/runtime (largest blast radius; only pursue if the corruption bites outside tinyweb). <strong>File this as an issue regardless</strong>, it is a latent footgun for anyone passing DSL-built structures through messages.</li></ol>
+<h2 id="wire-protocol">Wire protocol</h2>
+<p>The protocol is deliberately tiny and versioned so the server and the (browser) JS client can evolve together. All frames are WebSocket <strong>text</strong> frames carrying UTF-8 JSON. <code>tinyweb.ws_send_frame</code> (server→client) and the browser's <code>ws.send</code> (client→server) are the transports; <code>tinyweb.ws_read_frame</code> already unmasks inbound frames (PR #1449).</p>
+<p><strong>Client → server</strong> (one JSON object per frame):</p>
+<pre><code>// A1/A2: the spike accepts a bare string ("mount", "inc"); DO NOT keep that.
+// From A3 on, the client always sends this envelope:
+{ "t": "event",  "event": "inc",   "value": { "amount": 1 } }   // phx-click / phx-value-*
+{ "t": "event",  "event": "save",  "value": { "name": "ada", "email": "a@b.c" } } // phx-submit (form fields)
+{ "t": "mount" }                                                 // first frame after connect
+{ "t": "ping" }                                                  // optional keepalive</code></pre>
+<ul><li><code>t</code> is the frame type; <code>event</code> is the app-defined event name from the <code>phx-*</code> attribute; <code>value</code> is a JSON object (never a bare scalar, always an object so the shape is stable). Forms send their fields as <code>value</code>.</li></ul>
+<p><strong>Server → client</strong> (one JSON object per frame):</p>
+<pre><code>// A1/A2: the spike sends raw HTML with no envelope. From A3 on:
+{ "t": "render", "html": "&lt;div id=\"live\"&gt;…&lt;/div&gt;" }            // full-HTML replace (A2/A3)
+{ "t": "diff",   "slots": { "0": "1", "2": "user" } }           // A4: only changed dynamic slots
+{ "t": "error",  "code": 404, "message": "no live view at /x" }</code></pre>
+<ul><li><strong>A2/A3</strong> use <code>{"t":"render","html":…}</code>, client does <code>document.getElementById("live").outerHTML = msg.html</code>.</li><li><strong>A4</strong> switches to <code>{"t":"diff","slots":…}</code> where each key is a dynamic-slot index (see the diffing sketch under A4) and the value is that slot's new rendered string. The client keeps the static skeleton from the initial render and substitutes changed slots. The <strong>first</strong> post-mount frame is always a full <code>render</code> (client needs the skeleton); subsequent frames are <code>diff</code>.</li></ul>
+<p><strong>Framing invariant:</strong> each protocol message is exactly one WebSocket frame. <code>ws_send_frame</code> handles both the 2-byte and extended-length headers; payloads may exceed 126 bytes (they will), so this path must stay on the bytes-buffer implementation from PR #1449 (see Landmines).</p>
+<h2 id="module--api-surface">Module &amp; API surface</h2>
+<p>Everything lives in <strong><code>contrib/tinyweb/live_view/</code></strong> (a new sibling of <code>schema_api/</code>), consumed as <code>import contrib.tinyweb.live_view</code>. It builds on the existing tinyweb WS API, no core/<code>std</code> changes. Reference signatures the implementer should target (names may be refined, shapes should not):</p>
+<pre><code>// contrib/tinyweb/live_view/module.ae
+
+// A per-connection live view is three caller-supplied closures. `assigns` is an
+// opaque ptr (a std.map) the framework stores per connection and hands back.
+//
+//   mount(sender, assigns)              -&gt; assigns   // seed initial state
+//   handle_event(sender, ev, assigns)   -&gt; assigns   // ev = parsed {event,value}
+//   render(assigns)                     -&gt; string    // HTML for the live region
+//
+// Register one live view at a WS path. Returns a ws_entry-shaped map to add to
+// the ws_handlers list (or the DSL registers it for you, see live_view_route).
+live_view(path: string, mount: fn, handle_event: fn, render: fn) -&gt; ptr
+
+// DSL sugar for use inside a web_server_with_ws { ... } block, mirroring
+// web_socket(...). Registers the live view on the server's ws_handlers.
+live_view_route(_ctx: ptr, path: string, mount: fn, handle_event: fn, render: fn)
+
+// --- per-connection state store (generalizes the spike's g_state) ---
+// Keyed by conn_key(sender) = "${mem.ptr_to_long(sender)}". A module-level
+// var holds a map&lt;conn_key, assigns-map&gt;. assigns_get lazily mounts.
+assigns_new()                              -&gt; ptr           // fresh empty assigns map
+assign(assigns: ptr, key: string, val: string)             // set one field
+assign_get(assigns: ptr, key: string)      -&gt; string       // read one field (\"\" if absent)
+
+// --- event parsing (A3) ---
+// Parse an inbound client frame into a typed event. Returns (type, event, value_json).
+parse_frame(msg: string)                    -&gt; (string, string, ptr)   // (t, event, value-map)
+
+// --- the client runtime (A3+) ---
+// Returns the inline &lt;script&gt; the page must include: opens the WS to the live
+// path, sends {t:"mount"}, wires phx-click/phx-submit/phx-value-*, and applies
+// {t:"render"} / {t:"diff"} frames. Kept small and dependency-free.
+client_js(ws_path: string)                  -&gt; string</code></pre>
+<p><strong>Per-connection lifecycle &amp; cleanup:</strong> <code>assigns</code> for a connection is created on <code>mount</code> and must be <strong>freed when the connection closes</strong>. The WS message loop in <code>ws_handle_client</code> exits (returns <code>""</code> from <code>ws_read_frame</code>) on close, the <code>live_view</code> handler must hook that exit to <code>assigns_free(conn_key(sender))</code>, or the per-connection map leaks for every disconnect. This is the one lifecycle concern the spike ignores (it never disconnects mid-test) and a real server must not.</p>
+<h2 id="tiers">Tiers</h2>
+<p>Each tier below carries <strong>explicit acceptance criteria</strong>, the definition of "done" a reviewer checks, not just a description.</p>
+<h3 id="tier-a--the-loop-as-a-reusable-shape-the-plan">Tier A, the loop as a reusable shape (the plan)</h3>
+<p><strong>A1. Concurrent serve</strong>, clear the structural blocker (Option 1 above) so a single program serves the initial HTML over HTTP <em>and</em> the live channel over WS at the same time. This is the gate for everything else.</p>
+<ul><li><em>Approach:</em> extract <code>(ws_listener, ws_handlers)</code> from the server on the main thread; run <code>ws_accept_loop(ws_listener, ws_handlers)</code> in one actor and <code>http.server_start(raw)</code> in another (or on an off-scheduler thread). Never send the server map itself.</li><li><strong>Acceptance:</strong> one program binds an HTTP port and a WS port; <code>curl</code>ing the HTTP port returns the page HTML <em>and</em>, concurrently, a WS client connects to the live path and completes a handshake, both in the same process, no crash, run under valgrind with no new definite leaks across connect/serve/disconnect.</li></ul>
+<p><strong>A2. A <code>live_view</code> handler shape in <code>contrib/tinyweb/live_view</code></strong>, wrap the raw <code>web_socket</code> handler into the <code>mount</code> / <code>handle_event(sender, ev, assigns) -&gt; assigns</code> / <code>render(assigns) -&gt; html</code> triple (signatures above), with per-connection <code>assigns</code> stored and keyed by socket ptr (generalizing the spike's <code>g_state</code>/<code>conn_key</code>). Full-HTML push via <code>{"t":"render","html":…}</code>, correct, not yet minimal. Wire the connection-close path to <code>assigns_free</code>.</p>
+<ul><li><strong>Acceptance:</strong> the counter is re-expressible as three closures passed to <code>live_view(...)</code> with <strong>zero</strong> hand-written WS/frame code in the app; two concurrent connections keep independent counts (state is per-connection, not global); disconnecting one frees its <code>assigns</code> (valgrind: no per-connection leak across N connect/disconnect cycles).</li></ul>
+<p><strong>A3. <code>phx-*</code> binding vocabulary (thin)</strong>, adopt the wire envelope above. The client runtime (<code>client_js</code>) parses <code>phx-click="inc"</code>, <code>phx-submit="save"</code>, and <code>phx-value-*="…"</code> from the DOM and sends <code>{"t":"event","event":…,"value":{…}}</code>; the server's <code>parse_frame</code> turns that back into <code>(t, event, value-map)</code> delivered to <code>handle_event</code>. No app hand-rolls <code>ws.send(JSON.stringify(...))</code>.</p>
+<ul><li><strong>Acceptance:</strong> an app declares <code>phx-click="inc"</code> with no JS of its own and the server receives <code>event="inc"</code>; a <code>phx-submit</code> form delivers its fields as a <code>value</code> map; malformed inbound frames are rejected with <code>{"t":"error",…}</code> and do not crash the loop. <code>client_js</code> output is &lt; a few KB and has no external deps (CSP-clean, inlineable).</li></ul>
+<p><strong>A4. Static/dynamic diffing</strong>, the LiveView payoff and the highest-risk step. A template is <em>projected</em> into a static skeleton + indexed dynamic slots; a re-render pushes only the changed slots (<code>{"t":"diff","slots":{…}}</code>) and the client substitutes them in place. This is the same "one declaration → minimal artifact" muscle as the schema projections. Build all string work over <code>strbuilder</code> (leak-clean), never a server-side DOM.</p>
+<p><em>Algorithm sketch (first-render split, no new compiler syntax required):</em></p>
+<ol><li>Model a template as an <strong>alternating list</strong>: <code>[static, {slot 0}, static, {slot 1}, static, …]</code>. In the simplest form a "template" is a function <code>render_parts(assigns) -&gt; (statics: list&lt;string&gt;, dynamics: list&lt;string&gt;)</code> where <code>statics</code> is fixed for the template and <code>dynamics[i]</code> is the rendered value of slot <code>i</code> for the current <code>assigns</code>. (An app writes this by hand at first; a <code>~H</code>-like macro that generates it is a <em>later</em> nicety, explicitly not required for A4.)</li><li><strong>First render</strong> (post-mount): send <code>{"t":"render","html":…}</code> built by interleaving <code>statics</code> and <code>dynamics</code>, AND cache <code>dynamics</code> server-side per connection as <code>prev_dynamics</code>.</li><li><strong>Subsequent renders:</strong> compute <code>dynamics'</code> from the new <code>assigns</code>, diff element-wise against <code>prev_dynamics</code>, and send <code>{"t":"diff","slots":{ i: dynamics'[i] for i where dynamics'[i] != prev }}</code>. Update <code>prev_dynamics</code>.</li><li><strong>Client:</strong> on the first <code>render</code>, store the static skeleton (it can rebuild the alternating structure because the server also sends the slot count, or the client re-requests a full render on desync). On each <code>diff</code>, replace the text of slot <code>i</code>. Keep this to innerText/attribute substitution, no morphdom needed for the leaf case; a nested/structural diff is a later extension, out of scope for A4.</li><li><em>Risk note:</em> the hard part is defining what a "slot" is when dynamics contain nested markup or lists. A4's scope is <strong>flat, text/attribute slots</strong> (the counter, a form's field values/errors). Structural/list diffing (LiveView's comprehensions) is deferred and should be called out as such when A4 lands, do not silently ship a half-diff.</li><li><strong>Acceptance:</strong> for the counter, incrementing sends a <code>diff</code> whose <code>slots</code> contains only the changed count, not the whole HTML (assert the frame is smaller than the full render and contains the new value); the client shows the updated count; a from-scratch client (fresh connect) still gets a correct full first render. Round-trip test proves both the full-render and diff frames.</li></ol>
+<p><strong>A5. A runnable showcase + test</strong>, promote the counter spike into <code>contrib/tinyweb/example_live_view.ae</code> (a real page: served HTML + live region + inlined <code>client_js</code>), plus <code>contrib/tinyweb/test_live_view.ae</code>, a WS round-trip test <strong>mirroring <code>test_websocket.ae</code></strong> (server accept loop in an actor, hand-rolled client in <code>main</code>, <code>exit(0)</code>/<code>exit(1)</code>).</p>
+<ul><li><strong>Acceptance:</strong> <code>test_live_view.ae</code> drives <code>mount→0, inc→1, inc→2, dec→1, reset→0</code> over a real WS connection and passes; reverting A4's diff logic makes the diff-frame assertion fail (the test guards the feature, like <code>test_websocket.ae</code> guards the codec). Test lives in <code>contrib/</code> (not in the <code>test-ae</code> CI glob) and documents its <code>--extra ws_handshake.c</code> build line.</li></ul>
+<p>A shared spine: the <code>live_view</code> module every example uses, so a new live page is a <code>mount</code>/<code>render</code>/<code>handle_event</code> triple, not re-plumbing the WS accept loop.</p>
+<h3 id="tier-b--modeling-depth-only-with-a-concrete-consumer">Tier B, modeling depth (only with a concrete consumer)</h3>
+<ul><li><strong>Server-pushed updates</strong> (<code>send_update</code> / a timer or actor message re-rendering a live view without a client event), the "live dashboard" case. Maps onto an actor message into the connection's state. Useful; modest.</li><li><strong>Forms + <code>std.schema</code></strong>, bind a live form to a <code>std.schema</code> <code>record</code>: validate on <code>phx-change</code>, push per-field errors back, submit on valid. This is where the two roadmaps meet, the schema resource is the contract, LiveView is one more surface it projects into (a live, validating form). High value, and it reuses work already planned in <code>docs/schema-projection-roadmap.md</code>.</li><li><strong><code>phx-hook</code> escape hatch</strong>, a named JS hook for the cases a diff can't express (a chart, a map). Small, opt-in.</li></ul>
+<h3 id="tier-c--explicitly-out-of-scope">Tier C, explicitly out of scope</h3>
+<p>Cluster-wide Presence, distributed PubSub, a LiveComponent framework, live navigation/routing as a subsystem, and anything assuming BEAM process distribution or a supervision-tree culture. That is Elixir/OTP-ecosystem weight that does not map to a single-node systems runtime. If wanted, it lives in <code>contrib/*</code> and is consumed explicitly, never welded into <code>std</code> or the core tinyweb library.</p>
+<h2 id="known-landmines-read-before-writing-code">Known landmines (read before writing code)</h2>
+<p>These bit us building the spike and PR #1449. Each one costs an afternoon if rediscovered.</p>
+<ul><li><strong><code>ws_send_frame</code> payloads exceed 126 bytes, the framing must stay byte-exact.</strong> The header length bytes can be <code>0x00</code> (a NUL); the pre-#1449 code built the header with <code>string.concat</code>/<code>from_int</code> and truncated at the NUL, corrupting every frame ≥126 bytes. The fixed code assembles the whole frame in a <code>std.bytes</code> buffer and sends it with <code>tcp.write_n</code> (length-aware). Do not "simplify" it back to <code>string.concat</code> + <code>tcp.write</code>. <code>render</code> output is routinely &gt;126 bytes, so this path is always exercised.</li><li><strong><code>string.array_get</code> returns a BORROWED pointer.</strong> After <code>string.array_free</code>, anything from <code>array_get</code> dangles. When parsing the request/path or form fields, mint an owned copy first: <code>x = string.concat(string.array_get(a,i),"")</code> before freeing the array. This was the <code>?/�3V</code>-garbage-path 404 bug.</li><li><strong>The actor-map corruption (the whole reason for Option 1).</strong> Never pass a tinyweb DSL-built server map (nested boxed closures) across an actor message boundary, it corrupts. Send plain ptrs (listener, handler list) instead. See the structural-blocker section.</li><li><strong>Boxed closures: keep them boxed until call time.</strong> In the WS dispatch loop, store the handler as <code>hboxed</code> (a <code>ptr</code>, <code>null</code> when absent) and only <code>unbox_closure(hboxed)</code> immediately before <code>call(...)</code>. Unboxing into a slot at lookup and invoking later leaks/segfaults (fixed in #1449; the <code>live_view</code> dispatch follows the same shape).</li><li><strong>Inbound client frames are masked; server frames are not.</strong> <code>ws_read_frame</code> already unmasks (RFC 6455 §5.3, via the <code>ws_unmask</code> C extern). If you write a raw test client, YOU must mask client→server frames, and build the frame in a <code>std.bytes</code> buffer sent in one <code>write_n</code> (a per-byte send fragments across the server's fixed 2-byte header read). See <code>test_websocket.ae</code> / <a href="#appendix-b-the-python-driver">Appendix B</a>.</li><li><strong>TCP reads are short reads.</strong> <code>tcp.read(n)</code> / <code>read_n(n)</code> may return fewer than <code>n</code> bytes. A client reading a server frame must loop until it has the declared length (see <code>read_exact</code> in <code>test_websocket.ae</code>). The server's <code>ws_read_frame</code> already handles this for the header/mask/payload.</li><li><strong>Test-server hygiene under the Bash tool.</strong> Aborted <code>.ae</code> server tests orphan <code>~/.aether/cache/&lt;hex&gt;</code> binaries that busy-loop and <strong>squat the port</strong>, the hidden cause of "flaky" bind failures. Launch detached (<code>setsid … &lt; /dev/null &amp;</code> + a PID file), tear down by PID, and pick a fresh port per run. A leading <code>pkill</code> that matches nothing returns non-zero and poisons a compound Bash command (<code>exit 144</code>); run cleanup as its own step.</li><li><strong><code>println</code> buffering.</strong> A blocking server killed mid-run loses buffered stdout; use <code>stdbuf -oL</code> (or <code>exit(0)</code> to flush) when capturing server logs.</li><li><strong><code>bytes.new(n)</code> is not zeroed.</strong> If you don't write every byte, set the top index first to force zero-fill. The frame builders write every byte, so this is only a concern for partial buffers.</li></ul>
+<h2 id="why-this-is-a-reasonable-bet-for-aether">Why this is a reasonable bet for Aether</h2>
+<ul><li><strong>It's actors + a pure function + an existing transport.</strong> No new runtime, the state lives in an actor, <code>render</code> is pure, the WebSocket is already there (and, after PR #1449, actually works).</li><li><strong>The diff is a projection.</strong> Splitting a template into static skeleton + dynamic slots and shipping only slots is the same "one declaration → minimal artifact" muscle as the schema projections, pure, leak-free over <code>strbuilder</code>, no DOM on the server.</li><li><strong>It compounds with <code>std.schema</code>.</strong> A live, validating form is just the schema resource projected onto the LiveView surface; each roadmap makes the other more valuable.</li></ul>
+<h2 id="concrete-next-steps-if-pursued">Concrete next steps (if pursued)</h2>
+<ol><li>Clear the concurrent-serve blocker (Tier A.1), the prerequisite for a real page; pick option 1 (build-in-actor) first as it's already proven.</li><li>Extract a <code>contrib/tinyweb/live_view</code> handler shape (A.2) and promote the counter spike into <code>example_live_view.ae</code> + a round-trip test (A.5).</li><li>Add the <code>phx-*</code> vocabulary (A.3), then the static/dynamic diff (A.4).</li><li>Revisit Tier B (server push, schema-bound forms) only when a real page asks for it.</li></ol>
+<h2 id="relationship-to-the-other-roadmap">Relationship to the other roadmap</h2>
+<p>This doc is the <strong>transport/interaction</strong> half; <code>docs/schema-projection-roadmap.md</code> is the <strong>data/contract</strong> half. They intersect at Tier B's schema-bound live forms: one <code>std.schema</code> <code>record</code>, projected simultaneously into its JSON Schema / OpenAPI (schema roadmap) <em>and</em> into a live, validating form (this roadmap).</p>
+<p>Credits: the stateful-view-over-WebSocket-with-minimal-diffs framing is Phoenix LiveView's (Chris McCord / the Phoenix team; MIT). Aether takes the <em>idea</em>, the loop and the diff-as-projection, and deliberately not the OTP/BEAM framework.</p>
+<hr>
+<h2 id="appendix-a--the-working-spike-source">Appendix A, the working spike source</h2>
+<p>Committed at <code>contrib/tinyweb/examples/liveview/example_counter_live.ae</code> (reproduced here for at-a-glance reading; the committed file is the source of truth). Drives <code>tinyweb.ws_accept_loop</code> directly (bypassing <code>tw_start</code>; see the structural blocker). This is the A0 baseline the tiers build on. Build: <code>ae build contrib/tinyweb/examples/liveview/example_counter_live.ae --extra contrib/tinyweb/ws_handshake.c -o /tmp/counter_live</code>. Note it uses the <em>pre-A3</em> bare-string protocol (<code>"mount"</code>, and JSON that <code>string_contains</code> sniffs), A3 replaces that with the wire envelope above.</p>
+<pre><code><span class="kw">import</span> contrib.tinyweb
+<span class="kw">import</span> std.tcp
+<span class="kw">import</span> std.list
+<span class="kw">import</span> std.list(list_new)
+<span class="kw">import</span> std.map
+<span class="kw">import</span> std.map(map_new, map_has)
+<span class="kw">import</span> std.mem
+<span class="kw">import</span> std.<span class="fn">string</span>(string_contains, to_int, string_concat)
+
+<span class="com">// ---- per-connection state (assigns), keyed by socket ptr ----</span>
+<span class="kw">var</span> g_state: <span class="fn">ptr</span> = <span class="kw">null</span>
+
+fn conn_key(sender: <span class="fn">ptr</span>) -&gt; <span class="fn">string</span> {
+    <span class="kw">return</span> <span class="str">"${mem.ptr_to_long(sender)}"</span>
+}
+
+fn get_count(sender: <span class="fn">ptr</span>) -&gt; <span class="fn">int</span> {
+    <span class="kw">if</span> g_state == <span class="kw">null</span> { g_state = map_new() }
+    k = conn_key(sender)
+    <span class="kw">if</span> map_has(g_state, k) == <span class="num">0</span> { <span class="kw">return</span> <span class="num">0</span> }
+    v, _ = map.get(g_state, k)
+    n, _ = to_int(v)
+    <span class="kw">return</span> n
+}
+
+fn set_count(sender: <span class="fn">ptr</span>, n: <span class="fn">int</span>) {
+    <span class="kw">if</span> g_state == <span class="kw">null</span> { g_state = map_new() }
+    map.put(g_state, conn_key(sender), <span class="str">"${n}"</span>)
+}
+
+<span class="com">// ---- render: assigns -&gt; the live region's HTML ----</span>
+fn render(count: <span class="fn">int</span>) -&gt; <span class="fn">string</span> {
+    h = <span class="str">"&lt;div id=\"live\"&gt;"</span>
+    h = string_concat(h, <span class="str">"&lt;h1&gt;count: ${count}&lt;/h1&gt;"</span>)
+    h = string_concat(h, <span class="str">"&lt;button onclick=\"send('dec')\"&gt;-&lt;/button&gt; "</span>)
+    h = string_concat(h, <span class="str">"&lt;button onclick=\"send('inc')\"&gt;+&lt;/button&gt; "</span>)
+    h = string_concat(h, <span class="str">"&lt;button onclick=\"send('reset')\"&gt;reset&lt;/button&gt;"</span>)
+    h = string_concat(h, <span class="str">"&lt;/div&gt;"</span>)
+    <span class="kw">return</span> h
+}
+
+<span class="com">// ---- handle_event: mutate assigns per the client event ----</span>
+fn handle_event(sender: <span class="fn">ptr</span>, event: <span class="fn">string</span>) -&gt; <span class="fn">int</span> {
+    n = get_count(sender)
+    <span class="kw">if</span> string_contains(event, <span class="str">"inc"</span>) == <span class="num">1</span> {
+        n = n + <span class="num">1</span>
+    } <span class="kw">else</span> <span class="kw">if</span> string_contains(event, <span class="str">"dec"</span>) == <span class="num">1</span> {
+        n = n - <span class="num">1</span>
+    } <span class="kw">else</span> <span class="kw">if</span> string_contains(event, <span class="str">"reset"</span>) == <span class="num">1</span> {
+        n = <span class="num">0</span>
+    }
+    set_count(sender, n)
+    <span class="kw">return</span> n
+}
+
+main() {
+    println(<span class="str">"LiveView-lite counter, ws://127.0.0.1:8126/live  (Ctrl-C to stop)"</span>)
+
+    <span class="com">// Build the ws_handlers list directly (what web_socket(...) would produce).</span>
+    handlers = list_new()
+    entry = map_new()
+    map.put(entry, <span class="str">"path"</span>, <span class="str">"/live"</span>)
+    map.put(entry, <span class="str">"handler"</span>, box_closure(|msg: <span class="fn">string</span>, sender: <span class="fn">ptr</span>, ctx: <span class="fn">ptr</span>| {
+        <span class="com">// "mount" hits no branch -&gt; returns current count (0 on first frame).</span>
+        n = handle_event(sender, msg)
+        tinyweb.ws_send_frame(sender, render(n))
+    }))
+    list.add(handlers, entry)
+
+    <span class="com">// Bind and run tinyweb's own WebSocket accept loop (blocking).</span>
+    ws_tcp, err = tcp.listen(<span class="num">8126</span>)
+    <span class="kw">if</span> err != <span class="str">""</span> {
+        println(<span class="str">"ERROR: bind 8126 failed: ${err}"</span>)
+        <span class="kw">return</span>
+    }
+    println(<span class="str">"listening"</span>)
+    tinyweb.ws_accept_loop(ws_tcp, handlers)
+}</code></pre>
+<h2 id="appendix-b--the-python-driver">Appendix B, the Python driver</h2>
+<p>Committed at <code>contrib/tinyweb/examples/liveview/drive_live.py</code>. Requires <code>websocket-client</code> (<code>pip install websocket-client</code>). Run the spike detached first, then this. It sends the pre-A3 bare-string protocol; update it to the wire envelope alongside A3.</p>
+<pre><code>#!/usr/bin/env python3
+# Asserts the loop: mount -&gt; 0, inc -&gt; 1, inc -&gt; 2, dec -&gt; 1, reset -&gt; 0
+import re
+from websocket import create_connection
+
+URL = "ws://127.0.0.1:8126/live"
+
+def count_of(html):
+    m = re.search(r"count:\s*(-?\d+)", html)
+    assert m, f"no count in frame: {html!r}"
+    return int(m.group(1))
+
+def step(ws, msg, expect):
+    ws.send(msg)
+    got = count_of(ws.recv())
+    ok = "OK" if got == expect else "FAIL"
+    print(f"  send {msg!r:24} -&gt; count {got:&lt;3} (expected {expect})  [{ok}]")
+    assert got == expect, f"expected {expect}, got {got}"
+
+ws = create_connection(URL, timeout=5)
+try:
+    step(ws, "mount", 0)
+    step(ws, '{"event":"inc"}', 1)
+    step(ws, '{"event":"inc"}', 2)
+    step(ws, '{"event":"dec"}', 1)
+    step(ws, '{"event":"reset"}', 0)
+    print("ALL PASS: the LiveView loop (mount/handle_event/render/push) works")
+finally:
+    ws.close()</code></pre>
+<nav class="doc-prevnext" aria-label="Previous and next page"><a class="pn-prev" href="/Docs/lib-caller-info.html"><span class="pn-k">Previous</span><span class="pn-t">--emit=lib caller-info channel</span></a><a class="pn-next" href="/Docs/schema-projection-roadmap.html"><span class="pn-k">Next</span><span class="pn-t">std.schema, a projection-first roadmap (Ash, without the framework)</span></a></nav>
+      </article>
+    </main>
+    <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#where-this-comes-from" class="l2" data-id="where-this-comes-from">Where this comes from</a><a href="#the-thesis-worth-stealing" class="l2" data-id="the-thesis-worth-stealing">The thesis worth stealing</a><a href="#what-the-spike-already-proved" class="l2" data-id="what-the-spike-already-proved">What the spike already proved</a><a href="#spike-artifacts-start-here" class="l3" data-id="spike-artifacts-start-here">Spike artifacts (start here)</a><a href="#the-honest-strategic-read--how-big-a-bet-is-this" class="l2" data-id="the-honest-strategic-read--how-big-a-bet-is-this">The honest strategic read, how big a bet is this?</a><a href="#the-strategic-line" class="l2" data-id="the-strategic-line">The strategic line</a><a href="#the-one-structural-blocker-must-clear-before-tier-a" class="l2" data-id="the-one-structural-blocker-must-clear-before-tier-a">The one structural blocker (must clear before Tier A)</a><a href="#wire-protocol" class="l2" data-id="wire-protocol">Wire protocol</a><a href="#module--api-surface" class="l2" data-id="module--api-surface">Module &amp; API surface</a><a href="#tiers" class="l2" data-id="tiers">Tiers</a><a href="#tier-a--the-loop-as-a-reusable-shape-the-plan" class="l3" data-id="tier-a--the-loop-as-a-reusable-shape-the-plan">Tier A, the loop as a reusable shape (the plan)</a><a href="#tier-b--modeling-depth-only-with-a-concrete-consumer" class="l3" data-id="tier-b--modeling-depth-only-with-a-concrete-consumer">Tier B, modeling depth (only with a concrete consumer)</a><a href="#tier-c--explicitly-out-of-scope" class="l3" data-id="tier-c--explicitly-out-of-scope">Tier C, explicitly out of scope</a><a href="#known-landmines-read-before-writing-code" class="l2" data-id="known-landmines-read-before-writing-code">Known landmines (read before writing code)</a><a href="#why-this-is-a-reasonable-bet-for-aether" class="l2" data-id="why-this-is-a-reasonable-bet-for-aether">Why this is a reasonable bet for Aether</a><a href="#concrete-next-steps-if-pursued" class="l2" data-id="concrete-next-steps-if-pursued">Concrete next steps (if pursued)</a><a href="#relationship-to-the-other-roadmap" class="l2" data-id="relationship-to-the-other-roadmap">Relationship to the other roadmap</a><a href="#appendix-a--the-working-spike-source" class="l2" data-id="appendix-a--the-working-spike-source">Appendix A, the working spike source</a><a href="#appendix-b--the-python-driver" class="l2" data-id="appendix-b--the-python-driver">Appendix B, the Python driver</a></nav>
+  </div>
+</div>
+<script src="/docs.js" defer></script>
+<footer class="site-foot">
+  <div class="wrap foot-grid">
+    <div class="foot-brand">
+      <span class="ae">ae</span>
+      <p class="foot-tag">Actors that compile to C.</p>
+      <p class="foot-status">v0.562 &middot; pre-1.0, actively developed</p>
+    </div>
+    <div class="foot-col">
+      <h3 class="foot-h">Docs</h3>
+      <a href="/Docs/getting-started.html">Getting Started</a>
+      <a href="/Docs/tutorial.html">Tutorial</a>
+      <a href="/Docs/language-reference.html">Language Reference</a>
+      <a href="/Docs/stdlib-reference.html">Standard Library</a>
+    </div>
+    <div class="foot-col">
+      <h3 class="foot-h">Project</h3>
+      <a href="https://github.com/aether-lang-dev/aether">GitHub</a>
+      <a href="https://github.com/aether-lang-dev/aether/issues">Issues</a>
+      <a href="https://github.com/aether-lang-dev/aether/blob/main/CHANGELOG.md">Changelog</a>
+      <a href="https://github.com/sponsors/nicolas-maman">Sponsor</a>
+    </div>
+    <div class="foot-col">
+      <h3 class="foot-h">Try</h3>
+      <a href="/repl.html">Examples</a>
+      <a href="/Docs/getting-started.html">Install</a>
+      <a href="/Docs/architecture.html">Architecture</a>
+    </div>
+  </div>
+  <div class="wrap foot-note">A lot of AI/LLM use was key in the creation of all corners of this project. Each use was explicitly directed around pattern, language, framework and library ideals, and all of it sits on tiers of automated tests. The LLMs aced the job.</div>
+  <div class="wrap foot-legal"><span>MIT licensed &middot; compiles to C</span><span>aether-lang.dev</span></div>
+</footer>
+</body>
+</html>

@@ -4,11 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>std.json Design Notes · Aether</title>
-<meta name="description" content="This document explains why aether_json.c is shaped the way it is.">
+<meta name="description" content="This document explains why aether_json.c is shaped the way it is. It&#x27;s meant to be read alongside the source, not as a standalone spec, but as a map to...">
 <link rel="canonical" href="https://aether-lang.dev/Docs/json-parser-design.html">
 <meta property="og:type" content="article">
 <meta property="og:title" content="std.json Design Notes · Aether">
-<meta property="og:description" content="This document explains why aether_json.c is shaped the way it is.">
+<meta property="og:description" content="This document explains why aether_json.c is shaped the way it is. It&#x27;s meant to be read alongside the source, not as a standalone spec, but as a map to...">
 <meta property="og:url" content="https://aether-lang.dev/Docs/json-parser-design.html">
 <meta property="og:image" content="https://aether-lang.dev/og.png">
 <meta name="twitter:card" content="summary_large_image">
@@ -171,7 +171,7 @@ a{color:inherit;text-decoration:none}
 
 /* section head */
 .sec-head{display:flex;align-items:baseline;gap:14px;margin:0 0 22px}
-.sec-head h2{font-family:var(--mono);font-size:1.15rem;font-weight:700;letter-spacing:-.01em;margin:0}
+.sec-head h1,.sec-head h2{font-family:var(--mono);font-size:1.15rem;font-weight:700;letter-spacing:-.01em;margin:0}
 .sec-head .rule{flex:1;height:1px;background:var(--line)}
 
 /* code */
@@ -358,7 +358,7 @@ body::after{content:"";position:fixed;inset:0;z-index:3;pointer-events:none;opac
 
 /* prompt accents on section headings */
 .prompt{color:var(--red);margin-right:.5ch}
-.sec-head h2 .prompt{font-weight:400}
+.sec-head h1 .prompt,.sec-head h2 .prompt{font-weight:400}
 
 /* prompt-styled ghost button */
 .btn-term{font-family:var(--mono);font-size:14px;padding:11px 18px;border-radius:6px;
@@ -570,7 +570,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.473</span>
+      <span class="vtag">v0.562</span>
     </nav>
   </div>
 </header>
@@ -600,6 +600,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/memory-management.html">Aether Memory Management</a>
 <a href="/Docs/runtime-optimizations.html">Runtime Optimizations</a>
 <a href="/Docs/numa-support.html">NUMA Support in Aether</a>
+<a href="/Docs/message-tracing.html">Message tracing</a>
 <div class="grp">Interop</div>
 <a href="/Docs/c-interop.html">C Interoperability</a>
 <a href="/Docs/c-embedding.html">Embedding Aether Actors in C Applications</a>
@@ -624,6 +625,11 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/runtime-config.html">Runtime Configuration - Quick Reference</a>
 <a href="/Docs/per-process-config.html">Per-process configuration in Aether</a>
 <a href="/Docs/cic-help.html">ae help &lt;script&gt; Offline diagnostics for config-IS-code</a>
+<a href="/Docs/cross-ios.html">Cross-compiling for iOS (arm64)</a>
+<div class="grp">Testing</div>
+<a href="/Docs/testing.html">Testing with std.spec and ae test</a>
+<a href="/Docs/mutation-testing.html">Mutation testing, std.mutation</a>
+<a href="/Docs/differential-testing.html">Differential testing across lowering paths</a>
 <div class="grp">Performance</div>
 <a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
 <a href="/Docs/profiling-guide.html">Aether Runtime Profiling Guide</a>
@@ -639,6 +645,9 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
 <a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn't need macro_rules!</a>
 <a href="/Docs/lib-caller-info.html">--emit=lib caller-info channel</a>
+<a href="/Docs/liveview-lite-roadmap.html">LiveView-lite, a roadmap (Phoenix LiveView, on actors, without the framework)</a>
+<a href="/Docs/schema-projection-roadmap.html">std.schema, a projection-first roadmap (Ash, without the framework)</a>
+<a href="/Docs/locale-independent-float-text.html">Plan: locale-independent float text conversion (LC_NUMERIC correctness)</a>
 <div class="grp">Contributing</div>
 <a href="/Docs/stdlib-module-pattern.html">Aether Stdlib Module Pattern</a>
 <a href="/Docs/stdlib-vs-contrib.html">std/ vs contrib/ placement decisions</a>
@@ -650,7 +659,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <h1 id="stdjson-design-notes"><code>std.json</code> Design Notes</h1>
 <p>This document explains <em>why</em> <code>aether_json.c</code> is shaped the way it is. It's meant to be read alongside the source, not as a standalone spec, but as a map to the design decisions so future maintainers know what can be changed freely and what's load-bearing.</p>
 <h2 id="goals">Goals</h2>
-<ol><li><strong>Correctness first.</strong> Pass RFC 8259 conformance. Never UB, never OOB, never silent data loss. JSONTestSuite (318 tests) gates CI.</li><li><strong>Portable to every CI target.</strong> Compiles clean on GCC, Clang, Apple Clang, MinGW (32+64-bit), Emscripten under <code>-Wall -Wextra -Werror -pedantic</code>. SIMD kernels gated behind compile-time feature detection (<code>__SSE2__</code>, <code>__ARM_NEON</code>) with a scalar fallback that's always compiled, no target is SIMD-only.</li><li><strong>Fast enough that JSON isn't a bottleneck.</strong> Every byte in the hot path is touched at most once. Allocations happen from a per-document arena, not per-node. Hot classification decisions are a single LUT read. Measurement harness lives in <a href="/Docs/baseline.html"><code>benchmarks/json/baseline.md</code></a>.</li><li><strong>Low maintenance.</strong> One <code>.c</code> file, one design doc, no vendored deps. Anyone who reads this file should be able to maintain the parser without additional context.</li></ol>
+<ol><li><strong>Correctness first.</strong> Pass RFC 8259 conformance. Never UB, never OOB, never silent data loss. JSONTestSuite (318 tests) gates CI.</li><li><strong>Portable to every CI target.</strong> Compiles clean on GCC, Clang, Apple Clang, MinGW (32+64-bit), Emscripten under <code>-Wall -Wextra -Werror -pedantic</code>. SIMD kernels gated behind compile-time feature detection (<code>__SSE2__</code>, <code>__ARM_NEON</code>) with a scalar fallback that's always compiled, no target is SIMD-only.</li><li><strong>Fast enough that JSON isn't a bottleneck.</strong> Every byte in the hot path is touched at most once. Allocations happen from a per-document arena, not per-node. Hot classification decisions are a single LUT read. Measurement harness lives in <a href="https://github.com/aether-lang-dev/aether/blob/main/benchmarks/json/baseline.md"><code>benchmarks/json/baseline.md</code></a>.</li><li><strong>Low maintenance.</strong> One <code>.c</code> file, one design doc, no vendored deps. Anyone who reads this file should be able to maintain the parser without additional context.</li></ol>
 <p>These are in priority order. Correctness outranks speed. Portability outranks a fast-path optimisation that only works on one arch.</p>
 <h2 id="memory-model-one-arena-per-parsed-document">Memory model: one arena per parsed document</h2>
 <p>Every parsed document lives in a bump-pointer arena allocated at <code>json_parse_raw_n</code> time. Every <code>JsonValue</code>, every string payload, every container backing array for that document comes from the same arena. <code>json_free(root)</code> calls <code>arena_destroy</code> which walks the chunk list and returns everything to <code>malloc</code>'s free list in a single pass.</p>
@@ -759,7 +768,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <h3 id="things-we-deliberately-dont-do">Things we deliberately don't do</h3>
 <ul><li><strong>Streaming / incremental parsing</strong>, everything is parsed into memory in one go. JSON payloads that don't fit in RAM are rare and streaming complicates both the arena and the error-reporting path.</li><li><strong>UTF-16 / UTF-32 input</strong>, RFC 8259 mandates UTF-8. We reject anything else at the byte layer.</li><li><strong>Canonical JSON output / pretty-printing</strong>, <code>json_stringify_raw</code> emits compact JSON. A pretty option is a trivial add if asked for.</li><li><strong>Schema validation</strong>, not a parser concern.</li><li><strong>Runtime CPU feature detection</strong>, compile-time dispatch only. If a binary is built for a target that has SSE2, it uses SSE2 everywhere that target runs. No dispatch cost on the happy path.</li></ul>
 <h2 id="testing-surface">Testing surface</h2>
-<ul><li><strong><code>tests/runtime/test_runtime_json.c</code></strong>, C-level unit tests, 8 tests covering parse/create/stringify for each type.</li><li><strong><code>tests/regression/test_json_*.ae</code></strong>, Aether-level regression tests for edge cases (escapes, Unicode, RFC rejection, position errors, error tuples, edge-case wrappers).</li><li><strong><code>tests/conformance/json/</code></strong>, 318-file JSONTestSuite corpus. <code>make test-json-conformance</code> checks every file. Gates CI on <code>y_*</code> + <code>n_*</code> (283 cases); records <code>i_*</code> (35 cases) as implementation-defined.</li><li><strong><code>make test-json-asan</code></strong>, parses the bench corpus under <code>-fsanitize=address,undefined</code>. Catches leaks, OOB, UB.</li><li><strong><code>make test-json-valgrind</code></strong>, Valgrind run where available.</li><li><strong><code>make bench-json</code> / <code>make bench-json-compare</code></strong>, reproducible benchmark harness; see <a href="/Docs/baseline.html">benchmarks/json/baseline.md</a> for the methodology. Absolute throughput numbers are not committed, run the harness on the machine you care about.</li></ul>
+<ul><li><strong><code>tests/runtime/test_runtime_json.c</code></strong>, C-level unit tests, 8 tests covering parse/create/stringify for each type.</li><li><strong><code>tests/regression/test_json_*.ae</code></strong>, Aether-level regression tests for edge cases (escapes, Unicode, RFC rejection, position errors, error tuples, edge-case wrappers).</li><li><strong><code>tests/conformance/json/</code></strong>, 318-file JSONTestSuite corpus. <code>make test-json-conformance</code> checks every file. Gates CI on <code>y_*</code> + <code>n_*</code> (283 cases); records <code>i_*</code> (35 cases) as implementation-defined.</li><li><strong><code>make test-json-asan</code></strong>, parses the bench corpus under <code>-fsanitize=address,undefined</code>. Catches leaks, OOB, UB.</li><li><strong><code>make test-json-valgrind</code></strong>, Valgrind run where available.</li><li><strong><code>make bench-json</code> / <code>make bench-json-compare</code></strong>, reproducible benchmark harness; see <a href="https://github.com/aether-lang-dev/aether/blob/main/benchmarks/json/baseline.md">benchmarks/json/baseline.md</a> for the methodology. Absolute throughput numbers are not committed, run the harness on the machine you care about.</li></ul>
 <h2 id="when-to-change-what">When to change what</h2>
 <div class="tw"><table><thead><tr><th>If you want to …</th><th>Change</th></tr></thead><tbody><tr><td>Land tape representation</td><td>New <code>TapeSlot</code> struct + <code>JV_FLAG_TAPE</code> flag on <code>JsonValue</code>; rewrite <code>parse_value_depth</code>/<code>parse_array</code>/<code>parse_object</code> to produce tape slots; add <code>tape_promote_to_tree()</code> helper called lazily from the mutators; branch in every accessor on <code>flags &amp; JV_FLAG_TAPE</code>.</td></tr><tr><td>Add SIMD for structural scan (tape-only)</td><td>New <code>scan_structurals()</code> beside <code>scan_str_safe</code>, called from the tape parser. Needs tape to land first.</td></tr><tr><td>Improve object lookup for large objects</td><td>Threshold-based switch in <code>json_object_get_raw</code>: linear scan below ~32 keys, open-addressed hash above.</td></tr><tr><td>Resize the object backing block</td><td><code>JsonObjBlock</code> lives behind <code>JsonValue::data.obj.blk</code>. Adding a fourth parallel array (e.g. cached hash) goes here.</td></tr><tr><td>Support streaming</td><td>New <code>json_parse_stream</code> API + state object. Would likely need its own arena-resetting allocator.</td></tr><tr><td>Change max depth</td><td><code>JSON_MAX_DEPTH</code> near top of file.</td></tr><tr><td>Add a pretty-print mode</td><td>New flag in a <code>json_stringify_opts</code> struct, new builder path.</td></tr><tr><td>Tune arena chunk sizes</td><td><code>ARENA_INITIAL_CHUNK</code>, <code>ARENA_MAX_AUTO_CHUNK</code>.</td></tr><tr><td>Track another error field</td><td>Extend <code>JSON_ERR_REASON_BUF</code>, update <code>err_set</code>.</td></tr><tr><td>Raise the fast-double digit cap</td><td><code>FAST_INT_SAFE_DIGITS</code>; only safe up to 15 for double-exactness. Past that, <code>strtod</code> is the only correct answer.</td></tr><tr><td>Add AVX2 string scan (32-byte block)</td><td>New <code>#if defined(__AVX2__)</code> branch in <code>scan_str_safe</code>. Same shape as SSE2, wider vectors. Keep all existing branches.</td></tr></tbody></table></div>
 <p>Each of these is a localized change. The one-file design is the whole point: a new contributor reads this doc, scans the source, and can change any single row of the table above without touching the others.</p>
@@ -775,7 +784,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.473 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.562 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

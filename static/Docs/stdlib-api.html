@@ -4,11 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Aether Standard Library Guide · Aether</title>
-<meta name="description" content="Aether provides a standard library for strings, I/O, math, file system, networking, and actor concurrency. The library is automatically linked when you ...">
+<meta name="description" content="Aether provides a standard library for strings, I/O, math, file system, networking, and actor concurrency.">
 <link rel="canonical" href="https://aether-lang.dev/Docs/stdlib-api.html">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Aether Standard Library Guide · Aether">
-<meta property="og:description" content="Aether provides a standard library for strings, I/O, math, file system, networking, and actor concurrency. The library is automatically linked when you ...">
+<meta property="og:description" content="Aether provides a standard library for strings, I/O, math, file system, networking, and actor concurrency.">
 <meta property="og:url" content="https://aether-lang.dev/Docs/stdlib-api.html">
 <meta property="og:image" content="https://aether-lang.dev/og.png">
 <meta name="twitter:card" content="summary_large_image">
@@ -171,7 +171,7 @@ a{color:inherit;text-decoration:none}
 
 /* section head */
 .sec-head{display:flex;align-items:baseline;gap:14px;margin:0 0 22px}
-.sec-head h2{font-family:var(--mono);font-size:1.15rem;font-weight:700;letter-spacing:-.01em;margin:0}
+.sec-head h1,.sec-head h2{font-family:var(--mono);font-size:1.15rem;font-weight:700;letter-spacing:-.01em;margin:0}
 .sec-head .rule{flex:1;height:1px;background:var(--line)}
 
 /* code */
@@ -358,7 +358,7 @@ body::after{content:"";position:fixed;inset:0;z-index:3;pointer-events:none;opac
 
 /* prompt accents on section headings */
 .prompt{color:var(--red);margin-right:.5ch}
-.sec-head h2 .prompt{font-weight:400}
+.sec-head h1 .prompt,.sec-head h2 .prompt{font-weight:400}
 
 /* prompt-styled ghost button */
 .btn-term{font-family:var(--mono);font-size:14px;padding:11px 18px;border-radius:6px;
@@ -570,7 +570,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.473</span>
+      <span class="vtag">v0.562</span>
     </nav>
   </div>
 </header>
@@ -600,6 +600,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/memory-management.html">Aether Memory Management</a>
 <a href="/Docs/runtime-optimizations.html">Runtime Optimizations</a>
 <a href="/Docs/numa-support.html">NUMA Support in Aether</a>
+<a href="/Docs/message-tracing.html">Message tracing</a>
 <div class="grp">Interop</div>
 <a href="/Docs/c-interop.html">C Interoperability</a>
 <a href="/Docs/c-embedding.html">Embedding Aether Actors in C Applications</a>
@@ -624,6 +625,11 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/runtime-config.html">Runtime Configuration - Quick Reference</a>
 <a href="/Docs/per-process-config.html">Per-process configuration in Aether</a>
 <a href="/Docs/cic-help.html">ae help &lt;script&gt; Offline diagnostics for config-IS-code</a>
+<a href="/Docs/cross-ios.html">Cross-compiling for iOS (arm64)</a>
+<div class="grp">Testing</div>
+<a href="/Docs/testing.html">Testing with std.spec and ae test</a>
+<a href="/Docs/mutation-testing.html">Mutation testing, std.mutation</a>
+<a href="/Docs/differential-testing.html">Differential testing across lowering paths</a>
 <div class="grp">Performance</div>
 <a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
 <a href="/Docs/profiling-guide.html">Aether Runtime Profiling Guide</a>
@@ -639,6 +645,9 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
 <a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn't need macro_rules!</a>
 <a href="/Docs/lib-caller-info.html">--emit=lib caller-info channel</a>
+<a href="/Docs/liveview-lite-roadmap.html">LiveView-lite, a roadmap (Phoenix LiveView, on actors, without the framework)</a>
+<a href="/Docs/schema-projection-roadmap.html">std.schema, a projection-first roadmap (Ash, without the framework)</a>
+<a href="/Docs/locale-independent-float-text.html">Plan: locale-independent float text conversion (LC_NUMERIC correctness)</a>
 <div class="grp">Contributing</div>
 <a href="/Docs/stdlib-module-pattern.html">Aether Stdlib Module Pattern</a>
 <a href="/Docs/stdlib-vs-contrib.html">std/ vs contrib/ placement decisions</a>
@@ -653,24 +662,24 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <blockquote><strong>Go-style result types.</strong> Every stdlib function that can fail returns a <code>(value, err)</code> tuple. Check <code>err</code> first, then use <code>value</code>. The raw C-style externs are preserved under a <code>_raw</code> suffix for advanced callers who need direct access to the underlying pointer or int:  ``<code>aether body, err = http.get("http://example.com") if err != "" { println("failed: ${err}") return } println(body) </code>`<code>  See the [error handling example](../examples/basics/error-handling.ae) for the user-function pattern, and </code>examples/stdlib/http-client.ae` for the stdlib pattern.</blockquote>
 <h2 id="namespace-calling-convention">Namespace Calling Convention</h2>
 <p>Functions are called using <strong>namespace-style syntax</strong>: <code>namespace.function()</code></p>
-<div class="tw"><table><thead><tr><th>Import</th><th>Namespace</th><th>Example Call</th></tr></thead><tbody><tr><td><code>import std.string</code></td><td><code>string</code></td><td><code>string.new("hello")</code>, <code>string.release(s)</code></td></tr><tr><td><code>import std.file</code></td><td><code>file</code></td><td><code>file.exists("path")</code>, <code>file.open("path", "r")</code></td></tr><tr><td><code>import std.dir</code></td><td><code>dir</code></td><td><code>dir.exists("path")</code>, <code>dir.create("path")</code></td></tr><tr><td><code>import std.path</code></td><td><code>path</code></td><td><code>path.join("a", "b")</code>, <code>path.dirname("/a/b")</code></td></tr><tr><td><code>import std.json</code></td><td><code>json</code></td><td><code>json.parse(str)</code>, <code>json.create_object()</code></td></tr><tr><td><code>import std.cryptography</code></td><td><code>cryptography</code></td><td><code>cryptography.sha256_hex(data, n)</code>, <code>cryptography.base64_encode(data, n)</code></td></tr><tr><td><code>import std.http</code></td><td><code>http</code></td><td><code>http.get(url)</code>, <code>http.server_create(port)</code></td></tr><tr><td><code>import std.tcp</code></td><td><code>tcp</code></td><td><code>tcp.connect(host, port)</code>, <code>tcp.write(sock, data)</code></td></tr><tr><td><code>import std.list</code></td><td><code>list</code></td><td><code>list.new()</code>, <code>list.add(l, item)</code></td></tr><tr><td><code>import std.map</code></td><td><code>map</code></td><td><code>map.new()</code>, <code>map.put(m, key, val)</code></td></tr><tr><td><code>import std.set</code></td><td><code>set</code></td><td><code>set.new()</code>, <code>set.add(s, item)</code></td></tr><tr><td><code>import std.pqueue</code></td><td><code>pqueue</code></td><td><code>pqueue.new()</code>, <code>pqueue.push(q, pri, item)</code></td></tr><tr><td><code>import std.math</code></td><td><code>math</code></td><td><code>math.sqrt(x)</code>, <code>math.sin(x)</code></td></tr><tr><td><code>import std.log</code></td><td><code>log</code></td><td><code>log.init(file, level)</code>, <code>log.write(level, msg)</code></td></tr><tr><td><code>import std.io</code></td><td><code>io</code></td><td><code>io.print(str)</code>, <code>io.read_file(path)</code>, <code>io.getenv(name)</code></td></tr><tr><td><code>import std.os</code></td><td><code>os</code></td><td><code>os.system(cmd)</code>, <code>os.exec(cmd)</code>, <code>os.getenv(name)</code>, <code>os.argv0()</code>, <code>os_execv(prog, argv)</code></td></tr></tbody></table></div>
+<div class="tw"><table><thead><tr><th>Import</th><th>Namespace</th><th>Example Call</th></tr></thead><tbody><tr><td><code>import std.string</code></td><td><code>string</code></td><td><code>string.new("hello")</code>, <code>string.release(s)</code></td></tr><tr><td><code>import std.file</code></td><td><code>file</code></td><td><code>file.exists("path")</code>, <code>file.open("path", "r")</code></td></tr><tr><td><code>import std.dir</code></td><td><code>dir</code></td><td><code>dir.exists("path")</code>, <code>dir.create("path")</code></td></tr><tr><td><code>import std.path</code></td><td><code>path</code></td><td><code>path.join("a", "b")</code>, <code>path.dirname("/a/b")</code></td></tr><tr><td><code>import std.tar</code></td><td><code>tar</code></td><td><code>tar.reader_open("src.tar")</code>, <code>tar.extract("src.tar", "out", opts)</code></td></tr><tr><td><code>import std.json</code></td><td><code>json</code></td><td><code>json.parse(str)</code>, <code>json.create_object()</code></td></tr><tr><td><code>import std.cryptography</code></td><td><code>cryptography</code></td><td><code>cryptography.sha256_hex(data, n)</code>, <code>cryptography.hash_hex(algo, data, n)</code></td></tr><tr><td><code>import std.http</code></td><td><code>http</code></td><td><code>http.get(url)</code>, <code>http.server_create(port)</code></td></tr><tr><td><code>import std.tcp</code></td><td><code>tcp</code></td><td><code>tcp.connect(host, port)</code>, <code>tcp.write(sock, data)</code></td></tr><tr><td><code>import std.list</code></td><td><code>list</code></td><td><code>list.new()</code>, <code>list.add(l, item)</code></td></tr><tr><td><code>import std.map</code></td><td><code>map</code></td><td><code>map.new()</code>, <code>map.put(m, key, val)</code></td></tr><tr><td><code>import std.set</code></td><td><code>set</code></td><td><code>set.new()</code>, <code>set.add(s, item)</code></td></tr><tr><td><code>import std.pqueue</code></td><td><code>pqueue</code></td><td><code>pqueue.new()</code>, <code>pqueue.push(q, pri, item)</code></td></tr><tr><td><code>import std.math</code></td><td><code>math</code></td><td><code>math.sqrt(x)</code>, <code>math.sin(x)</code></td></tr><tr><td><code>import std.log</code></td><td><code>log</code></td><td><code>log.init(file, level)</code>, <code>log.write(level, msg)</code></td></tr><tr><td><code>import std.io</code></td><td><code>io</code></td><td><code>io.print(str)</code>, <code>io.read_file(path)</code>, <code>io.getenv(name)</code></td></tr><tr><td><code>import std.os</code></td><td><code>os</code></td><td><code>os.system(cmd)</code>, <code>os.exec(cmd)</code>, <code>os.getenv(name)</code>, <code>os.argv0()</code>, <code>os_execv(prog, argv)</code></td></tr></tbody></table></div>
 <hr>
 <h2 id="using-the-standard-library">Using the Standard Library</h2>
 <p>Import modules with the <code>import</code> statement:</p>
-<pre><code><span class="kw">import</span> std.<span class="fn">string</span>       <span class="com">// String functions</span>
-<span class="kw">import</span> std.file         <span class="com">// File operations</span>
-<span class="kw">import</span> std.dir          <span class="com">// Directory operations</span>
-<span class="kw">import</span> std.json         <span class="com">// JSON parsing</span>
-<span class="kw">import</span> std.http         <span class="com">// HTTP client &amp; server</span>
-<span class="kw">import</span> std.tcp          <span class="com">// TCP sockets</span>
-<span class="kw">import</span> std.list         <span class="com">// ArrayList</span>
-<span class="kw">import</span> std.map          <span class="com">// HashMap</span>
-<span class="kw">import</span> std.set          <span class="com">// Unique-string set</span>
-<span class="kw">import</span> std.pqueue       <span class="com">// Priority queue</span>
-<span class="kw">import</span> std.math         <span class="com">// Math functions</span>
-<span class="kw">import</span> std.log          <span class="com">// Logging</span>
-<span class="kw">import</span> std.io           <span class="com">// Console I/O, environment variables</span>
-<span class="kw">import</span> std.os           <span class="com">// Shell execution, environment variables</span></code></pre>
+<pre><code>import std.string       // String functions
+import std.file         // File operations
+import std.dir          // Directory operations
+import std.json         // JSON parsing
+import std.http         // HTTP client &amp; server
+import std.tcp          // TCP sockets
+import std.list         // ArrayList
+import std.map          // HashMap
+import std.set          // Unique-string set
+import std.pqueue       // Priority queue
+import std.math         // Math functions
+import std.log          // Logging
+import std.io           // Console I/O, environment variables
+import std.os           // Shell execution, environment variables</code></pre>
 <p>Call functions using namespace syntax:</p>
 <pre><code><span class="kw">import</span> std.<span class="fn">string</span>
 <span class="kw">import</span> std.file
@@ -687,7 +696,7 @@ main() {
     }
 }</code></pre>
 <p>Or use <code>extern</code> for direct C bindings:</p>
-<pre><code><span class="kw">extern</span> my_c_function(x: <span class="fn">int</span>) -&gt; <span class="fn">ptr</span></code></pre>
+<pre><code>extern my_c_function(x: int) -&gt; ptr</code></pre>
 <hr>
 <h2 id="string-library">String Library</h2>
 <h3 id="types">Types</h3>
@@ -707,11 +716,11 @@ main() {
 <h4 id="string-methods">String Methods</h4>
 <ul><li><code>string_starts_with()</code> - Check prefix</li><li><code>string_ends_with()</code> - Check suffix</li><li><code>string_contains()</code> - Search for substring</li><li><code>string_index_of()</code> - Find position</li><li><code>string_substring()</code> - Extract substring</li><li><code>string_to_upper()</code> - Convert to uppercase</li><li><code>string_to_lower()</code> - Convert to lowercase</li><li><code>string_trim()</code> - Remove whitespace</li><li><code>string.join(seq, sep)</code> - Concatenate a <code>*StringSeq</code>'s elements with <code>sep</code> between adjacent pairs. Linear cost (two passes, one exact-size allocation), the complement of <code>string.split_to_seq</code>. For building a string piece by piece instead, use <code>std.strbuilder</code>; both avoid the O(n²) self-append trap described in the <a href="/Docs/stdlib-reference.html#building-strings-incrementally-avoiding-quadratic-cost">Standard Library Reference</a>.</li></ul>
 <h4 id="conversion">Conversion</h4>
-<ul><li><code>string.to_cstr(str)</code> - Get C string pointer</li><li><code>string.from_int(value)</code> - Convert int to string</li><li><code>string.from_float(value)</code> - Convert float to string</li></ul>
+<ul><li><code>string.to_cstr(str)</code> - Get C string pointer</li><li><code>string.from_int(value)</code> - Convert int to string</li><li><code>string.from_float(value)</code> - Convert float to string</li><li><code>string.from_double(value)</code> - Convert float (binary64) to lossless decimal string (round-trip safe)</li></ul>
 <h4 id="parsing-go-style">Parsing (Go-style)</h4>
 <p>All parsers return <code>(value, err)</code> tuples. Empty <code>err</code> means success.</p>
-<pre><code>n, err = <span class="fn">string</span>.to_int(<span class="str">"42"</span>)
-<span class="kw">if</span> err != <span class="str">""</span> { println(<span class="str">"bad: ${err}"</span>); <span class="kw">return</span> }
+<pre><code>n, err = string.to_int("42")
+if err != "" { println("bad: ${err}"); return }
 println(n)</code></pre>
 <ul><li><code>string.to_int(s)</code> → <code>(int, string)</code> - Parse base-10 integer</li><li><code>string.to_long(s)</code> → <code>(long, string)</code> - Parse 64-bit integer</li><li><code>string.to_float(s)</code> → <code>(float, string)</code> - Parse float</li><li><code>string.to_double(s)</code> → <code>(float, string)</code> - Parse double</li></ul>
 <p>Raw out-parameter externs are preserved as <code>string_to_int_raw</code>, <code>string_to_long_raw</code>, <code>string_to_float_raw</code>, <code>string_to_double_raw</code> for code that needs to distinguish zero from parse failure without a tuple.</p>
@@ -766,18 +775,18 @@ main() {
 <h2 id="io-library">I/O Library</h2>
 <h3 id="console-output">Console Output</h3>
 <p>The primary I/O functions in Aether are <code>print()</code> and <code>println()</code>:</p>
-<pre><code>print(<span class="str">"Hello, World!\n"</span>)
-println(<span class="str">"Hello, World!"</span>)       <span class="com">// same, with automatic newline</span>
-println(<span class="str">"Value: ${x}"</span>)         <span class="com">// string interpolation</span>
-println(<span class="str">"Float: ${pi}"</span>)</code></pre>
+<pre><code>print("Hello, World!\n")
+println("Hello, World!")       // same, with automatic newline
+println("Value: ${x}")         // string interpolation
+println("Float: ${pi}")</code></pre>
 <h3 id="console-output-infallible">Console Output (infallible)</h3>
 <ul><li><code>io.print(str)</code> - Print string</li><li><code>io.print_line(str)</code> - Print string with newline</li><li><code>io.print_int(value)</code> - Print integer</li><li><code>io.print_float(value)</code> - Print float</li></ul>
 <h3 id="file-io-go-style">File I/O (Go-style)</h3>
 <p>All operations that can fail return an error string ("" on success).</p>
-<pre><code>content, err = io.read_file(<span class="str">"data.txt"</span>)
-<span class="kw">if</span> err != <span class="str">""</span> { println(<span class="str">"failed: ${err}"</span>); <span class="kw">return</span> }
+<pre><code>content, err = io.read_file("data.txt")
+if err != "" { println("failed: ${err}"); return }
 
-werr = io.write_file(<span class="str">"output.txt"</span>, <span class="str">"hello"</span>)</code></pre>
+werr = io.write_file("output.txt", "hello")</code></pre>
 <ul><li><code>io.read_file(path)</code> → <code>(string, string)</code> - Read entire file</li><li><code>io.write_file(path, content)</code> → <code>string</code> - Write (overwrites)</li><li><code>io.append_file(path, content)</code> → <code>string</code> - Append to file</li><li><code>io.delete_file(path)</code> → <code>string</code> - Delete file</li><li><code>io.file_info(path)</code> → <code>(ptr, string)</code> - Get file metadata (caller must <code>io.file_info_free</code>)</li><li><code>io.file_exists(path)</code> → <code>int</code> - 1 if exists, 0 otherwise</li></ul>
 <h3 id="environment-variables">Environment variables</h3>
 <ul><li><code>io.getenv(name)</code> → <code>string</code> - Returns the value, or null if unset (infallible)</li><li><code>io.setenv(name, value)</code> → <code>string</code> - Set env var, return error string</li><li><code>io.unsetenv(name)</code> → <code>string</code> - Unset env var, return error string</li></ul>
@@ -887,20 +896,21 @@ main() {
 <ul><li><code>JSON_NULL</code> = 0</li><li><code>JSON_BOOL</code> = 1</li><li><code>JSON_NUMBER</code> = 2</li><li><code>JSON_STRING</code> = 3</li><li><code>JSON_ARRAY</code> = 4</li><li><code>JSON_OBJECT</code> = 5</li></ul>
 <h3 id="what-stdjson-doesnt-do">What <code>std.json</code> doesn't do</h3>
 <p>Coming from Go's <code>json.Unmarshal</code>, Java's Jackson, Python's <code>json.load</code> + dataclasses, or C#'s <code>JsonSerializer</code>, expect to do more by hand:</p>
-<ul><li>No struct ↔ JSON mapping. Aether has no runtime reflection (no <code>instanceof</code>, no <code>T.GetType()</code>, no <code>reflect.TypeOf</code>), so a library function that takes a struct type and a JSON tree and populates the fields can't exist as a stdlib API. Callers walk the tree by hand: <code>json.object_get(v, "name")</code> then <code>json.get_string(...)</code>, repeated per field. For tree-shaped or dynamically-shaped JSON the code looks similar to other languages; for struct-shaped JSON it's more verbose. A future codegen step (a <code>--derive-json</code> flag on struct definitions, or a build-step macro) could close this gap without runtime reflection, but isn't shipped today.</li><li>No annotations or struct tags. <code>@JsonProperty("user_name")</code>, Go struct tags <code>json:"user_name,omitempty"</code>, and the like have nothing to attach to without struct-mapping in the first place.</li><li>No streaming parse. The whole document is buffered into the arena before the tree is walkable. Documents into the tens of MB are fine; for multi-gigabyte JSON, use a different tool.</li><li>Strict RFC 8259 only: no JSON5, comments, or trailing commas.</li><li>Compact output only on stringify; wrap with a separate prettier if you need one.</li><li>No JSON Schema validation. Validate by hand or build it on top.</li><li>No arbitrary-precision numbers. Numbers are <code>int</code> or <code>double</code>; the parser falls through to <code>strtod</code> for correctly-rounded IEEE-754 on edge cases (16+ significant digits, huge exponents), but there's no <code>BigDecimal</code> / <code>decimal.Decimal</code> equivalent for financial precision.</li><li>Hard-coded depth limit of 256, as DoS protection against deeply nested JSON bombs. Not configurable; rare to hit in practice.</li></ul>
+<ul><li>No struct ↔ JSON mapping. Aether has no runtime reflection (no <code>instanceof</code>, no <code>T.GetType()</code>, no <code>reflect.TypeOf</code>), so a library function that takes a struct type and a JSON tree and populates the fields can't exist as a stdlib API. Callers walk the tree by hand: <code>json.object_get(v, "name")</code> then <code>json.get_string(...)</code>, repeated per field. For tree-shaped or dynamically-shaped JSON the code looks similar to other languages; for struct-shaped JSON it's more verbose. A future codegen step (a <code>--derive-json</code> flag on struct definitions, or a build-step macro) could close this gap without runtime reflection, but isn't shipped today.</li><li>No annotations or struct tags. <code>@JsonProperty("user_name")</code>, Go struct tags <code>json:"user_name,omitempty"</code>, and the like have nothing to attach to without struct-mapping in the first place.</li><li>No streaming parse. The whole document is buffered into the arena before the tree is walkable. Documents into the tens of MB are fine; for multi-gigabyte JSON, use a different tool.</li><li>Strict RFC 8259 only: no JSON5, comments, or trailing commas.</li><li>Compact output only on stringify; wrap with a separate prettier if you need one.</li><li>Declarative validation lives in <code>std.schema</code> (typed records, composable validators, <code>parse -&gt; (values, errors)</code>, and <code>to_json_schema()</code> to emit a draft-07 JSON Schema). It does not itself <em>consume</em> external JSON Schema documents, validate against a <code>std.schema</code> record, or build that on top.</li><li>No arbitrary-precision numbers. Numbers are <code>int</code> or <code>double</code>; the parser falls through to <code>strtod</code> for correctly-rounded IEEE-754 on edge cases (16+ significant digits, huge exponents), but there's no <code>BigDecimal</code> / <code>decimal.Decimal</code> equivalent for financial precision.</li><li>Hard-coded depth limit of 256, as DoS protection against deeply nested JSON bombs. Not configurable; rare to hit in practice.</li></ul>
 <h3 id="other-structured-data-formats">Other structured-data formats</h3>
 <p>Beyond JSON, XML is the other format with a stdlib module: <code>std.xml</code> provides a pull/SAX reader (<code>xml.parser</code>, <code>xml.next</code>, <code>xml.name</code>, <code>xml.text</code>, <code>xml.attr</code>, driven by the <code>EVENT_START</code>/<code>END</code>/<code>TEXT</code>/<code>EOF</code>/<code>ERROR</code> constants) and an escaping element builder (<code>xml.writer</code>, <code>xml.start</code>, <code>xml.element</code>, <code>xml.finish</code>). Enough for S3 / SOAP-ish / config XML; not in scope are XSD, XPath, namespaces, and DTD validation. There is no DOM tree, so you drive events yourself. The rest have no stdlib parser or codec:</p>
 <ul><li>YAML, INI, and Java-style <code>.properties</code> have no parser. INI and <code>.properties</code> are trivial to build on <code>string.split</code>; for YAML, the runtime is single-language, so Aether projects configure via TOML or hand-rolled formats.</li><li>TOML has a parser at <code>tools/apkg/toml_parser.c</code>, used internally by the <code>ae</code> CLI to read <code>aether.toml</code> project files. It isn't exposed as <code>std.toml</code>. A project needing TOML can copy that parser or shell out to a host-language tool.</li><li>CSV has no parser. <code>string.split(line, ",")</code> covers the no-quoting / no-embedded-commas case; anything more needs a real CSV parser, which isn't shipped.</li><li>Protocol Buffers, MessagePack, CBOR, Avro, and Thrift have no codecs. Same reflection-gap reasoning as struct ↔ JSON: without struct introspection there's no automatic encode/decode, so a hand-written codec on top of <code>tcp.write</code> / <code>tcp.read</code> / <code>aether_string_data</code> is what you'd build.</li></ul>
 <p>These are absent because no downstream user has driven the need yet. If you're starting a project that needs YAML config, expect to write a parser, ship a contrib module, or shell out. The structured-data thinking in the stdlib is currently JSON-shaped and HTTP-adjacent; broader format coverage is open territory.</p>
 <hr>
 <h2 id="cryptography-library">Cryptography Library</h2>
-<p>Hash digests + Base64 codec. Built on OpenSSL's EVP API. When OpenSSL isn't linked, every wrapper returns <code>("", "openssl unavailable")</code> rather than crashing.</p>
+<p>Hash digests, built on OpenSSL's EVP API. When OpenSSL isn't linked, every wrapper returns <code>("", "openssl unavailable")</code> rather than crashing. Base64 is next door in <code>std.encoding</code>.</p>
 <pre><code><span class="kw">import</span> std.cryptography
+<span class="kw">import</span> std.encoding
 
 main() {
     digest, _ = cryptography.sha256_hex(<span class="str">"abc"</span>, <span class="num">3</span>)
-    b64,    _ = cryptography.base64_encode(<span class="str">"\x01\x02\x03"</span>, <span class="num">3</span>)
-    raw, n, _ = cryptography.base64_decode(b64)
+    b64     = encoding.base64_encode(<span class="str">"\x01\x02\x03"</span>, <span class="num">3</span>)
+    raw, _  = encoding.base64_decode(b64)
 }</code></pre>
 <h3 id="hash-functions">Hash Functions</h3>
 <ul><li><code>cryptography.sha1_hex(data, length)</code> → <code>(string, string)</code> - 40-char lowercase hex digest. Legacy interop (Git, Subversion); prefer SHA-256 for new work.</li><li><code>cryptography.sha256_hex(data, length)</code> → <code>(string, string)</code> - 64-char lowercase hex digest.</li><li><code>cryptography.hash_hex(algo, data, length)</code> → <code>(string, string)</code> - Algorithm-by-name dispatcher. <code>algo</code> is <code>"sha1"</code>, <code>"sha256"</code>, or any name <code>EVP_get_digestbyname()</code> recognizes (<code>"sha384"</code>, <code>"sha512"</code>, <code>"sha3-256"</code>, ...). Returns <code>("", "unknown algorithm")</code> for unrecognized names.</li><li><code>cryptography.hash_supported(algo)</code> → <code>int</code> - <code>1</code> if this build can compute <code>algo</code>, <code>0</code> otherwise. Always succeeds. Use to validate user-supplied algorithm names before calling <code>hash_hex</code>.</li><li><code>cryptography.md4_hex(data, length)</code> / <code>md5_hex(data, length)</code> → <code>(string, string)</code> - 32-char hex digest. Legacy interop only (Content-MD5, ETag, zsync), NOT collision-resistant.</li><li><code>cryptography.sha1_bytes(data, length)</code> / <code>sha256_bytes(data, length)</code> / <code>md4_bytes(data, length)</code> / <code>md5_bytes(data, length)</code> → <code>(string, int, string)</code> - Raw-bytes digest, <code>(bytes, length, err)</code>; <code>bytes</code> preserves embedded NULs.</li><li><code>cryptography.hash_bytes(algo, data, length)</code> → <code>(string, int, string)</code> - Algorithm-by-name binary digest.</li></ul>
@@ -908,7 +918,8 @@ main() {
 <h3 id="hmac-random-and-streaming-digests">HMAC, Random, and Streaming Digests</h3>
 <ul><li><code>cryptography.hmac_sha256_hex(key, key_len, msg, msg_len)</code> → <code>(string, string)</code> - HMAC-SHA256 hex digest (RFC 2104 / FIPS 198-1).</li><li><code>cryptography.hmac_sha256_bytes(key, key_len, msg, msg_len)</code> → <code>(string, int, string)</code> - Raw 32-byte HMAC for chained key derivation (SigV4 / HKDF-shaped flows).</li><li><code>cryptography.random_bytes(n)</code> → <code>(string, int, string)</code> - <code>n</code> CSPRNG bytes from the OS (<code>getrandom</code> / <code>arc4random_buf</code>).</li><li><code>cryptography.random_hex(n)</code> → <code>(string, string)</code> - <code>n</code> random bytes as <code>2*n</code> hex chars.</li><li><code>cryptography.random_base64(n)</code> → <code>(string, string)</code> - <code>n</code> random bytes as unpadded Base64.</li><li><code>cryptography.digest_new(algo)</code> → <code>(ptr, string)</code> - Open a streaming digest context (<code>"md5"</code>, <code>"sha256"</code>, ...).</li><li><code>cryptography.digest_update(ctx, data, length)</code> → <code>(int, string)</code> - Feed bytes incrementally; does not free <code>ctx</code>.</li><li><code>cryptography.digest_final_hex(ctx)</code> → <code>(string, string)</code> / <code>digest_final_bytes(ctx)</code> → <code>(string, int, string)</code> - Finalize; both FREE <code>ctx</code>.</li><li><code>cryptography.digest_free(ctx)</code> - Abandon a context without finalizing (NULL-safe).</li></ul>
 <h3 id="base64-rfc-4648-4-standard-alphabet">Base64 (RFC 4648 §4 standard alphabet)</h3>
-<ul><li><code>cryptography.base64_encode(data, length)</code> → <code>(string, string)</code> - Encode <code>length</code> bytes, <strong>unpadded</strong> output.</li><li><code>cryptography.base64_encode_padded(data, length)</code> → <code>(string, string)</code> - Encode <code>length</code> bytes, <strong>with <code>=</code> padding</strong> to a multiple of 4. For wire formats (auth headers, JSON-encoded blobs) that require padded output.</li><li><code>cryptography.base64_decode(b64)</code> → <code>(string, int, string)</code> - Decode. Returns <code>(bytes, byte_count, "")</code> on success, <code>bytes</code> is an AetherString preserving embedded NULs. Accepts both padded and unpadded input.</li></ul>
+<p>Base64 lives in <code>std.encoding</code>, not here; <code>std.cryptography</code> keeps only <code>random_base64</code>, which is crypto-random bytes rendered as base64.</p>
+<ul><li><code>encoding.base64_encode(data, length)</code> → <code>string</code> - Encode <code>length</code> bytes, <strong>unpadded</strong> output.</li><li><code>encoding.base64_encode_padded(data, length)</code> → <code>string</code> - Encode <code>length</code> bytes, <strong>with <code>=</code> padding</strong> to a multiple of 4. For wire formats (auth headers, JSON-encoded blobs) that require it.</li><li><code>encoding.base64_decode(b64)</code> → <code>string!</code> - Decode, destructured as <code>(bytes, err)</code>. Accepts padded and unpadded input; <code>bytes</code> is an AetherString preserving embedded NULs.</li></ul>
 <h3 id="whats-not-in-stdcryptography">What's not in <code>std.cryptography</code></h3>
 <p>The public-key and cipher families (RSA, ECDSA, Ed25519, X25519, AES, ChaCha20-Poly1305, …) live under <code>std.cryptography</code> as explicitly-imported sub-modules (<code>std.cryptography.rsa</code>, <code>std.cryptography.x25519</code>, …), pure-Aether, no OpenSSL. URL-safe Base64 (RFC 4648 §5) and constant-time comparison remain out of the top-level module. See <a href="/Docs/stdlib-reference.html">stdlib-reference.md</a> §"What <code>std.cryptography</code> doesn't do" for the rationale.</p>
 <hr>
@@ -1023,22 +1034,22 @@ main() {
 <p>Raw externs: <code>tcp_connect_raw</code>, <code>tcp_send_raw</code>, <code>tcp_send_n_raw</code>, <code>tcp_receive_raw</code>, <code>tcp_receive_n_raw</code>, <code>tcp_listen_raw</code>, <code>tcp_accept_raw</code>, <code>tcp_poll_raw</code>, <code>tcp_poll2_raw</code>.</p>
 <h3 id="reactor-pattern-async-io-await_io">Reactor-Pattern Async I/O (<code>await_io</code>)</h3>
 <p>Aether's scheduler has a per-core I/O reactor (epoll on Linux, kqueue on macOS/BSD, poll() elsewhere) that can suspend an actor on a file descriptor without blocking any OS thread. When the fd becomes ready, the scheduler delivers an <code>IoReady</code> message to the actor's mailbox and resumes it on any available core.</p>
-<pre><code><span class="kw">import</span> std.net
+<pre><code>import std.net
 
-<span class="kw">message</span> IoReady { fd: <span class="fn">int</span>, events: <span class="fn">int</span> }
-<span class="kw">message</span> Connection { fd: <span class="fn">int</span> }
+message IoReady { fd: int, events: int }
+message Connection { fd: int }
 
-<span class="kw">actor</span> Worker {
-    <span class="kw">receive</span> {
+actor Worker {
+    receive {
         Connection(fd) -&gt; {
             req = ae_http_recv(fd)
-            http_response_json(res, <span class="str">"{\"hello\":\"world\"}"</span>)
-            net.await_io(fd)   <span class="com">// suspends, zero CPU until data arrives</span>
+            http_response_json(res, "{\"hello\":\"world\"}")
+            net.await_io(fd)   // suspends, zero CPU until data arrives
         }
         IoReady(fd, events) -&gt; {
-            <span class="com">// Resumed here when fd is readable again</span>
+            // Resumed here when fd is readable again
             req = ae_http_recv(fd)
-            http_response_json(res, <span class="str">"{\"hello\":\"world\"}"</span>)
+            http_response_json(res, "{\"hello\":\"world\"}")
             net.await_io(fd)
         }
     }
@@ -1050,48 +1061,48 @@ main() {
 <hr>
 <h2 id="collections-library">Collections Library</h2>
 <h3 id="arraylist">ArrayList</h3>
-<pre><code><span class="kw">import</span> std.list
+<pre><code>import std.list
 
 main() {
     mylist = list.new()
-    <span class="kw">defer</span> list.free(mylist)
+    defer list.free(mylist)
 
     list.add(mylist, some_ptr)
-    item = list.get(mylist, <span class="num">0</span>)
+    item = list.get(mylist, 0)
     size = list.size(mylist)
 }</code></pre>
 <h3 id="arraylist-functions">ArrayList Functions</h3>
 <ul><li><code>list.new()</code> - Create new list (never fails)</li><li><code>list.add(list, item)</code> → <code>string</code> - Append item, return error string (non-empty on resize/OOM)</li><li><code>list.get(list, index)</code> - Get item (returns null for out-of-bounds)</li><li><code>list.set(list, index, item)</code> - Set item at index</li><li><code>list.remove(list, index)</code> - Remove item at index</li><li><code>list.size(list)</code> - Get size</li><li><code>list.clear(list)</code> - Clear all items</li><li><code>list.free(list)</code> - Free list</li></ul>
 <p>Raw extern: <code>list_add_raw</code> (returns 1/0).</p>
 <h3 id="hashmap">HashMap</h3>
-<pre><code><span class="kw">import</span> std.map
+<pre><code>import std.map
 
 main() {
     mymap = map.new()
-    <span class="kw">defer</span> map.free(mymap)
+    defer map.free(mymap)
 
-    map.put(mymap, <span class="str">"name"</span>, some_ptr)
-    result = map.get(mymap, <span class="str">"name"</span>)
-    exists = map.has(mymap, <span class="str">"name"</span>)
+    map.put(mymap, "name", some_ptr)
+    result = map.get(mymap, "name")
+    exists = map.has(mymap, "name")
 }</code></pre>
 <h3 id="hashmap-functions">HashMap Functions</h3>
 <ul><li><code>map.new()</code> - Create new map (never fails)</li><li><code>map.put(map, key, value)</code> → <code>string</code> - Put key-value pair, return error string (non-empty on resize/OOM)</li><li><code>map.get(map, key)</code> - Get value by key (returns null if missing)</li><li><code>map.remove(map, key)</code> - Remove key</li><li><code>map.has(map, key)</code> - Check if key exists</li><li><code>map.size(map)</code> - Get number of entries</li><li><code>map.clear(map)</code> - Clear all entries</li><li><code>map.free(map)</code> - Free map</li></ul>
 <p>Raw extern: <code>map_put_raw</code> (returns 1/0).</p>
 <h3 id="set">Set</h3>
 <p>Unique strings, backed by the <code>std.map</code> hash table. Items are copied on insert. O(1) average lookup.</p>
-<pre><code><span class="kw">import</span> std.set
+<pre><code>import std.set
 
 visited = set.new()
-set.add(visited, <span class="str">"/index"</span>)      <span class="com">// true</span>
-set.add(visited, <span class="str">"/index"</span>)      <span class="com">// false, already present</span></code></pre>
+set.add(visited, "/index")      // true
+set.add(visited, "/index")      // false, already present</code></pre>
 <ul><li><code>set.new()</code> → <code>ptr</code> - Create a new set (null on allocation failure)</li><li><code>set.add(set, item)</code> → <code>bool</code> - True if added, false if already present or the insert failed</li><li><code>set.contains(set, item)</code> → <code>bool</code> - Membership test</li><li><code>set.remove(set, item)</code> - Drop an item; absent items are ignored</li><li><code>set.size(set)</code> → <code>int</code> - Number of unique items</li><li><code>set.clear(set)</code> - Drop every item, keeping the set usable</li><li><code>set.free(set)</code> - Release the set</li><li><code>set.items(set)</code> → <code>(ptr, string)</code> - Snapshot of the items, unspecified order; release with <code>set.items_free</code></li><li><code>set.items_free(items)</code> - Release a snapshot</li></ul>
 <p>Null-set calls are safe (<code>size</code> 0, <code>contains</code> false). Raw externs are the <code>aether_set_*</code> entry points.</p>
 <h3 id="priorityqueue">PriorityQueue</h3>
 <p>Binary heap over <code>(priority, item)</code> pairs; lowest priority pops first. Push/pop are O(log n), peek/size O(1). The queue does <strong>not</strong> own items, it never frees them.</p>
-<pre><code><span class="kw">import</span> std.pqueue
+<pre><code>import std.pqueue
 
 jobs = pqueue.new()
-pqueue.push(jobs, <span class="num">5</span>, <span class="str">"page on-call"</span>)
+pqueue.push(jobs, 5, "page on-call")
 next = pqueue.pop(jobs)</code></pre>
 <ul><li><code>pqueue.new()</code> → <code>ptr</code> - Create a new queue (null on allocation failure)</li><li><code>pqueue.push(pq, priority, item)</code> → <code>bool</code> - Enqueue; false on a null queue or allocation failure</li><li><code>pqueue.pop(pq)</code> → <code>ptr</code> - Remove and return the lowest-priority item, null when empty</li><li><code>pqueue.peek(pq)</code> → <code>ptr</code> - Next item without removing it, null when empty</li><li><code>pqueue.peek_priority(pq)</code> → <code>long</code> - Priority of the next item (0 when empty)</li><li><code>pqueue.size(pq)</code> → <code>int</code> - Number of queued entries</li><li><code>pqueue.is_empty(pq)</code> → <code>bool</code> - True when nothing is queued</li><li><code>pqueue.clear(pq)</code> - Drop every entry, keeping the queue usable</li><li><code>pqueue.free(pq)</code> - Release the queue</li></ul>
 <p>Null-queue calls are safe (<code>size</code> 0, <code>pop</code>/<code>peek</code> null). Raw externs are the <code>aether_pqueue_*</code> entry points.</p>
@@ -1218,7 +1229,7 @@ main() {
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.473 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.562 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

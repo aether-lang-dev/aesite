@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Structured Concurrency for Aether, Design Direction · Aether</title>
-<meta name="description" content="Status: proposal. Nothing shipped yet. This doc captures the design choices we&#x27;ve committed to before writing code, so the implementation PRs have a...">
-<link rel="canonical" href="https://aether-lang.dev/Docs/structured-concurrency.html">
+<title>std.schema, a projection-first roadmap (Ash, without the framework) · Aether</title>
+<meta name="description" content="std.schema borrowed its declarative record { field { validation } } shape from Ash (alongside Zod/Pydantic/io-ts for the parse-contract and coercion).">
+<link rel="canonical" href="https://aether-lang.dev/Docs/schema-projection-roadmap.html">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Structured Concurrency for Aether, Design Direction · Aether">
-<meta property="og:description" content="Status: proposal. Nothing shipped yet. This doc captures the design choices we&#x27;ve committed to before writing code, so the implementation PRs have a...">
-<meta property="og:url" content="https://aether-lang.dev/Docs/structured-concurrency.html">
+<meta property="og:title" content="std.schema, a projection-first roadmap (Ash, without the framework) · Aether">
+<meta property="og:description" content="std.schema borrowed its declarative record { field { validation } } shape from Ash (alongside Zod/Pydantic/io-ts for the parse-contract and coercion).">
+<meta property="og:url" content="https://aether-lang.dev/Docs/schema-projection-roadmap.html">
 <meta property="og:image" content="https://aether-lang.dev/og.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="/favicon.png">
@@ -635,7 +635,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/profiling-guide.html">Aether Runtime Profiling Guide</a>
 <a href="/Docs/allocators.html">Allocators</a>
 <div class="grp">Design & RFCs</div>
-<a href="/Docs/structured-concurrency.html" class="on">Structured Concurrency for Aether, Design Direction</a>
+<a href="/Docs/structured-concurrency.html">Structured Concurrency for Aether, Design Direction</a>
 <a href="/Docs/contract-folding.html">Compile-time contract folding, costed design</a>
 <a href="/Docs/error-unification.html">Unifying T? and (value, err), costed design</a>
 <a href="/Docs/compiler-trust-boundary.html">The Compiler Trust Boundary</a>
@@ -646,7 +646,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn't need macro_rules!</a>
 <a href="/Docs/lib-caller-info.html">--emit=lib caller-info channel</a>
 <a href="/Docs/liveview-lite-roadmap.html">LiveView-lite, a roadmap (Phoenix LiveView, on actors, without the framework)</a>
-<a href="/Docs/schema-projection-roadmap.html">std.schema, a projection-first roadmap (Ash, without the framework)</a>
+<a href="/Docs/schema-projection-roadmap.html" class="on">std.schema, a projection-first roadmap (Ash, without the framework)</a>
 <a href="/Docs/locale-independent-float-text.html">Plan: locale-independent float text conversion (LC_NUMERIC correctness)</a>
 <div class="grp">Contributing</div>
 <a href="/Docs/stdlib-module-pattern.html">Aether Stdlib Module Pattern</a>
@@ -656,87 +656,35 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
     <main class="doc-main">
       <article class="doc-body" id="doc">
         <div class="bc"><span class="prompt">$</span>docs / design &amp; rfcs</div>
-<h1 id="structured-concurrency-for-aether-design-direction">Structured Concurrency for Aether, Design Direction</h1>
-<p>Status: <strong>proposal</strong>. Nothing shipped yet. This doc captures the design choices we've committed to before writing code, so the implementation PRs have a target to aim at.</p>
-<h2 id="what-were-trying-to-fix">What we're trying to fix</h2>
-<p>Aether has actors. It does not have:</p>
-<ul><li><strong>A way for a parent to know when its children die.</strong> If an actor handler panics or exits, no notification reaches the actor that spawned it. Long-running supervisor patterns (Erlang-style restart-on-crash, graceful shutdown of a subtree) can't be written.</li><li><strong>Any containment on which actors a block can reach.</strong> A function body can send a message to any actor reference it can name, and <code>hide</code> / <code>seal except</code> don't extend that restriction to concurrency sites (spawn, <code>!</code>, <code>ask</code>). A sealed block can still talk to any actor whose handle happens to be in scope.</li></ul>
-<p>Both are fixable without fundamentally changing the actor model.</p>
-<h2 id="the-design-space-and-why-we-picked-what-we-picked">The design space, and why we picked what we picked</h2>
-<p>Six families of structured concurrency exist. The summary table:</p>
-<div class="tw"><table><thead><tr><th>Model</th><th>Fit for Aether</th><th>Verdict</th></tr></thead><tbody><tr><td>Nurseries / TaskGroups (Trio, Swift, Kotlin <code>coroutineScope</code>)</td><td>Needs a new "task" primitive distinct from actors</td><td>Possible, high cost</td></tr><tr><td>Supervision trees (Erlang/OTP, Akka)</td><td>Natural extension of existing actors</td><td><strong>Strong candidate</strong></td></tr><tr><td>Async/await (Rust, Kotlin, Swift)</td><td>Breaks run-to-completion, requires coloured functions</td><td>Ruled out</td></tr><tr><td>CSP / channels (Go, Clojure core.async)</td><td>Duplicates actor mailboxes</td><td>Ruled out</td></tr><tr><td>Fork-join (Cilk, Rayon, Java ForkJoinPool)</td><td>Complements actors for data parallelism</td><td>Nice-to-have, not core</td></tr><tr><td>Capability-scoped (E, Monte, Pony refcaps)</td><td>Builds on hide/seal, unique to Aether</td><td><strong>Strong candidate</strong></td></tr></tbody></table></div>
-<h3 id="the-two-rulings-worth-unpacking">The two rulings worth unpacking</h3>
-<p><strong>Async/await is ruled out</strong> because Aether's handlers are run-to-completion. Introducing suspension points inside a handler would break the invariant that makes the shared-nothing actor model safe: a handler either finishes or panics, it doesn't yield. Async/await would also force <strong>coloured functions</strong> (async vs sync), which splits the ecosystem, every stdlib function becomes two functions, every actor becomes two kinds. Aether's cooperative scheduler gets its simplicity from the run-to-completion rule, and async/await would throw that away.</p>
-<p><strong>CSP channels are ruled out</strong> because Aether already has actor mailboxes. A channel is a point-to-point typed queue with a send and a receive end; an actor's mailbox is exactly that with an identity attached. Adding channels on top would give users two ways to do the same thing and force stdlib authors to pick one, usually the wrong one for half their callers.</p>
-<h3 id="the-two-were-building">The two we're building</h3>
-<p><strong>Supervision trees</strong> solve the "who's responsible when a child dies" problem. They're a library-level pattern on top of primitives the runtime <em>doesn't yet expose but easily could</em>: actor failure notification. Parents register interest in a child; if the child dies, the parent gets a <code>Down { ref, reason }</code> message. Everything else, restart strategies, escalation, graceful shutdown, is ordinary actor code on top of that one primitive.</p>
-<p><strong>Capability-scoped concurrency</strong> solves the "who can reach whom" problem. Aether already has <code>hide</code> and <code>seal except</code> for compile-time capability denial on <em>variable</em> references. Extending that enforcement to <em>actor</em> references means a sealed block cannot <code>spawn</code> a type it can't name, cannot <code>!</code> a reference it can't see, and cannot <code>ask</code> an actor outside its whitelist. <strong>No new mechanism is needed</strong>, just the existing scope-denial check applied at two more compile-time sites (spawn, send).</p>
-<p>The two compose: a supervised subtree that is also sealed gives you both bounded lifetime and bounded blast radius.</p>
-<h2 id="phase-1-supervision-primitives">Phase 1, supervision primitives</h2>
-<p>The runtime change needed is small: actor failure notification.</p>
-<h3 id="what-the-runtime-must-expose">What the runtime must expose</h3>
-<ol><li>When an actor's handler returns abnormally (an explicit <code>exit(reason)</code>, or a panic caught by the scheduler), the scheduler delivers a <code>Down { ref, reason }</code> message to every actor that registered interest in the failed actor.</li><li>Registration is one of two kinds:<ul><li><strong>Monitor</strong>, one-way. I get a <code>Down</code> if it dies; it doesn't hear about me dying.</li><li><strong>Link</strong>, two-way (Erlang semantics). If either of us dies, the other gets a <code>Down</code>.</li></ul></li><li>Delivery is best-effort at-most-once, routed through the normal mailbox. No new transport.</li></ol>
-<h3 id="language--stdlib-surface">Language / stdlib surface</h3>
-<pre><code>// Builtins
-monitor(actor_ref) -&gt; monitor_id   // one-way
-link(actor_ref)                     // two-way
-demonitor(monitor_id)               // cancel monitor
-unlink(actor_ref)                   // cancel link
-
-// System message
-message Down {
-    ref: actor_ref
-    reason: string    // "normal", "killed", or a user-supplied atom
-}</code></pre>
-<h3 id="supervisor-as-a-library-actor">Supervisor as a library actor</h3>
-<p>No language-level supervisor primitive. A <code>std.supervise</code> module provides an ordinary actor type:</p>
-<pre><code>import std.supervise
-
-main() {
-    sup = spawn(supervisor(strategy: "one_for_one")) {
-        child("worker_a", || spawn(WorkerA()))
-        child("worker_b", || spawn(WorkerB()))
-        child("db_writer", || spawn(DbWriter()))
-    }
-}</code></pre>
-<p>The supervisor actor internally links each child, handles <code>Down</code> messages according to its strategy, and decides whether to restart, escalate, or shut the subtree down. Strategies mirror Erlang: <code>one_for_one</code> (restart just the dead one), <code>one_for_all</code> (restart all siblings on any death), <code>rest_for_one</code> (restart the dead one and everything started after it).</p>
-<p>Note the builder-DSL shape (<code>spawn(...) { child(...) child(...) }</code>) uses the trailing-block + closure pattern that shipped with the closures and embedded-namespaces features. The supervisor actor is the <code>_ctx</code> holder; <code>child()</code> registers into it.</p>
-<h2 id="phase-2-capability-scoped-concurrency">Phase 2, capability-scoped concurrency</h2>
-<p>Once Phase 1 is in, this is a compile-time-only change. No new runtime mechanism.</p>
-<h3 id="what-the-compiler-must-enforce">What the compiler must enforce</h3>
-<p>In a block that contains <code>hide X</code> or <code>seal except Y, Z</code>, every concurrency site is checked against the same visibility rules already applied to ordinary reads:</p>
-<ul><li><code>spawn(X())</code> rejected if <code>X</code> is hidden or not on the seal whitelist.</li><li><code>ref ! Msg {}</code> rejected if <code>ref</code> is hidden or not whitelisted.</li><li><code>ref ? Request {}</code> (the <code>?</code> ask operator), same check on <code>ref</code>.</li></ul>
-<p>The error message reuses the existing <code>E0304</code> (hidden in this scope) diagnostic.</p>
-<h3 id="worked-example">Worked example</h3>
-<pre><code>sandbox("payment-handler") {
-    grant_tcp("payments.example.com")
-    seal except req, res, payment_client, logger
-
-    // This block can only see the five whitelisted names.
-    // It cannot spawn any actor type not named here.
-    // It cannot send to any actor reference not named here.
-    // It cannot ask any outside service.
-
-    result = payment_client ? Charge { amount: req.amount }
-    if result != null {
-        logger ! Audit { who: req.user, what: "charged", amount: req.amount }
-        res.status = 200
-    } else {
-        res.status = 502
-    }
-}</code></pre>
-<p>The subtree rooted at this block has both lifetime containment (the <code>sandbox</code> scope's containment runtime) and capability containment (the <code>seal except</code> list). A malicious or buggy handler cannot spawn a crypto-miner actor because it cannot name one.</p>
-<h2 id="whats-not-in-scope">What's not in scope</h2>
-<ul><li><strong>Fork-join / <code>parallel_for</code></strong>, useful for data parallelism, does not solve the lifecycle or reachability problem. Can be added later as a narrow stdlib feature layered on the existing work-stealing scheduler. Not part of this design.</li><li><strong>Nurseries</strong>, would require a second concurrency primitive (lightweight tasks distinct from actors). High cost for small marginal benefit given the actor model already exists. Revisit only if users ask for it after Phases 1 and 2 ship.</li><li><strong>Channels</strong>, actors already cover this. No plan.</li></ul>
-<h2 id="order-of-work">Order of work</h2>
-<ol><li><strong>Runtime, <code>Down</code> message delivery.</strong> Scheduler catches handler exits, iterates the monitor/link table, enqueues <code>Down</code> messages.</li><li><strong>Builtins, <code>monitor</code>, <code>link</code>, <code>demonitor</code>, <code>unlink</code>.</strong> Thin wrappers over the runtime table.</li><li><strong><code>std.supervise</code> module.</strong> Supervisor actor type with the three strategies. Builder DSL for child registration.</li><li><strong>Tests.</strong> Restart-on-crash, escalation, graceful shutdown, monitor vs link asymmetry, double-death ordering.</li><li><strong>Compiler, capability-scoped spawn/send/ask.</strong> Extend existing <code>hide</code>/<code>seal except</code> denial to concurrency sites.</li><li><strong>Docs and worked example.</strong> Update <code>docs/actor-concurrency.md</code> with the supervision section. One worked example in <code>examples/actors/</code> showing a supervised, sealed subtree.</li></ol>
-<p>Phase 1 can ship without Phase 2. Phase 2 can ship independently once Phase 1 is in, they touch different compiler subsystems.</p>
-<h2 id="references">References</h2>
-<ul><li><a href="/Docs/actor-concurrency.html"><code>docs/actor-concurrency.md</code></a>, current actor runtime.</li><li><a href="/Docs/hide-and-seal.html"><code>docs/hide-and-seal.md</code></a>, existing capability-denial primitive that Phase 2 extends.</li><li><a href="/Docs/containment-sandbox.html"><code>docs/containment-sandbox.md</code></a>, filesystem / network capability grants, natural pairing with Phase 2.</li><li><a href="https://www.erlang.org/doc/design_principles/des_princ.html">Erlang OTP design principles</a> the supervision-tree pattern we're borrowing.</li><li><a href="https://vorpus.org/blog/notes-on-structured-concurrency-or-go-statement-considered-harmful/">Nathaniel Smith, <em>Notes on structured concurrency</em></a> the Trio post that named the pattern. Aether takes the "structure" part but not the nursery/task primitive.</li></ul>
-<nav class="doc-prevnext" aria-label="Previous and next page"><a class="pn-prev" href="/Docs/allocators.html"><span class="pn-k">Previous</span><span class="pn-t">Allocators</span></a><a class="pn-next" href="/Docs/contract-folding.html"><span class="pn-k">Next</span><span class="pn-t">Compile-time contract folding, costed design</span></a></nav>
+<h1 id="stdschema--a-projection-first-roadmap-ash-without-the-framework">std.schema, a projection-first roadmap (Ash, without the framework)</h1>
+<h2 id="where-this-comes-from">Where this comes from</h2>
+<p><code>std.schema</code> borrowed its declarative <code>record { field { validation } }</code> shape from Ash (alongside Zod/Pydantic/io-ts for the parse-contract and coercion). But that shape is Ash's <em>thinnest outer ring</em>. Ash is a declarative resource/domain framework whose real substance is everything behind the resource: relationships, actions, lifecycle hooks, calculations/aggregates, a pluggable data layer with a query DSL and SAT-solver-backed authorization policies, and, crucially, <strong>projections</strong>: one resource declaration generates JSON:API, GraphQL, OpenAPI, admin UIs, and typed code interfaces.</p>
+<p>The question this doc answers: <em>how much of Ash should Aether pursue, and where is the line?</em></p>
+<h2 id="the-thesis-worth-stealing">The thesis worth stealing</h2>
+<p>Ash's superpower is: <strong>a resource is a single declarative source of truth that you project into many surfaces.</strong> Validation, persistence, JSON:API, GraphQL, OpenAPI, admin, and authorization all <em>derive</em> from one declaration.</p>
+<p>Aether has already started down exactly this path, perhaps without naming it:</p>
+<div class="tw"><table><thead><tr><th>Ash concept</th><th>Aether today</th></tr></thead><tbody><tr><td>resource declaration</td><td><code>std.schema</code> <code>record { field { rules } }</code></td></tr><tr><td>a projection</td><td><code>std.schema.to_json_schema()</code> (draft-07)</td></tr><tr><td>the web projection</td><td><code>contrib/tinyweb/schema_api</code>, validation + <code>openapi_route</code> (OpenAPI 3.0)</td></tr></tbody></table></div>
+<h2 id="the-strategic-line">The strategic line</h2>
+<p>Ash's depth is also its weight. Aether is a systems language that compiles to readable C with <strong>no GC and a manual-memory model</strong>, not an Elixir/OTP application framework. So the line is:</p>
+<ul><li><strong>Lean hard into projection</strong> (pure, compile-time, "one declaration → many artifacts"). This is Ash's most distinctive idea AND the one that fits Aether best: projections are just codegen over a schema value, no runtime, no persistence, no GC pressure. It's the same muscle the compiler already has.</li><li><strong>Add modeling depth only where it feeds projection</strong> (relationships make richer JSON Schema / OpenAPI / GraphQL; that's the justification).</li><li><strong>Stay out of the framework/runtime tiers.</strong> Data-layer-as-framework, a policy/SAT-solver, sagas, PubSub, multitenancy, that's Elixir-ecosystem weight that doesn't map to a systems language. <code>contrib/*</code> bridges (e.g. <code>sqlite</code>) remain the honest place for persistence, consumed explicitly.</li></ul>
+<h2 id="tiers">Tiers</h2>
+<h3 id="tier-a--projection-first-the-plan">Tier A, projection-first (the plan)</h3>
+<p>Each is a pure function <code>schema -&gt; string</code>, no runtime, mirroring <code>to_json_schema()</code>. Build order roughly by value/effort:</p>
+<ol><li><strong><code>to_openapi()</code></strong>, promote the FastAPI-style aggregate currently living in <code>tinyweb/schema_api</code> into a first-class <code>std.schema</code> projection (paths + <code>components.schemas</code>). The web layer becomes a thin caller.</li><li><strong><code>to_typescript()</code></strong>, emit a TypeScript <code>interface</code>/<code>type</code> for a resource. Instant client-side type-safety for anyone consuming an Aether JSON API; very high "wow", trivial to keep pure.</li><li><strong>Relationships</strong> (<code>belongs_to</code>/<code>has_many</code>), the one modeling addition that pays for itself: it turns a schema into a <em>domain model</em> and makes every projection richer (<code>$ref</code> links in JSON Schema/OpenAPI, nested TS types). Depends on nested records (issue #1446). This is the gateway to A4/A5.</li><li><strong><code>to_graphql_sdl()</code></strong>, emit GraphQL SDL types from a resource (+ its relationships). Aether's answer to AshGraphql, as pure codegen.</li><li><strong>Form/scaffold projection</strong>, emit an HTML form (or a tinyweb form handler) from a schema. The "admin UI from a declaration" idea, kept to static output. The dynamic counterpart, a <em>live</em>, validating form that pushes per-field errors over a WebSocket, is Tier B of the sibling <code>docs/liveview-lite-roadmap.md</code>: the same <code>record</code>, projected onto the LiveView surface instead of a static page.</li></ol>
+<p>A shared spine: a small internal schema-introspection surface (iterate fields, their types, rules, relationships) that every <code>to_*</code> projection walks, so adding a projection is writing one walker, not re-reading internals.</p>
+<h3 id="tier-b--modeling-depth-only-with-a-concrete-consumer">Tier B, modeling depth (only with a concrete consumer)</h3>
+<ul><li><strong>Actions</strong>, named typed operations (beyond raw CRUD); <code>schema_api</code> already half-expresses this with <code>create/show/index</code>. Light, but only worth it when a real API needs custom action arguments distinct from stored fields.</li><li><strong>Lifecycle hooks</strong> (<code>before/after</code>), declarative interception. Maps onto closures + the tinyweb filter chain. Useful, modest.</li><li><strong>Calculations</strong> (derived fields), <code>full_name = first &lt;&gt; last</code>. Pure and demoable; feeds projections (a computed field in the schema output).</li></ul>
+<h3 id="tier-c--explicitly-out-of-scope">Tier C, explicitly out of scope</h3>
+<p>Data-layer-as-framework + <code>Ash.Query</code> DSL + SAT-solver authorization policies + Reactor/sagas + notifiers/PubSub + multitenancy + code-generators/Igniter. This is where Ash becomes "huge"; it's OTP/Elixir-ecosystem weight and a persistence runtime Aether deliberately doesn't have. Persistence stays in <code>contrib/</code> bridges, consumed explicitly, not welded into <code>std.schema</code>.</p>
+<h2 id="why-projection-first-is-the-right-first-bet-for-aether">Why projection-first is the right first bet for Aether</h2>
+<ul><li><strong>It's pure.</strong> No GC, no persistence, no runtime, just codegen over a schema value. Exactly Aether's wheelhouse and leak-free by construction (build the string with <code>strbuilder</code>; see the <code>to_json_schema</code> precedent, and note the <code>std.json</code> builder-nesting leak #1447 that motivated string-building over a DOM).</li><li><strong>It's HTTP-agnostic.</strong> <code>std.schema</code> stays a pure stdlib module; the web projection lives in <code>contrib/tinyweb</code>. An SMTP/IMAP/CLI/config consumer reuses the same declaration and the same projections.</li><li><strong>It compounds.</strong> Every projection added multiplies the value of every schema already written, the Ash flywheel, without adopting the framework.</li></ul>
+<h2 id="concrete-next-steps-if-pursued">Concrete next steps (if pursued)</h2>
+<ol><li>Land the nested-records/relationships work (#1446), the modeling prerequisite.</li><li>Extract a <code>std.schema</code> introspection spine + move <code>to_openapi</code> into <code>std</code>.</li><li>Add <code>to_typescript()</code> (cheap, high-value) and <code>to_graphql_sdl()</code>.</li><li>Revisit Tier B (actions/hooks/calculations) only when a <code>schema_api</code> consumer asks for it.</li></ol>
+<p>Credits: the resource-and-projection framing is Ash's (MIT, © 2019 ash contributors). Aether deliberately takes the <em>idea</em> (one declaration, many pure projections) and not the framework/runtime.</p>
+<nav class="doc-prevnext" aria-label="Previous and next page"><a class="pn-prev" href="/Docs/liveview-lite-roadmap.html"><span class="pn-k">Previous</span><span class="pn-t">LiveView-lite, a roadmap (Phoenix LiveView, on actors, without the framework)</span></a><a class="pn-next" href="/Docs/locale-independent-float-text.html"><span class="pn-k">Next</span><span class="pn-t">Plan: locale-independent float text conversion (LC_NUMERIC correctness)</span></a></nav>
       </article>
     </main>
-    <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#what-were-trying-to-fix" class="l2" data-id="what-were-trying-to-fix">What we're trying to fix</a><a href="#the-design-space-and-why-we-picked-what-we-picked" class="l2" data-id="the-design-space-and-why-we-picked-what-we-picked">The design space, and why we picked what we picked</a><a href="#the-two-rulings-worth-unpacking" class="l3" data-id="the-two-rulings-worth-unpacking">The two rulings worth unpacking</a><a href="#the-two-were-building" class="l3" data-id="the-two-were-building">The two we're building</a><a href="#phase-1-supervision-primitives" class="l2" data-id="phase-1-supervision-primitives">Phase 1, supervision primitives</a><a href="#what-the-runtime-must-expose" class="l3" data-id="what-the-runtime-must-expose">What the runtime must expose</a><a href="#language--stdlib-surface" class="l3" data-id="language--stdlib-surface">Language / stdlib surface</a><a href="#supervisor-as-a-library-actor" class="l3" data-id="supervisor-as-a-library-actor">Supervisor as a library actor</a><a href="#phase-2-capability-scoped-concurrency" class="l2" data-id="phase-2-capability-scoped-concurrency">Phase 2, capability-scoped concurrency</a><a href="#what-the-compiler-must-enforce" class="l3" data-id="what-the-compiler-must-enforce">What the compiler must enforce</a><a href="#worked-example" class="l3" data-id="worked-example">Worked example</a><a href="#whats-not-in-scope" class="l2" data-id="whats-not-in-scope">What's not in scope</a><a href="#order-of-work" class="l2" data-id="order-of-work">Order of work</a><a href="#references" class="l2" data-id="references">References</a></nav>
+    <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#where-this-comes-from" class="l2" data-id="where-this-comes-from">Where this comes from</a><a href="#the-thesis-worth-stealing" class="l2" data-id="the-thesis-worth-stealing">The thesis worth stealing</a><a href="#the-strategic-line" class="l2" data-id="the-strategic-line">The strategic line</a><a href="#tiers" class="l2" data-id="tiers">Tiers</a><a href="#tier-a--projection-first-the-plan" class="l3" data-id="tier-a--projection-first-the-plan">Tier A, projection-first (the plan)</a><a href="#tier-b--modeling-depth-only-with-a-concrete-consumer" class="l3" data-id="tier-b--modeling-depth-only-with-a-concrete-consumer">Tier B, modeling depth (only with a concrete consumer)</a><a href="#tier-c--explicitly-out-of-scope" class="l3" data-id="tier-c--explicitly-out-of-scope">Tier C, explicitly out of scope</a><a href="#why-projection-first-is-the-right-first-bet-for-aether" class="l2" data-id="why-projection-first-is-the-right-first-bet-for-aether">Why projection-first is the right first bet for Aether</a><a href="#concrete-next-steps-if-pursued" class="l2" data-id="concrete-next-steps-if-pursued">Concrete next steps (if pursued)</a></nav>
   </div>
 </div>
 <script src="/docs.js" defer></script>

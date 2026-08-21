@@ -21,7 +21,11 @@ import subprocess
 import re
 import sys
 
-VERSION = "0.473"
+# Filled from the source tree's VERSION file in main(); the literal is only a
+# fallback for a checkout that has none. Typing it by hand is what let the site
+# sit 80 releases behind while claiming 0.473, and what let the footer drift
+# independently of the constant.
+VERSION = "0.562"
 GH = "https://github.com/aether-lang-dev/aether"
 SITE = "Aether"
 DOMAIN = "https://aether-lang.dev"
@@ -29,7 +33,7 @@ DOMAIN = "https://aether-lang.dev"
 # Curated sidebar grouping and reading order. Any doc whose slug is not listed
 # here is appended to "More" so nothing is ever silently dropped.
 GROUPS = [
-    ("Start", ["getting-started", "tutorial", "next-steps"]),
+    ("Start", ["getting-started", "tutorial"]),
     ("Language", [
         "language-reference", "type-inference-guide", "type-annotation-style-guide",
         "type-inference-multi-value-returns", "distinct-types", "sequences",
@@ -39,6 +43,7 @@ GROUPS = [
     ("Runtime", [
         "architecture", "actor-concurrency", "scheduler-quick-reference",
         "memory-management", "runtime-optimizations", "numa-support",
+        "message-tracing",
     ]),
     ("Interop", [
         "c-interop", "c-embedding", "emit-lib", "embedded-namespaces-and-host-bindings",
@@ -51,13 +56,16 @@ GROUPS = [
     ("Safety", ["containment-sandbox", "hide-and-seal", "config-is-code"]),
     ("Build & tooling", [
         "build-system", "formatter", "bindgen-consts", "install-layout",
-        "runtime-config", "per-process-config", "cic-help",
+        "runtime-config", "per-process-config", "cic-help", "cross-ios",
     ]),
+    ("Testing", ["testing", "mutation-testing", "differential-testing"]),
     ("Performance", ["performance-benchmarks", "profiling-guide", "allocators"]),
     ("Design & RFCs", [
         "structured-concurrency", "contract-folding", "error-unification",
         "compiler-trust-boundary", "json-parser-design", "aether_compared_to_capsicum",
         "isolated", "compile-time-eval", "dsl-without-macros", "lib-caller-info",
+        "liveview-lite-roadmap", "schema-projection-roadmap",
+        "locale-independent-float-text",
     ]),
     ("Contributing", [
         "stdlib-module-pattern", "stdlib-vs-contrib", "bootstrap-from-source",
@@ -106,14 +114,43 @@ def esc(s):
     return html.escape(s, quote=False)
 
 
+def esc_attr(s):
+    """Escape for an HTML ATTRIBUTE, quotes included.
+
+    esc() deliberately leaves quotes alone, which is right for text but broke
+    five pages: a doc whose first paragraph contains a double quote ended the
+    content="..." attribute early, and the rest of the sentence leaked out as
+    bogus attributes on the <meta> tag.
+    """
+    return html.escape(s, quote=True)
+
+
+# Slugs this run actually publishes. resolve_href consults it so a link to a
+# markdown file that is NOT published resolves to the file on GitHub instead of
+# a /Docs/ page that was never generated.
+PUBLISHED = set()
+
+
 def resolve_href(url):
     url = url.strip()
     if url.startswith(("http://", "https://", "mailto:", "//", "#")):
         return url
     m = re.match(r"^(?:\./)?([\w./-]+?)\.md(#.+)?$", url)
     if m:
-        base = m.group(1).split("/")[-1]
-        return "/Docs/%s.html%s" % (base, m.group(2) or "")
+        target, frag = m.group(1), m.group(2) or ""
+        # Links are written relative to the docs/ directory. Only a top-level
+        # docs/<slug>.md becomes a site page; everything else (repo-root
+        # CONTRIBUTING.md, docs/design/*, benchmarks/*) has no page, and
+        # rewriting it by basename produced a dead link. 14 of them were live
+        # on the site before this: /Docs/CONTRIBUTING.html, /Docs/README.html,
+        # /Docs/baseline.html and friends.
+        rel = os.path.normpath(os.path.join("docs", target)).replace(os.sep, "/")
+        base = target.split("/")[-1]
+        if rel == "docs/%s" % base and base in PUBLISHED:
+            return "/Docs/%s.html%s" % (base, frag)
+        if not rel.startswith(".."):
+            return "%s/blob/main/%s.md%s" % (GH, rel, frag)
+        return "%s/blob/main/%s.md%s" % (GH, base, frag)
     if url.startswith("../"):
         clean = url
         while clean.startswith("../"):
@@ -380,19 +417,82 @@ def doc_title(md, slug):
 
 
 def doc_description(md):
-    in_fence = False
+    """First real paragraph of a doc, as a meta description.
+
+    Reads a whole PARAGRAPH rather than one line. The source markdown is hard
+    wrapped, so taking a single line ended most descriptions mid-sentence
+    ("For consumers who want to build and use Aether straight from this").
+    A line ending in a colon only introduces a list or code block, so it is a
+    fragment too and the search continues past it.
+    """
+    def clean(text):
+        text = re.sub(r"[`*]", "", text)
+        text = re.sub(r"\[([^\]]+)\]\([^)]+\)", r"\1", text)
+        return re.sub(r"\s+", " ", text).strip()
+
+    def cut(text, limit=155):
+        if len(text) <= limit:
+            return text
+        head = text[:limit]
+        dot = max(head.rfind(". "), head.rfind("? "), head.rfind("! "))
+        if dot >= 80:
+            return head[:dot + 1]
+        sp = head.rfind(" ")
+        return (head[:sp] if sp >= 80 else head[:limit - 3]).rstrip(" ,;:") + "..."
+
+    paras, buf, in_fence, in_list = [], [], False, False
+
+    def flush():
+        if buf:
+            paras.append(" ".join(buf))
+            buf.clear()
+
     for ln in md.split("\n"):
         s = ln.strip()
         if s.startswith("```"):
             in_fence = not in_fence
+            in_list = False
+            flush()
             continue
-        if in_fence or not s or s.startswith(("#", ">", "|", "-", "*", "<")):
+        if in_fence:
             continue
-        text = re.sub(r"[`*]", "", s)
-        text = re.sub(r"\[([^\]]+)\]\([^)]+\)", r"\1", text)
-        text = re.sub(r"\s+", " ", text).strip()
+        if not s:
+            in_list = False
+            flush()
+            continue
+        # A list marker is the punctuation FOLLOWED BY A SPACE. Testing the
+        # bare character swallowed "**Contract folding** evaluates ..." as a
+        # bullet. And a wrapped bullet continues on an indented line with no
+        # marker of its own, which used to read as a fresh paragraph and gave
+        # descriptions starting mid-sentence ("full jitter, re-picks ...").
+        if (s[:2] in ("- ", "* ", "+ ")) or re.match(r"^\d+[.)] ", s):
+            in_list = True
+            flush()
+            continue
+        if in_list or s.startswith(("#", ">", "|", "<")):
+            flush()
+            continue
+        buf.append(s)
+    flush()
+
+    for raw in paras:
+        text = clean(raw)
+        if len(text) >= 60 and not text.endswith(":"):
+            return cut(text)
+        # A paragraph ending in a colon introduces a list, but the sentences
+        # BEFORE the colon are usually the best one-line summary the doc has
+        # ("nginx-class outbound HTTP forwarding for the Aether server.").
+        if text.endswith(":"):
+            head = text[:-1].rstrip()
+            dot = max(head.rfind(". "), head.rfind("? "), head.rfind("! "))
+            if dot >= 45:
+                return cut(head[:dot + 1])
+            if len(head) >= 45:
+                return cut(head)
+    for raw in paras:                      # never regress to the generic string
+        text = clean(raw)
         if len(text) > 30:
-            return (text[:152] + "...") if len(text) > 155 else text
+            return cut(text)
     return "Aether language documentation."
 
 
@@ -528,7 +628,7 @@ PAGE = """<!doctype html>
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.473 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v{version} &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>
@@ -559,11 +659,58 @@ PAGE = """<!doctype html>
 """
 
 
+def read_version(src_docs_dir):
+    """Version of the tree these docs come from, from its VERSION file.
+
+    The docs being published and the version stamped on them should be the
+    same thing, so it is read rather than typed. Trailing ".0" is dropped to
+    match how the site has always shown it ("v0.562", not "v0.562.0").
+    """
+    path = os.path.join(os.path.dirname(os.path.abspath(src_docs_dir)), "VERSION")
+    try:
+        with open(path, encoding="utf-8") as fh:
+            v = fh.read().strip()
+    except OSError:
+        return None
+    if not re.match(r"^\d+\.\d+(\.\d+)?$", v):
+        return None
+    return v[:-2] if v.endswith(".0") else v
+
+
+def stamp_standalone_pages(root, version):
+    """Put `version` on the hand-written pages (index / 404 / repl).
+
+    These are not generated, so they used to be edited by hand and fell out of
+    step with the docs. One command now leaves the whole site on one version.
+    """
+    n = 0
+    for name in ("index.html", "404.html", "repl.html"):
+        path = os.path.join(root, "static", name)
+        try:
+            with open(path, encoding="utf-8") as fh:
+                page = fh.read()
+        except OSError:
+            continue
+        before = page
+        page = re.sub(r'(?<=>)v\d+\.\d+(?:\.\d+)?(?=</span>)', "v" + version, page)
+        page = re.sub(r'v\d+\.\d+(?:\.\d+)?(?= &middot; pre-1\.0)', "v" + version, page)
+        page = re.sub(r'("softwareVersion":")\d+\.\d+(?:\.\d+)?(")',
+                      lambda m: m.group(1) + version + m.group(2), page)
+        if page != before:
+            with open(path, "w", encoding="utf-8") as fh:
+                fh.write(page)
+            n += 1
+    return n
+
+
 def main():
     here = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     src = os.path.expanduser(sys.argv[1] if len(sys.argv) > 1 else "~/Documents/git/aether/docs")
     out = sys.argv[2] if len(sys.argv) > 2 else os.path.join(here, "static", "Docs")
     os.makedirs(out, exist_ok=True)
+
+    global VERSION
+    VERSION = read_version(src) or VERSION
 
     docs = {}
     for name in sorted(os.listdir(src)):
@@ -573,6 +720,9 @@ def main():
         with open(os.path.join(src, name), encoding="utf-8") as fh:
             docs[slug] = fh.read()
 
+    PUBLISHED.clear()
+    PUBLISHED.update(docs)
+
     titles = {s: doc_title(md, s) for s, md in docs.items()}
     order = build_order(set(docs))
     index = []
@@ -581,9 +731,9 @@ def main():
         body = convert(md)
         headings = extract_headings(body)
         page = PAGE.format(
-            title=esc(strip_ticks(titles[slug])),
+            title=esc_attr(strip_ticks(titles[slug])),
             site=SITE,
-            desc=esc(doc_description(md)),
+            desc=esc_attr(doc_description(md)),
             gh=GH,
             version=VERSION,
             nav=sidebar(order, titles, slug),
@@ -635,6 +785,9 @@ def main():
                  '<link rel="canonical" href="/Docs/%s.html">' % (first, first))
 
     print("generated %d docs -> %s" % (len(docs), out))
+
+    stamped = stamp_standalone_pages(here, VERSION)
+    print("version %s stamped onto %d standalone page(s)" % (VERSION, stamped))
 
     # The pages above are emitted with a <link> to aether.css; inline_css.py
     # replaces it with the stylesheet's contents. Run it here so regenerated

@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Structured Concurrency for Aether, Design Direction · Aether</title>
-<meta name="description" content="Status: proposal. Nothing shipped yet. This doc captures the design choices we&#x27;ve committed to before writing code, so the implementation PRs have a...">
-<link rel="canonical" href="https://aether-lang.dev/Docs/structured-concurrency.html">
+<title>Mutation testing, std.mutation · Aether</title>
+<meta name="description" content="Mutation testing measures how good your tests are. It changes the code under test (the &quot;SUT&quot;) one tiny edit at a time, + becomes -, &gt; becomes &lt;, and...">
+<link rel="canonical" href="https://aether-lang.dev/Docs/mutation-testing.html">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Structured Concurrency for Aether, Design Direction · Aether">
-<meta property="og:description" content="Status: proposal. Nothing shipped yet. This doc captures the design choices we&#x27;ve committed to before writing code, so the implementation PRs have a...">
-<meta property="og:url" content="https://aether-lang.dev/Docs/structured-concurrency.html">
+<meta property="og:title" content="Mutation testing, std.mutation · Aether">
+<meta property="og:description" content="Mutation testing measures how good your tests are. It changes the code under test (the &quot;SUT&quot;) one tiny edit at a time, + becomes -, &gt; becomes &lt;, and...">
+<meta property="og:url" content="https://aether-lang.dev/Docs/mutation-testing.html">
 <meta property="og:image" content="https://aether-lang.dev/og.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="/favicon.png">
@@ -628,14 +628,14 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/cross-ios.html">Cross-compiling for iOS (arm64)</a>
 <div class="grp">Testing</div>
 <a href="/Docs/testing.html">Testing with std.spec and ae test</a>
-<a href="/Docs/mutation-testing.html">Mutation testing, std.mutation</a>
+<a href="/Docs/mutation-testing.html" class="on">Mutation testing, std.mutation</a>
 <a href="/Docs/differential-testing.html">Differential testing across lowering paths</a>
 <div class="grp">Performance</div>
 <a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
 <a href="/Docs/profiling-guide.html">Aether Runtime Profiling Guide</a>
 <a href="/Docs/allocators.html">Allocators</a>
 <div class="grp">Design & RFCs</div>
-<a href="/Docs/structured-concurrency.html" class="on">Structured Concurrency for Aether, Design Direction</a>
+<a href="/Docs/structured-concurrency.html">Structured Concurrency for Aether, Design Direction</a>
 <a href="/Docs/contract-folding.html">Compile-time contract folding, costed design</a>
 <a href="/Docs/error-unification.html">Unifying T? and (value, err), costed design</a>
 <a href="/Docs/compiler-trust-boundary.html">The Compiler Trust Boundary</a>
@@ -655,88 +655,68 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/release-glibc-portability.html">Release binary portability across glibc versions</a></nav>
     <main class="doc-main">
       <article class="doc-body" id="doc">
-        <div class="bc"><span class="prompt">$</span>docs / design &amp; rfcs</div>
-<h1 id="structured-concurrency-for-aether-design-direction">Structured Concurrency for Aether, Design Direction</h1>
-<p>Status: <strong>proposal</strong>. Nothing shipped yet. This doc captures the design choices we've committed to before writing code, so the implementation PRs have a target to aim at.</p>
-<h2 id="what-were-trying-to-fix">What we're trying to fix</h2>
-<p>Aether has actors. It does not have:</p>
-<ul><li><strong>A way for a parent to know when its children die.</strong> If an actor handler panics or exits, no notification reaches the actor that spawned it. Long-running supervisor patterns (Erlang-style restart-on-crash, graceful shutdown of a subtree) can't be written.</li><li><strong>Any containment on which actors a block can reach.</strong> A function body can send a message to any actor reference it can name, and <code>hide</code> / <code>seal except</code> don't extend that restriction to concurrency sites (spawn, <code>!</code>, <code>ask</code>). A sealed block can still talk to any actor whose handle happens to be in scope.</li></ul>
-<p>Both are fixable without fundamentally changing the actor model.</p>
-<h2 id="the-design-space-and-why-we-picked-what-we-picked">The design space, and why we picked what we picked</h2>
-<p>Six families of structured concurrency exist. The summary table:</p>
-<div class="tw"><table><thead><tr><th>Model</th><th>Fit for Aether</th><th>Verdict</th></tr></thead><tbody><tr><td>Nurseries / TaskGroups (Trio, Swift, Kotlin <code>coroutineScope</code>)</td><td>Needs a new "task" primitive distinct from actors</td><td>Possible, high cost</td></tr><tr><td>Supervision trees (Erlang/OTP, Akka)</td><td>Natural extension of existing actors</td><td><strong>Strong candidate</strong></td></tr><tr><td>Async/await (Rust, Kotlin, Swift)</td><td>Breaks run-to-completion, requires coloured functions</td><td>Ruled out</td></tr><tr><td>CSP / channels (Go, Clojure core.async)</td><td>Duplicates actor mailboxes</td><td>Ruled out</td></tr><tr><td>Fork-join (Cilk, Rayon, Java ForkJoinPool)</td><td>Complements actors for data parallelism</td><td>Nice-to-have, not core</td></tr><tr><td>Capability-scoped (E, Monte, Pony refcaps)</td><td>Builds on hide/seal, unique to Aether</td><td><strong>Strong candidate</strong></td></tr></tbody></table></div>
-<h3 id="the-two-rulings-worth-unpacking">The two rulings worth unpacking</h3>
-<p><strong>Async/await is ruled out</strong> because Aether's handlers are run-to-completion. Introducing suspension points inside a handler would break the invariant that makes the shared-nothing actor model safe: a handler either finishes or panics, it doesn't yield. Async/await would also force <strong>coloured functions</strong> (async vs sync), which splits the ecosystem, every stdlib function becomes two functions, every actor becomes two kinds. Aether's cooperative scheduler gets its simplicity from the run-to-completion rule, and async/await would throw that away.</p>
-<p><strong>CSP channels are ruled out</strong> because Aether already has actor mailboxes. A channel is a point-to-point typed queue with a send and a receive end; an actor's mailbox is exactly that with an identity attached. Adding channels on top would give users two ways to do the same thing and force stdlib authors to pick one, usually the wrong one for half their callers.</p>
-<h3 id="the-two-were-building">The two we're building</h3>
-<p><strong>Supervision trees</strong> solve the "who's responsible when a child dies" problem. They're a library-level pattern on top of primitives the runtime <em>doesn't yet expose but easily could</em>: actor failure notification. Parents register interest in a child; if the child dies, the parent gets a <code>Down { ref, reason }</code> message. Everything else, restart strategies, escalation, graceful shutdown, is ordinary actor code on top of that one primitive.</p>
-<p><strong>Capability-scoped concurrency</strong> solves the "who can reach whom" problem. Aether already has <code>hide</code> and <code>seal except</code> for compile-time capability denial on <em>variable</em> references. Extending that enforcement to <em>actor</em> references means a sealed block cannot <code>spawn</code> a type it can't name, cannot <code>!</code> a reference it can't see, and cannot <code>ask</code> an actor outside its whitelist. <strong>No new mechanism is needed</strong>, just the existing scope-denial check applied at two more compile-time sites (spawn, send).</p>
-<p>The two compose: a supervised subtree that is also sealed gives you both bounded lifetime and bounded blast radius.</p>
-<h2 id="phase-1-supervision-primitives">Phase 1, supervision primitives</h2>
-<p>The runtime change needed is small: actor failure notification.</p>
-<h3 id="what-the-runtime-must-expose">What the runtime must expose</h3>
-<ol><li>When an actor's handler returns abnormally (an explicit <code>exit(reason)</code>, or a panic caught by the scheduler), the scheduler delivers a <code>Down { ref, reason }</code> message to every actor that registered interest in the failed actor.</li><li>Registration is one of two kinds:<ul><li><strong>Monitor</strong>, one-way. I get a <code>Down</code> if it dies; it doesn't hear about me dying.</li><li><strong>Link</strong>, two-way (Erlang semantics). If either of us dies, the other gets a <code>Down</code>.</li></ul></li><li>Delivery is best-effort at-most-once, routed through the normal mailbox. No new transport.</li></ol>
-<h3 id="language--stdlib-surface">Language / stdlib surface</h3>
-<pre><code>// Builtins
-monitor(actor_ref) -&gt; monitor_id   // one-way
-link(actor_ref)                     // two-way
-demonitor(monitor_id)               // cancel monitor
-unlink(actor_ref)                   // cancel link
+        <div class="bc"><span class="prompt">$</span>docs / testing</div>
+<h1 id="mutation-testing--stdmutation">Mutation testing, <code>std.mutation</code></h1>
+<p>Mutation testing measures <strong>how good your tests are</strong>. It changes the code under test (the "SUT") one tiny edit at a time, <code>+</code> becomes <code>-</code>, <code>&gt;</code> becomes <code>&lt;</code>, and re-runs your test suite for each change. A change your tests <em>catch</em> is a <strong>killed</strong> mutant (good). A change that slips through is a <strong>survivor</strong>, proof your tests have a gap.</p>
+<p><code>std.mutation</code> is a small library (one entry point, <code>mutation.run</code>) with a runnable front-end at <code>examples/mutation-testing/mutate.ae</code>. It was adopted from the sunsetting aeocha repo's <code>contrib/mutate</code> and uses <code>std.spec</code> purely as an <strong>oracle</strong>, through the structured-report contract (<code>AE_SPEC_FORMAT</code> / <code>AE_SPEC_REPORT</code>, docs/testing.md).</p>
+<h2 id="why-its-an-outer-driver-not-a-test-helper">Why it's an outer driver (not a test helper)</h2>
+<p>The compiler has already run by the time any test executes, so a mutant can't be produced in-process, there's no source or AST left to perturb, only compiled machine code. Mutation therefore has to, once per mutant:</p>
+<ol><li>edit the SUT <strong>source on disk</strong> and clear the build cache,</li><li><strong><code>ae check</code></strong> the test, if the mutant doesn't type-check, it's <em>no-compile</em> (excluded from the score; a mutant that won't build was never really tested),</li><li><strong><code>ae build</code></strong> the test to a binary and run it with <code>AE_SPEC_FORMAT=aeocha</code> + <code>AE_SPEC_REPORT=&lt;file&gt;</code> set, <strong>reading the structured report</strong> from that file rather than scraping stdout. The report's <code>failed=N</code> is the verdict: <code>N &gt; 0</code> → killed, <code>N == 0</code> → survived.</li></ol>
+<p><code>mutation.run</code> is that outer loop; your test file is completely unaware mutation is happening. Using the structured report (not just a process exit code) is what lets the tool tell <em>killed</em> (a test actually failed) apart from <em>no-compile</em> (the mutation produced invalid code), so a non-compiling mutant never inflates the score by masquerading as a kill.</p>
+<blockquote>Compiler note: the no-compile gate greps <code>ae check</code>'s output for an <code>error[</code> diagnostic rather than trusting its exit code. On the current <code>ae</code>, both <code>ae check</code> and <code>ae build</code> can print a compile error to stderr yet still exit 0 (and <code>build</code> will even emit a binary linked against a stale module), see issue #953. Grepping the diagnostic is the reliable signal until that's fixed.</blockquote>
+<h2 id="usage">Usage</h2>
+<pre><code>ae run examples/mutation-testing/mutate.ae -- &lt;sut.ae&gt; &lt;test.ae&gt; [lib_dir]</code></pre>
+<p><code>lib_dir</code> is a module search dir handed to the per-mutant sub-builds via <code>AETHER_LIB_DIR</code>; it defaults to the SUT's directory (which is usually right, the test's <code>import &lt;sut-module&gt;</code> resolves there). The <code>ae</code> used for the sub-builds is <code>ae</code> on PATH, overridable with the <code>AE_BIN</code> environment variable (the in-tree regression harness points it at <code>build/ae</code>).</p>
+<p>Or from a program / build script:</p>
+<pre><code>import std.mutation
 
-// System message
-message Down {
-    ref: actor_ref
-    reason: string    // "normal", "killed", or a user-supplied atom
-}</code></pre>
-<h3 id="supervisor-as-a-library-actor">Supervisor as a library actor</h3>
-<p>No language-level supervisor primitive. A <code>std.supervise</code> module provides an ordinary actor type:</p>
-<pre><code>import std.supervise
+survivors = mutation.run(sut_path, test_path, "")
+// survivors &gt;= 0: run completed (0 = every compiling mutant killed)
+// survivors &lt; 0:  aborted (unreadable SUT, or baseline suite fails)</code></pre>
+<p>Worked example (from the repo root):</p>
+<pre><code>ae run examples/mutation-testing/mutate.ae -- \
+    examples/mutation-testing/lib/calc.ae \
+    examples/mutation-testing/lib/calc_test.ae</code></pre>
+<p><code>examples/mutation-testing/lib/</code> holds <code>calc.ae</code> (the code under test) plus <code>calc_test.ae</code> (its <code>std.spec</code> suite). Mutation testing asks how well that suite tests that code. Output:</p>
+<pre><code>Aether mutation testing (std.mutation)
+  SUT:  examples/mutation-testing/lib/calc.ae
+  test: examples/mutation-testing/lib/calc_test.ae
 
-main() {
-    sup = spawn(supervisor(strategy: "one_for_one")) {
-        child("worker_a", || spawn(WorkerA()))
-        child("worker_b", || spawn(WorkerB()))
-        child("db_writer", || spawn(DbWriter()))
-    }
-}</code></pre>
-<p>The supervisor actor internally links each child, handles <code>Down</code> messages according to its strategy, and decides whether to restart, escalate, or shut the subtree down. Strategies mirror Erlang: <code>one_for_one</code> (restart just the dead one), <code>one_for_all</code> (restart all siblings on any death), <code>rest_for_one</code> (restart the dead one and everything started after it).</p>
-<p>Note the builder-DSL shape (<code>spawn(...) { child(...) child(...) }</code>) uses the trailing-block + closure pattern that shipped with the closures and embedded-namespaces features. The supervisor actor is the <code>_ctx</code> holder; <code>child()</code> registers into it.</p>
-<h2 id="phase-2-capability-scoped-concurrency">Phase 2, capability-scoped concurrency</h2>
-<p>Once Phase 1 is in, this is a compile-time-only change. No new runtime mechanism.</p>
-<h3 id="what-the-compiler-must-enforce">What the compiler must enforce</h3>
-<p>In a block that contains <code>hide X</code> or <code>seal except Y, Z</code>, every concurrency site is checked against the same visibility rules already applied to ordinary reads:</p>
-<ul><li><code>spawn(X())</code> rejected if <code>X</code> is hidden or not on the seal whitelist.</li><li><code>ref ! Msg {}</code> rejected if <code>ref</code> is hidden or not whitelisted.</li><li><code>ref ? Request {}</code> (the <code>?</code> ask operator), same check on <code>ref</code>.</li></ul>
-<p>The error message reuses the existing <code>E0304</code> (hidden in this scope) diagnostic.</p>
-<h3 id="worked-example">Worked example</h3>
-<pre><code>sandbox("payment-handler") {
-    grant_tcp("payments.example.com")
-    seal except req, res, payment_client, logger
+  baseline: suite passes on unmutated SUT ✓
 
-    // This block can only see the five whitelisted names.
-    // It cannot spawn any actor type not named here.
-    // It cannot send to any actor reference not named here.
-    // It cannot ask any outside service.
+  killed     calc.ae:8  ADD-&gt;SUB
+  killed     calc.ae:11  SUB-&gt;ADD
+  killed     calc.ae:11  LT-&gt;GT
 
-    result = payment_client ? Charge { amount: req.amount }
-    if result != null {
-        logger ! Audit { who: req.user, what: "charged", amount: req.amount }
-        res.status = 200
-    } else {
-        res.status = 502
-    }
-}</code></pre>
-<p>The subtree rooted at this block has both lifetime containment (the <code>sandbox</code> scope's containment runtime) and capability containment (the <code>seal except</code> list). A malicious or buggy handler cannot spawn a crypto-miner actor because it cannot name one.</p>
-<h2 id="whats-not-in-scope">What's not in scope</h2>
-<ul><li><strong>Fork-join / <code>parallel_for</code></strong>, useful for data parallelism, does not solve the lifecycle or reachability problem. Can be added later as a narrow stdlib feature layered on the existing work-stealing scheduler. Not part of this design.</li><li><strong>Nurseries</strong>, would require a second concurrency primitive (lightweight tasks distinct from actors). High cost for small marginal benefit given the actor model already exists. Revisit only if users ask for it after Phases 1 and 2 ship.</li><li><strong>Channels</strong>, actors already cover this. No plan.</li></ul>
-<h2 id="order-of-work">Order of work</h2>
-<ol><li><strong>Runtime, <code>Down</code> message delivery.</strong> Scheduler catches handler exits, iterates the monitor/link table, enqueues <code>Down</code> messages.</li><li><strong>Builtins, <code>monitor</code>, <code>link</code>, <code>demonitor</code>, <code>unlink</code>.</strong> Thin wrappers over the runtime table.</li><li><strong><code>std.supervise</code> module.</strong> Supervisor actor type with the three strategies. Builder DSL for child registration.</li><li><strong>Tests.</strong> Restart-on-crash, escalation, graceful shutdown, monitor vs link asymmetry, double-death ordering.</li><li><strong>Compiler, capability-scoped spawn/send/ask.</strong> Extend existing <code>hide</code>/<code>seal except</code> denial to concurrency sites.</li><li><strong>Docs and worked example.</strong> Update <code>docs/actor-concurrency.md</code> with the supervision section. One worked example in <code>examples/actors/</code> showing a supervised, sealed subtree.</li></ol>
-<p>Phase 1 can ship without Phase 2. Phase 2 can ship independently once Phase 1 is in, they touch different compiler subsystems.</p>
-<h2 id="references">References</h2>
-<ul><li><a href="/Docs/actor-concurrency.html"><code>docs/actor-concurrency.md</code></a>, current actor runtime.</li><li><a href="/Docs/hide-and-seal.html"><code>docs/hide-and-seal.md</code></a>, existing capability-denial primitive that Phase 2 extends.</li><li><a href="/Docs/containment-sandbox.html"><code>docs/containment-sandbox.md</code></a>, filesystem / network capability grants, natural pairing with Phase 2.</li><li><a href="https://www.erlang.org/doc/design_principles/des_princ.html">Erlang OTP design principles</a> the supervision-tree pattern we're borrowing.</li><li><a href="https://vorpus.org/blog/notes-on-structured-concurrency-or-go-statement-considered-harmful/">Nathaniel Smith, <em>Notes on structured concurrency</em></a> the Trio post that named the pattern. Aether takes the "structure" part but not the nursery/task primitive.</li></ul>
-<nav class="doc-prevnext" aria-label="Previous and next page"><a class="pn-prev" href="/Docs/allocators.html"><span class="pn-k">Previous</span><span class="pn-t">Allocators</span></a><a class="pn-next" href="/Docs/contract-folding.html"><span class="pn-k">Next</span><span class="pn-t">Compile-time contract folding, costed design</span></a></nav>
+  3/3 mutants killed, mutation score 100%</code></pre>
+<p>100%, every single-operator change to <code>calc.ae</code> was caught by <code>calc_test.ae</code>. Each line is one mutant, anchored to its source location: <code>ADD-&gt;SUB</code> flips the <code>+</code> in <code>add</code>; <code>SUB-&gt;ADD</code> flips the <code>0 - n</code> in <code>abs</code>; <code>LT-&gt;GT</code> flips the <code>n &lt; 0</code> guard. The suite asserts both branches of <code>abs</code> and an addition with a negative, so all three are killed.</p>
+<h3 id="what-a-survivor-looks-like">What a survivor looks like</h3>
+<p>A survivor is the interesting case, it's a <em>test gap</em>. Delete the negative-input case from <code>calc_test.ae</code> (the <code>abs(-7)</code> assertion), and the <code>SUB-&gt;ADD</code> mutant suddenly survives:</p>
+<pre><code>  killed     calc.ae:8  ADD-&gt;SUB
+  SURVIVED   calc.ae:11  SUB-&gt;ADD
+  killed     calc.ae:11  LT-&gt;GT
+
+  2/3 mutants killed, mutation score 66%
+  1 survived (test gaps):
+    - calc.ae:11  SUB-&gt;ADD</code></pre>
+<p><code>SUB-&gt;ADD</code> flips the <code>0 - n</code> in <code>abs</code> to <code>0 + n</code>, which only changes the result for a <em>negative</em> input. With <code>abs(-7)</code> removed, nothing feeds <code>abs</code> a negative, so the mutant goes unnoticed. (Note <code>LT-&gt;GT</code> is still killed: flipping the <code>n &lt; 0</code> guard sends the positive <code>abs(7)</code> down the negation branch, and that case is still tested.) Add the negative-input assertion back and <code>SUB-&gt;ADD</code> returns to killed. That is the whole point, survivors are your missing tests.</p>
+<h2 id="mutation-operators-core-set">Mutation operators (core set)</h2>
+<p>Operator mutators are matched <strong>whitespace-padded</strong> (<code>" + "</code>, <code>" &gt; "</code>), so normal Aether spacing is required for a site to be seen, and a padded operator that sits <em>inside a string literal</em> is skipped (the tool tracks string boundaries, so <code>"a + b"</code> in your code is never mutated as arithmetic).</p>
+<div class="tw"><table><thead><tr><th>Operator</th><th>Mutation</th></tr></thead><tbody><tr><td><code>+</code> ↔ <code>-</code></td><td>arithmetic</td></tr><tr><td><code>*</code> → <code>/</code></td><td>arithmetic</td></tr><tr><td><code>&gt;</code> <code>&lt;</code> <code>&gt;=</code> <code>&lt;=</code></td><td>comparison flips</td></tr><tr><td><code>==</code> ↔ <code>!=</code></td><td>equality flips</td></tr><tr><td><code>&amp;&amp;</code> ↔ <code>\|\|</code></td><td>boolean</td></tr></tbody></table></div>
+<p>String-literal mutators target the literal's <em>content</em> (quotes preserved):</p>
+<div class="tw"><table><thead><tr><th>Mutator</th><th>Mutation</th></tr></thead><tbody><tr><td><code>STR-&gt;EMPTY</code></td><td>a non-empty <code>"foo"</code> → <code>""</code> (catches tests that don't pin the returned string)</td></tr><tr><td><code>EMPTY-&gt;NONEMPTY</code></td><td>an empty <code>""</code> → a sentinel (catches an unchecked empty-string case)</td></tr></tbody></table></div>
+<h2 id="reading-the-result">Reading the result</h2>
+<ul><li><strong>Mutation score</strong> = killed / (killed + survived). Higher is better; 100% means every single-operator change that <em>compiled</em> was caught by some test.</li><li><strong>Survivors</strong> are your to-do list: each one is reported as <code>file:line  MUTATION</code> so you can jump straight to the unguarded code. Either add a test that distinguishes it, or convince yourself it's an <em>equivalent mutant</em> (see caveats).</li><li><strong>No-compile</strong> mutants (the mutation produced invalid code) are reported as <code>(N excluded, did not compile)</code> and left out of the denominator, they were never really tested, so they neither help nor hurt the score. With the core operator set they're rare (most operator swaps stay valid), but the category keeps the score honest when they happen.</li></ul>
+<h2 id="honest-limitations">Honest limitations</h2>
+<p>This is a Tier-1, text-based tool. Know what it does and doesn't do:</p>
+<ul><li><strong>Text, not AST.</strong> Operators are matched as padded tokens, so <code>++</code>, <code>+=</code>, and operators that abut other characters are skipped. The tool <em>is</em> string-boundary aware, a padded operator inside a <code>"..."</code> literal won't be mutated as code, and string-literal mutators only touch real literals. The remaining blind spot is <strong>comments</strong>: a <code>"..."</code> or a padded operator written in a <code>//</code> comment is still treated as source, so it can produce a harmless false mutant (it changes nothing the suite sees → survives). Keep operator/quote characters out of comments in a SUT you mutate, or expect a stray survivor.</li><li><strong>Equivalent mutants.</strong> Some changes don't alter behaviour (e.g. <code>&lt;</code> → <code>&lt;=</code> on a boundary your code never reaches). They "survive" without being real gaps. This is inherent to mutation testing, not a bug here.</li><li><strong>Slow.</strong> Every mutant pays a cache-clear + <code>ae check</code> + <code>ae build</code> + run, and the cache-clear is mandatory (an imported-module edit doesn't invalidate the cache, so you'd otherwise test a stale build). Three compiler invocations per mutant, no warm-cache reuse, point it at a focused SUT, not your whole codebase.</li><li><strong>Crash safety.</strong> The driver restores the original SUT at the end of the run (the regression fixtures verify byte-identical restore). But it mutates the real file in place, so if the driver is killed mid-run (Ctrl-C, OOM), the SUT is left mutated, recover with <code>git checkout &lt;sut.ae&gt;</code>. Run it on a clean working tree.</li><li><strong>POSIX-only.</strong> The oracle shells out through <code>/bin/sh</code> and <code>os.run_pipe_drain_and_wait</code>; Windows is not supported.</li></ul>
+<h2 id="the-upgrade-path-why-this-lives-in-the-aether-tree">The upgrade path (why this lives in the aether tree)</h2>
+<p>Every limitation above is a compiler-adjacency problem: text-based mutation can produce mutants a parser would never emit; every mutant pays full rebuilds; there's no equivalent-mutant detection; and the #953 grep-workaround exists only because the tool used to sit outside the compiler. Precise, false-mutant-free mutation needs <strong>AST-level edits</strong>, operator sites from the real parser, positions from <code>ae inspect</code>-grade data, perhaps an <code>ae mutate</code> subcommand. Adopting the Tier-1 tool into the tree puts that upgrade path where the compiler is.</p>
+<p>Regression coverage: <code>tests/integration/mutation_testing/</code> (a deterministic operator fixture pinning <code>1/2 … 50%</code> with a MUL→DIV survivor and byte-identical SUT restore, plus a string-literal fixture covering the boundary-awareness skip).</p>
+<nav class="doc-prevnext" aria-label="Previous and next page"><a class="pn-prev" href="/Docs/testing.html"><span class="pn-k">Previous</span><span class="pn-t">Testing with std.spec and ae test</span></a><a class="pn-next" href="/Docs/differential-testing.html"><span class="pn-k">Next</span><span class="pn-t">Differential testing across lowering paths</span></a></nav>
       </article>
     </main>
-    <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#what-were-trying-to-fix" class="l2" data-id="what-were-trying-to-fix">What we're trying to fix</a><a href="#the-design-space-and-why-we-picked-what-we-picked" class="l2" data-id="the-design-space-and-why-we-picked-what-we-picked">The design space, and why we picked what we picked</a><a href="#the-two-rulings-worth-unpacking" class="l3" data-id="the-two-rulings-worth-unpacking">The two rulings worth unpacking</a><a href="#the-two-were-building" class="l3" data-id="the-two-were-building">The two we're building</a><a href="#phase-1-supervision-primitives" class="l2" data-id="phase-1-supervision-primitives">Phase 1, supervision primitives</a><a href="#what-the-runtime-must-expose" class="l3" data-id="what-the-runtime-must-expose">What the runtime must expose</a><a href="#language--stdlib-surface" class="l3" data-id="language--stdlib-surface">Language / stdlib surface</a><a href="#supervisor-as-a-library-actor" class="l3" data-id="supervisor-as-a-library-actor">Supervisor as a library actor</a><a href="#phase-2-capability-scoped-concurrency" class="l2" data-id="phase-2-capability-scoped-concurrency">Phase 2, capability-scoped concurrency</a><a href="#what-the-compiler-must-enforce" class="l3" data-id="what-the-compiler-must-enforce">What the compiler must enforce</a><a href="#worked-example" class="l3" data-id="worked-example">Worked example</a><a href="#whats-not-in-scope" class="l2" data-id="whats-not-in-scope">What's not in scope</a><a href="#order-of-work" class="l2" data-id="order-of-work">Order of work</a><a href="#references" class="l2" data-id="references">References</a></nav>
+    <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#why-its-an-outer-driver-not-a-test-helper" class="l2" data-id="why-its-an-outer-driver-not-a-test-helper">Why it's an outer driver (not a test helper)</a><a href="#usage" class="l2" data-id="usage">Usage</a><a href="#what-a-survivor-looks-like" class="l3" data-id="what-a-survivor-looks-like">What a survivor looks like</a><a href="#mutation-operators-core-set" class="l2" data-id="mutation-operators-core-set">Mutation operators (core set)</a><a href="#reading-the-result" class="l2" data-id="reading-the-result">Reading the result</a><a href="#honest-limitations" class="l2" data-id="honest-limitations">Honest limitations</a><a href="#the-upgrade-path-why-this-lives-in-the-aether-tree" class="l2" data-id="the-upgrade-path-why-this-lives-in-the-aether-tree">The upgrade path (why this lives in the aether tree)</a></nav>
   </div>
 </div>
 <script src="/docs.js" defer></script>

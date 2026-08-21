@@ -171,7 +171,7 @@ a{color:inherit;text-decoration:none}
 
 /* section head */
 .sec-head{display:flex;align-items:baseline;gap:14px;margin:0 0 22px}
-.sec-head h2{font-family:var(--mono);font-size:1.15rem;font-weight:700;letter-spacing:-.01em;margin:0}
+.sec-head h1,.sec-head h2{font-family:var(--mono);font-size:1.15rem;font-weight:700;letter-spacing:-.01em;margin:0}
 .sec-head .rule{flex:1;height:1px;background:var(--line)}
 
 /* code */
@@ -358,7 +358,7 @@ body::after{content:"";position:fixed;inset:0;z-index:3;pointer-events:none;opac
 
 /* prompt accents on section headings */
 .prompt{color:var(--red);margin-right:.5ch}
-.sec-head h2 .prompt{font-weight:400}
+.sec-head h1 .prompt,.sec-head h2 .prompt{font-weight:400}
 
 /* prompt-styled ghost button */
 .btn-term{font-family:var(--mono);font-size:14px;padding:11px 18px;border-radius:6px;
@@ -570,7 +570,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.473</span>
+      <span class="vtag">v0.562</span>
     </nav>
   </div>
 </header>
@@ -600,6 +600,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/memory-management.html">Aether Memory Management</a>
 <a href="/Docs/runtime-optimizations.html">Runtime Optimizations</a>
 <a href="/Docs/numa-support.html">NUMA Support in Aether</a>
+<a href="/Docs/message-tracing.html">Message tracing</a>
 <div class="grp">Interop</div>
 <a href="/Docs/c-interop.html">C Interoperability</a>
 <a href="/Docs/c-embedding.html">Embedding Aether Actors in C Applications</a>
@@ -624,6 +625,11 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/runtime-config.html">Runtime Configuration - Quick Reference</a>
 <a href="/Docs/per-process-config.html">Per-process configuration in Aether</a>
 <a href="/Docs/cic-help.html">ae help &lt;script&gt; Offline diagnostics for config-IS-code</a>
+<a href="/Docs/cross-ios.html">Cross-compiling for iOS (arm64)</a>
+<div class="grp">Testing</div>
+<a href="/Docs/testing.html">Testing with std.spec and ae test</a>
+<a href="/Docs/mutation-testing.html">Mutation testing, std.mutation</a>
+<a href="/Docs/differential-testing.html">Differential testing across lowering paths</a>
 <div class="grp">Performance</div>
 <a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
 <a href="/Docs/profiling-guide.html">Aether Runtime Profiling Guide</a>
@@ -639,6 +645,9 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
 <a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn't need macro_rules!</a>
 <a href="/Docs/lib-caller-info.html">--emit=lib caller-info channel</a>
+<a href="/Docs/liveview-lite-roadmap.html">LiveView-lite, a roadmap (Phoenix LiveView, on actors, without the framework)</a>
+<a href="/Docs/schema-projection-roadmap.html">std.schema, a projection-first roadmap (Ash, without the framework)</a>
+<a href="/Docs/locale-independent-float-text.html">Plan: locale-independent float text conversion (LC_NUMERIC correctness)</a>
 <div class="grp">Contributing</div>
 <a href="/Docs/stdlib-module-pattern.html">Aether Stdlib Module Pattern</a>
 <a href="/Docs/stdlib-vs-contrib.html">std/ vs contrib/ placement decisions</a>
@@ -652,22 +661,22 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <p>Aether implements a type inference system that automatically deduces types from context, reducing the need for explicit type annotations in most cases.</p>
 <h2 id="basic-inference">Basic Inference</h2>
 <h3 id="from-literals">From Literals</h3>
-<pre><code>x = <span class="num">42</span>              <span class="com">// inferred: int</span>
-pi = <span class="num">3.14</span>           <span class="com">// inferred: float</span>
-name = <span class="str">"Alice"</span>      <span class="com">// inferred: string</span>
-flag = <span class="kw">true</span>         <span class="com">// inferred: bool</span>
-p = <span class="kw">null</span>            <span class="com">// inferred: ptr</span></code></pre>
+<pre><code>x = 42              // inferred: int
+pi = 3.14           // inferred: float
+name = "Alice"      // inferred: string
+flag = true         // inferred: bool
+p = null            // inferred: ptr</code></pre>
 <p>A bare integer literal always infers as <code>int</code> there is no <code>long</code> literal or <code>long &lt;value&gt;</code> prefix. To get a <code>long</code> (64-bit) binding, annotate the declaration explicitly:</p>
-<pre><code>big = <span class="num">0</span>             <span class="com">// inferred: int</span>
-<span class="fn">long</span> wide = <span class="num">0</span>       <span class="com">// explicit: long (64-bit)</span></code></pre>
+<pre><code>big = 0             // inferred: int
+long wide = 0       // explicit: long (64-bit)</code></pre>
 <h3 id="from-expressions">From Expressions</h3>
-<pre><code>a = <span class="num">10</span>
-b = <span class="num">20</span>
-sum = a + b           <span class="com">// inferred: int (both operands are int)</span>
+<pre><code>a = 10
+b = 20
+sum = a + b           // inferred: int (both operands are int)
 
-x = <span class="num">3.14</span>
-y = <span class="num">2.0</span>
-result = x * y        <span class="com">// inferred: float</span></code></pre>
+x = 3.14
+y = 2.0
+result = x * y        // inferred: float</code></pre>
 <h3 id="from-functions">From Functions</h3>
 <pre><code><span class="com">// Return type inferred from return statement</span>
 add(a, b) {
@@ -708,54 +717,54 @@ main() {
 }</code></pre>
 <p>Struct fields infer their types from the initialisation site. A struct declared with bare field names (no <code>: type</code>) and never initialised keeps the fields at the parser's fallback type. Always initialise via a struct literal at least once, or annotate the field explicitly.</p>
 <h3 id="array-elements">Array Elements</h3>
-<pre><code>nums = [<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>, <span class="num">4</span>, <span class="num">5</span>]             <span class="com">// inferred: int[]</span>
-names = [<span class="str">"Alice"</span>, <span class="str">"Bob"</span>]           <span class="com">// inferred: string[]</span>
-mixed_ok = [<span class="num">1.0</span>, <span class="num">2.0</span>, <span class="num">3.0</span>]         <span class="com">// inferred: float[]</span></code></pre>
+<pre><code>nums = [1, 2, 3, 4, 5]             // inferred: int[]
+names = ["Alice", "Bob"]           // inferred: string[]
+mixed_ok = [1.0, 2.0, 3.0]         // inferred: float[]</code></pre>
 <h3 id="through-assignments">Through Assignments</h3>
-<pre><code>x = <span class="num">42</span>            <span class="com">// x: int</span>
-y = x             <span class="com">// y: int (inferred from x)</span>
-z = y + <span class="num">10</span>        <span class="com">// z: int (inferred from y + int)</span></code></pre>
+<pre><code>x = 42            // x: int
+y = x             // y: int (inferred from x)
+z = y + 10        // z: int (inferred from y + int)</code></pre>
 <h2 id="when-to-use-explicit-types">When to Use Explicit Types</h2>
 <p>While inference handles most cases, explicit types are useful for:</p>
 <h3 id="1-function-signatures-documentation">1. Function Signatures (Documentation)</h3>
-<pre><code><span class="com">// Explicit types make intent clear</span>
-calculate_damage(base: <span class="fn">int</span>, defense: <span class="fn">int</span>): <span class="fn">int</span> {
-    <span class="kw">return</span> base - defense
+<pre><code>// Explicit types make intent clear
+calculate_damage(base: int, defense: int): int {
+    return base - defense
 }
 
-<span class="com">// vs inferred (less clear to reader)</span>
+// vs inferred (less clear to reader)
 calculate_damage(base, defense) {
-    <span class="kw">return</span> base - defense
+    return base - defense
 }</code></pre>
 <h3 id="2-complex-scenarios">2. Complex Scenarios</h3>
-<pre><code><span class="com">// When inference might be ambiguous</span>
-process_data(input: <span class="fn">float</span>[]) {
-    <span class="com">// Explicit type ensures correct interpretation</span>
+<pre><code>// When inference might be ambiguous
+process_data(input: float[]) {
+    // Explicit type ensures correct interpretation
 }</code></pre>
 <h3 id="3-public-apis">3. Public APIs</h3>
-<pre><code><span class="com">// Export with explicit types for clarity</span>
-<span class="kw">export</span> calculate_score(kills: <span class="fn">int</span>, deaths: <span class="fn">int</span>, assists: <span class="fn">int</span>): <span class="fn">float</span> {
-    <span class="kw">return</span> (kills + assists / <span class="num">2.0</span>) / (deaths + <span class="num">1</span>)
+<pre><code>// Export with explicit types for clarity
+export calculate_score(kills: int, deaths: int, assists: int): float {
+    return (kills + assists / 2.0) / (deaths + 1)
 }</code></pre>
 <h2 id="mixed-explicitinferred">Mixed Explicit/Inferred</h2>
 <p>You can mix explicit and inferred types:</p>
-<pre><code><span class="com">// Some parameters explicit, some inferred</span>
-process(data, threshold: <span class="fn">int</span>) {
-    <span class="kw">return</span> data &gt; threshold   <span class="com">// data type inferred from usage</span>
+<pre><code>// Some parameters explicit, some inferred
+process(data, threshold: int) {
+    return data &gt; threshold   // data type inferred from usage
 }
 
-<span class="com">// Explicit return, inferred parameters</span>
-format_name(first, last): <span class="fn">string</span> {
-    <span class="kw">return</span> <span class="str">"${first} ${last}"</span>  <span class="com">// parameters inferred as string</span>
+// Explicit return, inferred parameters
+format_name(first, last): string {
+    return "${first} ${last}"  // parameters inferred as string
 }</code></pre>
 <h2 id="how-inference-works-internally">How Inference Works Internally</h2>
 <h3 id="phase-1-constraint-collection">Phase 1: Constraint Collection</h3>
 <p>The compiler walks the AST and collects type constraints:</p>
-<pre><code>x = <span class="num">42</span>
-<span class="com">// Constraint: x must be int (from literal 42)</span>
+<pre><code>x = 42
+// Constraint: x must be int (from literal 42)
 
-y = x + <span class="num">10</span>
-<span class="com">// Constraint: y must be int (from x:int + 10:int)</span></code></pre>
+y = x + 10
+// Constraint: y must be int (from x:int + 10:int)</code></pre>
 <h3 id="phase-2-constraint-solving">Phase 2: Constraint Solving</h3>
 <p>Constraints are propagated iteratively until all types are known:</p>
 <pre><code>Iteration 1: x = int (from literal)
@@ -763,38 +772,38 @@ Iteration 2: y = int (from x + int)
 Done: All types resolved</code></pre>
 <h3 id="phase-3-validation">Phase 3: Validation</h3>
 <p>Once inferred, types are validated for consistency:</p>
-<pre><code>x = <span class="num">42</span>
-x = <span class="str">"hello"</span>   <span class="com">// rejected at the C-compile stage (-Wint-conversion),</span>
-              <span class="com">// not by an Aether type-inference diagnostic</span></code></pre>
+<pre><code>x = 42
+x = "hello"   // rejected at the C-compile stage (-Wint-conversion),
+              // not by an Aether type-inference diagnostic</code></pre>
 <h2 id="null-and-pointer-inference">Null and Pointer Inference</h2>
 <p>The <code>null</code> keyword is typed as <code>ptr</code>:</p>
-<pre><code>conn = <span class="kw">null</span>                  <span class="com">// inferred: ptr</span>
-conn = tcp_connect_raw(...)  <span class="com">// still ptr, type is consistent</span></code></pre>
+<pre><code>conn = null                  // inferred: ptr
+conn = tcp_connect_raw(...)  // still ptr, type is consistent</code></pre>
 <p>Integer <code>0</code> interoperates with <code>ptr</code> only in limited cases. Assigning <code>0</code> to a variable that is already <code>ptr</code>-typed is fine (a null slot). But <code>0</code>-first-then-<code>ptr</code> widening is not a general rule: the pass in <code>compiler/analysis/type_inference.c</code> (<code>widen_ptr_assigned_locals</code>) only retypes a <code>0</code>-initialized local as <code>ptr</code> when that local lives inside a <code>ptr</code>-returning function. The same pattern in a plain <code>int</code>-returning <code>main()</code> keeps the local as <code>int</code> and fails to compile with <code>incompatible pointer to integer conversion</code>:</p>
-<pre><code>listen(): <span class="fn">ptr</span> {
-    server = <span class="num">0</span>                   <span class="com">// widened to ptr: this function returns ptr</span>
-    server = tcp_listen_raw(<span class="num">80</span>)  <span class="com">// OK</span>
-    <span class="kw">return</span> server
+<pre><code>listen(): ptr {
+    server = 0                   // widened to ptr: this function returns ptr
+    server = tcp_listen_raw(80)  // OK
+    return server
 }</code></pre>
 <h3 id="constants">Constants</h3>
 <p>Top-level <code>const</code> declarations infer their type from the value:</p>
-<pre><code><span class="kw">const</span> MAX = <span class="num">100</span>          <span class="com">// inferred: int</span>
-<span class="kw">const</span> NAME = <span class="str">"hello"</span>     <span class="com">// inferred: string</span></code></pre>
+<pre><code>const MAX = 100          // inferred: int
+const NAME = "hello"     // inferred: string</code></pre>
 <h2 id="edge-cases">Edge Cases</h2>
 <h3 id="ambiguous-types">Ambiguous Types</h3>
 <p>A local declaration uses C-style prefix syntax (<code>type name = value</code>), not the postfix <code>name: type</code> form. A bare <code>x: int</code> local does not parse; it reports <code>error[E0100]: Expected statement in block</code>. Postfix <code>name: type</code> is valid only for function parameters and struct fields.</p>
-<pre><code><span class="com">// Give the local an explicit type up front</span>
-<span class="fn">int</span> x = get_value()   <span class="com">// OK - x is int</span></code></pre>
+<pre><code>// Give the local an explicit type up front
+int x = get_value()   // OK - x is int</code></pre>
 <h3 id="generic-functions">Generic Functions</h3>
-<pre><code><span class="com">// Currently not supported - specify explicit types</span>
-identity(x: <span class="fn">int</span>): <span class="fn">int</span> {
-    <span class="kw">return</span> x
+<pre><code>// Currently not supported - specify explicit types
+identity(x: int): int {
+    return x
 }
 
-<span class="com">// Future: Generic type parameters</span>
-<span class="com">// identity&lt;T&gt;(x: T): T {</span>
-<span class="com">//     return x</span>
-<span class="com">// }</span></code></pre>
+// Future: Generic type parameters
+// identity&lt;T&gt;(x: T): T {
+//     return x
+// }</code></pre>
 <h2 id="performance-impact">Performance Impact</h2>
 <p>Type inference happens at <strong>compile-time only</strong>:</p>
 <ul><li>Zero runtime overhead</li><li>Same generated C code as explicit types</li><li>Full type safety maintained</li><li>No performance difference</li></ul>
@@ -854,7 +863,7 @@ main() {
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.473 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.562 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

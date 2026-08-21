@@ -171,7 +171,7 @@ a{color:inherit;text-decoration:none}
 
 /* section head */
 .sec-head{display:flex;align-items:baseline;gap:14px;margin:0 0 22px}
-.sec-head h2{font-family:var(--mono);font-size:1.15rem;font-weight:700;letter-spacing:-.01em;margin:0}
+.sec-head h1,.sec-head h2{font-family:var(--mono);font-size:1.15rem;font-weight:700;letter-spacing:-.01em;margin:0}
 .sec-head .rule{flex:1;height:1px;background:var(--line)}
 
 /* code */
@@ -358,7 +358,7 @@ body::after{content:"";position:fixed;inset:0;z-index:3;pointer-events:none;opac
 
 /* prompt accents on section headings */
 .prompt{color:var(--red);margin-right:.5ch}
-.sec-head h2 .prompt{font-weight:400}
+.sec-head h1 .prompt,.sec-head h2 .prompt{font-weight:400}
 
 /* prompt-styled ghost button */
 .btn-term{font-family:var(--mono);font-size:14px;padding:11px 18px;border-radius:6px;
@@ -570,7 +570,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.473</span>
+      <span class="vtag">v0.562</span>
     </nav>
   </div>
 </header>
@@ -600,6 +600,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/memory-management.html">Aether Memory Management</a>
 <a href="/Docs/runtime-optimizations.html">Runtime Optimizations</a>
 <a href="/Docs/numa-support.html">NUMA Support in Aether</a>
+<a href="/Docs/message-tracing.html">Message tracing</a>
 <div class="grp">Interop</div>
 <a href="/Docs/c-interop.html">C Interoperability</a>
 <a href="/Docs/c-embedding.html">Embedding Aether Actors in C Applications</a>
@@ -624,6 +625,11 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/runtime-config.html">Runtime Configuration - Quick Reference</a>
 <a href="/Docs/per-process-config.html">Per-process configuration in Aether</a>
 <a href="/Docs/cic-help.html">ae help &lt;script&gt; Offline diagnostics for config-IS-code</a>
+<a href="/Docs/cross-ios.html">Cross-compiling for iOS (arm64)</a>
+<div class="grp">Testing</div>
+<a href="/Docs/testing.html">Testing with std.spec and ae test</a>
+<a href="/Docs/mutation-testing.html">Mutation testing, std.mutation</a>
+<a href="/Docs/differential-testing.html">Differential testing across lowering paths</a>
 <div class="grp">Performance</div>
 <a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
 <a href="/Docs/profiling-guide.html">Aether Runtime Profiling Guide</a>
@@ -639,6 +645,9 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
 <a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn't need macro_rules!</a>
 <a href="/Docs/lib-caller-info.html">--emit=lib caller-info channel</a>
+<a href="/Docs/liveview-lite-roadmap.html">LiveView-lite, a roadmap (Phoenix LiveView, on actors, without the framework)</a>
+<a href="/Docs/schema-projection-roadmap.html">std.schema, a projection-first roadmap (Ash, without the framework)</a>
+<a href="/Docs/locale-independent-float-text.html">Plan: locale-independent float text conversion (LC_NUMERIC correctness)</a>
 <div class="grp">Contributing</div>
 <a href="/Docs/stdlib-module-pattern.html">Aether Stdlib Module Pattern</a>
 <a href="/Docs/stdlib-vs-contrib.html">std/ vs contrib/ placement decisions</a>
@@ -722,7 +731,12 @@ node hello.js</code></pre>
 <pre><code>ae add github.com/user/repo          <span class="com"># latest from GitHub</span>
 ae add github.com/user/repo@v1.<span class="num">0.0</span>   <span class="com"># specific version</span>
 ae add gitlab.com/user/repo           <span class="com"># GitLab</span>
-ae add codeberg.org/user/repo         <span class="com"># Codeberg</span></code></pre>
+ae add codeberg.org/user/repo         <span class="com"># Codeberg</span>
+ae add github.com/user/repo@v1.<span class="num">0.0</span> --source   <span class="com"># force the git clone</span></code></pre>
+<p>With <code>@version</code>, <code>ae add</code> prefers a <strong>published release artifact</strong> when the package ships one for your platform, and falls back to cloning otherwise. The asset is expected at the same layout Aether's own releases use:</p>
+<pre><code>https://&lt;package&gt;/releases/download/&lt;tag&gt;/&lt;repo&gt;-&lt;tag&gt;-&lt;os&gt;-&lt;arch&gt;.tar.gz</code></pre>
+<p>(<code>.zip</code> is tried too; <code>&lt;os&gt;-&lt;arch&gt;</code> is <code>linux-x86_64</code>, <code>macos-arm64</code>, and so on.) A sibling <code>&lt;asset&gt;.sha256</code> is verified when present, a <strong>mismatch is fatal and installs nothing</strong>, and there is no silent fall-back to git, which would defeat the check. An artifact with no published checksum installs with a warning.</p>
+<p>Prebuilt <code>--emit=lib</code> artifacts are directly importable: the binary-import prepass reads the artifact's catalog and synthesizes the interface, so a released library needs no toolchain to consume. Set <code>AE_RELEASE_BASE_URL</code> to point at an internal mirror serving the same layout.</p>
 <h2 id="error-handling">Error Handling</h2>
 <p>Functions that can fail return <code>(value, error)</code> tuples. Check the error first, handle it, then continue, no <code>else</code> needed:</p>
 <pre><code>safe_divide(a: <span class="fn">int</span>, b: <span class="fn">int</span>) -&gt; {
@@ -746,19 +760,19 @@ main() {
 }</code></pre>
 <h2 id="function-contracts-requires--ensures">Function Contracts (<code>requires</code> / <code>ensures</code>)</h2>
 <p>Aether supports Eiffel-style runtime contracts, pre/postconditions you attach directly to a function declaration. They document intent at the boundary, fire as <code>aether_panic</code> on violation (which prints the failed predicate by name), and elide entirely when the predicate is provably constant-true at compile time.</p>
-<pre><code>add(a: <span class="fn">int</span>, b: <span class="fn">int</span>) -&gt; <span class="fn">int</span>
-    <span class="kw">requires</span> a &gt;= <span class="num">0</span>
-    <span class="kw">requires</span> b &gt;= <span class="num">0</span>
-    <span class="kw">ensures</span> result &gt;= a
-    <span class="kw">ensures</span> result &gt;= b
+<pre><code>add(a: int, b: int) -&gt; int
+    requires a &gt;= 0
+    requires b &gt;= 0
+    ensures result &gt;= a
+    ensures result &gt;= b
 {
-    <span class="kw">return</span> a + b
+    return a + b
 }
 
-safe_div(a: <span class="fn">int</span>, b: <span class="fn">int</span>) -&gt; <span class="fn">int</span>
-    <span class="kw">requires</span> b != <span class="num">0</span>
+safe_div(a: int, b: int) -&gt; int
+    requires b != 0
 {
-    <span class="kw">return</span> a / b
+    return a / b
 }</code></pre>
 <ul><li><code>requires &lt;expr&gt;</code> runs at function entry, with parameters in scope.</li><li><code>ensures &lt;expr&gt;</code> runs before each <code>return</code>, with <code>result</code> bound to the value about to be returned.</li><li>Multiple clauses, freely interleaved, each is checked independently so the panic message names the specific failed predicate.</li><li><code>aetherc --no-contracts</code> (analog of <code>-DNDEBUG</code>) drops every check at codegen for release builds.</li></ul>
 <p>See <a href="/Docs/language-reference.html#function-contracts-requires--ensures">Function contracts</a> for the full semantics, the const-fold elision rules, and v1 limitations.</p>
@@ -821,37 +835,37 @@ main() {
 
     println(<span class="str">"Map created"</span>)
 }</code></pre>
-<p>Functions are called using <strong>namespace-style syntax</strong>: <code>namespace.function()</code>. Stdlib functions that can fail return Go-style <code>(value, err)</code> tuples, check <code>err</code> first, then use <code>value</code>:</p>
-<pre><code>body, err = http.get(<span class="str">"http://example.com"</span>)
-<span class="kw">if</span> err != <span class="str">""</span> { println(<span class="str">"failed: ${err}"</span>); <span class="kw">return</span> }
+<p>Functions are called using <strong>namespace-style syntax</strong>: <code>namespace.function()</code>. Stdlib functions that can fail return <code>(value, err)</code> tuples, check <code>err</code> first, then use <code>value</code>:</p>
+<pre><code>body, err = http.get("http://example.com")
+if err != "" { println("failed: ${err}"); return }
 println(body)</code></pre>
 <div class="tw"><table><thead><tr><th>Import</th><th>Namespace</th><th>Example</th></tr></thead><tbody><tr><td><code>import std.string</code></td><td><code>string</code></td><td><code>string.new("hello")</code>, <code>n, err = string.to_int("42")</code></td></tr><tr><td><code>import std.file</code></td><td><code>file</code></td><td><code>content, err = file.read("f")</code>, <code>file.exists("f")</code></td></tr><tr><td><code>import std.dir</code></td><td><code>dir</code></td><td><code>err = dir.create("d")</code>, <code>dir.exists("d")</code></td></tr><tr><td><code>import std.path</code></td><td><code>path</code></td><td><code>path.join("a", "b")</code>, <code>path.basename("a/b")</code></td></tr><tr><td><code>import std.list</code></td><td><code>list</code></td><td><code>list.new()</code>, <code>err = list.add(l, item)</code></td></tr><tr><td><code>import std.map</code></td><td><code>map</code></td><td><code>map.new()</code>, <code>err = map.put(m, k, v)</code></td></tr><tr><td><code>import std.json</code></td><td><code>json</code></td><td><code>v, err = json.parse(str)</code>, <code>json.create_object()</code></td></tr><tr><td><code>import std.math</code></td><td><code>math</code></td><td><code>math.abs_int(x)</code>, <code>math.sqrt(x)</code></td></tr><tr><td><code>import std.http</code></td><td><code>http</code></td><td><code>body, err = http.get(url)</code>, <code>http.server_create(port)</code></td></tr><tr><td><code>import std.tcp</code></td><td><code>tcp</code></td><td><code>sock, err = tcp.connect(host, port)</code>, <code>tcp.write(sock, data)</code></td></tr><tr><td><code>import std.log</code></td><td><code>log</code></td><td><code>err = log.init("app.log", 0)</code>, <code>log.write(0, msg)</code></td></tr><tr><td><code>import std.io</code></td><td><code>io</code></td><td><code>content, err = io.read_file("f")</code>, <code>io.getenv("HOME")</code></td></tr><tr><td><code>import std.os</code></td><td><code>os</code></td><td><code>out, err = os.exec("ls")</code>, <code>os.system("cmd")</code></td></tr></tbody></table></div>
 <p>Raw externs are preserved under a <code>_raw</code> suffix (e.g. <code>http.get_raw</code>) for advanced callers who need direct access to the underlying ptr or status code.</p>
 <h3 id="creating-your-own-modules">Creating Your Own Modules</h3>
 <p>You can write reusable modules in pure Aether, no C required. Place your module in <code>lib/&lt;name&gt;/module.ae</code>:</p>
 <p><strong>lib/mymath/module.ae:</strong></p>
-<pre><code><span class="kw">export</span> <span class="kw">const</span> PI = <span class="num">3</span>
+<pre><code>export const PI = 3
 
-<span class="kw">export</span> double_it(x) {
-    <span class="kw">return</span> multiply(x, <span class="num">2</span>)
+export double_it(x) {
+    return multiply(x, 2)
 }
 
-<span class="kw">export</span> add(a, b) {
-    <span class="kw">return</span> a + b
+export add(a, b) {
+    return a + b
 }
 
-<span class="com">// Private helper, not accessible from outside</span>
+// Private helper, not accessible from outside
 multiply(a, b) {
-    <span class="kw">return</span> a * b
+    return a * b
 }</code></pre>
 <p><strong>src/main.ae:</strong></p>
-<pre><code><span class="kw">import</span> mymath
+<pre><code>import mymath
 
 main() {
-    println(mymath.double_it(<span class="num">5</span>))    <span class="com">// 10</span>
-    println(mymath.add(<span class="num">3</span>, <span class="num">4</span>))       <span class="com">// 7</span>
-    println(mymath.PI)              <span class="com">// 3</span>
-    <span class="com">// mymath.multiply(2, 3)        // Error: not exported</span>
+    println(mymath.double_it(5))    // 10
+    println(mymath.add(3, 4))       // 7
+    println(mymath.PI)              // 3
+    // mymath.multiply(2, 3)        // Error: not exported
 }</code></pre>
 <p>Use <code>export</code> to control which functions and constants are part of your module's public API. Non-exported symbols are private, they can be used internally by exported functions but are not accessible to importers. If a module has no <code>export</code> declarations, all symbols are public (backwards compatible).</p>
 <p>Modules support functions, constants, intra-module calls (functions calling other functions in the same module), and export visibility. See <a href="/Docs/module-system-design.html#pure-aether-modules">Module System Design</a> for full details.</p>
@@ -861,7 +875,7 @@ main() {
 <p>See <a href="/Docs/stdlib-api.html">stdlib-api.md</a> for the full API reference.</p>
 <blockquote>When you read a file or get data from stdlib functions, the result is a regular string, you can <code>print()</code> it, use it in <code>"${interpolation}"</code>, or pass it in messages directly. No conversion needed.</blockquote>
 <h3 id="error-handling-and-memory">Error Handling and Memory</h3>
-<p>Stdlib functions that can fail return a Go-style <code>(value, err)</code> tuple. Check the error string first, then use the value. The wrappers auto-free any heap allocations, so you don't need <code>defer free()</code> for stdlib returns:</p>
+<p>Stdlib functions that can fail return a <code>(value, err)</code> tuple. Check the error string first, then use the value. The wrappers auto-free any heap allocations, so you don't need <code>defer free()</code> for stdlib returns:</p>
 <pre><code><span class="kw">import</span> std.io
 
 main() {
@@ -871,7 +885,7 @@ main() {
         println(home)
     }
 
-    <span class="com">// io.read_file is Go-style</span>
+    <span class="com">// io.read_file returns (value, err)</span>
     content, err = io.read_file(<span class="str">"data.txt"</span>)
     <span class="kw">if</span> err != <span class="str">""</span> {
         println(<span class="str">"cannot read: ${err}"</span>)
@@ -882,44 +896,44 @@ main() {
 <p><code>free()</code> is still a language builtin for manually-allocated memory (e.g. <code>make</code>, <code>list.new</code>, <code>map.new</code>). <code>defer free(...)</code> or <code>defer list.free(...)</code> ensure cleanup on scope exit.</p>
 <p>For <code>std.string</code> managed strings (<code>string.new()</code>, <code>string.to_upper()</code>, etc.), use <code>defer string.release(s)</code> for reference counting.</p>
 <h2 id="pattern-matching">Pattern Matching</h2>
-<p>Aether has Erlang-inspired pattern matching.</p>
+<p>Functions can be defined as several clauses, each matching a different shape of argument, with guards to narrow a clause further. The first clause that matches runs.</p>
 <h3 id="function-pattern-matching">Function Pattern Matching</h3>
 <p>Define functions with multiple clauses that match on argument values:</p>
-<pre><code><span class="com">// Match on literal values</span>
-factorial(<span class="num">0</span>) -&gt; <span class="num">1</span>
-factorial(n) <span class="kw">when</span> n &gt; <span class="num">0</span> -&gt; n * factorial(n - <span class="num">1</span>)
+<pre><code>// Match on literal values
+factorial(0) -&gt; 1
+factorial(n) when n &gt; 0 -&gt; n * factorial(n - 1)
 
-<span class="com">// Fibonacci with multiple base cases</span>
-fib(<span class="num">0</span>) -&gt; <span class="num">0</span>
-fib(<span class="num">1</span>) -&gt; <span class="num">1</span>
-fib(n) <span class="kw">when</span> n &gt; <span class="num">1</span> -&gt; fib(n - <span class="num">1</span>) + fib(n - <span class="num">2</span>)
+// Fibonacci with multiple base cases
+fib(0) -&gt; 0
+fib(1) -&gt; 1
+fib(n) when n &gt; 1 -&gt; fib(n - 1) + fib(n - 2)
 
-<span class="com">// Guards for conditional matching</span>
-classify(x) <span class="kw">when</span> x &lt; <span class="num">0</span> -&gt; <span class="str">"negative"</span>
-classify(x) <span class="kw">when</span> x == <span class="num">0</span> -&gt; <span class="str">"zero"</span>
-classify(x) <span class="kw">when</span> x &gt; <span class="num">0</span> -&gt; <span class="str">"positive"</span>
+// Guards for conditional matching
+classify(x) when x &lt; 0 -&gt; "negative"
+classify(x) when x == 0 -&gt; "zero"
+classify(x) when x &gt; 0 -&gt; "positive"
 
-<span class="com">// Multi-parameter pattern matching</span>
-gcd(a, <span class="num">0</span>) -&gt; a
-gcd(a, b) <span class="kw">when</span> b &gt; <span class="num">0</span> -&gt; gcd(b, a - (a / b) * b)</code></pre>
+// Multi-parameter pattern matching
+gcd(a, 0) -&gt; a
+gcd(a, b) when b &gt; 0 -&gt; gcd(b, a - (a / b) * b)</code></pre>
 <p>This style replaces verbose if/else chains with declarative, readable code.</p>
 <h3 id="match-statements">Match Statements</h3>
 <p>Use <code>match</code> for value dispatch:</p>
-<pre><code><span class="kw">match</span> (value) {
-    <span class="num">0</span> -&gt; { println(<span class="str">"Zero"</span>) }
-    <span class="num">1</span> -&gt; { println(<span class="str">"One"</span>) }
-    _ -&gt; { println(<span class="str">"Other"</span>) }
+<pre><code>match (value) {
+    0 -&gt; { println("Zero") }
+    1 -&gt; { println("One") }
+    _ -&gt; { println("Other") }
 }</code></pre>
 <h3 id="list-patterns">List Patterns</h3>
 <p>Match on arrays (requires corresponding <code>_len</code> variable):</p>
-<pre><code>nums = [<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>]
-nums_len = <span class="num">3</span>
+<pre><code>nums = [1, 2, 3]
+nums_len = 3
 
-<span class="kw">match</span> (nums) {
-    [] -&gt; { println(<span class="str">"empty"</span>) }
-    [x] -&gt; { println(<span class="str">"one element"</span>) }
+match (nums) {
+    [] -&gt; { println("empty") }
+    [x] -&gt; { println("one element") }
     [h|t] -&gt; {
-        println(<span class="str">"head: ${h}"</span>)
+        println("head: ${h}")
     }
 }</code></pre>
 <h2 id="project-configuration">Project Configuration</h2>
@@ -1045,7 +1059,7 @@ make docker-ci-embedded    <span class="com"># ARM Cortex-M4 syntax-check</span>
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.473 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.562 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>
