@@ -1,0 +1,158 @@
+name: sync aether release
+
+# Regenerate the site from a released aether tree, stamp its version, and
+# deploy — the three steps that used to be done by hand, and therefore late.
+# The site sat on v0.562 while aether shipped 0.580: eighteen releases where
+# the front page named a version nobody could download and the docs described
+# a toolchain that had moved on.
+#
+# Three ways in, deliberately:
+#   repository_dispatch  the aether release pipeline says a version shipped.
+#                        The normal path, and the only immediate one.
+#   workflow_dispatch    a human, for a re-run or a specific tag.
+#   schedule             a daily check that the site matches the latest
+#                        release. This is what makes a missed dispatch a
+#                        delay rather than a silent stall — the cross-repo
+#                        token can expire or be absent, and the failure mode
+#                        of a dispatch that never arrives is invisible.
+
+on:
+  repository_dispatch:
+    types: [aether-release]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'aether tag to sync (default: latest release)'
+        required: false
+        type: string
+  schedule:
+    # 06:15 UTC. Off the hour, because everything is scheduled on the hour.
+    - cron: '15 6 * * *'
+
+permissions:
+  contents: write        # commit the regenerated site
+  actions: write         # dispatch the deploy workflow (see below)
+
+concurrency:
+  group: sync-aether-release
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Resolve the aether version to sync to
+        id: target
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          # Precedence: what the release told us, then what a human asked for,
+          # then whatever aether has released most recently.
+          TAG="${{ github.event.client_payload.tag }}"
+          [ -z "$TAG" ] && TAG="${{ inputs.tag }}"
+          if [ -z "$TAG" ]; then
+            TAG=$(curl -fsSL -H "Authorization: token $GH_TOKEN" \
+              https://api.github.com/repos/aether-lang-dev/aether/releases/latest \
+              | python3 -c 'import json,sys; print(json.load(sys.stdin)["tag_name"])')
+          fi
+          case "$TAG" in
+            v[0-9]*.[0-9]*.[0-9]*) ;;
+            *) echo "::error::refusing to sync to '$TAG': not a vX.Y.Z tag"; exit 1 ;;
+          esac
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "Syncing to $TAG"
+
+      - name: Check out that release of aether
+        uses: actions/checkout@v4
+        with:
+          repository: aether-lang-dev/aether
+          ref: ${{ steps.target.outputs.tag }}
+          path: .aether-src
+          fetch-depth: 1
+
+      - name: Regenerate the docs and stamp the version
+        run: |
+          set -euo pipefail
+          # Emptied first so a doc deleted upstream stops being served. The
+          # generator writes a page per docs/*.md and never removes anything,
+          # so without this a page outlives the file it came from — which is
+          # how two planning documents were still being served as
+          # documentation after they were taken out of the source tree.
+          # Everything in static/Docs is generated; nothing here is authored.
+          rm -rf static/Docs
+          # gendocs reads the VERSION file next to the docs directory, so the
+          # version on the page comes from the tree being published rather
+          # than from anything typed here.
+          python3 tools/gendocs.py .aether-src/docs static/Docs
+          count=$(ls static/Docs/*.html | wc -l)
+          echo "generated $count pages"
+          # A generator that silently produced nothing would otherwise commit
+          # an empty site and deploy it.
+          [ "$count" -ge 20 ] || { echo "::error::only $count pages generated"; exit 1; }
+
+      - name: Point the site's toolchain pin at the release
+        run: |
+          set -euo pipefail
+          TAG='${{ steps.target.outputs.tag }}'
+          # deploy.yml pins the toolchain so this repo's CI does not float to
+          # whatever aether released last. A release is exactly when that pin
+          # should move, and it moves as a visible commit rather than by
+          # editing a repository variable nobody can see in the history.
+          python3 - "$TAG" <<'PY'
+          import re, sys
+          tag = sys.argv[1]
+          path = ".github/workflows/deploy.yml"
+          src = open(path, encoding="utf-8").read()
+          new = re.sub(r"(vars\.AETHER_REF \|\| ')v[0-9]+\.[0-9]+\.[0-9]+(')",
+                       lambda m: m.group(1) + tag + m.group(2), src, count=1)
+          if new == src:
+              print("pin already at", tag)
+          else:
+              open(path, "w", encoding="utf-8").write(new)
+              print("pin ->", tag)
+          PY
+
+      - name: Commit, if the site actually changed
+        id: commit
+        run: |
+          set -euo pipefail
+          rm -rf .aether-src
+          git add -A static .github/workflows/deploy.yml
+          if git diff --cached --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "Site already matches ${{ steps.target.outputs.tag }}; nothing to do."
+            exit 0
+          fi
+          git config user.name  'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git commit -m "site: regenerate for aether ${{ steps.target.outputs.tag }}
+
+          Docs regenerated from the released tree and the version stamped from
+          its VERSION file, so the page and the docs describe the same release.
+          Toolchain pin moved with it."
+          git push origin HEAD:main
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Deploy the result
+        if: steps.commit.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          # A push made with GITHUB_TOKEN does not start another workflow, by
+          # design, so deploy.yml will not have run for the commit above. It
+          # is dispatched explicitly instead. Its own test job still gates the
+          # deploy: if the new toolchain cannot build serve.ae, nothing is
+          # published and the site keeps serving the last good artifact.
+          curl -fsSL -X POST \
+            -H "Authorization: token $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            https://api.github.com/repos/${{ github.repository }}/actions/workflows/deploy.yml/dispatches \
+            -d '{"ref":"main"}'
+          echo "deploy.yml dispatched for main"

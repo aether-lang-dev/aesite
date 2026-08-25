@@ -117,3 +117,31 @@ highlighting, cross-links rewritten to `/Docs/*.html`) and refreshes
     tools/genlessons.ae        # resources/lessons -> static/lessons.json
     Dockerfile, fly.toml       # optional live exec backend
     .github/workflows/         # CI + Pages deploy
+
+## Releases update this site automatically
+
+When aether publishes a release, its pipeline dispatches `aether-release` to
+this repo. The `sync aether release` workflow then checks out that tag,
+regenerates `static/Docs` from its `docs/`, stamps the version from its
+`VERSION` file, moves the toolchain pin in `deploy.yml` to the new tag,
+commits, and dispatches `deploy.yml` to publish.
+
+Doing this by hand meant doing it late: the site sat on v0.562 while aether
+shipped 0.580.
+
+Three things worth knowing:
+
+- **The daily schedule is the backstop.** The cross-repo dispatch needs a PAT
+  on the aether side (`AESITE_SYNC_TOKEN`, `contents: write` here). Without it
+  the release still succeeds and says so, and this repo's 06:15 UTC check
+  picks the release up within a day. A missing token delays the site; it does
+  not stall it.
+- **`static/Docs` is rebuilt from empty each time**, so a doc deleted upstream
+  stops being served. Everything in that directory is generated — do not put
+  anything hand-written there.
+- **The deploy is still gated.** `deploy.yml` builds `serve.ae` with the new
+  toolchain and runs the integration test before publishing. If a release
+  breaks the site, nothing is deployed and the previous version stays up.
+
+To publish a release by hand, run the `sync aether release` workflow and give
+it a tag, or leave the tag empty to take the latest release.
