@@ -570,7 +570,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.597</span>
+      <span class="vtag">v0.598</span>
     </nav>
   </div>
 </header>
@@ -872,9 +872,11 @@ qemu-aarch64 ./probe    <span class="com"># load/run the emitted lib under an em
 <p>That produces an arm64 <code>.so</code> on a cheap x86_64 runner with no arm64 hardware and no new codegen. A compiler that cannot be found fails fast with <code>C compiler '&lt;name&gt;' (from $CC) not found</code> rather than a later link error. Cross-<strong>OS</strong> targets (for example Linux to macOS) need a matching C toolchain plus that OS's headers, which a stock cross-gcc does not carry: for those, use the <code>zig cc</code> backend below.</p>
 <h3 id="ae-build---targettriple-cross-os-via-a-zig-cc-backend"><code>ae build --target=&lt;triple&gt;</code> (cross-OS via a <code>zig cc</code> backend)</h3>
 <p><code>ae build --target=&lt;triple&gt;</code> cross-compiles a foreign-OS/arch binary using <a href="https://ziglang.org">zig</a> as a self-contained cross toolchain. zig bundles each target's libc, system headers, and linker, so the Aether runtime and standard library compile straight from source for the target: no cross-gcc, no target sysroot, no per-host file juggling. The platform backend (<code>epoll</code> vs <code>kqueue</code>, <code>spawn_sandboxed_linux</code> vs the BSD/stub path) is selected by the <code>__linux__</code> / <code>__APPLE__</code> macros zig predefines for the target, so one source set serves every target.</p>
-<pre><code>ae build --target=x86_64-linux  hello.ae -o hello      <span class="com"># ELF x86-64</span>
-ae build --target=aarch64-macos hello.ae -o hello      <span class="com"># Mach-O arm64</span></code></pre>
-<p>Supported triples: <code>aarch64-macos</code>, <code>x86_64-macos</code>, <code>aarch64-linux</code>, <code>x86_64-linux</code> (the <code>arm64-</code>/<code>amd64-</code> spellings are accepted too). Zig 0.16.0 or newer must be on <code>PATH</code> (<code>brew install zig</code>, or use the checksum-pinned <code>scripts/get-zig.sh</code>); the build fails fast with an install hint otherwise.</p>
+<pre><code>ae build --target=x86_64-linux      hello.ae -o hello  <span class="com"># ELF x86-64, glibc</span>
+ae build --target=x86_64-linux-musl hello.ae -o hello  <span class="com"># ELF x86-64, static</span>
+ae build --target=aarch64-macos     hello.ae -o hello  <span class="com"># Mach-O arm64</span></code></pre>
+<p><strong>glibc or musl on Linux.</strong> The <code>-linux</code> triples link against glibc dynamically, so the artifact carries the GLIBC symbol version of whatever built it and will not start on an older distro. The <code>-linux-musl</code> triples link musl statically instead: no dynamic libc dependency, no version floor, and the same binary runs on any Linux of that architecture, including Alpine and other musl distros. Prefer musl for anything you publish; see <strong><a href="/Docs/release-glibc-portability.html">release-glibc-portability.md</a></strong>.</p>
+<p>Supported triples: <code>aarch64-macos</code>, <code>x86_64-macos</code>, <code>aarch64-linux</code>, <code>x86_64-linux</code>, <code>aarch64-linux-musl</code>, <code>x86_64-linux-musl</code> (the <code>arm64-</code>/<code>amd64-</code> spellings are accepted too). Zig 0.16.0 or newer must be on <code>PATH</code> (<code>brew install zig</code>, or use the checksum-pinned <code>scripts/get-zig.sh</code>); the build fails fast with an install hint otherwise.</p>
 <h3 id="ios---targetaarch64-ios-xcode-backend">iOS: <code>--target=aarch64-ios</code> (Xcode backend)</h3>
 <p>iOS is the one cross target that does <strong>not</strong> go through zig: the Apple SDKs are Xcode-licensed and not redistributable, so <code>aarch64-ios</code>, <code>aarch64-ios-simulator</code> and <code>x86_64-ios-simulator</code> shell to <code>xcrun clang</code> instead and require a macOS host with Xcode. <code>--emit=lib</code> there produces an <code>@rpath</code>-installed Mach-O dylib, because an iOS app is built by Xcode and what it wants from Aether is a library, not a standalone binary. Full details, including the sandbox restrictions that apply at runtime, are in <strong><a href="/Docs/cross-ios.html">cross-ios.md</a></strong>.</p>
 <p><strong>How it links.</strong> The full runtime and standard library are compiled from source for the target and archived, then the program links against that archive, so the linker pulls only the objects it references, exactly as a native <code>-laether</code> link against the complete <code>libaether.a</code> does. The first build recompiles the runtime from source (a few seconds); caching the per-target archive is a planned optimization.</p>
@@ -958,7 +960,7 @@ make ae AETHER_ENABLE_LLM=<span class="num">1</span> \
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.597 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.598 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>
