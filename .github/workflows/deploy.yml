@@ -5,6 +5,12 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  # The release sync commits the regenerated site with GITHUB_TOKEN, and a
+  # push made with that token deliberately does not start a workflow. So the
+  # sync asks for this one explicitly, which it can only do if this trigger
+  # exists: without it the call is a 422 and the regenerated site is committed
+  # and never published.
+  workflow_dispatch:
 
 permissions:
   contents: read
