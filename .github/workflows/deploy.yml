@@ -31,9 +31,21 @@ jobs:
           # no commit in this repo, which is exactly how aether-ui#28 went red
           # on a codegen regression it had nothing to do with.
           #
-          # Bump deliberately. A repository variable overrides for a one-off.
-          AETHER_REF: ${{ vars.AETHER_REF || 'v0.561.0' }}
+          # The pin lives in aether-version.txt rather than here, because the
+          # release sync updates it and GITHUB_TOKEN may never push a change to
+          # a workflow file. It could regenerate the whole site and then not
+          # commit it, which is how the site sat thirty releases behind.
+          #
+          # A repository variable still overrides, for a one-off.
+          AETHER_REF_DEFAULT_FILE: aether-version.txt
+          AETHER_REF_OVERRIDE: ${{ vars.AETHER_REF }}
         run: |
+          AETHER_REF="${AETHER_REF_OVERRIDE:-$(tr -d '[:space:]' < "$AETHER_REF_DEFAULT_FILE")}"
+          case "$AETHER_REF" in
+            v[0-9]*.[0-9]*.[0-9]*) ;;
+            *) echo "::error::$AETHER_REF_DEFAULT_FILE does not hold a vX.Y.Z tag: '$AETHER_REF'"; exit 1 ;;
+          esac
+          echo "pinned to $AETHER_REF"
           curl -sSL https://raw.githubusercontent.com/aether-lang-dev/aether/main/get.sh \
             | PREFIX="$HOME/.local" sh
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"

@@ -100,30 +100,24 @@ jobs:
         run: |
           set -euo pipefail
           TAG='${{ steps.target.outputs.tag }}'
-          # deploy.yml pins the toolchain so this repo's CI does not float to
-          # whatever aether released last. A release is exactly when that pin
-          # should move, and it moves as a visible commit rather than by
-          # editing a repository variable nobody can see in the history.
-          python3 - "$TAG" <<'PY'
-          import re, sys
-          tag = sys.argv[1]
-          path = ".github/workflows/deploy.yml"
-          src = open(path, encoding="utf-8").read()
-          new = re.sub(r"(vars\.AETHER_REF \|\| ')v[0-9]+\.[0-9]+\.[0-9]+(')",
-                       lambda m: m.group(1) + tag + m.group(2), src, count=1)
-          if new == src:
-              print("pin already at", tag)
-          else:
-              open(path, "w", encoding="utf-8").write(new)
-              print("pin ->", tag)
-          PY
+          # The pin keeps this repo's CI off whatever aether released last, and
+          # a release is exactly when it should move. It moves as a visible
+          # commit rather than by editing a repository variable nobody can see
+          # in the history.
+          #
+          # It lives in a plain file, not in deploy.yml: GITHUB_TOKEN may never
+          # push a change to a workflow file, so writing it there meant this
+          # job regenerated the whole site and then failed at the push, every
+          # day, while the site sat thirty releases behind.
+          printf '%s\n' "$TAG" > aether-version.txt
+          echo "pin -> $TAG"
 
       - name: Commit, if the site actually changed
         id: commit
         run: |
           set -euo pipefail
           rm -rf .aether-src
-          git add -A static .github/workflows/deploy.yml
+          git add -A static aether-version.txt
           if git diff --cached --quiet; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
             echo "Site already matches ${{ steps.target.outputs.tag }}; nothing to do."
