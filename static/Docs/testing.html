@@ -570,7 +570,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.562</span>
+      <span class="vtag">v0.593</span>
     </nav>
   </div>
 </header>
@@ -682,7 +682,9 @@ main() {
 <p>or let the runner discover it:</p>
 <pre><code>ae test              <span class="com"># every test_*.ae / *_test.ae under tests/</span>
 ae test calc_test.ae <span class="com"># a single file</span>
-ae test path/to/dir  <span class="com"># a directory (its tests/ subdir if present, else itself)</span></code></pre>
+ae test path/to/dir  <span class="com"># a directory (its tests/ subdir if present, else itself)</span>
+ae test --list       <span class="com"># print what would run, run nothing</span></code></pre>
+<p>Discovery has no ceiling: every matching file runs, and the summary's total is that number. A <code>fixtures/</code> directory is not searched, because a fixture is input to a test rather than a test, and some are meant to fail so that another test can assert on the failure. Naming one as the target still runs what is in it (<code>ae test path/to/fixtures</code>).</p>
 <p>Each test file is a standalone program with its own <code>main()</code>. <code>ae test</code> compiles and runs each one and reads its <strong>process exit code</strong>: <code>0</code> means all assertions passed, non-zero means at least one failed. <code>spec.run_summary(fw)</code> prints the totals and calls <code>exit(1)</code> when any failure was recorded, so the exit-code contract is automatic.</p>
 <h2 id="suites-context-and-hooks">Suites, context, and hooks</h2>
 <p><code>init()</code> returns a framework context and makes it the process's <em>ambient</em> framework. The top-level <code>describe</code> and <code>run_summary</code> take that <code>fw</code>; everything nested inside a suite omits it, because Aether injects the suite context (<code>_ctx</code>) into the trailing block.</p>
@@ -699,6 +701,7 @@ ae test path/to/dir  <span class="com"># a directory (its tests/ subdir if prese
 <p>Failures are <strong>soft</strong>: a failed assertion records the failure, prints it, and returns, so several checks in one <code>it</code> all report. Any recorded failure makes that <code>it</code> red.</p>
 <h3 id="flat-assertions">Flat assertions</h3>
 <pre><code>spec.assert_eq(count, 4, "four jobs")          // int equality
+spec.assert_eq_long(offset, 9007199254740993, "past 2^53")  // 64-bit
 spec.assert_not_eq(a, b, "distinct")
 spec.assert_gt(size, 0, "non-empty")
 spec.assert_true(ok, "the thing worked")
@@ -708,6 +711,7 @@ spec.assert_str_eq_diff(got, want, "payload")  // caret under first diff
 spec.assert_contains(body, "world", "greeting")
 spec.assert_null(ptr, "was freed")
 spec.assert_not_null(user, "was loaded")</code></pre>
+<p><code>assert_eq</code> takes <code>int</code>. Passing a value wider than 32 bits, a <code>mem.get_long</code>, a u64 accessor, an IEEE 754 bit pattern, narrows it at the call boundary, and the consequence is worse than a wrong comparison: it has aborted the process outright on Windows while passing on Linux, where both truncated halves happened to agree. Reach for <code>assert_eq_long</code> whenever the value can exceed 32 bits.</p>
 <h3 id="asserting-on-the-failure-path">Asserting on the failure path</h3>
 <p><code>std</code> returns <code>(value, err)</code> throughout, <code>err</code> is <code>""</code> on success and a message on failure. Three matchers state that outcome directly:</p>
 <pre><code>v, err = thing.parse(input)
@@ -847,7 +851,7 @@ duration_ns=&lt;N&gt;
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.562 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.593 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>
