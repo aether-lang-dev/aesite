@@ -109,19 +109,20 @@ highlighting, cross-links rewritten to `/Docs/*.html`) and refreshes
 
 ## Brand
 
-`static/ae.svg` is the `ae` mark, traced from the same icon the VS Code
-extension and the favicon ship, so the header, the footer and the link-preview
-card all draw the real thing rather than a monospace impression of it. The
-`.ae` rule in `static/aether.css` masks it; `font-size` stays the sizing knob.
+`static/ae.svg` is the `ae` ligature, the org's mark, traced from the avatar
+and trimmed to the glyph so it carries no background of its own. The `.ae` rule
+in `static/aether.css` masks it and paints it `--red`; `font-size` stays the
+sizing knob. It needs about 30px to read: below that the hairlines close up.
 
 The stylesheet is inlined into every page, so after editing `aether.css`:
 
     python3 tools/inline_css.py
 
-The link-preview card is a page (`tools/og.html`) that links `aether.css`, so
-it cannot drift from the site's own mark and palette. After editing it:
+The card and the tab icon are pages too (`tools/og.html`, `tools/favicon.html`)
+that link `aether.css`, so they cannot drift from the site's own mark and
+palette. After editing either:
 
-    python3 tools/make_og.py
+    python3 tools/render_assets.py
 
 ## Layout
 
@@ -132,7 +133,8 @@ it cannot drift from the site's own mark and palette. After editing it:
     tools/gendocs.py           # markdown -> static/Docs/ generator
     tools/genlessons.ae        # resources/lessons -> static/lessons.json
     tools/inline_css.py        # aether.css -> every page's <head>
-    tools/og.html, make_og.py  # the link-preview card -> static/og.png
+    tools/og.html, favicon.html   # templates for og.png and favicon.png
+    tools/render_assets.py     # renders both to static/
     Dockerfile, fly.toml       # optional live exec backend
     .github/workflows/         # CI + Pages deploy
 
