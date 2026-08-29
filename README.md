@@ -107,14 +107,32 @@ It converts every top-level `*.md` to a styled page (grouped sidebar, syntax
 highlighting, cross-links rewritten to `/Docs/*.html`) and refreshes
 `static/docs.html`. Output is committed and served as-is by Pages.
 
+## Brand
+
+`static/ae.svg` is the `ae` mark, traced from the same icon the VS Code
+extension and the favicon ship, so the header, the footer and the link-preview
+card all draw the real thing rather than a monospace impression of it. The
+`.ae` rule in `static/aether.css` masks it; `font-size` stays the sizing knob.
+
+The stylesheet is inlined into every page, so after editing `aether.css`:
+
+    python3 tools/inline_css.py
+
+The link-preview card is a page (`tools/og.html`) that links `aether.css`, so
+it cannot drift from the site's own mark and palette. After editing it:
+
+    python3 tools/make_og.py
+
 ## Layout
 
     serve.ae                   # the Aether server
     test.sh                    # integration smoke test
-    static/                    # HTML, CSS, Docs/, CNAME
+    static/                    # HTML, CSS, ae.svg, Docs/, CNAME
     resources/lessons/<n>/     # content.html, code.ae, title.txt
     tools/gendocs.py           # markdown -> static/Docs/ generator
     tools/genlessons.ae        # resources/lessons -> static/lessons.json
+    tools/inline_css.py        # aether.css -> every page's <head>
+    tools/og.html, make_og.py  # the link-preview card -> static/og.png
     Dockerfile, fly.toml       # optional live exec backend
     .github/workflows/         # CI + Pages deploy
 
