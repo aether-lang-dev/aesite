@@ -4,11 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Cross-compiling for iOS (arm64) · Aether</title>
-<meta name="description" content="ae build --target=aarch64-ios builds Mach-O arm64 artifacts for iPhone and iPad, and --target=aarch64-ios-simulator / --target=x86_64-ios-simulator build...">
+<meta name="description" content="ae build --target=aarch64-ios builds Mach-O arm64 artifacts for iPhone and iPad, --target=aarch64-ios-simulator / --target=x86_64-ios-simulator build for...">
 <link rel="canonical" href="https://aether-lang.dev/Docs/cross-ios.html">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Cross-compiling for iOS (arm64) · Aether">
-<meta property="og:description" content="ae build --target=aarch64-ios builds Mach-O arm64 artifacts for iPhone and iPad, and --target=aarch64-ios-simulator / --target=x86_64-ios-simulator build...">
+<meta property="og:description" content="ae build --target=aarch64-ios builds Mach-O arm64 artifacts for iPhone and iPad, --target=aarch64-ios-simulator / --target=x86_64-ios-simulator build for...">
 <meta property="og:url" content="https://aether-lang.dev/Docs/cross-ios.html">
 <meta property="og:image" content="https://aether-lang.dev/og.png">
 <meta name="twitter:card" content="summary_large_image">
@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.624</span>
+      <span class="vtag">v0.625</span>
     </nav>
   </div>
 </header>
@@ -660,13 +660,20 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <article class="doc-body" id="doc">
         <div class="bc"><span class="prompt">$</span>docs / build &amp; tooling</div>
 <h1 id="cross-compiling-for-ios-arm64">Cross-compiling for iOS (arm64)</h1>
-<p><code>ae build --target=aarch64-ios</code> builds Mach-O arm64 artifacts for iPhone and iPad, and <code>--target=aarch64-ios-simulator</code> / <code>--target=x86_64-ios-simulator</code> build for the simulator. Unlike every other cross target, iOS is driven by the <strong>Xcode toolchain</strong> rather than by <code>zig cc</code>.</p>
+<p><code>ae build --target=aarch64-ios</code> builds Mach-O arm64 artifacts for iPhone and iPad, <code>--target=aarch64-ios-simulator</code> / <code>--target=x86_64-ios-simulator</code> build for the simulator, and <code>--target=aarch64-ios-macabi</code> / <code>--target=x86_64-ios-macabi</code> build for <strong>Mac Catalyst</strong> (a UIKit app running on a Mac). Unlike every other cross target, all of these are driven by the <strong>Xcode toolchain</strong> rather than by <code>zig cc</code>.</p>
 <h2 id="why-ios-is-not-a-zig-target">Why iOS is not a zig target</h2>
 <p>The other cross targets are self-contained because zig bundles each one's libc, headers and linker. Apple's SDKs are Xcode-licensed and cannot be redistributed that way, so there is no bundled-toolchain path for iOS and there will not be one. <code>--target=aarch64-ios</code> therefore shells to <code>xcrun clang</code> with the SDK <code>xcrun</code> reports, which means:</p>
-<ul><li><strong>The build host must be a Mac with Xcode installed.</strong> The Command Line Tools alone carry no iPhoneOS SDK. If <code>xcrun --sdk iphoneos --show-sdk-path</code> fails, so does the build, with a message saying exactly that.</li><li><code>xcrun</code> is asked for the SDK path rather than hardcoding <code>/Applications/Xcode.app/...</code>, so a relocated Xcode, a beta Xcode, or a <code>DEVELOPER_DIR</code> override all work.</li><li>Device and simulator are <strong>separate targets</strong>, not a flag on one target. They use different SDKs and stamp different Mach-O platforms (<code>IOS</code> vs <code>IOSSIMULATOR</code>); a binary built for one will not load on the other.</li></ul>
+<ul><li><strong>The build host must be a Mac with Xcode installed.</strong> The Command Line Tools alone carry no iPhoneOS SDK. If <code>xcrun --sdk iphoneos --show-sdk-path</code> fails, so does the build, with a message saying exactly that.</li><li><code>xcrun</code> is asked for the SDK path rather than hardcoding <code>/Applications/Xcode.app/...</code>, so a relocated Xcode, a beta Xcode, or a <code>DEVELOPER_DIR</code> override all work.</li><li>Device, simulator and Catalyst are <strong>separate targets</strong>, not flags on one target. They use different SDKs and stamp different Mach-O platforms (<code>IOS</code>, <code>IOSSIMULATOR</code>, <code>MACCATALYST</code>); a binary built for one will not load on another. Catalyst is the odd one: its triple carries <code>-ios</code> like the device arm, but it builds against the <strong>macOS</strong> SDK (<code>xcrun --sdk macosx</code>).</li></ul>
 <h2 id="what-to-build-usually-a-library-not-an-executable">What to build: usually a library, not an executable</h2>
 <p>iOS does not run loose executables. A binary only launches from inside a signed <code>.app</code> bundle, so on iOS the useful artifact is almost always a <strong>library that Xcode links into an app</strong>, not a standalone program:</p>
-<pre><code><span class="com"># A Mach-O dylib with the aether_&lt;name&gt;() C ABI, ready to embed in an app.</span>
+<pre><code><span class="com"># A static archive with the aether_&lt;name&gt;() C ABI. THIS is what an App Store</span>
+<span class="com"># build links: iOS forbids third-party dynamic libraries, so a shipped app must</span>
+<span class="com"># link Aether statically. The .a holds your code AND the Aether runtime/stdlib,</span>
+<span class="com"># so Xcode needs exactly one file in "Link Binary With Libraries".</span>
+ae build --target=aarch64-ios --emit=staticlib mylib.ae -o libmylib.a
+
+<span class="com"># A Mach-O dylib with the same C ABI. Fine for local development and for</span>
+<span class="com"># Catalyst, but NOT shippable to the App Store (see above).</span>
 ae build --target=aarch64-ios --emit=lib mylib.ae -o libmylib.dylib
 
 <span class="com"># An executable, if you really want one (still needs signing + a bundle).</span>
@@ -677,14 +684,15 @@ ae build --target=aarch64-ios --emit=obj mylib.ae -o mylib.o
 
 <span class="com"># Portable C + catalog, compiled later by Xcode itself. Needs no Xcode here.</span>
 ae build --target=aarch64-ios --emit=csrc mylib.ae -o mylib</code></pre>
-<p><code>--emit=lib</code> is <strong>supported on iOS</strong>, it is the primary case, whereas the zig cross targets still reject it. The dylib is linked with <code>-install_name @rpath/&lt;leaf&gt;</code>, which is what an Xcode <em>Embed Frameworks</em> phase expects; without it the load command would record the build-machine path and the library would fail to load from inside the bundle.</p>
+<p><code>--emit=staticlib</code> is the primary case on iOS. Apple does not allow third-party dynamic libraries inside an App Store binary, so a dylib is a development convenience rather than a shipping artifact; <code>--emit=staticlib</code> produces a single <code>.a</code> containing the program objects together with the Aether runtime and stdlib compiled for that triple.</p>
+<p><code>--emit=lib</code> is also <strong>supported on iOS</strong>, whereas the zig cross targets still reject it. The dylib is linked with <code>-install_name @rpath/&lt;leaf&gt;</code>, which is what an Xcode <em>Embed Frameworks</em> phase expects; without it the load command would record the build-machine path and the library would fail to load from inside the bundle.</p>
 <p>The exported symbols are the ordinary <code>aether_&lt;name&gt;()</code> C ABI (see <a href="/Docs/emit-lib.html">emit-lib.md</a>), so Swift and Objective-C call them through a bridging header with no glue. Note that <code>--emit=lib</code> writes only the library, the <strong>header comes from <code>--emit=csrc</code></strong> (same catalog codegen, so the two cannot drift) or from <code>aetherc --emit-header</code>:</p>
 <pre><code>ae build --target=aarch64-ios --emit=csrc mylib.ae -o mylib   <span class="com"># -&gt; mylib.h</span></code></pre>
 <pre><code>// bridging header: #include "mylib.h"
 let sum = aether_add(2, 3)</code></pre>
 <p>A <code>-&gt; string</code> export returns an <code>AetherString*</code>, not a <code>char*</code>; read its bytes with <code>aether_string_data()</code>.</p>
 <h2 id="deployment-target">Deployment target</h2>
-<p>The deployment target is part of the clang triple, so it is fixed at build time. The default is <strong>iOS 15.0</strong>; override it with <code>AETHER_IOS_MIN</code>:</p>
+<p>The deployment target is part of the clang triple, so it is fixed at build time. The default is <strong>iOS 15.0</strong> for the device and simulator targets. Catalyst has its own floor, and it differs by architecture: <strong>13.1</strong> on x86_64 (the <code>macabi</code> ABI does not exist before it) and <strong>14.0</strong> on arm64, since arm64 Catalyst did not exist until Apple Silicon, clang silently raises anything lower to 14.0, so asking for less produces a triple that does not describe its own output. Override any of them with <code>AETHER_IOS_MIN</code>:</p>
 <pre><code>AETHER_IOS_MIN=<span class="num">17.0</span> ae build --target=aarch64-ios --emit=lib mylib.ae -o libmylib.dylib</code></pre>
 <p>It lands in <code>LC_BUILD_VERSION</code>, which you can check with <code>vtool -show-build &lt;file&gt;</code>.</p>
 <h2 id="what-does-not-work-on-ios">What does not work on iOS</h2>
@@ -693,14 +701,16 @@ let sum = aether_add(2, 3)</code></pre>
 <p><code>AETHER_HAS_SHELL</code> is a Tier-0 platform capability alongside <code>AETHER_HAS_FILESYSTEM</code> and friends (<code>runtime/config/aether_optimization_config.h</code>). It is 0 on iOS/tvOS/watchOS and can be forced off anywhere with <code>-DAETHER_NO_SHELL</code>.</p>
 <h2 id="building-a-fat--xcframework-artifact">Building a fat / XCFramework artifact</h2>
 <p><code>ae</code> emits one slice per invocation. Combine them with Apple's own tools:</p>
-<pre><code>ae build --target=aarch64-ios           --emit=lib mylib.ae -o device/libmylib.dylib
-ae build --target=aarch64-ios-simulator --emit=lib mylib.ae -o sim/libmylib.dylib
+<pre><code>ae build --target=aarch64-ios           --emit=staticlib mylib.ae -o device/libmylib.a
+ae build --target=aarch64-ios-simulator --emit=staticlib mylib.ae -o sim/libmylib.a
+ae build --target=aarch64-ios-macabi    --emit=staticlib mylib.ae -o catalyst/libmylib.a
 
 <span class="com"># Device and simulator slices cannot go in one fat binary (same arch, different</span>
 <span class="com"># platform), that is exactly what an XCFramework is for.</span>
 xcodebuild -create-xcframework \
-    -library device/libmylib.dylib \
-    -library sim/libmylib.dylib \
+    -library device/libmylib.a \
+    -library sim/libmylib.a \
+    -library catalyst/libmylib.a \
     -output MyLib.xcframework</code></pre>
 <h2 id="signing">Signing</h2>
 <p><code>ae</code> does not sign anything. Sign the artifact as part of your Xcode build, or by hand:</p>
@@ -717,7 +727,7 @@ xcodebuild -create-xcframework \
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.624 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.625 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>
