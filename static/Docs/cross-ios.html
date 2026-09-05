@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.640</span>
+      <span class="vtag">v0.641</span>
     </nav>
   </div>
 </header>
@@ -655,6 +655,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/bootstrap-from-source.html">Bootstrapping Aether from source (HEAD)</a>
 <a href="/Docs/release-glibc-portability.html">Release binary portability across glibc versions</a>
 <div class="grp">More</div>
+<a href="/Docs/swiftui-ios-app.html">Using an Aether library from a SwiftUI iOS app</a>
 <a href="/Docs/writing-security-sensitive-code.html">Writing security-sensitive code in Aether</a></nav>
     <main class="doc-main">
       <article class="doc-body" id="doc">
@@ -686,11 +687,12 @@ ae build --target=aarch64-ios --emit=obj mylib.ae -o mylib.o
 ae build --target=aarch64-ios --emit=csrc mylib.ae -o mylib</code></pre>
 <p><code>--emit=staticlib</code> is the primary case on iOS. Apple does not allow third-party dynamic libraries inside an App Store binary, so a dylib is a development convenience rather than a shipping artifact; <code>--emit=staticlib</code> produces a single <code>.a</code> containing the program objects together with the Aether runtime and stdlib compiled for that triple.</p>
 <p><code>--emit=lib</code> is also <strong>supported on iOS</strong>, whereas the zig cross targets still reject it. The dylib is linked with <code>-install_name @rpath/&lt;leaf&gt;</code>, which is what an Xcode <em>Embed Frameworks</em> phase expects; without it the load command would record the build-machine path and the library would fail to load from inside the bundle.</p>
+<p>For a step-by-step walkthrough of wiring one of these into an actual app, bridging header, calling from SwiftUI, bundling, and the mistakes that cost the most time, see <strong><a href="/Docs/swiftui-ios-app.html">swiftui-ios-app.md</a></strong>.</p>
 <p>The exported symbols are the ordinary <code>aether_&lt;name&gt;()</code> C ABI (see <a href="/Docs/emit-lib.html">emit-lib.md</a>), so Swift and Objective-C call them through a bridging header with no glue. Note that <code>--emit=lib</code> writes only the library, the <strong>header comes from <code>--emit=csrc</code></strong> (same catalog codegen, so the two cannot drift) or from <code>aetherc --emit-header</code>:</p>
 <pre><code>ae build --target=aarch64-ios --emit=csrc mylib.ae -o mylib   <span class="com"># -&gt; mylib.h</span></code></pre>
 <pre><code>// bridging header: #include "mylib.h"
 let sum = aether_add(2, 3)</code></pre>
-<p>A <code>-&gt; string</code> export returns an <code>AetherString*</code>, not a <code>char*</code>; read its bytes with <code>aether_string_data()</code>.</p>
+<p>A <code>-&gt; string</code> export surfaces as <code>const char*</code>: the generated <code>aether_&lt;name&gt;()</code> wrapper calls <code>aether_string_data()</code> on the <code>AetherString*</code> for you, so Swift receives a NUL-terminated C string. Copy it (<code>String(cString:)</code>) rather than retaining the pointer.</p>
 <h2 id="deployment-target">Deployment target</h2>
 <p>The deployment target is part of the clang triple, so it is fixed at build time. The default is <strong>iOS 15.0</strong> for the device and simulator targets. Catalyst has its own floor, and it differs by architecture: <strong>13.1</strong> on x86_64 (the <code>macabi</code> ABI does not exist before it) and <strong>14.0</strong> on arm64, since arm64 Catalyst did not exist until Apple Silicon, clang silently raises anything lower to 14.0, so asking for less produces a triple that does not describe its own output. Override any of them with <code>AETHER_IOS_MIN</code>:</p>
 <pre><code>AETHER_IOS_MIN=<span class="num">17.0</span> ae build --target=aarch64-ios --emit=lib mylib.ae -o libmylib.dylib</code></pre>
@@ -727,7 +729,7 @@ xcodebuild -create-xcframework \
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.640 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.641 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

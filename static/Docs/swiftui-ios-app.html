@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Per-process configuration in Aether · Aether</title>
-<meta name="description" content="Many CLI tools and servers need a per-process key/value: parse it once at startup (from --flag X args, an env var, or a config file), then read it from...">
-<link rel="canonical" href="https://aether-lang.dev/Docs/per-process-config.html">
+<title>Using an Aether library from a SwiftUI iOS app · Aether</title>
+<meta name="description" content="How to put an Aether compute core inside an iOS app: build the .ae as a library for iOS, call its aether_&lt;name&gt;() exports from Swift through a bridging...">
+<link rel="canonical" href="https://aether-lang.dev/Docs/swiftui-ios-app.html">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Per-process configuration in Aether · Aether">
-<meta property="og:description" content="Many CLI tools and servers need a per-process key/value: parse it once at startup (from --flag X args, an env var, or a config file), then read it from...">
-<meta property="og:url" content="https://aether-lang.dev/Docs/per-process-config.html">
+<meta property="og:title" content="Using an Aether library from a SwiftUI iOS app · Aether">
+<meta property="og:description" content="How to put an Aether compute core inside an iOS app: build the .ae as a library for iOS, call its aether_&lt;name&gt;() exports from Swift through a bridging...">
+<meta property="og:url" content="https://aether-lang.dev/Docs/swiftui-ios-app.html">
 <meta property="og:image" content="https://aether-lang.dev/og.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="/favicon.png">
@@ -624,7 +624,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/bindgen-consts.html">ae bindgen consts, importing C macro constants</a>
 <a href="/Docs/install-layout.html">Aether install layout</a>
 <a href="/Docs/runtime-config.html">Runtime Configuration - Quick Reference</a>
-<a href="/Docs/per-process-config.html" class="on">Per-process configuration in Aether</a>
+<a href="/Docs/per-process-config.html">Per-process configuration in Aether</a>
 <a href="/Docs/cic-help.html">ae help &lt;script&gt; Offline diagnostics for config-IS-code</a>
 <a href="/Docs/cross-ios.html">Cross-compiling for iOS (arm64)</a>
 <div class="grp">Testing</div>
@@ -655,143 +655,138 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/bootstrap-from-source.html">Bootstrapping Aether from source (HEAD)</a>
 <a href="/Docs/release-glibc-portability.html">Release binary portability across glibc versions</a>
 <div class="grp">More</div>
-<a href="/Docs/swiftui-ios-app.html">Using an Aether library from a SwiftUI iOS app</a>
+<a href="/Docs/swiftui-ios-app.html" class="on">Using an Aether library from a SwiftUI iOS app</a>
 <a href="/Docs/writing-security-sensitive-code.html">Writing security-sensitive code in Aether</a></nav>
     <main class="doc-main">
       <article class="doc-body" id="doc">
-        <div class="bc"><span class="prompt">$</span>docs / build &amp; tooling</div>
-<h1 id="per-process-configuration-in-aether">Per-process configuration in Aether</h1>
-<p>Many CLI tools and servers need a per-process key/value: parse it once at startup (from <code>--flag X</code> args, an env var, or a config file), then read it from many call sites for the rest of the process's life. Examples:</p>
-<ul><li><code>--superuser-token X</code> parsed at CLI entry, checked on every HTTP request handler.</li><li><code>--log-level debug</code> set once, consulted by every log call.</li><li><code>--data-dir /var/lib/myapp</code> baked in at startup, used by every filesystem op.</li><li>API keys, tenant IDs, current-user identity stashed by an auth middleware.</li></ul>
-<p>In C this is a <code>static int g_thing = …;</code> plus <code>set_thing(n)</code> / <code>get_thing(void)</code> helpers. Aether transcribes this shape directly with a <strong>module-level <code>var</code></strong> : <code>var</code> at module scope lowers to a file-scope C <code>static</code>, and same-module functions read and write it as a plain identifier, a real lvalue, so a setter genuinely updates it and every reader sees the new value. That's the simplest answer for scalar per-process config (a log-level enum, a numeric limit, a feature flag, a pointer handle).</p>
-<p>For state that must be shared <strong>across actors / threads</strong>, or that owns a resource it should free, the <strong>actor-as-singleton</strong> is the better tool: spawn one actor at startup, set values via messages, read via messages, the mailbox serialises access for you. Both patterns are below; pick by whether the value is process-local scalar config (<code>var</code>) or concurrently-shared/owned state (actor).</p>
-<p>This page is the worked example. It's a doc, not a stdlib feature, there's nothing to import beyond the language primitives.</p>
-<h2 id="the-simple-case-a-module-level-var">The simple case: a module-level <code>var</code></h2>
-<p>For a scalar config value parsed once at startup and read from many call sites, declare a module-level <code>var</code> and write the parsed value through a setter:</p>
-<pre><code><span class="kw">import</span> std.io
-
-<span class="com">// Parsed once at startup, read everywhere for the rest of the process.</span>
-<span class="com">// The INITIALISER must be a compile-time constant (it lowers to a C</span>
-<span class="com">// `static`, which the C standard requires to have a constant</span>
-<span class="com">// initialiser), so seed it with a constant and assign the real,</span>
-<span class="com">// CLI-parsed value from a setter at startup, not in the initialiser.</span>
-<span class="kw">var</span> log_level = <span class="num">0</span>          <span class="com">// 0=info, 1=debug, 2=trace (inferred int)</span>
-<span class="kw">var</span> max_conns: <span class="fn">long</span> = <span class="num">100</span>  <span class="com">// explicitly typed numeric limit</span>
-
-set_log_level(n: <span class="fn">int</span>) {
-    log_level = n          <span class="com">// writes the module-level static, not a local</span>
-}
-
-should_log(level: <span class="fn">int</span>) -&gt; <span class="fn">bool</span> {
-    <span class="kw">return</span> level &lt;= log_level   <span class="com">// every reader sees the setter's value</span>
-}
-
-main() {
-    set_log_level(<span class="num">2</span>)            <span class="com">// e.g. value from `--log-level trace`</span>
-    <span class="kw">if</span> should_log(<span class="num">1</span>) {
-        println(<span class="str">"debug visible"</span>)
+        <div class="bc"><span class="prompt">$</span>docs / more</div>
+<h1 id="using-an-aether-library-from-a-swiftui-ios-app">Using an Aether library from a SwiftUI iOS app</h1>
+<p>How to put an Aether compute core inside an iOS app: build the <code>.ae</code> as a library for iOS, call its <code>aether_&lt;name&gt;()</code> exports from Swift through a bridging header, and ship it in the app bundle.</p>
+<p>This is the walkthrough. Two companions cover the pieces it leans on: <a href="/Docs/cross-ios.html">cross-ios.md</a> for the iOS target itself (why it uses Xcode rather than zig, what does not work on iOS, XCFramework and signing), and <a href="/Docs/emit-lib.html">emit-lib.md</a> for the <code>aether_&lt;name&gt;()</code> ABI and the full type mapping.</p>
+<h2 id="the-shape">The shape</h2>
+<pre><code>  fibcore.ae  ──ae build --emit=csrc──▶  fibcore.h    ──▶ bridging header
+      │                                  (prototypes)
+      └──ae build --emit=staticlib──▶  libfibcore.a  ──▶ linked into the app
+                --target=…-ios              (aether_fib)</code></pre>
+<p>Swift never sees Aether. It sees C functions. Aether's job is the computation; the app shell, the UI, <code>Info.plist</code>, bundling and signing stay in Xcode.</p>
+<p><strong>This is a library, not an app.</strong> iOS does not run loose executables, so Aether cannot own <code>main()</code> here, see <em>What to build</em> in <a href="/Docs/cross-ios.html">cross-ios.md</a>. If you want the UI in Aether too, that needs a UIKit backend for aether-ui, which does not exist yet.</p>
+<h2 id="step-1--write-the-aether-side">Step 1, write the Aether side</h2>
+<p>Everything you <code>export</code> becomes a C entry point. Keep the surface small and scalar where you can; it is the seam you have to marshal across.</p>
+<pre><code><span class="com">// fibcore.ae, the whole computation lives here.</span>
+<span class="kw">export</span> fib(n: <span class="fn">int</span>) -&gt; <span class="fn">long</span> {
+    <span class="kw">if</span> n &lt; <span class="num">2</span> {
+        <span class="kw">return</span> n
     }
-    println(max_conns)
+    <span class="kw">return</span> fib(n - <span class="num">1</span>) + fib(n - <span class="num">2</span>)
 }</code></pre>
-<p>This is the <code>static int g_thing; set_thing(n)</code> shape, one-to-one. <code>set_log_level</code> mutates the same storage <code>should_log</code> reads, no actor, no message round-trip, no accessor indirection.</p>
-<p>Two constraints to know:</p>
-<ul><li><strong>The initialiser must be a compile-time constant.</strong> <code>var limit = compute_default()</code> is rejected, you can't seed a module-level <code>var</code> with a runtime or CLI-parsed value in the initialiser. The compiler says so explicitly:</li></ul>
-<pre><code>  error[E0200]: module-level `var` initializer must be a compile-time constant
-  expression, it lowers to a file-scope `static`, which C requires to have a
-  constant initializer. Initialize it to a constant here and assign the
-  computed value from a function at startup instead.</code></pre>
-<p>Seed it with a constant (<code>var limit = 0</code>) and write the computed value from a setter called at startup, exactly as <code>set_log_level</code> does above.</p>
-<ul><li><strong>It's module-private and best for scalar/pointer values.</strong> A module-level <code>var</code> is not exported across modules, and the direct-static lowering is the right fit for scalars and pointers (<code>int</code>, <code>long</code>, <code>uint64</code>, <code>ptr</code>, …). For a <strong>string-valued</strong> process config (an auth token, a data-dir path, a current-user name) reach for the actor singleton below, a string is heap-managed and an owned, freed resource is exactly the "shared/owned state" case the actor pattern is built for.</li></ul>
-<h2 id="the-sharedowned-case-an-actor-singleton">The shared/owned case: an actor singleton</h2>
-<p>When the value is a string (or any heap-owned resource), or must be visible across actor boundaries, model it as a one-actor singleton: spawn it at startup, set values via messages, read via reply-bearing messages. The mailbox serialises writes against reads, so concurrent setters and getters can't interleave incorrectly.</p>
-<pre><code><span class="kw">import</span> std.<span class="fn">string</span>
+<h2 id="step-2--generate-the-bridging-header">Step 2, generate the bridging header</h2>
+<p><code>--emit=lib</code> writes only the library. The header comes from <code>--emit=csrc</code>, which runs the same catalog codegen, so the two cannot drift:</p>
+<pre><code>ae build --emit=csrc fibcore.ae -o fibcore     <span class="com"># fibcore.h + fibcore.c + catalog</span></code></pre>
+<pre><code><span class="com">/* fibcore.h */</span>
+<span class="kw">int64_t</span> aether_fib(<span class="kw">int32_t</span> n);</code></pre>
+<p>Note this step needs no Xcode and no toolchain at all, it only writes source, so it works on any machine and in any CI lane.</p>
+<h2 id="step-3--build-the-library-for-ios">Step 3, build the library for iOS</h2>
+<p>One invocation per slice. Device and simulator are separate targets: same architecture is possible, but the Mach-O <em>platform</em> differs and a binary built for one will not load on the other.</p>
+<pre><code><span class="com"># Device, a static archive holding your code AND the Aether runtime/stdlib.</span>
+<span class="com"># This is what a shipping app links: iOS forbids third-party dylibs in an</span>
+<span class="com"># App Store binary.</span>
+ae build --target=aarch64-ios --emit=staticlib fibcore.ae -o libfibcore.a
 
-<span class="com">// Messages that drive the config actor.</span>
-<span class="kw">message</span> SetUser   { name: <span class="fn">string</span> }
-<span class="kw">message</span> SetToken  { value: <span class="fn">string</span> }
-<span class="com">// Reads route through a reply-bearing message: include a reply</span>
-<span class="com">// actor_ref so the config actor can send the value back.</span>
-<span class="kw">message</span> GetUser   { to: <span class="fn">actor_ref</span> }
-<span class="kw">message</span> GetToken  { to: <span class="fn">actor_ref</span> }
-<span class="kw">message</span> UserReply { value: <span class="fn">string</span> }
-<span class="kw">message</span> TokenReply { value: <span class="fn">string</span> }
+<span class="com"># Simulator, pick the slice that matches YOUR Mac, see below</span>
+ae build --target=aarch64-ios-simulator --emit=staticlib fibcore.ae -o libfibcore-sim.a</code></pre>
+<p><code>--emit=lib</code> gives a <code>.dylib</code> instead. It is convenient for a quick command-line loop (and fine for Mac Catalyst), but it is <strong>not shippable to the App Store</strong>, see <em>What to build</em> in <a href="/Docs/cross-ios.html">cross-ios.md</a>. Reach for <code>--emit=staticlib</code> unless you have a reason not to.</p>
+<h3 id="pick-the-right-simulator-architecture">Pick the right simulator architecture</h3>
+<p>The simulator runs your Mac's architecture, not the phone's:</p>
+<div class="tw"><table><thead><tr><th>Host Mac</th><th>Simulator target</th></tr></thead><tbody><tr><td>Apple Silicon</td><td><code>aarch64-ios-simulator</code></td></tr><tr><td>Intel</td><td><code>x86_64-ios-simulator</code></td></tr></tbody></table></div>
+<p>Getting this wrong produces a library that links but cannot load, and <code>simctl</code> reports it in a thoroughly unhelpful way, see <em>Troubleshooting</em>.</p>
+<h3 id="deployment-target">Deployment target</h3>
+<p>The minimum iOS version is baked into the clang triple, so it is fixed at build time. Default is 15.0; override with <code>AETHER_IOS_MIN</code>:</p>
+<pre><code>AETHER_IOS_MIN=<span class="num">17.0</span> ae build --target=aarch64-ios --emit=staticlib fibcore.ae -o libfibcore.a</code></pre>
+<p>Check it with <code>vtool -show-build libfibcore.a</code>. The library's floor only needs to be <strong>at or below</strong> the app's, a 15.0 library links fine into a 16.0 app.</p>
+<h2 id="step-4--call-it-from-swiftui">Step 4, call it from SwiftUI</h2>
+<p>Add <code>fibcore.h</code> to your target's bridging header (Xcode: <em>Objective-C Bridging Header</em> in build settings). The exports are then plain Swift functions:</p>
+<pre><code>import SwiftUI
 
-<span class="com">// The singleton. State-only, no business logic, just a key/value</span>
-<span class="com">// holder. Spawn exactly one of these.</span>
-<span class="kw">actor</span> ConfigActor {
-    <span class="kw">state</span> user  = <span class="str">""</span>
-    <span class="kw">state</span> token = <span class="str">""</span>
+let fibInputs: [Int32] = [20, 22, 24, 26, 28, 30]
 
-    <span class="kw">receive</span> {
-        SetUser(name)   -&gt; { user = name }
-        SetToken(value) -&gt; { token = value }
-        GetUser(to)     -&gt; { to ! UserReply  { value: user  } }
-        GetToken(to)    -&gt; { to ! TokenReply { value: token } }
+@MainActor
+final class FibModel: ObservableObject {
+    @Published var results: [(n: Int32, value: Int64)] = []
+
+    func run() {
+        Task.detached(priority: .userInitiated) {
+            var out: [(Int32, Int64)] = []
+            for n in fibInputs {
+                out.append((n, aether_fib(n)))     // &lt;-- Aether
+                let snapshot = out
+                await MainActor.run { self.results = snapshot }
+            }
+        }
     }
 }
 
-main() {
-    cfg = <span class="kw">spawn</span>(ConfigActor())
+struct ContentView: View {
+    @StateObject private var model = FibModel()
 
-    <span class="com">// Write-once at startup.</span>
-    cfg ! SetUser  { name: <span class="str">"alice"</span> }
-    cfg ! SetToken { value: <span class="str">"secret-xyz"</span> }
-
-    <span class="com">// … later, in a request handler that holds an `actor_ref` to its</span>
-    <span class="com">// own reply target …</span>
-    <span class="com">// cfg ! GetUser { to: self_ref }</span>
-    <span class="com">// receive { UserReply(value) -&gt; { … use value … } }</span>
+    var body: some View {
+        List(model.results, id: \.n) { r in
+            HStack {
+                Text("fib(\(r.n))").font(.system(.body, design: .monospaced))
+                Spacer()
+                Text("\(r.value)").bold()
+            }
+        }
+        .onAppear { model.run() }
+    }
 }</code></pre>
-<p>The reply pattern (caller sends a <code>Get*</code> message containing its own actor_ref, then <code>receive</code>s the matching <code>*Reply</code>) is the same ergonomics Erlang's <code>gen_server:call</code> provides under the hood. It's verbose for one-shot reads; if you only need writes, drop the <code>Get*</code> / <code>*Reply</code> half and design your readers to take the value from a message they were sent at startup.</p>
-<h2 id="variants">Variants</h2>
-<p><strong>Write-once, read-many string config</strong> (auth token, data-dir path, current-user name):</p>
-<p>The actor singleton above is what you want. The mailbox serialises writes with reads, so concurrent setters and getters can't interleave incorrectly. If you only set at startup and never again, the cost is one message round-trip per read.</p>
-<p><strong>Scalar config (log level, numeric limit, feature flag, pointer)</strong>:</p>
-<p>Use a module-level <code>var</code> (see <a href="#the-simple-case-a-module-level-var">The simple case</a>). A setter writes the parsed value at startup; reads are direct loads from the static, no round-trip, no message ceremony.</p>
-<p><strong>Hot-path reads where actor message overhead is too much</strong>:</p>
-<p>Measure first. A same-core actor message bypasses the incoming queue and writes directly to the target's mailbox or SPSC queue (see <a href="/Docs/runtime-optimizations.html">runtime-optimizations.md</a>, "SPSC Queue for Same-Core Messaging"), so the round-trip is cheap. For a per-HTTP-request auth-token check it is in the noise compared to the cost of the request itself.</p>
-<p>If you've measured and the round-trip really is too expensive (e.g. an inner loop reading the value 10⁹ times), the alternatives in order of preference:</p>
-<ol><li><strong>Pass the config value through your call chain.</strong> Plumb it as a parameter from the place that has the singleton's value to the place that needs it. This is the "explicit dependency" approach and is usually the right answer.</li><li><strong>Cache the value in a local actor's state.</strong> A worker actor that handles requests can ask the config actor once on startup and store the value in its own <code>state token = "…"</code>. Each subsequent handler invocation reads the local state, no round-trip. The trade-off is staleness if the config can change after the worker initialized.</li><li><strong>Use a <code>const</code> if the value is genuinely immutable across the process's life.</strong> <code>const TOKEN = "secret-xyz"</code> lowers to a <code>#define</code> and reads are zero-cost. Unlike a module-level <code>var</code>, a <code>const</code> can't be a setter's target, so it only works when the value is known at compile time (not for CLI-parsed config).</li></ol>
-<p><strong>Multi-tenant / per-request state</strong>:</p>
-<p>Per-process config is the wrong shape for things that vary per request (current user, tenant ID, request ID). For those, use thread-local state (TLS) or pass the value explicitly through your handler chain, the actor singleton would serialize all handlers behind one mailbox, which defeats parallelism.</p>
-<h2 id="module-level-var-vs-an-actor-singleton">Module-level <code>var</code> vs an actor singleton</h2>
-<p>Both are first-class; choose by what the state is and who touches it.</p>
-<p><strong>Reach for a module-level <code>var</code></strong> when the config is a process-local scalar, a log level, a numeric limit, a feature flag, a pointer handle, set once at startup and read from many call sites. It's the least machinery: a <code>static</code> plus a setter, reads compile to a direct load. Keep these caveats in mind:</p>
-<ul><li><strong>It's not synchronised.</strong> A module-level <code>var</code> is a plain <code>static</code>; concurrent writers need their own discipline (set it once at startup, before you spawn workers, and treat it as read-only thereafter). If multiple actors must <em>write</em> it during the run, that's the actor singleton's job, the mailbox gives you the synchronisation for free.</li><li><strong>It's process-global, so mind tests.</strong> Two test cases sharing one process see the same <code>var</code>; reset it explicitly between cases, or isolate by process. Actor state, by contrast, resets cleanly by re-spawning.</li></ul>
-<p><strong>Reach for an actor singleton</strong> when the value is a string or other heap-owned resource (the actor owns it and frees it on its own terms), or when it must be read and written across actor boundaries with the runtime handling synchronisation. This is also the answer when you'd otherwise be tempted to reach for a <code>static char *g_user;</code> in a multi-threaded server, that bare global is a TOCTOU bug waiting to bite, and the actor model closes the hole.</p>
-<p>The question to ask: is this process-local scalar config, or shared/owned state? The first is a <code>var</code>; the second is an actor.</p>
-<h2 id="worked-example-replacing-a-c-global-state-shim">Worked example: replacing a C global-state shim</h2>
-<p>The svn-aether port has this in <code>subversion/ae/ra/shim.c</code>:</p>
-<pre><code><span class="kw">static</span> <span class="kw">char</span> *g_client_user = NULL;
-
-<span class="kw">void</span> svnae_ra_set_user(<span class="kw">const</span> <span class="kw">char</span> *user) {
-    free(g_client_user);
-    g_client_user = user &amp;&amp; *user ? strdup(user) : NULL;
-}
-
-<span class="kw">const</span> <span class="kw">char</span> *aether_ra_get_user(<span class="kw">void</span>) {
-    <span class="kw">return</span> g_client_user ? g_client_user : <span class="str">""</span>;
+<p>Run Aether calls <strong>off the main actor</strong> if they are not instant, exactly as you would any other blocking computation, nothing about the FFI makes a slow function safe to call from the UI thread.</p>
+<h3 id="types-across-the-boundary">Types across the boundary</h3>
+<div class="tw"><table><thead><tr><th>Aether</th><th>C / Swift</th></tr></thead><tbody><tr><td><code>int</code></td><td><code>int32_t</code> / <code>Int32</code></td></tr><tr><td><code>long</code></td><td><code>int64_t</code> / <code>Int64</code></td></tr><tr><td><code>float</code></td><td><code>double</code> / <code>Double</code></td></tr><tr><td><code>bool</code></td><td><code>int</code> / <code>Int32</code> (0 or 1)</td></tr><tr><td><code>string</code> (param)</td><td><code>const char*</code> / <code>UnsafePointer&lt;CChar&gt;</code></td></tr><tr><td><code>string</code> (return)</td><td><code>const char*</code> / <code>UnsafePointer&lt;CChar&gt;?</code></td></tr></tbody></table></div>
+<p>The full table is in <a href="/Docs/emit-lib.html#type-mapping">emit-lib.md</a>.</p>
+<p><strong>Strings need care.</strong> For a <code>-&gt; string</code> export the generated wrapper calls <code>aether_string_data()</code> for you, so what Swift receives really is a NUL-terminated C string rather than an opaque handle. Copy it immediately and do not retain the raw pointer:</p>
+<pre><code>if let p = aether_greet("SwiftUI") {
+    let s = String(cString: p)     // copy now
+    // `p` must not be stored, its lifetime is not yours to manage
 }</code></pre>
-<p>This shim stores a <strong>string</strong> (<code>char *</code>) and owns it (<code>free</code> / <code>strdup</code>), so it maps onto the actor singleton above rather than a module-level <code>var</code>. Set on CLI parse:</p>
-<pre><code>cfg ! SetUser { name: parsed_user_arg }</code></pre>
-<p>(A scalar C shim, say a <code>static int g_log_level;</code> with a <code>set</code>/<code>get</code> pair, maps the other way: it's a module-level <code>var log_level = 0</code> plus a <code>set_log_level</code> setter, exactly the <a href="#the-simple-case-a-module-level-var">simple case</a> above. The string shim here needs the actor because the value is heap-owned.)</p>
-<p>Read in the request handler, slightly more involved than a function call because the handler needs an actor_ref to receive the reply. The natural place to plumb that is through whatever spawns the handler:</p>
-<pre><code>// At handler-spawn time:
-worker = spawn(RequestHandler())
-cfg ! GetUser { to: worker }   // worker stashes the reply when it arrives
+<p>Prefer scalars across the boundary where you can. If you need to return structured data, returning a JSON string that Swift decodes is usually less work than hand-marshalling, and it keeps the ABI surface one function wide.</p>
+<h2 id="step-5--get-it-into-the-bundle">Step 5, get it into the bundle</h2>
+<h3 id="the-xcode-way">The Xcode way</h3>
+<p>Drop <code>libfibcore.a</code> into <strong>Link Binary With Libraries</strong>. That is the whole integration, the archive already contains the Aether runtime and stdlib, so there is exactly one file to add and no embed or signing phase.</p>
+<p>If you used <code>--emit=lib</code> instead, a <code>.dylib</code> additionally needs an <strong>Embed Frameworks</strong> phase with <em>Code Sign On Copy</em>. <code>ae</code> links it <code>-install_name @rpath/&lt;leaf&gt;</code>, which is what that phase expects, without it the load command would record the build machine's path and the app would fail to launch anywhere else.</p>
+<p>Device and simulator slices cannot coexist in one Mach-O (same architecture, different platform), so ship the slices as an XCFramework rather than a fat binary. <code>xcodebuild -create-xcframework</code> takes the <code>.a</code> files directly; see <em>Building a fat / XCFramework artifact</em> in <a href="/Docs/cross-ios.html">cross-ios.md</a>, which also covers the Mac Catalyst slice (<code>--target=aarch64-ios-macabi</code>).</p>
+<h3 id="without-an-xcodeproj">Without an <code>.xcodeproj</code></h3>
+<p>A bundle is a directory, an <code>Info.plist</code> and an executable, so the whole loop can run from the command line, useful for CI and for a quick check:</p>
+<pre><code>SDK=$(xcrun --sdk iphonesimulator --show-sdk-path)
 
-// In the worker's receive block:
-receive {
-    UserReply(value) -&gt; { current_user = value }
-    HttpRequest(req) -&gt; { handle_request(req, current_user) }
-}</code></pre>
-<p>This is more code than the C version, but it's also testable, thread-safe by construction, and amenable to "swap the config actor for a mock" in tests.</p>
-<h2 id="see-also">See also</h2>
-<ul><li><a href="/Docs/actor-concurrency.html">actor-concurrency.md</a>, runtime details on the scheduler, mailboxes, and message delivery</li><li><a href="/Docs/runtime-optimizations.html">runtime-optimizations.md</a>, the scheduler's message-passing optimizations, including same-core SPSC delivery</li><li><code>tests/integration/test_http_client_v2.ae</code> uses an actor singleton (<code>SrvActor</code>) for an in-process HTTP server's lifecycle</li></ul>
-<nav class="doc-prevnext" aria-label="Previous and next page"><a class="pn-prev" href="/Docs/runtime-config.html"><span class="pn-k">Previous</span><span class="pn-t">Runtime Configuration - Quick Reference</span></a><a class="pn-next" href="/Docs/cic-help.html"><span class="pn-k">Next</span><span class="pn-t">ae help &lt;script&gt; Offline diagnostics for config-IS-code</span></a></nav>
+<span class="com"># a dylib is easier to hand to swiftc directly than an archive</span>
+ae build --target=x86_64-ios-simulator --emit=lib fibcore.ae -o libfibcore.dylib
+
+xcrun --sdk iphonesimulator swiftc \
+    -target x86_64-apple-ios16.<span class="num">0</span>-simulator -sdk <span class="str">"$SDK"</span> \
+    -parse-as-library \
+    -import-objc-header fibcore.h FibApp.swift libfibcore.dylib \
+    -Xlinker -rpath -Xlinker @executable_path \
+    -o AetherFib.app/AetherFib
+
+cp Info.plist libfibcore.dylib AetherFib.app/
+codesign --force --sign - AetherFib.app
+
+xcrun simctl install booted AetherFib.app
+xcrun simctl launch  booted dev.example.fibdemo
+xcrun simctl io      booted screenshot shot.png</code></pre>
+<p><code>-parse-as-library</code> is required whenever the app uses <code>@main</code>. The <code>Info.plist</code> needs at minimum <code>CFBundleIdentifier</code>, <code>CFBundleExecutable</code>, <code>CFBundlePackageType</code> (<code>APPL</code>), <code>MinimumOSVersion</code> and <code>UIDeviceFamily</code>.</p>
+<h2 id="what-the-aether-side-can-and-cannot-do">What the Aether side can and cannot do</h2>
+<p>Actors, the scheduler, strings, collections, <code>std.math</code> and <code>std.regex</code> (the vendored PCRE2 needs no sysroot) all work. Keep the Aether side pure computation:</p>
+<ul><li><strong>No networking.</strong> No TLS is linked, and App Transport Security blocks cleartext anyway. Do networking in Swift with <code>URLSession</code> and hand Aether the bytes.</li><li><strong>No child processes.</strong> <code>os.system</code> returns <code>-1</code> on iOS and the sandbox forbids <code>fork</code>/<code>exec</code> regardless.</li><li><strong>No filesystem outside the app container</strong>, and pass paths in from Swift rather than constructing them in Aether.</li></ul>
+<p>The full table is in <a href="/Docs/cross-ios.html#what-does-not-work-on-ios">cross-ios.md</a>.</p>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<div class="tw"><table><thead><tr><th>Symptom</th><th>Cause</th></tr></thead><tbody><tr><td><code>building for iOS but linking object built for macOS</code></td><td>A host build got into the link. Every object must come from an <code>--target=…-ios</code> build.</td></tr><tr><td><code>simctl</code>: <code>Invalid or missing Program/ProgramArguments</code></td><td>The binary's architecture does not match the simulator's. On an Intel Mac an <code>aarch64-ios-simulator</code> build fails exactly this way, and so does a plain C control binary, so it looks like a broken simulator rather than a wrong slice. Check with <code>file</code>.</td></tr><tr><td><code>Library not loaded: /path/on/build/machine/lib….dylib</code></td><td>The <code>install_name</code> is absolute. <code>ae</code> sets <code>@rpath/&lt;leaf&gt;</code>; if you relinked by hand, pass <code>-install_name @rpath/&lt;leaf&gt;</code>.</td></tr><tr><td><code>'main' attribute cannot be used in a module that contains top-level code</code></td><td>Add <code>-parse-as-library</code> to <code>swiftc</code>.</td></tr><tr><td><code>'NavigationStack' is only available in iOS 16.0 or newer</code></td><td>The Swift target's deployment version, unrelated to Aether. <code>AETHER_IOS_MIN</code> only sets the <em>library's</em> floor.</td></tr><tr><td><code>std.regex</code> matches nothing and returns no error</td><td>Something linked a stub built without <code>-DAETHER_HAS_PCRE2 -DAETHER_VENDOR_PCRE2</code>. <code>ae build --target</code> adds both; a hand-rolled compile of the runtime sources must too.</td></tr><tr><td><code>could not locate the iphoneos SDK</code></td><td>Command Line Tools only. Install Xcode, then <code>sudo xcode-select -s /Applications/Xcode.app/Contents/Developer</code>.</td></tr></tbody></table></div>
+<h2 id="a-note-on-verification">A note on verification</h2>
+<p>An iOS library that links is not an iOS library that runs. <code>otool</code>, <code>lipo</code> and <code>vtool</code> confirm shape, not behaviour, and the two come apart in practice. Run the thing on a simulator before believing it, <code>simctl install</code> + <code>simctl launch</code> is a few seconds and catches what inspection cannot.</p>
+<nav class="doc-prevnext" aria-label="Previous and next page"><a class="pn-prev" href="/Docs/release-glibc-portability.html"><span class="pn-k">Previous</span><span class="pn-t">Release binary portability across glibc versions</span></a><a class="pn-next" href="/Docs/writing-security-sensitive-code.html"><span class="pn-k">Next</span><span class="pn-t">Writing security-sensitive code in Aether</span></a></nav>
       </article>
     </main>
-    <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#the-simple-case-a-module-level-var" class="l2" data-id="the-simple-case-a-module-level-var">The simple case: a module-level var</a><a href="#the-sharedowned-case-an-actor-singleton" class="l2" data-id="the-sharedowned-case-an-actor-singleton">The shared/owned case: an actor singleton</a><a href="#variants" class="l2" data-id="variants">Variants</a><a href="#module-level-var-vs-an-actor-singleton" class="l2" data-id="module-level-var-vs-an-actor-singleton">Module-level var vs an actor singleton</a><a href="#worked-example-replacing-a-c-global-state-shim" class="l2" data-id="worked-example-replacing-a-c-global-state-shim">Worked example: replacing a C global-state shim</a><a href="#see-also" class="l2" data-id="see-also">See also</a></nav>
+    <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#the-shape" class="l2" data-id="the-shape">The shape</a><a href="#step-1--write-the-aether-side" class="l2" data-id="step-1--write-the-aether-side">Step 1, write the Aether side</a><a href="#step-2--generate-the-bridging-header" class="l2" data-id="step-2--generate-the-bridging-header">Step 2, generate the bridging header</a><a href="#step-3--build-the-library-for-ios" class="l2" data-id="step-3--build-the-library-for-ios">Step 3, build the library for iOS</a><a href="#pick-the-right-simulator-architecture" class="l3" data-id="pick-the-right-simulator-architecture">Pick the right simulator architecture</a><a href="#deployment-target" class="l3" data-id="deployment-target">Deployment target</a><a href="#step-4--call-it-from-swiftui" class="l2" data-id="step-4--call-it-from-swiftui">Step 4, call it from SwiftUI</a><a href="#types-across-the-boundary" class="l3" data-id="types-across-the-boundary">Types across the boundary</a><a href="#step-5--get-it-into-the-bundle" class="l2" data-id="step-5--get-it-into-the-bundle">Step 5, get it into the bundle</a><a href="#the-xcode-way" class="l3" data-id="the-xcode-way">The Xcode way</a><a href="#without-an-xcodeproj" class="l3" data-id="without-an-xcodeproj">Without an .xcodeproj</a><a href="#what-the-aether-side-can-and-cannot-do" class="l2" data-id="what-the-aether-side-can-and-cannot-do">What the Aether side can and cannot do</a><a href="#troubleshooting" class="l2" data-id="troubleshooting">Troubleshooting</a><a href="#a-note-on-verification" class="l2" data-id="a-note-on-verification">A note on verification</a></nav>
   </div>
 </div>
 <script src="/docs.js" defer></script>
