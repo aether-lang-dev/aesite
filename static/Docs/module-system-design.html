@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.636</span>
+      <span class="vtag">v0.637</span>
     </nav>
   </div>
 </header>
@@ -878,6 +878,31 @@ $ AETHER_LIB_DIR=/usr/share/aether:./local ae lib-path
 $ ae lib-path                          <span class="com"># defaults, single entry</span>
 lib</code></pre>
 <p>Inputs are merged in the same priority order the build path uses: explicit <code>--lib</code> flags first, then <code>AETHER_LIB_DIR</code>, then the default <code>lib</code>.</p>
+<h4 id="dependencies-resolve-onto-the-search-path">Dependencies resolve onto the search path</h4>
+<p><code>ae add</code> installs into <code>~/.aether/packages/&lt;host&gt;/&lt;owner&gt;/&lt;name&gt;</code> and records the dependency:</p>
+<pre><code>[dependencies]
+<span class="str">"github.com/aether-lang-dev/selaenium"</span> = <span class="str">"0.2.0"</span></code></pre>
+<p><code>ae run</code>, <code>ae build</code> and <code>ae lib-path</code> read that section and join the package's modules to the search path. <strong>No <code>--lib</code> is needed to import from a declared dependency.</strong> All three walk up to the project's manifest first, so they behave the same from a subdirectory as from the project root.</p>
+<p>The publishing package decides what it exports, in its own <code>aether.toml</code>:</p>
+<pre><code>[package]
+name = <span class="str">"selaenium"</span>
+modules = <span class="str">"aether, selenium_core, selenium_core/drivermgr"</span></code></pre>
+<p>Each entry names an <strong>importable module</strong>, and what joins the search path is that module's parent directory, because <code>--lib D</code> means "D contains modules" (<code>D/&lt;name&gt;.ae</code> or <code>D/&lt;name&gt;/module.ae</code>). So <code>selenium_core/drivermgr</code> puts <code>&lt;package&gt;/selenium_core</code> on the path and <code>import drivermgr</code> resolves.</p>
+<p>This is why the declaration lives with the publisher rather than the consumer: a package can move its directories in a patch release without any consumer changing a path. A consumer names the dependency and nothing else. A package with no <code>aether.toml</code>, or none with a <code>modules</code> key, exports nothing and says so, the package root is never joined speculatively, since a real package is a whole repository whose root holds docs, scripts and tests as well as modules.</p>
+<p>A dependency that is declared but not installed fails by name:</p>
+<pre><code>Error: dependency 'github.com/aether-lang-dev/selaenium' is not installed. Run:
+    ae add github.com/aether-lang-dev/selaenium</code></pre>
+<p>rather than as an unresolved-import error naming a module the user never typed.</p>
+<h4 id="overriding-a-dependency">Overriding a dependency</h4>
+<p>Two forms, both of which <strong>announce themselves</strong>, an override that applied silently would mean a green local build against a working copy that CI does not have:</p>
+<pre><code>ae run x.ae --override github.com/aether-lang-dev/selaenium=../selaenium</code></pre>
+<p>per-invocation, leaving no trace in the manifest, right for "just this once" and for CI proving a change against an unpublished branch. And in the manifest, a separate stanza so an override cannot be shipped by accident inside a <code>[dependencies]</code> line:</p>
+<pre><code>[patch]
+<span class="str">"github.com/aether-lang-dev/selaenium"</span> = <span class="str">"../selaenium"</span>
+<span class="com"># or Cargo's table form, which means the same thing:</span>
+<span class="str">"github.com/aether-lang-dev/other"</span> = { path = <span class="str">"../other"</span> }</code></pre>
+<p>Only a local path override is supported. A table naming anything else (a git URL, say) is an error rather than a silently-ignored line.</p>
+<p>Either way the build prints <code>Overriding &lt;dep&gt; -&gt; &lt;path&gt;</code>. A <code>--override</code> for a dependency also overridden by <code>[patch]</code> wins, since the invocation is the more specific instruction. The override target is read exactly like an installed package: it needs its own <code>[package] modules</code> declaration.</p>
 <h3 id="namespace-convention">Namespace Convention</h3>
 <p>Function names must be prefixed with the namespace:</p>
 <ul><li>Import: <code>import utils</code></li><li>Call: <code>utils.double_value(x)</code></li><li>C function: <code>utils_double_value()</code></li></ul>
@@ -939,7 +964,7 @@ main() {
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.636 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.637 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>
