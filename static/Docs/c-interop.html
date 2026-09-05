@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.641</span>
+      <span class="vtag">v0.642</span>
     </nav>
   </div>
 </header>
@@ -708,23 +708,23 @@ extern void_function(param: type)  // No return type = void</code></pre>
     printf(<span class="str">"Hello, %s!\n"</span>, name);
 }</code></pre>
 <p><strong>main.ae:</strong></p>
-<pre><code><span class="com">// Declare our C functions</span>
-<span class="kw">extern</span> my_add(a: <span class="fn">int</span>, b: <span class="fn">int</span>) -&gt; <span class="fn">int</span>
-<span class="kw">extern</span> my_power(base: <span class="fn">float</span>, exp: <span class="fn">float</span>) -&gt; <span class="fn">float</span>
-<span class="kw">extern</span> my_greet(name: <span class="fn">string</span>)
+<pre><code>// Declare our C functions
+extern my_add(a: int, b: int) -&gt; int
+extern my_power(base: float, exp: float) -&gt; float
+extern my_greet(name: string)
 
 main() {
-    result = my_add(<span class="num">10</span>, <span class="num">20</span>)
-    print(<span class="str">"10 + 20 = "</span>)
+    result = my_add(10, 20)
+    print("10 + 20 = ")
     print(result)
-    print(<span class="str">"\n"</span>)
+    print("\n")
 
-    power = my_power(<span class="num">2.0</span>, <span class="num">10.0</span>)
-    print(<span class="str">"2^10 = "</span>)
+    power = my_power(2.0, 10.0)
+    print("2^10 = ")
     print(power)
-    print(<span class="str">"\n"</span>)
+    print("\n")
 
-    my_greet(<span class="str">"Aether"</span>)
+    my_greet("Aether")
 }</code></pre>
 <p><strong>Build and run:</strong></p>
 <pre><code><span class="com"># Compile C code</span>
@@ -742,12 +742,12 @@ gcc main.c my_math.o $(ae cflags) -o myapp
 ./myapp</code></pre>
 <h2 id="tuple-return-types-extern-foo---t1-t2-">Tuple Return Types, <code>extern foo(...) -&gt; (T1, T2, ...)</code></h2>
 <p>C functions that return more than one logical value typically pack the results into a struct returned by value. Aether mirrors this on the FFI side: declare the extern with a parenthesised tuple return type, and the codegen synthesises the matching C struct typedef so the call site can destructure the result like any Aether-side tuple-returning function:</p>
-<pre><code><span class="kw">extern</span> parse_int_safe(s: <span class="fn">string</span>) -&gt; (<span class="fn">int</span>, <span class="fn">string</span>)
+<pre><code>extern parse_int_safe(s: string) -&gt; (int, string)
 
 main() {
-    val, err = parse_int_safe(<span class="str">"42"</span>)
-    <span class="kw">if</span> err != <span class="str">""</span> {
-        <span class="com">// …handle error…</span>
+    val, err = parse_int_safe("42")
+    if err != "" {
+        // …handle error…
     }
     println(val)
 }</code></pre>
@@ -782,11 +782,11 @@ read_binary(path: string) -&gt; {
 <p>Tuple returns are the natural shape for any C function that produces a value plus an error message, a value plus a length, or any other small product type. Before this form was available, FFI authors worked around the single-scalar return by either packing values into a delimited string or splitting the operation into 4+ split-accessor externs (<code>&lt;op&gt;_raw</code> + <code>&lt;op&gt;_get</code> + <code>&lt;op&gt;_get_length</code> + <code>&lt;op&gt;_release</code> with TLS-backed storage). The tuple form replaces both patterns with a single declaration.</p>
 <h3 id="binding-struct-returning-c-functions">Binding struct-returning C functions</h3>
 <p>The mechanism above is, in practice, <strong>by-value struct return</strong> for any C struct whose layout matches the synthesized typedef, not just for "multiple logical values". raylib's <code>Image LoadImage(const char*)</code> layout <code>{void*, int, int, int, int}</code>, binds with zero glue:</p>
-<pre><code>@<span class="kw">extern</span>(<span class="str">"LoadImage"</span>) load_image(path: <span class="fn">string</span>) -&gt; (<span class="fn">ptr</span>, <span class="fn">int</span>, <span class="fn">int</span>, <span class="fn">int</span>, <span class="fn">int</span>)
+<pre><code>@extern("LoadImage") load_image(path: string) -&gt; (ptr, int, int, int, int)
 
 main() {
-    data, w, h, mips, fmt = load_image(<span class="str">"frame.png"</span>)
-    <span class="com">// -&gt; Image: 400x420 mips=1 fmt=7</span>
+    data, w, h, mips, fmt = load_image("frame.png")
+    // -&gt; Image: 400x420 mips=1 fmt=7
 }</code></pre>
 <p>Any struct of scalar/pointer fields works this way; the field ORDER in the tuple is the layout contract.</p>
 <h3 id="tuple-parameters-by-value-struct-arguments">Tuple parameters, by-value struct arguments</h3>
@@ -907,30 +907,30 @@ version = <span class="str">"1.0.0"</span>
 link_flags = [<span class="str">"-lsqlite3"</span>, <span class="str">"-lcurl"</span>, <span class="str">"-lm"</span>]</code></pre>
 <h3 id="example-using-sqlite">Example: Using SQLite</h3>
 <p><strong>database.ae:</strong></p>
-<pre><code><span class="com">// SQLite C API</span>
-<span class="kw">extern</span> sqlite3_open(path: <span class="fn">string</span>, db: <span class="fn">ptr</span>) -&gt; <span class="fn">int</span>
-<span class="kw">extern</span> sqlite3_close(db: <span class="fn">ptr</span>) -&gt; <span class="fn">int</span>
-<span class="com">// `callback` is a reserved word in Aether, so the parameter is named `cb`.</span>
-<span class="com">// Parameter names are local to the declaration; the C symbol is unaffected.</span>
-<span class="kw">extern</span> sqlite3_exec(db: <span class="fn">ptr</span>, sql: <span class="fn">string</span>, cb: <span class="fn">ptr</span>, arg: <span class="fn">ptr</span>, errmsg: <span class="fn">ptr</span>) -&gt; <span class="fn">int</span>
+<pre><code>// SQLite C API
+extern sqlite3_open(path: string, db: ptr) -&gt; int
+extern sqlite3_close(db: ptr) -&gt; int
+// `callback` is a reserved word in Aether, so the parameter is named `cb`.
+// Parameter names are local to the declaration; the C symbol is unaffected.
+extern sqlite3_exec(db: ptr, sql: string, cb: ptr, arg: ptr, errmsg: ptr) -&gt; int
 
 main() {
-    db = <span class="num">0</span>  <span class="com">// Will hold database pointer</span>
+    db = 0  // Will hold database pointer
 
-    <span class="com">// Open database</span>
-    result = sqlite3_open(<span class="str">"test.db"</span>, db)
-    <span class="kw">if</span> (result != <span class="num">0</span>) {
-        print(<span class="str">"Failed to open database\n"</span>)
-        <span class="kw">return</span>
+    // Open database
+    result = sqlite3_open("test.db", db)
+    if (result != 0) {
+        print("Failed to open database\n")
+        return
     }
 
-    <span class="com">// Execute SQL</span>
-    sql = <span class="str">"CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, name TEXT)"</span>
-    sqlite3_exec(db, sql, <span class="num">0</span>, <span class="num">0</span>, <span class="num">0</span>)
+    // Execute SQL
+    sql = "CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, name TEXT)"
+    sqlite3_exec(db, sql, 0, 0, 0)
 
-    <span class="com">// Close database</span>
+    // Close database
     sqlite3_close(db)
-    print(<span class="str">"Database operations complete\n"</span>)
+    print("Database operations complete\n")
 }</code></pre>
 <p><strong>aether.toml:</strong></p>
 <pre><code>[project]
@@ -951,13 +951,13 @@ note:  previous declaration … 'unsigned int(unsigned int)'</code></pre>
 <p>When you write a C shim or third-party binding, you can follow the same convention: prefix exported symbols with <code>aether_&lt;module&gt;_</code> (e.g. <code>aether_vcr_record</code>, <code>aether_http_get</code>) so they don't collide with vendor libraries the user might link via <code>[build] extra_sources = […]</code>.</p>
 <h2 id="working-with-pointers">Working with Pointers</h2>
 <p>The <code>ptr</code> type maps to <code>void*</code> in C, useful for opaque handles and callbacks:</p>
-<pre><code><span class="kw">extern</span> create_handle() -&gt; <span class="fn">ptr</span>
-<span class="kw">extern</span> use_handle(h: <span class="fn">ptr</span>) -&gt; <span class="fn">int</span>
-<span class="kw">extern</span> destroy_handle(h: <span class="fn">ptr</span>)
+<pre><code>extern create_handle() -&gt; ptr
+extern use_handle(h: ptr) -&gt; int
+extern destroy_handle(h: ptr)
 
 main() {
     handle = create_handle()
-    <span class="kw">if</span> (handle != <span class="num">0</span>) {
+    if (handle != 0) {
         use_handle(handle)
         destroy_handle(handle)
     }
@@ -1007,14 +1007,14 @@ main() {
 <blockquote><strong>Historical note:</strong> older shims open-coded this unwrap by pattern-matching the magic number themselves (<code>#define AETHER_STRING_MAGIC 0xAE57C0DE</code> + cast). <code>aether_string_data</code> / <code>aether_string_length</code> have replaced that pattern, downstream projects can delete the open-coded unwrap once they pick up the new headers.</blockquote>
 <h3 id="passing-string-values-into-c-externs-auto-unwrap">Passing <code>string</code> values INTO C externs (auto-unwrap)</h3>
 <p>The symmetric direction, Aether code passing a <code>string</code> value to a C extern declared <code>const char*</code> is handled by the codegen automatically. When the call site has the form:</p>
-<pre><code><span class="kw">import</span> std.encoding
-<span class="kw">import</span> std.<span class="fn">string</span>
+<pre><code>import std.encoding
+import std.string
 
-<span class="kw">extern</span> probe_consume(content: <span class="fn">string</span>, len: <span class="fn">int</span>) -&gt; <span class="fn">int</span>
+extern probe_consume(content: string, len: int) -&gt; int
 
 main() {
-    raw, _ = encoding.base64_decode(<span class="str">"QUI="</span>)      <span class="com">// an AetherString</span>
-    probe_consume(raw, <span class="fn">string</span>.length(raw))       <span class="com">// C side gets the payload, not the header</span>
+    raw, _ = encoding.base64_decode("QUI=")      // an AetherString
+    probe_consume(raw, string.length(raw))       // C side gets the payload, not the header
 }</code></pre>
 <p>…the codegen emits <code>probe_consume(aether_string_data(raw), raw_len)</code> rather than passing <code>raw</code> straight through. <code>aether_string_data</code> dispatches on the AetherString magic header: returns <code>s-&gt;data</code> for wrapped strings, the bare pointer for plain <code>char*</code> values (string literals). Idempotent and safe on either shape.</p>
 <p>This means C shim authors don't have to remember to unwrap on the receiving side; the C function can <code>memcpy(...)</code> or <code>strlen(...)</code> on the <code>const char*</code> parameter and get the payload bytes regardless of what the Aether caller passed.</p>
@@ -1251,13 +1251,13 @@ n = hdr.len</code></pre>
 <h3 id="heap-string-ownership-across-the-ffi-boundary">Heap-string ownership across the FFI boundary</h3>
 <p>When an Aether function takes the result of a C extern <code>-&gt; string</code> call and assigns it to a variable, the same heap-string-tracker machinery decides whether the buffer is freed on later reassignment:</p>
 <ul><li><strong>Hardcoded heap-returning stdlib calls</strong> (<code>string.concat</code>, <code>string.substring</code>, <code>string.{to_upper, to_lower, trim}</code>) and <strong>string interpolation</strong> are always treated as heap.</li><li><strong>A user-defined Aether <code>-&gt; string</code> function</strong> is heap-returning iff the codegen's recursive structural-escape-analysis pass can prove every return statement yields a heap-string-expression (chain into another heap-returning function counts).</li><li><strong>A C extern <code>-&gt; string</code></strong> is NOT analysed structurally, the codegen has no body to walk. It's treated as <strong>non-heap</strong> by default (literal-shape contract). If your C extern returns malloc'd memory that the caller is expected to free, capture its result via <code>ptr</code> and free it explicitly:</li></ul>
-<pre><code><span class="com">// Heap-returning C extern, declare result as ptr, free explicitly.</span>
-<span class="kw">extern</span> my_strdup_raw(s: <span class="fn">string</span>) -&gt; <span class="fn">ptr</span>
+<pre><code>// Heap-returning C extern, declare result as ptr, free explicitly.
+extern my_strdup_raw(s: string) -&gt; ptr
 
 main() {
-    p = my_strdup_raw(<span class="str">"hello"</span>)
-    <span class="kw">defer</span> free(p)   <span class="com">// explicit cleanup</span>
-    <span class="com">// ... use p ...</span>
+    p = my_strdup_raw("hello")
+    defer free(p)   // explicit cleanup
+    // ... use p ...
 }</code></pre>
 <p>Why not auto-treat C externs as heap: the C side has no calling-convention discipline that distinguishes heap from literal returns. <code>getenv(3)</code>, <code>dlerror(3)</code>, and dozens of POSIX functions return <em>borrowed</em> <code>char*</code> that must NOT be freed. A blanket "C extern returning string = heap" rule would surface as silent free-of-borrowed-memory aborts. The conservative stance is correct.</p>
 <p>If your C function genuinely matches Aether's heap-returning contract (always allocates, never returns a literal or borrow), wrap it in a small <code>.ae</code> shim that returns a heap-string-expr (e.g. <code>string.concat("", c_result)</code>) and the structural-analysis pass will recognise the shim as heap-returning automatically.</p>
@@ -1297,7 +1297,7 @@ server_get(raw, "/health", _h_health, 0)   // references ae_h_health</code></pre
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.641 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.642 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

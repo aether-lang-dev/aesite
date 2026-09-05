@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.641</span>
+      <span class="vtag">v0.642</span>
     </nav>
   </div>
 </header>
@@ -663,7 +663,9 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <h1 id="isolatedt-move-only-actor-message-payloads"><code>Isolated[T]</code>: move-only actor message payloads</h1>
 <p>Aether's actor model type-checks message shapes, but declared types alone do not stop a sender from keeping a reference to a heap-bearing value it just handed off. For ref-counted strings that is papered over by reference counting; for pointer-bearing payloads (a <code>*StringSeq</code>, a struct with a file handle, a future capability token) it is a real aliasing hazard.</p>
 <p><code>Isolated[T]</code> is the small, zero-cost answer, borrowed from Nim's <code>Isolated[T]</code> (itself descended from Pony's reference capabilities): a wrapper type that is <strong>move-only</strong> at the language level. You build one with <code>isolate(x)</code>, you unwrap it once with <code>consume(iso)</code>, and the compiler rejects any second use. It is a compile-time discipline only: it lowers to the wrapped type's C type with no runtime structure and no overhead.</p>
-<pre><code>process(iso: Isolated[Payload]) -&gt; <span class="fn">int</span> {
+<pre><code><span class="kw">struct</span> Payload { n: <span class="fn">int</span>, tag: <span class="fn">string</span> }
+
+process(iso: Isolated[Payload]) -&gt; <span class="fn">int</span> {
     <span class="kw">let</span> p = consume(iso)     <span class="com">// unwrap once</span>
     <span class="kw">return</span> p.n
 }
@@ -702,7 +704,7 @@ main() {
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.641 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.642 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

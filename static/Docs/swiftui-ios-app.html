@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.641</span>
+      <span class="vtag">v0.642</span>
     </nav>
   </div>
 </header>
@@ -672,12 +672,12 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <p><strong>This is a library, not an app.</strong> iOS does not run loose executables, so Aether cannot own <code>main()</code> here, see <em>What to build</em> in <a href="/Docs/cross-ios.html">cross-ios.md</a>. If you want the UI in Aether too, that needs a UIKit backend for aether-ui, which does not exist yet.</p>
 <h2 id="step-1--write-the-aether-side">Step 1, write the Aether side</h2>
 <p>Everything you <code>export</code> becomes a C entry point. Keep the surface small and scalar where you can; it is the seam you have to marshal across.</p>
-<pre><code><span class="com">// fibcore.ae, the whole computation lives here.</span>
-<span class="kw">export</span> fib(n: <span class="fn">int</span>) -&gt; <span class="fn">long</span> {
-    <span class="kw">if</span> n &lt; <span class="num">2</span> {
-        <span class="kw">return</span> n
+<pre><code>// fibcore.ae, the whole computation lives here.
+export fib(n: int) -&gt; long {
+    if n &lt; 2 {
+        return n
     }
-    <span class="kw">return</span> fib(n - <span class="num">1</span>) + fib(n - <span class="num">2</span>)
+    return fib(n - 1) + fib(n - 2)
 }</code></pre>
 <h2 id="step-2--generate-the-bridging-header">Step 2, generate the bridging header</h2>
 <p><code>--emit=lib</code> writes only the library. The header comes from <code>--emit=csrc</code>, which runs the same catalog codegen, so the two cannot drift:</p>
@@ -795,7 +795,7 @@ xcrun simctl io      booted screenshot shot.png</code></pre>
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.641 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.642 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

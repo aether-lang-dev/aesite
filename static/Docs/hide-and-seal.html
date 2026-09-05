@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.641</span>
+      <span class="vtag">v0.642</span>
     </nav>
   </div>
 </header>
@@ -697,18 +697,19 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <h3 id="propagates-to-all-nested-blocks">Propagates to all nested blocks</h3>
 <p>If the outer block hides <code>x</code>, every nested block, closure, and trailing-block lambda inside it also has <code>x</code> hidden. There is no way to "un-hide" a name in a nested block, declaring a fresh variable with the same name in a nested block is allowed, but that's a fresh binding in a child scope, not a re-exposure of the parent's hidden binding.</p>
 <h3 id="does-not-reach-through-call-boundaries">Does NOT reach through call boundaries</h3>
-<p>A visible function defined in an outer scope can still use the hidden name via its own lexical chain:</p>
-<pre><code>log_secret() { println(secret_token) }   <span class="com">// sees secret_token</span>
+<p><code>hide</code> removes a name from THIS scope's resolution. A function you call has a scope of its own and never resolved that name to begin with, so hiding changes nothing about what it can do:</p>
+<pre><code>log_secret(token: <span class="fn">string</span>) { println(token) }
 
 main() {
     secret_token = <span class="str">"abc"</span>
+    log_secret(secret_token)              <span class="com">// fine: read before the hide</span>
     {
         <span class="kw">hide</span> secret_token
-        log_secret()                      <span class="com">// OK, log_secret is visible,</span>
-                                          <span class="com">//      and reads secret_token</span>
-                                          <span class="com">//      via its OWN lexical scope</span>
+        <span class="com">// log_secret(secret_token) here is an error: the NAME is hidden</span>
+        log_secret(<span class="str">"something else"</span>)      <span class="com">// the callee is unaffected</span>
     }
 }</code></pre>
+<p>An earlier version of this page claimed a function could read <code>secret_token</code> through its own lexical chain, without the value being passed. It cannot: a function body does not see a caller's locals, and that example never compiled. Only the <code>main</code> above is a real program.</p>
 <p>This is deliberate. <code>hide</code> is about <em>your scope's name resolution</em>, not about <em>information flow</em> through your callees. If you wanted to deny the capability transitively, you needed an effect type system; Aether doesn't claim to have one.</p>
 <p>The same caveat applies to closures captured into local variables:</p>
 <pre><code>{
@@ -873,7 +874,7 @@ db(ctx)        { return dep(ctx, "db") }</code></pre>
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.641 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.642 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

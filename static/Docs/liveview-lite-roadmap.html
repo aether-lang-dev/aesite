@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.641</span>
+      <span class="vtag">v0.642</span>
     </nav>
   </div>
 </header>
@@ -785,82 +785,82 @@ client_js(ws_path: string)                  -&gt; string</code></pre>
 <hr>
 <h2 id="appendix-a--the-working-spike-source">Appendix A, the working spike source</h2>
 <p>Committed at <code>contrib/tinyweb/examples/liveview/example_counter_live.ae</code> (reproduced here for at-a-glance reading; the committed file is the source of truth). Drives <code>tinyweb.ws_accept_loop</code> directly (bypassing <code>tw_start</code>; see the structural blocker). This is the A0 baseline the tiers build on. Build: <code>ae build contrib/tinyweb/examples/liveview/example_counter_live.ae --extra contrib/tinyweb/ws_handshake.c -o /tmp/counter_live</code>. Note it uses the <em>pre-A3</em> bare-string protocol (<code>"mount"</code>, and JSON that <code>string_contains</code> sniffs), A3 replaces that with the wire envelope above.</p>
-<pre><code><span class="kw">import</span> contrib.tinyweb
-<span class="kw">import</span> std.tcp
-<span class="kw">import</span> std.list
-<span class="kw">import</span> std.list(list_new)
-<span class="kw">import</span> std.map
-<span class="kw">import</span> std.map(map_new, map_has)
-<span class="kw">import</span> std.mem
-<span class="kw">import</span> std.<span class="fn">string</span>(string_contains, to_int, string_concat)
+<pre><code>import contrib.tinyweb
+import std.tcp
+import std.list
+import std.list(list_new)
+import std.map
+import std.map(map_new, map_has)
+import std.mem
+import std.string(string_contains, to_int, string_concat)
 
-<span class="com">// ---- per-connection state (assigns), keyed by socket ptr ----</span>
-<span class="kw">var</span> g_state: <span class="fn">ptr</span> = <span class="kw">null</span>
+// ---- per-connection state (assigns), keyed by socket ptr ----
+var g_state: ptr = null
 
-fn conn_key(sender: <span class="fn">ptr</span>) -&gt; <span class="fn">string</span> {
-    <span class="kw">return</span> <span class="str">"${mem.ptr_to_long(sender)}"</span>
+fn conn_key(sender: ptr) -&gt; string {
+    return "${mem.ptr_to_long(sender)}"
 }
 
-fn get_count(sender: <span class="fn">ptr</span>) -&gt; <span class="fn">int</span> {
-    <span class="kw">if</span> g_state == <span class="kw">null</span> { g_state = map_new() }
+fn get_count(sender: ptr) -&gt; int {
+    if g_state == null { g_state = map_new() }
     k = conn_key(sender)
-    <span class="kw">if</span> map_has(g_state, k) == <span class="num">0</span> { <span class="kw">return</span> <span class="num">0</span> }
+    if map_has(g_state, k) == 0 { return 0 }
     v, _ = map.get(g_state, k)
     n, _ = to_int(v)
-    <span class="kw">return</span> n
+    return n
 }
 
-fn set_count(sender: <span class="fn">ptr</span>, n: <span class="fn">int</span>) {
-    <span class="kw">if</span> g_state == <span class="kw">null</span> { g_state = map_new() }
-    map.put(g_state, conn_key(sender), <span class="str">"${n}"</span>)
+fn set_count(sender: ptr, n: int) {
+    if g_state == null { g_state = map_new() }
+    map.put(g_state, conn_key(sender), "${n}")
 }
 
-<span class="com">// ---- render: assigns -&gt; the live region's HTML ----</span>
-fn render(count: <span class="fn">int</span>) -&gt; <span class="fn">string</span> {
-    h = <span class="str">"&lt;div id=\"live\"&gt;"</span>
-    h = string_concat(h, <span class="str">"&lt;h1&gt;count: ${count}&lt;/h1&gt;"</span>)
-    h = string_concat(h, <span class="str">"&lt;button onclick=\"send('dec')\"&gt;-&lt;/button&gt; "</span>)
-    h = string_concat(h, <span class="str">"&lt;button onclick=\"send('inc')\"&gt;+&lt;/button&gt; "</span>)
-    h = string_concat(h, <span class="str">"&lt;button onclick=\"send('reset')\"&gt;reset&lt;/button&gt;"</span>)
-    h = string_concat(h, <span class="str">"&lt;/div&gt;"</span>)
-    <span class="kw">return</span> h
+// ---- render: assigns -&gt; the live region's HTML ----
+fn render(count: int) -&gt; string {
+    h = "&lt;div id=\"live\"&gt;"
+    h = string_concat(h, "&lt;h1&gt;count: ${count}&lt;/h1&gt;")
+    h = string_concat(h, "&lt;button onclick=\"send('dec')\"&gt;-&lt;/button&gt; ")
+    h = string_concat(h, "&lt;button onclick=\"send('inc')\"&gt;+&lt;/button&gt; ")
+    h = string_concat(h, "&lt;button onclick=\"send('reset')\"&gt;reset&lt;/button&gt;")
+    h = string_concat(h, "&lt;/div&gt;")
+    return h
 }
 
-<span class="com">// ---- handle_event: mutate assigns per the client event ----</span>
-fn handle_event(sender: <span class="fn">ptr</span>, event: <span class="fn">string</span>) -&gt; <span class="fn">int</span> {
+// ---- handle_event: mutate assigns per the client event ----
+fn handle_event(sender: ptr, event: string) -&gt; int {
     n = get_count(sender)
-    <span class="kw">if</span> string_contains(event, <span class="str">"inc"</span>) == <span class="num">1</span> {
-        n = n + <span class="num">1</span>
-    } <span class="kw">else</span> <span class="kw">if</span> string_contains(event, <span class="str">"dec"</span>) == <span class="num">1</span> {
-        n = n - <span class="num">1</span>
-    } <span class="kw">else</span> <span class="kw">if</span> string_contains(event, <span class="str">"reset"</span>) == <span class="num">1</span> {
-        n = <span class="num">0</span>
+    if string_contains(event, "inc") == 1 {
+        n = n + 1
+    } else if string_contains(event, "dec") == 1 {
+        n = n - 1
+    } else if string_contains(event, "reset") == 1 {
+        n = 0
     }
     set_count(sender, n)
-    <span class="kw">return</span> n
+    return n
 }
 
 main() {
-    println(<span class="str">"LiveView-lite counter, ws://127.0.0.1:8126/live  (Ctrl-C to stop)"</span>)
+    println("LiveView-lite counter, ws://127.0.0.1:8126/live  (Ctrl-C to stop)")
 
-    <span class="com">// Build the ws_handlers list directly (what web_socket(...) would produce).</span>
+    // Build the ws_handlers list directly (what web_socket(...) would produce).
     handlers = list_new()
     entry = map_new()
-    map.put(entry, <span class="str">"path"</span>, <span class="str">"/live"</span>)
-    map.put(entry, <span class="str">"handler"</span>, box_closure(|msg: <span class="fn">string</span>, sender: <span class="fn">ptr</span>, ctx: <span class="fn">ptr</span>| {
-        <span class="com">// "mount" hits no branch -&gt; returns current count (0 on first frame).</span>
+    map.put(entry, "path", "/live")
+    map.put(entry, "handler", box_closure(|msg: string, sender: ptr, ctx: ptr| {
+        // "mount" hits no branch -&gt; returns current count (0 on first frame).
         n = handle_event(sender, msg)
         tinyweb.ws_send_frame(sender, render(n))
     }))
     list.add(handlers, entry)
 
-    <span class="com">// Bind and run tinyweb's own WebSocket accept loop (blocking).</span>
-    ws_tcp, err = tcp.listen(<span class="num">8126</span>)
-    <span class="kw">if</span> err != <span class="str">""</span> {
-        println(<span class="str">"ERROR: bind 8126 failed: ${err}"</span>)
-        <span class="kw">return</span>
+    // Bind and run tinyweb's own WebSocket accept loop (blocking).
+    ws_tcp, err = tcp.listen(8126)
+    if err != "" {
+        println("ERROR: bind 8126 failed: ${err}")
+        return
     }
-    println(<span class="str">"listening"</span>)
+    println("listening")
     tinyweb.ws_accept_loop(ws_tcp, handlers)
 }</code></pre>
 <h2 id="appendix-b--the-python-driver">Appendix B, the Python driver</h2>
@@ -906,7 +906,7 @@ finally:
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.641 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.642 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

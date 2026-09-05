@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.641</span>
+      <span class="vtag">v0.642</span>
     </nav>
   </div>
 </header>
@@ -708,12 +708,12 @@ main() {
 <p><strong>Range check on integer literals.</strong> Assigning an out-of-range integer literal to a <code>byte</code> slot is a compile-time error: <code>byte b = 256</code> is rejected. Non-literal int → byte assignments compile and truncate at runtime (<code>byte b = some_int</code> keeps the low 8 bits), matching how other narrowings (<code>int64 → int</code>) behave.</p>
 <p><strong>Arithmetic.</strong> <code>byte op byte → byte</code>; mixed <code>byte op int → int</code> (the wider type wins). This keeps NaN-boxing / packed-tag patterns expressible (<code>tag &amp; 0x07</code> stays a byte) while letting general arithmetic widen naturally.</p>
 <h4 id="longdouble-c-long-double"><code>longdouble</code> C <code>long double</code></h4>
-<p>The <code>longdouble</code> type maps to C <code>long double</code>, the widest floating type, for exact-decimal numeric paths a C interop layer expects it (libc <code>strtold</code>, <code>INCRBYFLOAT</code>-style score conversion). It supports arithmetic (<code>+ - * /</code>), comparison, and conversion to/from <code>int</code> and <code>float</code>; as the widest numeric it wins promotion (<code>longdouble op int</code> / <code>longdouble op float</code> → <code>longdouble</code>). It's usable in locals, function params/returns, struct fields, and <code>extern</code> signatures. There is no <code>longdouble</code> literal, values arrive from an extern (<code>extern strtold(s: cstring_const, end: ptr) -&gt; longdouble</code>) or by widening an <code>int</code>/<code>float</code>. Interpolation and <code>print</code> format it with <code>%Lg</code>/<code>%Lf</code>.</p>
-<pre><code><span class="kw">extern</span> strtold(s: <span class="fn">cstring_const</span>, end: <span class="fn">ptr</span>) -&gt; <span class="fn">longdouble</span>
+<p>The <code>longdouble</code> type maps to C <code>long double</code>, the widest floating type, for exact-decimal numeric paths a C interop layer expects it (libc <code>strtold</code>, <code>INCRBYFLOAT</code>-style score conversion). It supports arithmetic (<code>+ - * /</code>), comparison, and conversion to/from <code>int</code> and <code>float</code>; as the widest numeric it wins promotion (<code>longdouble op int</code> / <code>longdouble op float</code> → <code>longdouble</code>). It's usable in locals, function params/returns, struct fields, and <code>extern</code> signatures. There is no <code>longdouble</code> literal, values arrive from an extern (<code>extern powl(x: longdouble, y: longdouble) -&gt; longdouble</code>) or by widening an <code>int</code>/<code>float</code>. Declare a libc function with the signature libc actually has: <code>strtold</code>'s second parameter is <code>char **restrict</code>, which <code>ptr</code> lowers to <code>void*</code>, and the C compiler rejects the redeclaration. Interpolation and <code>print</code> format it with <code>%Lg</code>/<code>%Lf</code>.</p>
+<pre><code><span class="kw">extern</span> powl(x: <span class="fn">longdouble</span>, y: <span class="fn">longdouble</span>) -&gt; <span class="fn">longdouble</span>
 incr(cur: <span class="fn">longdouble</span>, by: <span class="fn">longdouble</span>) -&gt; <span class="fn">longdouble</span> { <span class="kw">return</span> cur + by }
 
 main() {
-    base = strtold(<span class="str">"3.14159265358979323846"</span>, <span class="kw">null</span>)
+    base = powl(<span class="num">2</span>, <span class="num">64</span>)             <span class="com">// libc, exactly as C declares it</span>
     next = incr(base, base)        <span class="com">// long double arithmetic, full precision</span>
     println(<span class="str">"v=${next}"</span>)           <span class="com">// %Lg</span>
 }</code></pre>
@@ -2304,7 +2304,7 @@ process_file(path) {
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.641 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.642 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>
