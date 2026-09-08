@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.650</span>
+      <span class="vtag">v0.651</span>
     </nav>
   </div>
 </header>
@@ -815,13 +815,14 @@ main() {
     _ = list.add(argv, <span class="str">"rev-parse"</span>)
     _ = list.add(argv, <span class="str">"HEAD"</span>)
 
-    stdout, exit_code, stderr = os.run_capture(<span class="str">"git"</span>, argv, <span class="kw">null</span>)
+    out, exit_code, err_text = os.run_capture(<span class="str">"git"</span>, argv, <span class="kw">null</span>)
     <span class="kw">if</span> exit_code != <span class="num">0</span> {
-        println(<span class="str">"git failed (${exit_code}): ${stderr}"</span>)
+        println(<span class="str">"git failed (${exit_code}): ${err_text}"</span>)
         <span class="kw">return</span>
     }
-    println(<span class="str">"HEAD is ${stdout}"</span>)
+    println(<span class="str">"HEAD is ${out}"</span>)
 }</code></pre>
+<p><strong>Don't name a variable <code>stdout</code> or <code>stderr</code>.</strong> The example above deliberately uses <code>out</code> / <code>err_text</code>. Those names reach the generated C as-is, and on Windows the UCRT headers define <code>stdout</code> as a macro expanding to <code>__acrt_iob_func(1)</code>, so a variable called <code>stdout</code> becomes a function call mid-declaration and the translation unit fails to compile, with errors pointing at whatever stdlib module happens to follow. glibc defines the same names benignly, so this builds cleanly on Linux and only breaks on Windows.</p>
 <p><strong>Capabilities and Windows portability:</strong> <code>os.run</code> / <code>os.run_capture</code> require the <code>--with=os</code> capability when building with <code>--emit=lib</code> (capability-empty by default). Windows MSYS2 / mingw-w64 currently uses POSIX-fallback shims; a native <code>CreateProcessW</code> backend is tracked separately. The function signatures and return shapes are stable across the current Windows fallback and the future native backend.</p>
 <p><strong>Synchronous, no streaming.</strong> The current API blocks until the child exits and returns the entire captured stdout / stderr. There is no streaming-stdin or incremental-stdout-read path today; if you need to feed input to a child, write your input to a temp file and have the child read from there, or pipe through a shell wrapper.</p>
 <h3 id="argv-discovery">Argv discovery</h3>
@@ -1233,7 +1234,7 @@ main() {
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.650 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.651 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.650</span>
+      <span class="vtag">v0.651</span>
     </nav>
   </div>
 </header>
@@ -789,6 +789,7 @@ main() {
     // -&gt; Image: 400x420 mips=1 fmt=7
 }</code></pre>
 <p>Any struct of scalar/pointer fields works this way; the field ORDER in the tuple is the layout contract.</p>
+<blockquote><strong>On Windows, this exact binding collides with Win32.</strong> <code>windows.h</code> defines <code>LoadImage</code> as a macro selecting <code>LoadImageA</code>/<code>LoadImageW</code>, and declares them with a signature that is nothing like raylib's. The generated C then fails with <code>conflicting types for 'LoadImageA'</code>. That is why the block above is marked <code>fragment</code> rather than compiled, it is correct, but only where Win32 is not in scope. Binding a C function whose name Windows also claims (<code>LoadImage</code>, <code>GetObject</code>, <code>CreateWindow</code>, and every other A/W macro pair) needs <code>#undef</code> in the surrounding C, or the explicit symbol, <code>@extern("LoadImageA")</code> if you truly want the Win32 one. Worth checking any short, generic C name against the A/W macro list before assuming it binds cleanly everywhere.</blockquote>
 <h3 id="tuple-parameters-by-value-struct-arguments">Tuple parameters, by-value struct arguments</h3>
 <p>The parameter-position mirror: an extern parameter typed as a tuple lowers to the same synthesized struct typedef, passed <strong>by value</strong>. This is most of any real C API, raylib again:</p>
 <pre><code><span class="kw">void</span> ImageDrawTriangle(Image *dst, Vector2 v1, Vector2 v2, Vector2 v3, Color color);</code></pre>
@@ -1297,7 +1298,7 @@ server_get(raw, "/health", _h_health, 0)   // references ae_h_health</code></pre
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.650 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.651 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>
