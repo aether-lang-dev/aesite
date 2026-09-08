@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.653</span>
+      <span class="vtag">v0.654</span>
     </nav>
   </div>
 </header>
@@ -2072,6 +2072,7 @@ SQL</code></pre>
 <p>Folding wraps rather than keeping the wide value on purpose: otherwise the constant form and the identical expression written over <code>int</code> variables would disagree, and the literal form (the one you reach for while developing) would look correct while production code silently overflowed. Widen a term to keep the value:</p>
 <pre><code>long span = 250000000 - 200000000
 cv = span * 50 / 225000000          // 11, no warning</code></pre>
+<p>The runtime is held to the same rule. Aether compiles to C, where signed overflow is <em>undefined behaviour</em> rather than a wrap, so every command line the toolchain uses to compile generated code carries <code>-fwrapv</code>, <code>ae run</code>, <code>ae build</code> at any optimisation level, the cross and wasm backends, and <code>ae cflags</code> for build systems that compile <code>aetherc</code> output themselves. Two's complement wrapping is the specified behaviour of <code>int</code>, not an artifact of the optimiser: an LCG, a hash, or a checksum written in Aether computes the same values on every target.</p>
 <p>Use <code>ae check file.ae</code> to see warnings without compiling. It skips codegen and linking, so iteration is much faster than <code>ae build</code>.</p>
 <hr>
 <h3 id="unreachable-match-arm-w1004">Unreachable Match Arm [W1004]</h3>
@@ -2304,7 +2305,7 @@ process_file(path) {
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.653 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.654 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>
