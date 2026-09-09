@@ -29,6 +29,26 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+      - name: Install the libraries the released toolchain links against
+        run: |
+          # `ae build` appends these to EVERY link, whether or not the program
+          # imports the module that needs them: a hello-world links -lssl
+          # -lcrypto -lz -lnghttp2 -lpcre2-8 -lbrotlienc -lbrotlicommon -lzstd.
+          # The flags are baked into the released binary from whatever the
+          # release runner happened to have, so a consumer needs the same set
+          # present or nothing links at all.
+          #
+          # That is what stalled this site. Every deploy since 2026-09-08
+          # failed at `ld: cannot find -lbrotlienc`, while `sync aether
+          # release` kept succeeding -- so main regenerated for each new
+          # aether version and the published page never moved. Filed upstream
+          # as aether-lang-dev/aether#1988; this list can shrink when the
+          # toolchain stops linking what a program does not use.
+          sudo rm -f /etc/apt/sources.list.d/google-chrome.list
+          sudo apt-get update
+          sudo apt-get install -y \
+            libssl-dev zlib1g-dev libnghttp2-dev libpcre2-dev \
+            libbrotli-dev libzstd-dev
       - name: Install Aether toolchain
         env:
           # Pin, so this pipeline's colour depends on a change here rather than
