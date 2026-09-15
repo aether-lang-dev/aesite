@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.671</span>
+      <span class="vtag">v0.672</span>
     </nav>
   </div>
 </header>
@@ -698,9 +698,9 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <p>A capturing closure's environment is a heap allocation; two common lifetimes now reclaim it automatically (the canonical reference is <a href="/Docs/memory-management.html"><code>docs/memory-management.md</code></a> → "Closure environment lifetime"):</p>
 <ul><li><strong>Transient callback.</strong> A capturing closure created inline and passed to a parameter that only <em>calls</em> it and neither stores nor returns it (<code>run(cb) { cb() }</code>) is dead once the call returns, so its env is freed right after the call. This is gated on a proven non-escape, invoking a closure parameter (<code>cb()</code>, an indirect-<code>call</code> node whose first child is the callee) is not an escape, whereas a stored or returned closure suppresses the drain so its env follows the owner.</li><li><strong>Stored in a list.</strong> A closure value stored into a list is heap-boxed (the <code>fn → ptr</code> coercion) and the list owns the box; <code>list.free</code> now reclaims the captured env as well as the box (<code>owned_flags == 2</code>).</li></ul>
 <h2 id="mutated-capture-cell-lifetime">Mutated-capture cell lifetime</h2>
-<p>A capture the closure assigns to is heap-promoted: the enclosing binding and the closure env share one cell (see "Capture semantics" above). That cell is reclaimed at the exit of the scope that declares it, which is only sound while no capturing closure is still alive to write through it.</p>
-<p>The verdict reuses the transient-callback proof above. A cell captured only by closures the env-drain already frees after the call dies with its scope. A cell captured by anything else, a widget handler, a timer, a callee whose body the escape walk cannot see, is left alone and outlives the scope. <code>mark_escaped_capture_boxes</code> (<code>compiler/codegen/codegen_stmt.c</code>) computes this before the body is generated, and both it and the drain read the same <code>transient_closure_arg</code> helper so the two verdicts cannot drift apart.</p>
-<p>The direction of the approximation is deliberate: a cell wrongly called escaping leaks a few bytes, a cell wrongly called transient is freed while a live callback still writes through it.</p>
+<p>A capture the closure assigns to is heap-promoted: the enclosing binding and the closure env share one cell (see "Capture semantics" above). The cell is <strong>reference-counted</strong> (#2019). The declaring scope holds one reference from the declaration to its exit; every env built from a closure that captures the cell takes one when it is constructed and gives it back in its generated destructor (<code>_closure_env_N_free</code>, the same member-aware teardown that releases retained string captures); the last holder to release frees the cell.</p>
+<p>That makes the scope-exit release unconditional. Whether the closure was drained right after a transient call, handed to <code>fs.walk</code> inside a tuple destructure, stored by a widget, kept in a list, or returned from the function, the cell lives exactly as long as something can still reach it, no escape analysis decides, so there is nothing to get wrong in either direction. (Before #2019 the cell was plain-freed at scope exit only when an escape walk could prove no env outlived the scope, and every shape the walk could not see through, a callback passed inside a tuple destructure, a closure owned and freed by an extern, leaked one cell per call.)</p>
+<p>The count is a plain integer, like the string reference count it mirrors: a closure env is not shared between threads.</p>
 <p>A builder block (<code>window(...) { ... }</code>, <code>vstack(4) { ... }</code>) is a scope like any other here. Its body is emitted inside C braces and now opens a matching defer scope, so a cell, or a heap string, declared in the block is reclaimed at the end of the block rather than at the end of the enclosing function.</p>
 <p>Two shapes defeat these paths and leak the env, both bit <code>std.spec</code> (#1577):</p>
 <ul><li><strong>Forwarding a <code>fn</code> parameter.</strong> The transient-callback drain fires only when the callee <em>calls</em> its <code>fn</code> parameter. Passing it on to another function (<code>it(cb) { it_impl(cb) }</code>) is an escape from the callee's point of view, so the caller keeps the env alive forever. Restructure so the exported function invokes the parameter itself, split the shared logic into begin/end halves around the <code>call()</code> if needed (that is exactly how <code>std.spec</code>'s <code>it</code>/<code>it_within</code> are built).</li><li><strong>Explicit <code>box_closure()</code> into a list.</strong> The list-owns-the-env path is keyed off the <code>fn → ptr</code> coercion at the <code>list.add</code> call site. <code>list.add(l, box_closure(f))</code> hands the list a raw pointer it cannot know it owns; nothing reclaims box or env. Add the <code>fn</code> value directly (<code>list.add(l, f)</code>) and the owned coercion does the boxing and the reclamation.</li></ul>
@@ -763,7 +763,7 @@ op = |x: int| { return x * 2 }  // old env (malloc'd) is leaked</code></pre>
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.671 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.672 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>
