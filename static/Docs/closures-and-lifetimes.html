@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.681</span>
+      <span class="vtag">v0.682</span>
     </nav>
   </div>
 </header>
@@ -707,27 +707,29 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <ul><li><strong>Forwarding a <code>fn</code> parameter.</strong> The transient-callback drain fires only when the callee <em>calls</em> its <code>fn</code> parameter. Passing it on to another function (<code>it(cb) { it_impl(cb) }</code>) is an escape from the callee's point of view, so the caller keeps the env alive forever. Restructure so the exported function invokes the parameter itself, split the shared logic into begin/end halves around the <code>call()</code> if needed (that is exactly how <code>std.spec</code>'s <code>it</code>/<code>it_within</code> are built).</li><li><strong>Explicit <code>box_closure()</code> into a list.</strong> The list-owns-the-env path is keyed off the <code>fn → ptr</code> coercion at the <code>list.add</code> call site. <code>list.add(l, box_closure(f))</code> hands the list a raw pointer it cannot know it owns; nothing reclaims box or env. Add the <code>fn</code> value directly (<code>list.add(l, f)</code>) and the owned coercion does the boxing and the reclamation.</li></ul>
 <p>Still a leak (the safe side of the leak-vs-UAF trade): <strong>L5 below</strong>, reassigning a closure <em>variable</em> drops the previous env, because without whole-program escape analysis the codegen can't prove the old env is unreachable (it may be aliased through a <code>box_closure</code> copy).</p>
 <h2 id="closure-patterns-and-workarounds">Closure patterns and workarounds</h2>
-<p>L1–L3 are ergonomic patterns with known workarounds you can apply today. L4 is a compile-time rejection, previously silent wrong answers, now surfaced at compile time with a clear error. L5 is a memory-handling contract around reassignment. Each has a near-term workaround; the "proper fix" notes describe the larger language work each leans on.</p>
-<h3 id="l1-callx-where-x-comes-from-a-list">L1. <code>call(x)</code> where <code>x</code> comes from a list</h3>
+<p>L1–L3 are one limitation seen from three sides: a closure that has crossed an erasing boundary has no signature, so the compiler cannot know what a call to it returns. L4 is a compile-time rejection, previously silent wrong answers, now surfaced at compile time with a clear error. L5 is a memory-handling contract around reassignment.</p>
+<h3 id="l1l3-calling-a-closure-whose-signature-has-been-erased">L1–L3. Calling a closure whose signature has been erased</h3>
+<p>A closure loses its signature at a bare <code>fn</code> parameter or return, at <code>box_closure</code>, and in a list:</p>
 <pre><code>handlers = list.new()
 list.add(handlers, box_closure(|_| { return "hello" }))
-...
-boxed = list.get(handlers, 0)
-h = unbox_closure(boxed)
-r = call(h)                   // h's return type is unknown at codegen</code></pre>
-<p><code>call(h)</code> falls back to generic dispatch: <code>((int(*)(void*))h.fn)(h.env)</code> it assumes <code>int</code> return even if the stored closure returns a string or pointer. Strings get their pointer truncated; pointers become garbage.</p>
-<p><strong>Workaround:</strong> use a direct-literal closure variable when possible: <code>action = |_| { ... }; call(action)</code> is statically resolved. Or accept that <code>int</code>-returning dynamic closures are the only safely dispatchable kind today.</p>
-<p><strong>Why a quick <code>intptr_t</code> widening doesn't fix it:</strong> the obvious patch, emit <code>((intptr_t(*)(void*))h.fn)(h.env)</code> instead of <code>((int(*)(void*))</code> fixes the cast in isolation but leaves <code>r</code>'s declared C type as <code>int</code>, so the return narrows right back. Widening <code>r</code> requires changing the variable's registration in the symbol table (not just the AST decl); downstream <code>print(r)</code> looks up <code>r</code>'s type from the symbol table and picks <code>%d</code> for anything registered as <code>TYPE_INT</code>. Propagating <code>TYPE_PTR</code> through the AST alone was attempted, it segfaulted four existing tests whose <code>call(x)</code> returns are used in arithmetic or comparisons. A real fix threads through the typechecker.</p>
-<h3 id="l2-callx-where-x-is-chosen-via-matchif">L2. <code>call(x)</code> where <code>x</code> is chosen via <code>match</code>/<code>if</code></h3>
-<pre><code>op = if user_wants_add { add_fn } else { mul_fn }
-r = call(op, 3, 4)            // op's closure id is not knowable</code></pre>
-<p>Same failure mode as L1. <code>closure_var_map</code> records a single closure id per name, so branch-selected closures fall through to generic dispatch with the <code>int</code> default.</p>
-<h3 id="l3-callx-where-x-is-threaded-through-intermediate-functions">L3. <code>call(x)</code> where <code>x</code> is threaded through intermediate functions</h3>
-<pre><code>x = setup()                   // setup returns a closure
-y = wrap(x)                   // wrap takes fn, returns fn
-r = call(y)                   // y's underlying closure is two hops away</code></pre>
-<p><code>closure_var_map</code>'s <code>w = f()</code> inheritance (Bug 5's partial fix) only handles one hop when <code>f</code>'s body ends <code>return &lt;closure_var&gt;</code>. Multi-hop chains fall through to generic dispatch.</p>
-<p><strong>Proper fix for L1/L2/L3:</strong> parameterised closure types (<code>fn[T]</code>, like Rust's <code>Fn(i32) -&gt; i32</code>) or full typechecker return-type propagation. Either is a medium-sized language feature, until it lands, the workaround sections on each limit apply.</p>
+h = unbox_closure(list.get_raw(handlers, 0))       // L1: from a list
+
+op = if user_wants_add { add_fn } else { mul_fn }  // L2: chosen at run time (#2055)
+
+x = setup()                   // L3: `-&gt; fn` erases
+y = wrap(x)                   // `(f: fn) -&gt; fn` erases again</code></pre>
+<p>What <code>call(h)</code> returns is then unknown to the compiler. <strong>The binding says what it is</strong> (#2054): declare the type of the variable the call initialises and the call is emitted for that type, a string, a pointer, a float, an int, through either form of the call:</p>
+<pre><code>string greeting = call(h)
+string again = h()
+ptr p = call(y, 5)
+float f = y(9)</code></pre>
+<p>Anywhere else, an untyped binding, an argument, an operand, the call is the <code>int</code> the language has always defaulted to, and an untyped binding is told so at the site:</p>
+<pre><code>warning: the closure called here has no known result type, so 'r' is
+assumed int; declare the binding's type (e.g. `string r = call(...)`) for
+any other result</code></pre>
+<p>Before #2054 the typed form was refused as a type mismatch and the untyped one returned the string's pointer truncated to an int, silently. A bare <code>fn</code> is now compatible with a signed closure type in both directions, so the erasure and its undoing are both ordinary assignments.</p>
+<p>L2's other half, an <code>if</code>-expression choosing between two named functions, still emits C that does not compile; that is #2055.</p>
+<p><strong>Proper fix:</strong> parameterised closure types (<code>fn[T]</code>, like Rust's <code>Fn(i32) -&gt; i32</code>), so the signature survives the boundary and no annotation is needed at the call. Until then the typed binding is the contract.</p>
 <h3 id="l4-closure-inside-actor-handler-mutating-actor-state">L4. Closure inside actor handler mutating actor state</h3>
 <pre><code>actor Counter {
     state count = 0
@@ -755,7 +757,7 @@ op = |x: int| { return x * 2 }  // old env (malloc'd) is leaked</code></pre>
 <nav class="doc-prevnext" aria-label="Previous and next page"><a class="pn-prev" href="/Docs/closures-and-builder-dsl.html"><span class="pn-k">Previous</span><span class="pn-t">Closures and Builder-Style DSL in Aether</span></a><a class="pn-next" href="/Docs/module-system-design.html"><span class="pn-k">Next</span><span class="pn-t">Aether Module System</span></a></nav>
       </article>
     </main>
-    <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#the-bugs" class="l2" data-id="the-bugs">The bugs</a><a href="#1-captured-ptr-parameters-typed-int" class="l3" data-id="1-captured-ptr-parameters-typed-int">1. Captured ptr parameters typed int</a><a href="#2-mutable-captures-miscompiled" class="l3" data-id="2-mutable-captures-miscompiled">2. Mutable captures miscompiled</a><a href="#3-escaping-closure-use-after-free" class="l3" data-id="3-escaping-closure-use-after-free">3. Escaping-closure use-after-free</a><a href="#4-closure-return-types-hardcoded-to-intvoid" class="l3" data-id="4-closure-return-types-hardcoded-to-intvoid">4. Closure return types hardcoded to int/void</a><a href="#5-call-expression-node_type-stuck-at-type_int" class="l3" data-id="5-call-expression-node_type-stuck-at-type_int">5. call() expression node_type stuck at TYPE_INT</a><a href="#6-closure-body-references-a-later-numbered-closure" class="l3" data-id="6-closure-body-references-a-later-numbered-closure">6. Closure body references a later-numbered closure</a><a href="#7-nested-lambdas-return-mis-typed-the-enclosing-closure" class="l3" data-id="7-nested-lambdas-return-mis-typed-the-enclosing-closure">7. Nested lambda's return mis-typed the enclosing closure</a><a href="#8-captures-across-nested-trailing-blocks" class="l3" data-id="8-captures-across-nested-trailing-blocks">8. Captures across nested trailing blocks</a><a href="#code-layout" class="l2" data-id="code-layout">Code layout</a><a href="#environment-reclamation" class="l2" data-id="environment-reclamation">Environment reclamation</a><a href="#mutated-capture-cell-lifetime" class="l2" data-id="mutated-capture-cell-lifetime">Mutated-capture cell lifetime</a><a href="#closure-patterns-and-workarounds" class="l2" data-id="closure-patterns-and-workarounds">Closure patterns and workarounds</a><a href="#l1-callx-where-x-comes-from-a-list" class="l3" data-id="l1-callx-where-x-comes-from-a-list">L1. call(x) where x comes from a list</a><a href="#l2-callx-where-x-is-chosen-via-matchif" class="l3" data-id="l2-callx-where-x-is-chosen-via-matchif">L2. call(x) where x is chosen via match/if</a><a href="#l3-callx-where-x-is-threaded-through-intermediate-functions" class="l3" data-id="l3-callx-where-x-is-threaded-through-intermediate-functions">L3. call(x) where x is threaded through intermediate functions</a><a href="#l4-closure-inside-actor-handler-mutating-actor-state" class="l3" data-id="l4-closure-inside-actor-handler-mutating-actor-state">L4. Closure inside actor handler mutating actor state</a><a href="#l5-closure-var-reassignment-leaks-the-previous-env" class="l3" data-id="l5-closure-var-reassignment-leaks-the-previous-env">L5. Closure-var reassignment leaks the previous env</a><a href="#why-the-ui-calculator-works" class="l2" data-id="why-the-ui-calculator-works">Why the UI calculator works</a></nav>
+    <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#the-bugs" class="l2" data-id="the-bugs">The bugs</a><a href="#1-captured-ptr-parameters-typed-int" class="l3" data-id="1-captured-ptr-parameters-typed-int">1. Captured ptr parameters typed int</a><a href="#2-mutable-captures-miscompiled" class="l3" data-id="2-mutable-captures-miscompiled">2. Mutable captures miscompiled</a><a href="#3-escaping-closure-use-after-free" class="l3" data-id="3-escaping-closure-use-after-free">3. Escaping-closure use-after-free</a><a href="#4-closure-return-types-hardcoded-to-intvoid" class="l3" data-id="4-closure-return-types-hardcoded-to-intvoid">4. Closure return types hardcoded to int/void</a><a href="#5-call-expression-node_type-stuck-at-type_int" class="l3" data-id="5-call-expression-node_type-stuck-at-type_int">5. call() expression node_type stuck at TYPE_INT</a><a href="#6-closure-body-references-a-later-numbered-closure" class="l3" data-id="6-closure-body-references-a-later-numbered-closure">6. Closure body references a later-numbered closure</a><a href="#7-nested-lambdas-return-mis-typed-the-enclosing-closure" class="l3" data-id="7-nested-lambdas-return-mis-typed-the-enclosing-closure">7. Nested lambda's return mis-typed the enclosing closure</a><a href="#8-captures-across-nested-trailing-blocks" class="l3" data-id="8-captures-across-nested-trailing-blocks">8. Captures across nested trailing blocks</a><a href="#code-layout" class="l2" data-id="code-layout">Code layout</a><a href="#environment-reclamation" class="l2" data-id="environment-reclamation">Environment reclamation</a><a href="#mutated-capture-cell-lifetime" class="l2" data-id="mutated-capture-cell-lifetime">Mutated-capture cell lifetime</a><a href="#closure-patterns-and-workarounds" class="l2" data-id="closure-patterns-and-workarounds">Closure patterns and workarounds</a><a href="#l1l3-calling-a-closure-whose-signature-has-been-erased" class="l3" data-id="l1l3-calling-a-closure-whose-signature-has-been-erased">L1–L3. Calling a closure whose signature has been erased</a><a href="#l4-closure-inside-actor-handler-mutating-actor-state" class="l3" data-id="l4-closure-inside-actor-handler-mutating-actor-state">L4. Closure inside actor handler mutating actor state</a><a href="#l5-closure-var-reassignment-leaks-the-previous-env" class="l3" data-id="l5-closure-var-reassignment-leaks-the-previous-env">L5. Closure-var reassignment leaks the previous env</a><a href="#why-the-ui-calculator-works" class="l2" data-id="why-the-ui-calculator-works">Why the UI calculator works</a></nav>
   </div>
 </div>
 <script src="/docs.js" defer></script>
@@ -764,7 +766,7 @@ op = |x: int| { return x * 2 }  // old env (malloc'd) is leaked</code></pre>
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.681 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.682 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>
