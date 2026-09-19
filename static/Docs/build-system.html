@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.692</span>
+      <span class="vtag">v0.693</span>
     </nav>
   </div>
 </header>
@@ -850,6 +850,7 @@ file build/ae.exe    <span class="com"># PE32+ executable (console) x86-64, for 
 <p>Provision <code>zig</code> with the <a href="https://github.com/aether-lang-dev/aether-crossbuild">aether-crossbuild</a> repo's <code>scripts/get-zig.sh</code> (the same source CI uses).</p>
 <p>Both cross builds are <strong>capability-lean</strong>: OpenSSL, zlib, nghttp2 and YAML are forced off, because the host's <code>pkg-config</code> would resolve the <em>host's</em> Linux libraries and poison the target binary. Those std features ship as their "unavailable" stubs, exactly as in any build without the libraries. Vendored PCRE2 needs no host library, so <code>std.regex</code> survives.</p>
 <p>One <code>build/</code> tree holds one target's objects and archives, they are not interchangeable (ELF vs PE). The tree carries a <code>build/.build-target</code> stamp and a mismatching build stops immediately with an actionable error rather than failing deep in the link; <code>make clean</code> between targets is the fix (and <code>clean</code> itself is never blocked by the guard).</p>
+<p>The cross build also carries no <strong>application manifest</strong>: a native MSYS2 build compiles <code>runtime/windows/aether.manifest</code> with <code>windres</code> into <code>build/aether_manifest.o</code>, links it into <code>ae.exe</code>, <code>aetherc.exe</code> and <code>aether-lsp.exe</code>, and <code>ae build</code>/<code>ae run</code> link it (from beside <code>libaether.a</code>, where <code>install.sh</code> also ships it) into every executable they produce. The manifest declares the UTF-8 process code page, so the C runtime and every narrow Win32 call, <code>fopen</code>, <code>_stat</code>, <code>FindFirstFileA</code>, <code>argv</code>, the environment, read Aether's UTF-8 strings as UTF-8 (Windows 10 1903+; older kernels ignore it). Without it a program that writes <code>café.txt</code> creates <code>cafÃ©.txt</code>. An external build that links <code>libaether.a</code> by hand should add that object too.</p>
 <p><strong>Testing a cross-built toolchain</strong>: see <code>AE_TEST_RUNNER</code> in the next section.</p>
 <h3 id="testing-with-a-runner-ae_test_runner">Testing with a runner (<code>AE_TEST_RUNNER</code>)</h3>
 <p><code>ae run</code> and <code>ae test</code> normally exec the binary they just built. Setting <code>AE_TEST_RUNNER</code> makes them prefix it with a wrapper instead, the same idea as cargo's <code>CARGO_TARGET_&lt;triple&gt;_RUNNER</code>:</p>
@@ -998,7 +999,7 @@ make ae AETHER_ENABLE_LLM=<span class="num">1</span> \
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.692 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.693 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>
