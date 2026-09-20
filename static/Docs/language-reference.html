@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.699</span>
+      <span class="vtag">v0.700</span>
     </nav>
   </div>
 </header>
@@ -686,7 +686,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <hr>
 <h2 id="types">Types</h2>
 <h3 id="primitive-types">Primitive Types</h3>
-<div class="tw"><table><thead><tr><th>Type</th><th>Description</th><th>Example</th></tr></thead><tbody><tr><td><code>int</code></td><td>32-bit signed integer</td><td><code>42</code>, <code>-17</code>, <code>0xFF</code>, <code>0b1010</code></td></tr><tr><td><code>float</code></td><td>64-bit floating point</td><td><code>3.14</code>, <code>-0.5</code></td></tr><tr><td><code>string</code></td><td>UTF-8 encoded strings</td><td><code>"Hello"</code></td></tr><tr><td><code>bool</code></td><td>Boolean type</td><td><code>true</code>, <code>false</code></td></tr><tr><td><code>byte</code></td><td>Unsigned 8-bit (0..255)</td><td><code>byte b = 0xFF</code></td></tr><tr><td><code>void</code>¹</td><td>No value (for functions)</td><td><code>extern free(p: ptr) -&gt; void</code></td></tr><tr><td><code>long</code> (also <code>int64</code>)</td><td>64-bit signed integer</td><td><code>long x = 0</code>, <code>int64 y = 0</code></td></tr><tr><td><code>longdouble</code></td><td>C <code>long double</code> widest float (C interop)</td><td><code>extern strtold(...) -&gt; longdouble</code></td></tr><tr><td><code>ptr</code></td><td>Raw pointer (for C interop)</td><td><code>null</code></td></tr></tbody></table></div>
+<div class="tw"><table><thead><tr><th>Type</th><th>Description</th><th>Example</th></tr></thead><tbody><tr><td><code>int</code></td><td>32-bit signed integer</td><td><code>42</code>, <code>-17</code>, <code>0xFF</code>, <code>0b1010</code></td></tr><tr><td><code>float</code></td><td>64-bit floating point</td><td><code>3.14</code>, <code>-0.5</code></td></tr><tr><td><code>string</code></td><td>UTF-8 encoded strings</td><td><code>"Hello"</code></td></tr><tr><td><code>bool</code></td><td>Boolean type</td><td><code>true</code>, <code>false</code></td></tr><tr><td><code>byte</code></td><td>Unsigned 8-bit (0..255)</td><td><code>byte b = 0xFF</code></td></tr><tr><td><code>void</code>¹</td><td>No value (for functions)</td><td><code>extern free(p: ptr) -&gt; void</code></td></tr><tr><td><code>long</code> (also <code>int64</code>)</td><td>64-bit signed integer</td><td><code>long x = 0</code>, <code>int64 y = 0</code></td></tr><tr><td><code>uint8</code>, <code>uint16</code>, <code>uint32</code>, <code>uint64</code></td><td>Unsigned 8/16/32/64-bit, lowering to C <code>uint8_t</code> … <code>uint64_t</code> (<code>uint8</code> and <code>byte</code> share <code>uint8_t</code>)</td><td><code>uint32 x = 4000000000</code></td></tr><tr><td><code>longdouble</code></td><td>C <code>long double</code> widest float (C interop)</td><td><code>extern strtold(...) -&gt; longdouble</code></td></tr><tr><td><code>ptr</code></td><td>Raw pointer (for C interop)</td><td><code>null</code></td></tr></tbody></table></div>
 <p>¹ <code>void</code> is <strong>not</strong> a reserved word, there is no <code>void</code> token; it is a plain identifier used by convention to spell the absence of a return value. A function that omits its <code>-&gt; Type</code> annotation is the canonical void declaration (see <a href="#functions">Functions</a>). It is never a value type and cannot be used for a variable or field.</p>
 <h4 id="byte-unsigned-8-bit"><code>byte</code> unsigned 8-bit</h4>
 <p>The <code>byte</code> type maps to <code>unsigned char</code> in C. Use it for type-precision in struct fields, function parameters, returns, and locals where a value is genuinely an octet, packed-tag bytes (<code>flags &amp; 0x80</code>), opcode discriminators, NaN-boxing pointer tags, network protocol headers, on-disk file format fields. For <em>bulk</em> byte storage (binary buffers, byte arrays), reach for <code>std.bytes</code> (the mutable byte buffer) instead.</p>
@@ -723,7 +723,10 @@ main() {
 <h3 id="array-types">Array Types</h3>
 <pre><code>int[10] numbers;           // Array of 10 integers
 string[5] names;           // Array of 5 strings
-float[100] values;         // Array of 100 floats</code></pre>
+float[100] values;         // Array of 100 floats
+uint32[4] ids = [ 1, 2, 3, 4 ]   // element type pinned: uint32_t ids[4]
+Pair[8] pairs                    // an array of structs, by value</code></pre>
+<p>The element type may be any type name: a keyword (<code>int</code>, <code>byte</code>, <code>long</code>), one of the unsigned widths (<code>uint8</code>, <code>uint16</code>, <code>uint32</code>, <code>uint64</code>) or a struct. The declared element type is what the C carries (<code>uint16_t hs[3]</code>), so a value that fits the width is never widened to <code>int</code>. A <code>uint32</code> prints as itself through <code>print</code>, <code>println</code>, a <code>%u</code> format and <code>${x}</code> interpolation (<code>4000000000</code>, not <code>-294967296</code>).</p>
 <p><strong>Array-to-pointer decay.</strong> A named fixed-size array decays to a pointer to its first element in pointer context, when assigned to an inferred binding, passed as a <code>ptr</code>-typed argument, or compared against a pointer (the same rule C uses):</p>
 <pre><code>byte[128] static_ids
 ids = static_ids           // `ids` is inferred as a `ptr` (decays), not an array
@@ -733,6 +736,18 @@ if id_count &gt; 8 {
     ids = heap             // legal: `ids` is a reassignable pointer
 }</code></pre>
 <p>This is the stack-buffer-with-heap-fallback idiom (<code>T buf[N]; T* p = buf; if (n &gt; N) p = malloc(...)</code>). Only a <em>named array</em> decays; an array <em>literal</em> initializer (<code>x = [1, 2, 3]</code>) still binds a real array. To keep the array type, annotate the binding explicitly (<code>x: byte[128] = ...</code>).</p>
+<p><strong>An array literal's element type is the join of its elements.</strong> <code>[1, 2.5, 3]</code> and <code>[0.18 * math.PI, 0.25 * math.PI]</code> are <code>float</code> arrays; an all-integer literal is <code>int</code>, widening to <code>long</code> if any element needs it. The type is decided after every element is typed, so a module constant or a call in any position counts. Arrays are one-dimensional: an array literal cannot contain an array literal (use a flat <code>T[rows * cols]</code> indexed as <code>row * cols + col</code>, or a list of arrays).</p>
+<pre><code>import std.math (math_pi)
+
+main() {
+    angles = [ 0.25 * math_pi(), 0.5 * math_pi() ]
+    println("${angles[0]} ${angles[1]}")
+    mixed = [ 1, 2.5, 3 ]
+    k = mixed[1]                 // float, like the element it is bound to
+    println("${k}")
+}</code></pre>
+<pre><code>0.785398 1.5708
+2.5</code></pre>
 <h3 id="sequence-types-stringseq">Sequence Types (<code>*StringSeq</code>)</h3>
 <p><code>*StringSeq</code> is a cons-cell linked list of strings, Erlang/Elixir-shaped, with O(1) head/tail/cons/length and refcount-based structural sharing. Empty list is the <code>NULL</code> pointer; each cell carries a cached length.</p>
 <pre><code><span class="kw">import</span> std.<span class="fn">string</span>
@@ -782,7 +797,7 @@ float temperature = 98.6</code></pre>
 <p>Aether has <strong>no general-purpose cast operator</strong>. The <code>as</code> keyword is reserved for module aliasing and three specific value-cast forms:</p>
 <ul><li><code>import mod as alias</code> module aliasing (only inside <code>import</code> statements)</li><li><code>expr as *StructName</code> pointer-overlay struct cast (a leading <code>*</code> then a struct name; see <a href="#pointer-to-struct-type-structname-and-expr-as-structname">§ Pointer-to-struct type</a> below)</li><li><code>expr as fn(T1, T2, ...) -&gt; R</code> function-pointer cast (call a stored pointer with type checking; see <a href="#function-pointer-parameters-fnt1-t2---r">§ Function-pointer parameters</a> below)</li><li><code>expr as T[]</code> typed-array view cast (reinterpret a raw pointer as a <code>T[]</code>)</li></ul>
 <p>After <code>as</code> the parser also accepts a primitive <strong>value cast</strong>: <code>n as int</code> and other numeric casts compile and run, and a cast between a distinct type and its base type is allowed too. Casts the type system can't justify (for example <code>buf as string</code> or <code>p as ptr</code>) still parse, but are rejected at type-check with <code>E0200</code>, use a named helper for those. The <code>*StructName</code>, <code>fn(...) -&gt; R</code>, and <code>T[]</code> forms remain available. Other primitive conversions:</p>
-<div class="tw"><table><thead><tr><th>From → To</th><th>How</th></tr></thead><tbody><tr><td><code>int</code> → <code>ptr</code> (e.g. passing an int to a <code>ptr</code>-typed extern param)</td><td>Implicit. The compiler emits <code>(void*)(intptr_t)</code> automatically at the call site.</td></tr><tr><td><code>string</code> → C <code>const char*</code> (passing a <code>string</code> to a C extern)</td><td>Implicit. The auto-unwrap injects <code>aether_string_data(arg)</code> at call sites for <code>string</code>-typed extern parameters.</td></tr><tr><td><code>int</code> → <code>string</code></td><td><code>string.from_int(n)</code> (and <code>string.from_long(n)</code>, <code>string.from_float(f)</code>).</td></tr><tr><td>C <code>const char*</code> → Aether <code>string</code></td><td>Assignment to a <code>string</code>-typed variable, or returning from a function declared <code>-&gt; string</code>. The returned <code>ptr</code> is treated as a borrowed C-string until it crosses into refcounted-string territory.</td></tr><tr><td><code>int</code> ↔ <code>int64</code> / <code>byte</code> ↔ <code>int</code></td><td>Implicit safe widenings (<code>byte → int</code>, <code>int → int64</code>). The narrowing direction (<code>int → byte</code>) requires a literal-range check and truncates non-literals at runtime. See <a href="#byte-unsigned-8-bit">§ <code>byte</code></a>.</td></tr><tr><td>Reinterpret a raw <code>ptr</code> as a typed struct view, function pointer, or array</td><td><code>expr as *StructName</code>, <code>expr as fn(...) -&gt; R</code>, or <code>expr as T[]</code> (the only <code>as</code> forms for values).</td></tr></tbody></table></div>
+<div class="tw"><table><thead><tr><th>From → To</th><th>How</th></tr></thead><tbody><tr><td><code>int</code> → <code>ptr</code> (e.g. passing an int to a <code>ptr</code>-typed extern param)</td><td>Implicit. The compiler emits <code>(void*)(intptr_t)</code> automatically at the call site.</td></tr><tr><td><code>string</code> → C <code>const char*</code> (passing a <code>string</code> to a C extern)</td><td>Implicit. The auto-unwrap injects <code>aether_string_data(arg)</code> at call sites for <code>string</code>-typed extern parameters.</td></tr><tr><td><code>int</code> → <code>string</code></td><td><code>string.from_int(n)</code> (and <code>string.from_long(n)</code>, <code>string.from_float(f)</code>).</td></tr><tr><td>C <code>const char*</code> → Aether <code>string</code></td><td>Assignment to a <code>string</code>-typed variable, or returning from a function declared <code>-&gt; string</code>. The returned <code>ptr</code> is treated as a borrowed C-string until it crosses into refcounted-string territory.</td></tr><tr><td><code>int</code> ↔ <code>int64</code> / <code>byte</code> ↔ <code>int</code></td><td>Implicit safe widenings (<code>byte → int</code>, <code>int → int64</code>). The narrowing direction (<code>int → byte</code>) requires a literal-range check and truncates non-literals at runtime. See <a href="#byte-unsigned-8-bit">§ <code>byte</code></a>.</td></tr><tr><td><code>float</code> → <code>int</code></td><td>Into an <strong>explicitly</strong> typed slot (<code>int k = 4.5</code>, an <code>int</code> parameter or field, an element of <code>int[N] xs</code>) the value truncates, as in C. Into a slot whose <code>int</code> type was <strong>inferred</strong> (<code>r = 0</code> then <code>r = 2.5</code>; <code>xs = [1, 2]</code> then <code>xs[0] = 7.5</code>) it is a compile error naming the fix, the same rule as a 64-bit value into an inferred <code>int</code>, because the truncation was never chosen.</td></tr><tr><td>Reinterpret a raw <code>ptr</code> as a typed struct view, function pointer, or array</td><td><code>expr as *StructName</code>, <code>expr as fn(...) -&gt; R</code>, or <code>expr as T[]</code> (the only <code>as</code> forms for values).</td></tr></tbody></table></div>
 <h3 id="null">Null</h3>
 <p>The <code>null</code> keyword represents a null pointer, typed as <code>ptr</code>:</p>
 <pre><code>x = null             // inferred: ptr
@@ -2309,7 +2324,7 @@ process_file(path) {
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.699 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.700 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>
