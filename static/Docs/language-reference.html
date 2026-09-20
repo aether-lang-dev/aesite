@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.698</span>
+      <span class="vtag">v0.699</span>
     </nav>
   </div>
 </header>
@@ -776,7 +776,8 @@ string greeting = "Hello"
 float temperature = 98.6</code></pre>
 <p>Variables are inferred from their initialization or usage context.</p>
 <p><strong><code>let</code> / <code>var</code> are optional keywords</strong>, accepted but not required. Bare Python-style assignment is the canonical form and is what most stdlib code uses. <code>let x = 10</code> and <code>var x = 10</code> parse identically to <code>x = 10</code>. There is no semantic distinction between <code>let</code> and <code>var</code> Aether is not Rust; mutability is a property of the binding's later use, not its declaration. There is no <code>mut</code>: <code>let mut x = 0</code> is an error, because a <code>let</code> must bind something and <code>mut</code> is not a keyword the language has. A typed declaration is written without <code>let</code> (<code>int n = 0</code>, <code>Pair p</code>), so two names after <code>let</code> is always a mistake.</p>
-<p><strong>Semicolons are optional.</strong> Aether parses end-of-line as a statement terminator. The samples above use no semicolons; older samples in this doc may show <code>;</code> for clarity. Either is fine.</p>
+<p><strong>Semicolons are optional.</strong> Aether parses end-of-line as a statement terminator. The samples above use no semicolons; older samples in this doc may show <code>;</code> for clarity. Either is fine, after any statement, <code>if x { a } ; b</code> is <code>if x { a }</code> then <code>b</code>.</p>
+<p><strong>Keywords are not names.</strong> A statement keyword used as a variable (<code>when = 0.0</code>, <code>message = "hi"</code>) is refused at the keyword: <code>'when' is a reserved keyword and cannot be used as an identifier; rename it</code>.</p>
 <h3 id="casting-between-types">Casting between types</h3>
 <p>Aether has <strong>no general-purpose cast operator</strong>. The <code>as</code> keyword is reserved for module aliasing and three specific value-cast forms:</p>
 <ul><li><code>import mod as alias</code> module aliasing (only inside <code>import</code> statements)</li><li><code>expr as *StructName</code> pointer-overlay struct cast (a leading <code>*</code> then a struct name; see <a href="#pointer-to-struct-type-structname-and-expr-as-structname">§ Pointer-to-struct type</a> below)</li><li><code>expr as fn(T1, T2, ...) -&gt; R</code> function-pointer cast (call a stored pointer with type checking; see <a href="#function-pointer-parameters-fnt1-t2---r">§ Function-pointer parameters</a> below)</li><li><code>expr as T[]</code> typed-array view cast (reinterpret a raw pointer as a <code>T[]</code>)</li></ul>
@@ -852,6 +853,7 @@ greet(name: string) -&gt; string {
     println("Hello")
 }</code></pre>
 <p>There is no <code>void</code> keyword in the return-type position, a missing return-type annotation IS the void declaration. The <code>main()</code> function is the entry point and is always void.</p>
+<p><strong>Builtin names cannot be redefined.</strong> A call to a builtin (<code>isolate</code>, <code>consume</code>, <code>release</code>, <code>make</code>, <code>sizeof</code>, <code>typeof</code>, <code>sleep</code>, …) is lowered by name, so a user function spelled the same would compile and never run; the definition is refused instead: <code>'isolate' is a builtin function and cannot be redefined … rename it (e.g. 'isolate_')</code>. A user function whose name is a <em>C library</em> symbol (<code>read</code>, <code>time</code>, <code>index</code>, <code>remove</code>, …) is fine: it is emitted under a mangled C name in every position, direct calls, <code>f as fn(...)</code>, and as a bare <code>fn</code> value.</p>
 <p><strong><code>main()</code> takes no parameters.</strong> There is no Aether-side <code>main(argc, argv)</code> form, the signature is uniform across every program. The runtime stashes the C-side <code>argc</code> / <code>argv</code> at startup (the codegen wraps your zero-arg <code>main()</code> in a C <code>int main(int argc, char** argv)</code> that calls <code>aether_args_init(argc, argv)</code> before any user code runs), and Aether code reaches command-line arguments through <code>std.os</code>:</p>
 <pre><code><span class="kw">import</span> std.os
 
@@ -1994,7 +1996,7 @@ main() {
 reduce(f: fn(int, int) -&gt; int, x: int, y: int) -&gt; int {
     return f(x, y)                 // multiple callbacks per signature are fine
 }</code></pre>
-<p>Pass an Aether function's address with the <code>as fn(...)</code> cast, <code>walk(my_handler as fn(ptr, ptr) -&gt; void, p, q)</code> or a C function pointer obtained from an extern. This is the parameter form of the same typed-fn-pointer machinery used by <code>as fn(...)</code> locals and function-pointer struct fields; the prototype matches the C signature exactly (needed for callback APIs like <code>qsort</code>, <code>dictScan</code>, signal handlers, libcurl/sqlite hooks).</p>
+<p>Pass an Aether function's address with the <code>as fn(...)</code> cast, <code>walk(my_handler as fn(ptr, ptr) -&gt; void, p, q)</code> or a C function pointer obtained from an extern. A closure cannot go there, it carries an environment and a C function pointer has none, and the compiler says so at the call (<code>a closure cannot be passed as a typed function pointer</code>); a callback that may be a closure takes a bare <code>fn</code> parameter and is invoked with <code>call(cb, …)</code>. This is the parameter form of the same typed-fn-pointer machinery used by <code>as fn(...)</code> locals and function-pointer struct fields; the prototype matches the C signature exactly (needed for callback APIs like <code>qsort</code>, <code>dictScan</code>, signal handlers, libcurl/sqlite hooks).</p>
 <h3 id="deriveeq-synthesize-an-equality-helper-for-a-struct"><code>@derive(eq)</code> synthesize an equality helper for a struct</h3>
 <p>Annotate a struct definition with <code>@derive(eq)</code> and the compiler synthesizes <code>int &lt;StructName&gt;_eq(&lt;StructName&gt; a, &lt;StructName&gt; b)</code> automatically, a field-by-field <code>==</code> chain that returns <code>1</code> when every field matches, <code>0</code> otherwise:</p>
 <pre><code>@derive(eq)
@@ -2307,7 +2309,7 @@ process_file(path) {
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.698 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.699 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>
