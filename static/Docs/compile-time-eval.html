@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.703</span>
+      <span class="vtag">v0.705</span>
     </nav>
   </div>
 </header>
@@ -683,7 +683,7 @@ if __pure(parse_config) { ... }        // branch on purity; folded to a literal<
 <p><code>__pure</code> folds during typecheck, so it is usable anywhere an expression is (a <code>let</code> initializer, an <code>if</code> condition, a comparison). It is <em>not</em> a valid <code>when</code> condition: <code>when</code> is resolved before typecheck (<code>resolve_when_statements</code>, <code>compiler/codegen/optimizer.c</code>), so it never sees the folded bool and rejects <code>when __pure(fn)</code> with "<code>when</code> condition is not a compile-time constant". <code>when</code> conditions are limited to <code>target.os</code>/<code>target.arch</code> comparisons, bool literals, and <code>&amp;&amp;</code>/<code>||</code>/<code>!</code> combinations of those.</p>
 <p>A function is <strong>pure</strong> when, transitively, it:</p>
 <ul><li>reaches no fs/net/os capability call (<code>file.*</code>/<code>dir.*</code>/<code>path.*</code>, <code>tcp.*</code>/ <code>http.*</code>, <code>os.*</code> time/exec live under <code>os</code>), and</li><li>mutates no caller-visible state, neither a parameter's pointee (<code>p.field = …</code>, <code>p[i] = …</code>) nor a module-level global.</li></ul>
-<p>The analysis is <strong>conservative</strong>: a function whose body it cannot see (an <code>extern</code>, or an unresolved name) is treated as impure, and a raw <code>extern</code> call inside a body is opaque and left unjudged (the same boundary the <code>--with=</code> gate and effect tags have). This is the determinism axis that complements the capability (access-control) axis, a function can be capability-empty yet impure (reads a clock handed to it), or hold <code>fs</code> yet be pure for fixed input. <code>__pure</code> resolves at compile time, so it gates optimizations and library features with zero runtime cost.</p>
+<p>The analysis is <strong>conservative</strong>: a function whose body it cannot see (an <code>extern</code>, or an unresolved name) is treated as impure, and a raw <code>extern</code> call inside a body is opaque and left unjudged (the same boundary the <code>--with=</code> gate and effect tags have). A qualified call into an imported Aether module (<code>mod.fn()</code>) is followed into that module's function, so a setter reached through an import makes its caller impure just as a local one does. This is the determinism axis that complements the capability (access-control) axis, a function can be capability-empty yet impure (reads a clock handed to it), or hold <code>fs</code> yet be pure for fixed input. <code>__pure</code> resolves at compile time, so it gates optimizations and library features with zero runtime cost.</p>
 <nav class="doc-prevnext" aria-label="Previous and next page"><a class="pn-prev" href="/Docs/isolated.html"><span class="pn-k">Previous</span><span class="pn-t">Isolated[T]: move-only actor message payloads</span></a><a class="pn-next" href="/Docs/dsl-without-macros.html"><span class="pn-k">Next</span><span class="pn-t">DSL without macros, why Aether doesn't need macro_rules!</span></a></nav>
       </article>
     </main>
@@ -696,7 +696,7 @@ if __pure(parse_config) { ... }        // branch on purity; folded to a literal<
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.703 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.705 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>
