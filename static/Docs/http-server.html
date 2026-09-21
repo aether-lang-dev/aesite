@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.700</span>
+      <span class="vtag">v0.701</span>
     </nav>
   </div>
 </header>
@@ -782,9 +782,9 @@ curl --http2 https://localhost:<span class="num">443</span>/        <span class=
 }</code></pre>
 <p><code>http.server_drain_connection(server, client_fd)</code> is the public helper that runs the full per-connection lifecycle (TLS handshake, keep-alive request loop, route dispatch, response emission, socket close). <em>When</em> the actor-dispatch API is completed, user actor step functions registered via <code>http_server_set_actor_handler</code> would call this on the <code>MSG_HTTP_CONNECTION</code> message's client_fd to get identical behaviour to the thread-pool worker path.</p>
 <h3 id="handler--actor-from-a-release-what-works-today">Handler → actor from a release (what works today)</h3>
-<p>Handlers run on an off-scheduler pthread pool (see <em>Why pthreads, not actors?</em> above). Two consequences follow, both tracked as bugs:</p>
-<ul><li>A fire-and-forget <code>actors.whereis(name) ! Msg{}</code> from a handler is <strong>silently dropped</strong>, the send originates on a foreign C thread and is lost before the actor sees it (<a href="https://github.com/aether-lang-dev/aether/issues/2083">#2083</a>). So the <code>whereis</code>-then-send pattern in <code>std.actors</code>' own module header does <strong>not</strong> work from an HTTP handler until that lands.</li><li>A synchronous handler → actor <em>read</em> is not expressible at all (there is no ask/reply primitive, and the handler is off-scheduler).</li></ul>
-<p><strong>The released substrate for handler-shared state is to keep the state on the pool thread, not in an actor:</strong> a lock-free copy-on-write cell (<code>std.snapshot</code>, issue #840) read via <code>snapshot.load</code> and written via a <code>snapshot.cas</code> retry loop, with the cell handed to handlers through the <code>ud</code> slot. This is the same shape the reverse-proxy load balancer uses one layer down in C (<code>std/http/proxy/aether_proxy_lb.c</code>: atomics + mutex). Correct reclamation of the displaced value uses <a href="https://github.com/aether-lang-dev/aether/blob/main/std/sync/README.md"><code>std.sync</code></a> (issue #2082): guard each published value with a <code>std.sync</code> refcount and free it when the count reaches zero after a grace period, its README has the retire-ring pattern in full.</p>
+<p>Handlers run on an off-scheduler pthread pool (see <em>Why pthreads, not actors?</em> above). What that means for talking to actors:</p>
+<ul><li>A fire-and-forget <code>actors.whereis(name) ! Msg{}</code> from a handler <strong>arrives</strong>: a send from a thread that is not a scheduler core goes through the target core's shared ingress channel, which serializes its producers (the main thread, pool workers, <code>std.worker</code> threads, C-library callback threads). Until 0.701 that channel took one producer at a time and a pool worker's send raced the main thread's, so the message was lost without a diagnostic (<a href="https://github.com/aether-lang-dev/aether/issues/2083">#2083</a>).</li><li>A synchronous handler → actor <em>read</em> is not expressible (there is no ask/reply primitive, and the handler is off-scheduler).</li></ul>
+<p><strong>For state a handler must read as well as write, keep it on the pool thread rather than in an actor:</strong> a lock-free copy-on-write cell (<code>std.snapshot</code>, issue #840) read via <code>snapshot.load</code> and written via a <code>snapshot.cas</code> retry loop, with the cell handed to handlers through the <code>ud</code> slot. This is the same shape the reverse-proxy load balancer uses one layer down in C (<code>std/http/proxy/aether_proxy_lb.c</code>: atomics + mutex). Correct reclamation of the displaced value uses <a href="https://github.com/aether-lang-dev/aether/blob/main/std/sync/README.md"><code>std.sync</code></a> (issue #2082): guard each published value with a <code>std.sync</code> refcount and free it when the count reaches zero after a grace period, its README has the retire-ring pattern in full.</p>
 <hr>
 <h2 id="middleware">Middleware</h2>
 <p>Eleven production middleware in <code>std.http.middleware</code>. All registered via the existing function-pointer chain, hot path stays C function pointers, no closure indirection.</p>
@@ -991,7 +991,7 @@ http.server_set_health_probes(server, "/healthz", "/readyz", ready_check, null)<
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.700 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.701 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>
