@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.707</span>
+      <span class="vtag">v0.708</span>
     </nav>
   </div>
 </header>
@@ -954,6 +954,7 @@ main() {
 <pre><code>@link("-laether_sqlite -lsqlite3")</code></pre>
 <p>When the module is in a program's resolved import closure, codegen unions every declared flag (first-seen order, deduplicated) into the <code>// aether-link:</code> comment on the first line of the generated C, which downstream C builds read to link without undefined-reference archaeology. Declaring is enough; there is no central registry to edit. Token order within one <code>@link</code> is preserved, which matters for single-pass linkers (veneer archive before the library it references).</p>
 <p><code>ae build</code> reads that comment back and puts the tokens on its own link command (#1549), so a consumer does not restate them in <code>aether.toml</code>. They are placed <em>before</em> <code>link_flags</code>, which therefore still wins. <code>-L</code> search paths remain the consumer's job, those are site-specific in a way a module cannot know, except for <code>&lt;lib_dir&gt;/contrib</code>, which is added automatically so the veneer archives <code>make contrib</code> builds resolve without configuration.</p>
+<p><strong>A header a module needs in the TU (<code>@c_include</code>, #1986).</strong> A module whose externs resolve to <code>static inline</code> helpers declares the header that carries them: <code>@c_include("api.h")</code> makes codegen emit <code>#include "api.h"</code> before anything it declares itself, deduplicated across the closure, so the calls resolve to the definitions rather than to an out-of-line symbol. Pairs with <code>@c_import</code> on the externs, which suppresses Aether's own prototype.</p>
 <p><strong>C sources a module ships (<code>@source</code>, #2125).</strong> The same mechanism carries a module's own C: <code>@source("lanes.c")</code> at the top of <code>module.ae</code> names a file relative to the module's directory. Orchestration resolves it, reports a missing file at the directive, and records it as a <code>read</code> dependency in the manifest (#1882) so the warm cache key changes with the C; codegen lists every resolved path, deduplicated, one per <code>// aether-source:</code> line after the link header, and <code>ae</code> compiles them into the program after <code>--extra</code> / <code>extra_sources</code>. One path per line because a module directory may contain a space. A directive in the entry file resolves beside it.</p>
 <p><strong>The link line is derived from the AST, which makes it transitive and <code>-D</code>-sensitive.</strong> Both properties matter and neither is obvious:</p>
 <pre><code>-D NAME → `when` region kept or dropped → import in or out of the closure
@@ -979,7 +980,7 @@ main() {
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.707 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.708 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>
