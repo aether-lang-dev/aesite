@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.705</span>
+      <span class="vtag">v0.706</span>
     </nav>
   </div>
 </header>
@@ -669,6 +669,7 @@ ae fmt src tests          <span class="com"># format every .ae file under these 
 ae fmt --check src        <span class="com"># do not write; list files that would change, exit 1 if any do</span></code></pre>
 <ul><li>With <strong>no path</strong>, it reads standard input and writes the formatted result to standard output (useful for editor "format buffer" integrations).</li><li>With <strong>paths</strong>, it formats each <code>.ae</code> file in place, recursing into directories and skipping hidden ones (<code>.git</code>, <code>.aether</code>, ...). It prints the path of every file it rewrites.</li><li><code>--check</code> (alias <code>-c</code>) writes nothing and exits non-zero if any file is not already formatted, listing those files. Use it in CI to enforce formatting.</li></ul>
 <p>Writes are atomic (a temp file is renamed over the original), so an interrupted run never leaves a half-written file.</p>
+<p>Line endings are LF in the output: a CRLF file (a Windows checkout with <code>core.autocrlf</code>) is reported by <code>--check</code> and rewritten to LF, which is what this repository's <code>.gitattributes</code> pins for <code>*.ae</code> anyway. The compiler accepts either.</p>
 <h2 id="what-it-does-and-does-not-change">What it does, and does not, change</h2>
 <p>The formatter is deliberately conservative: it changes <strong>only whitespace</strong>.</p>
 <p>It normalizes:</p>
@@ -693,7 +694,7 @@ ae fmt --check src        <span class="com"># do not write; list files that woul
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.705 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.706 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

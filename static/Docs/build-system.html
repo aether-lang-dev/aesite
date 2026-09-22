@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.705</span>
+      <span class="vtag">v0.706</span>
     </nav>
   </div>
 </header>
@@ -744,7 +744,8 @@ ae build --target=wasm32-wasi --emit=lib --size mylib.ae -o lib.wasm   <span cla
 <pre><code>ae build src/main.ae   <span class="com"># explicit path</span>
 ae build myapp         <span class="com"># [[bin]] name = "myapp"</span></code></pre>
 <p>When the positional argument doesn't exist as a file, <code>ae</code> checks <code>aether.toml</code>'s <code>[[bin]]</code> entries for a matching <code>name = "..."</code> and uses that bin's <code>path</code> field. Cargo and similar build systems work the same way.</p>
-<p>If you run <code>ae build</code> from a subdirectory and there's no <code>aether.toml</code> in the current directory, <code>ae</code> walks up the directory tree looking for one. When it finds an ancestor <code>aether.toml</code>, it switches to that directory before resolving paths, so <code>cd src &amp;&amp; ae build main.ae</code> works as if you had run <code>ae build src/main.ae</code> from the project root, and <code>extra_sources</code>, <code>[build] defines</code>, <code>cflags</code> and <code>link_flags</code> declared in the toml are still applied. The paths <em>you</em> typed keep meaning what they meant where you typed them: a relative <code>--extra shim.c</code> and a relative <code>-o app</code> resolve against the directory you ran the command from, as <code>cc -o</code> does. Walk-up only happens when there's no toml in the current directory; a project with a local <code>aether.toml</code> always wins. (<code>ae run</code>, <code>ae check</code> and <code>ae test</code> read the manifest in the current directory only, #2148.)</p>
+<p>If you run <code>ae build</code> from a subdirectory and there's no <code>aether.toml</code> in the current directory, <code>ae</code> walks up the directory tree looking for one. When it finds an ancestor <code>aether.toml</code>, it switches to that directory before resolving paths, so <code>cd src &amp;&amp; ae build main.ae</code> works as if you had run <code>ae build src/main.ae</code> from the project root, and <code>extra_sources</code>, <code>[build] defines</code>, <code>cflags</code> and <code>link_flags</code> declared in the toml are still applied. The paths <em>you</em> typed keep meaning what they meant where you typed them: a relative <code>--extra shim.c</code> and a relative <code>-o app</code> resolve against the directory you ran the command from, as <code>cc -o</code> does. Walk-up only happens when there's no toml in the current directory; a project with a local <code>aether.toml</code> always wins, and the walk stops at a repository boundary (a <code>.git</code>), so a checkout with no manifest never adopts an unrelated ancestor's.</p>
+<p><code>ae run</code>, <code>ae check</code>, <code>ae test</code> and <code>ae inspect</code> find the manifest the same way but do <strong>not</strong> change directory (#2148): under <code>ae run</code> the process cwd is also the cwd the program starts in, so a script reading <code>./data.txt</code> from <code>src/</code> keeps reading <code>src/data.txt</code>. They read the manifest where it is; a path the manifest states relative to itself, a <code>[[bin]] path</code>, an <code>extra_sources</code> entry, the project-mode <code>src/main.ae</code>, is resolved from the directory you ran the command in. <code>cflags</code> and <code>link_flags</code> are passed verbatim, so a relative <code>-I</code> in them is relative to wherever the compile runs (<code>ae build</code> runs it from the project root).</p>
 <hr>
 <h2 id="integer-semantics--fwrapv">Integer semantics (<code>-fwrapv</code>)</h2>
 <p>Aether's <code>int</code> is 32 bits and <strong>wraps</strong>: <code>2147483647 + 1</code> is <code>-2147483648</code>, and the compiler's constant folder says so out loud (<a href="/Docs/language-reference.html#constant-expression-overflow-w1003">W1003</a>). The code generator emits it as a C <code>int</code>, and C leaves signed overflow <em>undefined</em>, so the flag that makes the two agree has to be on every command line that compiles generated C:</p>
@@ -788,8 +789,10 @@ $ echo $?
 <p><code>ae run</code> and <code>ae build</code> use separate cache slots so toggling between them doesn't churn one entry back and forth.</p>
 <p><strong>Cost breakdown of a build:</strong></p>
 <ul><li>Cache hit (<code>ae build</code>): copy the cached binary to the requested output path. Sub-millisecond on local disk.</li><li>Cache hit (<code>ae run</code>): fork + exec the cached binary directly.</li><li>Cache miss: full <code>aetherc</code> front-end + gcc compile + link. Dominant cost is gcc; <code>aetherc</code> is a small fraction.</li><li>First macOS run: an extra one-time pause while the OS performs its Gatekeeper check on the newly compiled binary. Subsequent runs of the same cached binary are hit-path.</li></ul>
-<pre><code>ae cache          <span class="com"># Show cache location and entry count</span>
+<pre><code>ae cache          <span class="com"># Show cache location, entry count, size and limit</span>
+ae cache gc       <span class="com"># Evict least-recently-used builds down to the limit, now</span>
 ae cache clear    <span class="com"># Delete all cached builds</span></code></pre>
+<p><strong>The cache is bounded.</strong> <code>AETHER_CACHE_MAX_MB</code> caps it (default 5120; <code>0</code> means unlimited). A hit touches its slot, so eviction is by <em>least recently used</em>, not least recently built: when a publish takes the cache over the cap, the oldest-used builds are removed until it is under 90% of it. The scan runs at most once per ten minutes per cache directory (a <code>gc.stamp</code> file), and the build just published is never evicted, so one binary larger than the cap still runs. Depfiles (<code>*.deps</code>) are small and keyed by source path; they are not counted against the cap, and one not rewritten for 30 days (its source is no longer being built) is removed by the same scan. Before this bound existed a machine that ran the test sweep accumulated 26,000 builds and 12.7 GB.</p>
 <p>Wasm builds, <code>--emit=lib</code>, and <code>--namespace</code> SDK generation skip the cache (different artefact shapes; each will get its own cache layout when measurement justifies it).</p>
 <hr>
 <h2 id="build-tiers">Build Tiers</h2>
@@ -1005,7 +1008,7 @@ make ae AETHER_ENABLE_LLM=<span class="num">1</span> \
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.705 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.706 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>
