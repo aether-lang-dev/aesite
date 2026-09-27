@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.712</span>
+      <span class="vtag">v0.732</span>
     </nav>
   </div>
 </header>
@@ -655,6 +655,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/bootstrap-from-source.html">Bootstrapping Aether from source (HEAD)</a>
 <a href="/Docs/release-glibc-portability.html">Release binary portability across glibc versions</a>
 <div class="grp">More</div>
+<a href="/Docs/gpu.html">The GPU tier</a>
 <a href="/Docs/swiftui-ios-app.html">Using an Aether library from a SwiftUI iOS app</a>
 <a href="/Docs/writing-security-sensitive-code.html">Writing security-sensitive code in Aether</a></nav>
     <main class="doc-main">
@@ -681,6 +682,7 @@ main() {
 }</code></pre>
 <h3 id="how-it-works">How It Works</h3>
 <ol><li><code>import std.X</code> registers <code>X</code> as a namespace</li><li><code>X.func()</code> is resolved to the C function <code>X_func()</code></li><li>Dot-style calls: <code>string.new()</code>, <code>list.free()</code>, etc. (compiler translates to C-level <code>string_new</code>, <code>list_free</code>)</li></ol>
+<p>A module's namespace is the last segment of its path. When two loaded modules end in the same segment (<code>mine.vk</code> and <code>contrib.vulkan.vk</code>, #2209), each instead gets its full path with dots as underscores (<code>mine_vk</code>, <code>contrib_vulkan_vk</code>), and the merger rewrites the prefix each program or library <em>wrote</em> (<code>vk.</code>, or an <code>import … as …</code> alias) to the module that scope imported. So a module's imports resolve in that module, by full path or alias, never program-wide by last segment; <code>import X as Y</code> works in a library module exactly as it does in a program.</p>
 <h3 id="module-orchestration-phase">Module Orchestration Phase</h3>
 <p>Before type checking, the compiler runs a module orchestration phase (added between parsing and type checking in the compilation pipeline):</p>
 <ol><li><strong>Scan</strong>: Walk the main program AST for <code>import</code> statements</li><li><strong>Resolve</strong>: Map each import to a file path (stdlib, lib/, src/ paths)</li><li><strong>Parse</strong>: Lex and parse each module file into an AST</li><li><strong>Cache</strong>: Store the parsed AST in <code>global_module_registry</code></li><li><strong>Recurse</strong>: Process each module's own imports (transitive dependencies)</li><li><strong>Cycle Check</strong>: Build a dependency graph and detect circular imports via DFS</li></ol>
@@ -714,7 +716,7 @@ main() {
     // geometry._sqrt_approx(25)         // Error: not in exports list
 }</code></pre>
 <p><strong>Rules:</strong></p>
-<ul><li><code>exports (…)</code> accepts any combination of function names, const names, and struct/actor names. The list is the contract.</li><li>A module that declares an <code>exports (…)</code> list exposes <strong>only</strong> the listed names. Anything else is private.</li><li>A module with no <code>exports (…)</code> list keeps the legacy default-public behavior, every top-level name is callable from outside. v1 is additive; v2 will flip this default to private once every stdlib + contrib module has been migrated.</li><li>Private names can still be referenced from inside the module's own functions, they're merged into the program, just blocked at the external call boundary.</li></ul>
+<ul><li><code>exports (…)</code> accepts any combination of function names, const names, and struct/actor names. The list is the contract.</li><li>A module that declares an <code>exports (…)</code> list exposes <strong>only</strong> the listed names. Anything else is private.</li><li>A module with no <code>exports (…)</code> list keeps the legacy default-public behavior, every top-level name is callable from outside. v1 is additive; v2 will flip this default to private once every stdlib + contrib module has been migrated.</li><li>Private names can still be referenced from inside the module's own functions, they're merged into the program, just blocked at the external call boundary.</li><li>The boundary is every way a name can be reached from outside: the qualified form (<code>geometry.helper()</code>, <code>geometry.CONST</code>) and a selective import (<code>import geometry (helper)</code>) both fail with <code>E0303 'helper' is not exported from module 'geometry'</code>, the selective form at the import line. The same holds for standard-library modules, reached by their last segment (<code>language.name</code> for <code>std.language</code>).</li><li>A module may list a name in its prefixed form, <code>&lt;module&gt;_&lt;name&gt;</code>: std.math exports <code>math_sqrt</code>, and that is what <code>math.sqrt(x)</code> and <code>import std.math (sqrt)</code> reach.</li></ul>
 <h3 id="legacy-export-fn-form-deprecated">Legacy <code>export &lt;fn&gt;</code> form (deprecated)</h3>
 <p>Earlier versions of Aether used a per-function <code>export</code> keyword:</p>
 <pre><code>// DEPRECATED, emits a warning at compile time.
@@ -980,7 +982,7 @@ main() {
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.712 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.732 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>
