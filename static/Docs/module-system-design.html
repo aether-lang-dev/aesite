@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.733</span>
+      <span class="vtag">v0.734</span>
     </nav>
   </div>
 </header>
@@ -682,7 +682,9 @@ main() {
 }</code></pre>
 <h3 id="how-it-works">How It Works</h3>
 <ol><li><code>import std.X</code> registers <code>X</code> as a namespace</li><li><code>X.func()</code> is resolved to the C function <code>X_func()</code></li><li>Dot-style calls: <code>string.new()</code>, <code>list.free()</code>, etc. (compiler translates to C-level <code>string_new</code>, <code>list_free</code>)</li></ol>
-<p>A module's namespace is the last segment of its path. When two loaded modules end in the same segment (<code>mine.vk</code> and <code>contrib.vulkan.vk</code>, #2209), each instead gets its full path with dots as underscores (<code>mine_vk</code>, <code>contrib_vulkan_vk</code>), and the merger rewrites the prefix each program or library <em>wrote</em> (<code>vk.</code>, or an <code>import … as …</code> alias) to the module that scope imported. So a module's imports resolve in that module, by full path or alias, never program-wide by last segment; <code>import X as Y</code> works in a library module exactly as it does in a program.</p>
+<p>A module's namespace is the last segment of its path. When two loaded modules end in the same segment (<code>mine.vk</code> and <code>gfx.vk</code>, #2209), each instead gets its full path with dots as underscores (<code>mine_vk</code>, <code>gfx_vk</code>), and the merger rewrites the prefix each program or library <em>wrote</em> (<code>vk.</code>, or an <code>import … as …</code> alias) to the module that scope imported. So a module's imports resolve in that module, by full path or alias, never program-wide by last segment; <code>import X as Y</code> works in a library module exactly as it does in a program.</p>
+<p>One kind of module cannot move: one whose externs carry its last segment as a prefix. std.math declares <code>extern math_floor</code>, and <code>math.floor</code> reaches it as <code>&lt;namespace&gt;_floor</code>, so only the namespace <code>math</code> finds it. Such a module keeps its last segment and whatever collides with it moves (<code>pkg.math</code> → <code>pkg_math</code>, #2190). No two shipped modules may need the same last segment; <code>tests/scripts/check_shipped_module_leaves.py</code> enforces that in <code>make check-docs</code> (#2255).</p>
+<p>A package's own files are modules too, and a package usually imports them by bare name (<code>import parser</code> in <code>contrib/jq/module.ae</code>). Such an import from a shipped package is registered by its place in the package (<code>contrib.jq.parser</code>), so two packages with a <code>parser.ae</code> each get their own, and a file already loaded under another name is not loaded twice (#2255).</p>
 <h3 id="module-orchestration-phase">Module Orchestration Phase</h3>
 <p>Before type checking, the compiler runs a module orchestration phase (added between parsing and type checking in the compilation pipeline):</p>
 <ol><li><strong>Scan</strong>: Walk the main program AST for <code>import</code> statements</li><li><strong>Resolve</strong>: Map each import to a file path (stdlib, lib/, src/ paths)</li><li><strong>Parse</strong>: Lex and parse each module file into an AST</li><li><strong>Cache</strong>: Store the parsed AST in <code>global_module_registry</code></li><li><strong>Recurse</strong>: Process each module's own imports (transitive dependencies)</li><li><strong>Cycle Check</strong>: Build a dependency graph and detect circular imports via DFS</li></ol>
@@ -982,7 +984,7 @@ main() {
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.733 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.734 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>
