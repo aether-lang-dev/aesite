@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.737</span>
+      <span class="vtag">v0.738</span>
     </nav>
   </div>
 </header>
@@ -2135,7 +2135,7 @@ println("Hello, ${name}! You are ${age} years old.")</code></pre>
 <p>Interpolated strings produce a <code>ptr</code> (heap-allocated C string) when used as values:</p>
 <pre><code>msg = "Hello, ${name}!"         // msg is a ptr (char*), not an int
 tcp_send_raw(conn, msg)          // can be passed to any function expecting ptr</code></pre>
-<p>When used directly inside <code>print</code>/<code>println</code>, the compiler optimizes to a <code>printf</code> call (no allocation).</p>
+<p>When used directly inside <code>print</code>/<code>println</code>, the compiler optimizes to a <code>printf</code> call (no allocation). <code>print</code> flushes stdout after it writes, interpolated or not, so partial-line output appears at once and survives a process that is killed or leaves through <code>_exit</code>; <code>println</code> leaves stdout's buffering to the C library.</p>
 <p><strong>Evaluation order.</strong> The <code>${expr}</code> segments of one interpolated string are evaluated left to right, in source order, on every C compiler and optimisation level. A segment with a side effect sees the effects of the segments before it, and a plain read beside such a segment sees the value from its own position in the string:</p>
 <pre><code>n = 0
 bump() -&gt; int { n = n + 1; return n }
@@ -2433,7 +2433,7 @@ process_file(path) {
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.737 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.738 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>
