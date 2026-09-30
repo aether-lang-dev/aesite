@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.742</span>
+      <span class="vtag">v0.743</span>
     </nav>
   </div>
 </header>
@@ -1180,11 +1180,13 @@ main() {
     free(raw)
 }</code></pre>
 <p><strong>What you get</strong></p>
-<ul><li>C lowering: <code>arr = raw as int[]</code> emits <code>int* arr = ((int*)(raw));</code>. Subsequent <code>arr[i]</code> emits <code>arr[i]</code> which C scales by <code>sizeof(int) == 4</code>.</li><li>Covered element types: <code>int</code>, <code>long</code>, <code>byte</code>, <code>ptr</code>, <code>float</code> (and struct types, though for those you usually want <code>*Struct</code> member-access instead).</li><li>The <code>[]</code> syntax (no size) reads as "I don't know the bound, trust me to index inside it." A fixed-size <code>as int[10]</code> parses too but adds no extra checking; useful only as documentation.</li><li>Like <code>as *StructName</code>, this is a <strong>view</strong>. It does NOT allocate, free, or bounds-check. The buffer's lifetime stays with whoever produced the original <code>ptr</code>.</li><li>Aliasing: two views of the same memory alias each other. <code>arr = raw as int[]</code> and <code>arr_b = raw as byte[]</code> see the same bytes, that's the point.</li></ul>
+<ul><li>C lowering (#1286): <code>arr = raw as int[]</code> emits <code>AetherSlice arr = aether_slice_view((void*)(raw));</code>, an <em>unbounded</em> slice (<code>.len</code> is <code>-1</code>). Subsequent <code>arr[i]</code> emits <code>*(int*)aether_slice_at(arr, i, sizeof(int), …)</code>, which scales by <code>sizeof(int) == 4</code> and, because the view is unbounded, performs no range check. <code>arr[0..n]</code> turns it into a bounded, checked slice.</li><li>Covered element types: <code>int</code>, <code>long</code>, <code>byte</code>, <code>ptr</code>, <code>float</code> (and struct types, though for those you usually want <code>*Struct</code> member-access instead).</li><li>The <code>[]</code> syntax (no size) reads as "I don't know the bound, trust me to index inside it." A fixed-size <code>as int[10]</code> parses too but adds no extra checking; useful only as documentation.</li><li>Like <code>as *StructName</code>, this is a <strong>view</strong>. It does NOT allocate, free, or bounds-check. The buffer's lifetime stays with whoever produced the original <code>ptr</code>.</li><li>Aliasing: two views of the same memory alias each other. <code>arr = raw as int[]</code> and <code>arr_b = raw as byte[]</code> see the same bytes, that's the point.</li></ul>
 <p><strong>When to reach for it</strong></p>
 <ul><li>Porting C code that uses <code>int *table = malloc(sizeof(int) * n); table[i] = ...</code> shapes. The C readability is preserved without the <code>mem.*</code> arithmetic.</li><li>Hot loops where the offset arithmetic was hand-rolled and likely to have a one-off bug.</li></ul>
 <p><strong>When NOT to reach for it</strong></p>
-<ul><li>For Aether-owned data; prefer fixed-size stack arrays (<code>int[5] arr</code>) or the higher-level collections in <code>std.collections</code>. The <code>as T[]</code> cast is the systems-programming escape hatch, not the everyday array.</li><li>When you want bounds-checked storage. There is none here.</li></ul>
+<ul><li>For Aether-owned data; prefer fixed-size stack arrays (<code>int[5] arr</code>) or the higher-level collections in <code>std.collections</code>. The <code>as T[]</code> cast is the systems-programming escape hatch, not the everyday array.</li><li>When you want bounds-checked storage. Sub-slice the view with an explicit end (<code>(raw as int[])[0..n]</code>) or start from a <code>T[N]</code> array / <code>make([]T, n)</code>; a bare view has no length to check against.</li></ul>
+<p><strong>Slices at the C boundary.</strong> An Aether <code>T[]</code> is <code>AetherSlice { void* ptr; uint64_t len; }</code> by value (<code>runtime/aether_slice.h</code>, included by every generated program). The extern ABI does not see that struct:</p>
+<div class="tw"><table><thead><tr><th>Position</th><th>C sees</th><th>The compiler emits</th></tr></thead><tbody><tr><td><code>extern f(data: byte[])</code> parameter</td><td><code>unsigned char*</code></td><td>the argument's <code>.ptr</code> (the length is dropped; pass it separately, <code>f(data, data.len)</code>)</td></tr><tr><td><code>extern g() -&gt; int[]</code> return</td><td><code>int*</code></td><td><code>aether_slice_view(g())</code>: an unbounded slice</td></tr><tr><td><code>extern struct S { buf: byte[] }</code> field</td><td><code>unsigned char buf[]</code> (last field) / <code>unsigned char*</code></td><td>a read of <code>s.buf</code> is an unbounded view; <code>s.buf + i</code> is a <code>ptr</code></td></tr><tr><td>a <code>T[]</code> passed to a <code>ptr</code> parameter, <code>free(s)</code>, <code>s == null</code>, <code>s + n</code></td><td><code>void*</code> / <code>T*</code></td><td><code>.ptr</code></td></tr><tr><td>an Aether function's <code>T[]</code> parameter, return, struct field</td><td><code>AetherSlice</code></td><td>the whole fat pointer</td></tr></tbody></table></div>
 <h3 id="c_struct-typed-overlays-width-correct-field-access-over-a-raw-ptr"><code>@c_struct</code> typed overlays, width-correct field access over a raw <code>ptr</code></h3>
 <p>When you're porting C that overlays a struct on memory the <strong>C side owns</strong> (<code>s-&gt;length--</code>, <code>max-&gt;ms = id-&gt;ms</code>), the raw way is hand-rolled offset math through <code>std.mem</code>:</p>
 <pre><code>const ST_LENGTH = 8
@@ -1331,7 +1333,7 @@ server_get(raw, "/health", _h_health, 0)   // references ae_h_health</code></pre
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.742 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.743 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>
