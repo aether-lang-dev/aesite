@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.741</span>
+      <span class="vtag">v0.742</span>
     </nav>
   </div>
 </header>
@@ -674,7 +674,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <p>This is deliberate. A <em>general</em> compile-time evaluator would be able to synthesize <code>std.fs</code> / <code>std.net</code> calls and evaluate them at build time, which would run filesystem / network code <strong>past the <code>--emit=lib</code> capability gate</strong>, the gate that decides which side effects a compiled artifact is allowed to perform. By folding <em>only</em> an explicit, audited whitelist of pure value conversions, the build step performs no I/O and grants no capability it would not otherwise grant.</p>
 <ul><li><strong><code>string + string</code></strong>, the <code>+</code> operator is not defined for strings anywhere in Aether (it is rejected at typecheck with <code>'+' is not defined for strings</code>). Build a constant string with <code>string.concat(...)</code> instead. <code>const G = "a" + "b"</code> does <strong>not</strong> work by design; <code>const G = string.concat("a", "b")</code> does.</li><li><strong>Struct literals</strong>, <strong>member access</strong>, and <strong>non-constant array elements</strong>, rejected; each would either allocate fresh per use or is not a value the substitution model can inline.</li><li><strong>Out-of-range / undefined folds</strong>, a <code>string.from_int</code> argument that does not fit in 32 bits, or a division by zero, is <strong>not</strong> folded. The expression is left as-is rather than producing a silently-wrong literal. (For <code>from_int</code> the result would have been the runtime 32-bit-truncated call, so leaving it untouched preserves existing behaviour exactly.)</li></ul>
 <h2 id="where-it-lives">Where it lives</h2>
-<ul><li><strong>Whitelist gate (accept/reject):</strong> <code>is_const_expression</code> / <code>is_const_expr_call</code> in <code>compiler/analysis/typechecker.c</code>. Runs during typecheck; admits exactly the whitelist, rejects everything else with a source-mapped diagnostic.</li><li><strong>Folder (call → literal):</strong> <code>fold_const_string_call</code> and the <code>AST_FUNCTION_CALL</code> / <code>AST_CONST_DECLARATION</code> arms of <code>optimize_constant_folding</code> in <code>compiler/codegen/optimizer.c</code>. Runs after typecheck, before codegen. The two lists are kept byte-for-byte in sync (<code>is_whitelisted_string_call</code> ↔ the typechecker whitelist).</li><li><strong>Lowering:</strong> a folded scalar const lowers to <code>#define NAME (value)</code>; a const array lowers to <code>static const T NAME[] = {…}</code> (<code>compiler/codegen/codegen_stmt.c</code> for locals, <code>compiler/codegen/codegen.c</code> for module-level).</li></ul>
+<ul><li><strong>Whitelist gate (accept/reject):</strong> <code>is_const_expression</code> / <code>is_const_expr_call</code> in <code>compiler/analysis/typechecker.c</code>. Runs during typecheck; admits exactly the whitelist, rejects everything else with a source-mapped diagnostic.</li><li><strong>Folder (call → literal):</strong> <code>fold_const_string_call</code> and the <code>AST_FUNCTION_CALL</code> / <code>AST_CONST_DECLARATION</code> arms of <code>optimize_constant_folding</code> in <code>compiler/codegen/optimizer.c</code>. Runs after typecheck, before codegen. The two lists are kept byte-for-byte in sync (<code>is_whitelisted_string_call</code> ↔ the typechecker whitelist).</li><li><strong>Lowering:</strong> a folded scalar const lowers to <code>static const T NAME = (value)</code>; a const array lowers to <code>static const T NAME[] = {…}</code> (<code>compiler/codegen/codegen_stmt.c</code> for locals, <code>compiler/codegen/codegen.c</code> for module-level). A module-level constant of the program itself is emitted as <code>ae_const_NAME</code>, out of the way of any C header's names (#2292); an imported module's carries its module prefix.</li></ul>
 <h2 id="phase-1-scope">Phase-1 scope</h2>
 <p>Phase-1 is intentionally narrow: arithmetic on numeric literals, the four whitelisted <code>string.*</code> conversions, and constant array literals. There is no general const evaluator, no compile-time loop unrolling beyond the existing closed-form loop passes, and no evaluation of user functions. Any broadening of the whitelist must preserve the capability-gate invariant above: only pure, I/O-free value conversions are ever eligible.</p>
 <h2 id="purity-introspection-__purefn">Purity introspection: <code>__pure(fn)</code></h2>
@@ -697,7 +697,7 @@ if __pure(parse_config) { ... }        // branch on purity; folded to a literal<
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.741 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.742 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

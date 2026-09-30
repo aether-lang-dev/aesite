@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.741</span>
+      <span class="vtag">v0.742</span>
     </nav>
   </div>
 </header>
@@ -796,6 +796,22 @@ main() {
 }</code></pre>
 <pre><code>0.785398 1.5708
 2.5</code></pre>
+<p><strong>Binding an array literal to an array that already exists stores its elements.</strong> The array keeps the size of its first binding: a shorter literal zeroes the elements past its own, and a longer one is a compile error. This is also what happens to an array first bound inside a loop body or a branch, since such a local is one variable for the whole function: each pass through the loop stores the literal again, its elements evaluated in order.</p>
+<pre><code>main() {
+    total = 0
+    d = 0
+    while d &lt; 3 {
+        row = [ d, d * 10, d * 100 ]
+        total = total + row[0] + row[1] + row[2]
+        d = d + 1
+    }
+    println("${total}")
+    a = [ 1, 2, 3 ]
+    a = [ 4, 5 ]
+    println("${a[0]} ${a[1]} ${a[2]}")
+}</code></pre>
+<pre><code>333
+4 5 0</code></pre>
 <h3 id="sequence-types-stringseq">Sequence Types (<code>*StringSeq</code>)</h3>
 <p><code>*StringSeq</code> is a cons-cell linked list of strings, Erlang/Elixir-shaped, with O(1) head/tail/cons/length and refcount-based structural sharing. Empty list is the <code>NULL</code> pointer; each cell carries a cached length.</p>
 <pre><code><span class="kw">import</span> std.<span class="fn">string</span>
@@ -864,12 +880,12 @@ main() {
     println(MAX_SIZE)           <span class="com">// 100</span>
     half = MAX_SIZE / <span class="num">2</span>         <span class="com">// constants work in expressions</span>
 }</code></pre>
-<p>Constants are emitted as <code>#define</code> in generated C, zero runtime cost.</p>
+<p>Constants cost nothing at run time: each is a file-scope <code>static const</code> in the generated C. A program's own constants are emitted under the reserved name <code>ae_const_&lt;NAME&gt;</code>, so no C header can claim the name: a constant may be called <code>SIZE</code>, <code>NEAR</code> or <code>MAX_PATH</code> on every platform, although <code>windows.h</code> owns all three (#2292). A parameter or local named like a constant is still that parameter or local. An imported module's constants carry the module's prefix instead.</p>
 <h4 id="module-level-constant-arrays-lookup-tables">Module-level constant arrays, lookup tables</h4>
 <p>A <code>const</code> array lowers to a file-scope <code>static const</code> table, allocated once and shared across every call (not re-initialised per call), the right shape for a table-driven algorithm:</p>
 <pre><code>const PRIMES[] = [2, 3, 5, 7, 11]          // element type inferred (int)
 const CRC16TAB: uint16[256] = [ 0x0000, 0x1021, /* ... */ ]   // element type pinned</code></pre>
-<ul><li><code>const NAME[] = [...]</code> infers the element type from the literals (<code>int</code> for integer literals).</li><li><code>const NAME: T[N] = [...]</code> pins the C element type, <code>T</code> may be <code>uint8</code> / <code>uint16</code> / <code>uint32</code> / <code>uint64</code> / <code>int</code> / <code>long</code> so e.g. a CRC16 table emits <code>static const uint16_t NAME[256]</code> rather than a 4×-wider <code>int[]</code>, and matches a C header that expects the packed type. Integer literals narrow to the chosen element type (the explicit, compile-time-constant intent, like <code>byte b = 5</code>). Indexed access (<code>NAME[i]</code>) emits <code>NAME[i]</code>; the array is read-only.</li></ul>
+<ul><li><code>const NAME[] = [...]</code> infers the element type from the literals (<code>int</code> for integer literals).</li><li><code>const NAME: T[N] = [...]</code> pins the C element type, <code>T</code> may be <code>uint8</code> / <code>uint16</code> / <code>uint32</code> / <code>uint64</code> / <code>int</code> / <code>long</code> so e.g. a CRC16 table emits <code>static const uint16_t NAME[256]</code> rather than a 4×-wider <code>int[]</code>, and matches a C header that expects the packed type. Integer literals narrow to the chosen element type (the explicit, compile-time-constant intent, like <code>byte b = 5</code>). Indexed access (<code>NAME[i]</code>) reads the table directly; the array is read-only.</li></ul>
 <p><strong>The RHS of <code>const</code> must be a compile-time constant expression.</strong> Allowed forms: literals (int / float / bool / string / null), other consts referenced by name, unary / binary expressions over those, and string interpolation where every interpolated value is itself const. <strong>Function calls are rejected</strong> at typecheck time:</p>
 <pre><code>const G_BUF = malloc(64)        // ERROR: const initializer must be a
                                  // compile-time constant expression</code></pre>
@@ -2433,7 +2449,7 @@ process_file(path) {
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.741 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.742 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

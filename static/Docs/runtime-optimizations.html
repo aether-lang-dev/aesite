@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.741</span>
+      <span class="vtag">v0.742</span>
     </nav>
   </div>
 </header>
@@ -921,27 +921,30 @@ atomic_store_explicit(&amp;sched-&gt;idle_cycles, <span class="num">0</span>, me
 <p>When the codegen is in a main-function context (<code>gen-&gt;current_actor == NULL</code>), it now emits the always-taken branch directly, eliminating the dead conditional.</p>
 <h3 id="arithmetic-series-loop-collapse-compilercodegencodegen_stmtc">Arithmetic Series Loop Collapse (<code>compiler/codegen/codegen_stmt.c</code>)</h3>
 <p>Detects <code>while</code> loops of the form:</p>
-<pre><code>while counter &lt; N {
-    acc1 = acc1 + C1   // loop-invariant addend
-    acc2 = acc2 + C2
-    counter = counter + step
+<pre><code>while counter &lt; N {          // or &lt;=
+    acc1 = acc1 + C1         // loop-invariant addend
+    acc2 = acc2 + counter    // or counter * K: a linear sum
+    counter = counter + step // a positive integer literal
 }</code></pre>
-<p>And replaces them with O(1) closed-form assignments:</p>
+<p>and replaces them with the closed form. With <code>c0</code> the counter on entry and <code>T</code> the trip count, <code>ceil((N - c0) / step)</code> for <code>&lt;</code> and <code>floor((N - c0) / step) + 1</code> for <code>&lt;=</code>:</p>
 <pre><code><span class="kw">if</span> ((counter) &lt; (N)) {
-    acc1 = acc1 + (C1) * ((N) - counter);
-    acc2 = acc2 + (C2) * ((N) - counter);
-    counter = (N);
+    <span class="com">/* T computed from the distance N - c0 and the step */</span>
+    acc1 = acc1 + C1 * T;
+    acc2 = acc2 + (T*c0 + step * T*(T-<span class="num">1</span>)/<span class="num">2</span>);   <span class="com">/* T*(T+1)/2 if acc2's statement follows the increment */</span>
+    counter = c0 + step * T;
 }</code></pre>
-<p>The guard prevents the collapsed form from running when the loop would not have executed at all (counter ≥ bound). The formula <code>(N - counter)</code> computes remaining trip count correctly for any initial counter value.</p>
+<p>The guard keeps everything unchanged when the loop would not run at all. <code>N</code> can be any side-effect-free expression, runtime values included, and the counter can start anywhere.</p>
+<p><strong>Only integer loops are collapsed.</strong> The counter, the bound, every accumulator and every addend must be <code>int</code> or <code>long</code>. Those wrap (<code>-fwrapv</code>), and the closed form is computed in <code>uint64_t</code>, where each step is exact modulo 2^64, then narrowed to each variable's type, so the result is the loop's to the bit, wrapped accumulators included. A float series is left as a loop: repeated addition rounds at every step and a product does not, so no closed form gives the same answer. Before #2271 a float loop went through <code>(int64_t)</code> and ended at its bound (<code>while a &lt; 0.0 { a = a + 6.28 }</code> from -0.51 left <code>0.0</code>), and an integer step that did not divide the distance stopped at the bound as well.</p>
+<p><strong>The one wrap the closed form cannot follow</strong> is the counter's own last step: when <code>c0 + step*T</code> passes the counter type's maximum, the loop wraps round and carries on. That is checked at run time, and the loop then runs as written.</p>
 <p><strong>What this handles that the C compiler cannot:</strong></p>
 <div class="tw"><table><thead><tr><th>Loop type</th><th>Clang <code>-O2</code></th><th>Aether collapse</th></tr></thead><tbody><tr><td><code>while i &lt; 10 { total += 5; i++ }</code></td><td>Collapses (constant bound, scalar evolution)</td><td>Collapses</td></tr><tr><td><code>while i &lt; n { total += 5; i++ }</code></td><td>Cannot collapse (variable bound)</td><td><strong>Collapses</strong></td></tr><tr><td>Multi-accumulator <code>while i &lt; n { a += 3; b += 7; i++ }</code></td><td>Cannot collapse</td><td><strong>Collapses</strong></td></tr></tbody></table></div>
 <p>For constant-bound loops the Aether collapse is redundant with clang's scalar evolution pass, so both emit equivalent O(1) code. The unique value is for <em>variable-bound</em> loops, which clang cannot analyze without the semantics that Aether's type system provides (no aliasing, no pointers, no side effects in the body).</p>
 <p><strong>Detection requirements (all must hold):</strong></p>
-<ol><li>Condition is <code>var &lt; bound</code> or <code>var &lt;= bound</code></li><li>Every body statement is <code>target = target + expr</code> (no other forms)</li><li>One statement increments the counter variable by a positive literal step</li><li>All addend expressions are loop-invariant (no reference to counter or other modified variables)</li><li>Bound expression is not modified by any loop body statement</li><li>No function calls or actor sends in the loop body (sends get batch-send treatment instead)</li></ol>
+<ol><li>Condition is <code>var &lt; bound</code> or <code>var &lt;= bound</code>, both <code>int</code> or <code>long</code></li><li>Every body statement is <code>target = target + expr</code> (no other forms)</li><li>Exactly one statement increments the counter, by a positive integer literal</li><li>Every accumulator and addend is <code>int</code> or <code>long</code></li><li>Invariant addends do not reference the counter or any other modified variable</li><li>Bound expression is not modified by any loop body statement</li><li>No function calls or actor sends in the loop body (sends get batch-send treatment instead)</li></ol>
 <p><strong>Pure counter elimination</strong> is a subcase handled automatically (zero accumulators):</p>
 <pre><code>i = 0
 while i &lt; n { i = i + 1 }   // n can be a runtime variable</code></pre>
-<p>→ <code>if ((i) &lt; (n)) { i = (n); }</code> clang can collapse only when <code>n</code> is a compile-time constant.</p>
+<p>→ <code>i</code> becomes <code>i + T</code> without a loop; clang can collapse this only when <code>n</code> is a compile-time constant.</p>
 <p><strong>Reported in optimization stats:</strong></p>
 <pre><code>Optimization Statistics:
   Series loops collapsed: 3</code></pre>
@@ -954,13 +957,13 @@ while j &lt; N {
     total = total + j     // addend IS the induction variable
     j = j + 1
 }</code></pre>
-<p>Replaced with the <strong>triangular-number closed form</strong>:</p>
+<p>Replaced with the closed form of the sum of the values the statement sees:</p>
 <pre><code><span class="kw">if</span> ((j) &lt; (N)) {
-    total = total + ((N) * ((N) - <span class="num">1</span>) / <span class="num">2</span> - j * (j - <span class="num">1</span>) / <span class="num">2</span>);
-    j = (N);
+    total = total + (T*j0 + step * T*(T-<span class="num">1</span>)/<span class="num">2</span>);
+    j = j0 + step * T;
 }</code></pre>
-<p>This is the sum Σ(i = j₀ to N−1) i = N(N−1)/2 − j₀(j₀−1)/2.</p>
-<p>Also handles a scaled counter: <code>total = total + j * 3</code> → scale factor applied to the formula.</p>
+<p>That is Σ(k = 0 … T−1) (j₀ + k·step). When the accumulator's statement comes after the increment it sees the stepped value, and the sum runs k = 1 … T, so <code>T*(T+1)/2</code>. Any positive integer step works. <code>T*(T±1)/2</code> halves whichever factor is even, so it stays exact modulo 2^64 without a 128-bit product.</p>
+<p>Also handles a scaled counter: <code>total = total + j * 3</code> multiplies the sum by 3. The loop computes <code>j * 3</code> in the product's own type, so a scaled sum is collapsed only when that product is at least as wide as the accumulator (an <code>int</code> product feeding a <code>long</code> accumulator could wrap where the sum does not).</p>
 <p><strong>Why clang cannot do this:</strong> LLVM's Scalar Evolution (SCEV) identifies induction variables but does not synthesize the triangular-number closed form in the code generator. Polly (an optional LLVM extension, rarely enabled) can do affine loop transformations but is not part of the standard <code>-O2</code> pipeline.</p>
 <div class="tw"><table><thead><tr><th>Loop type</th><th>Clang <code>-O2</code></th><th>Aether collapse</th></tr></thead><tbody><tr><td><code>while j &lt; n { total += 5; j++ }</code></td><td>Cannot collapse (variable bound)</td><td>Series collapse</td></tr><tr><td><code>while j &lt; n { total += j; j++ }</code></td><td>Cannot collapse (addend = counter)</td><td><strong>Linear collapse</strong></td></tr><tr><td><code>while j &lt; n { total += j * 3; j++ }</code></td><td>Cannot collapse</td><td><strong>Linear collapse (scaled)</strong></td></tr><tr><td>Mixed: <code>while j &lt; n { a += 5; b += j; j++ }</code></td><td>Cannot collapse</td><td><strong>Both in one pass</strong></td></tr></tbody></table></div>
 <p><strong>Reported in optimization stats:</strong></p>
@@ -996,7 +999,7 @@ while j &lt; N {
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.741 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.742 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>
