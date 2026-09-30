@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.748</span>
+      <span class="vtag">v0.749</span>
     </nav>
   </div>
 </header>
@@ -726,7 +726,7 @@ open(path: string, mode: string) -&gt; {
 <h2 id="modules-that-follow-this-pattern">Modules that follow this pattern</h2>
 <p><code>fs</code>, <code>io</code>, <code>http</code>, <code>net</code>, <code>os</code>, <code>string</code>, <code>tcp</code>, <code>dir</code>, <code>file</code> full wrapper coverage. <code>json</code>, <code>collections</code>, <code>list</code>, <code>map</code> completed in the stdlib-consistency pass alongside this doc. <code>log</code> and <code>host</code>, intentionally follow domain-specific variants (fire-and-forget logging; DSL builders) as described above.</p>
 <h2 id="adding-a-new-stdlib-module">Adding a new stdlib module</h2>
-<ol><li>Create <code>std/&lt;name&gt;/</code> with <code>module.ae</code> and <code>aether_&lt;name&gt;.c</code>/<code>.h</code>.</li><li>Write the C functions first; split into <code>&lt;op&gt;_raw</code> (fallible) and <code>&lt;op&gt;</code> (infallible) per the rules above.</li><li>Mirror each function as an <code>extern</code> in <code>module.ae</code>, copying the <code>_raw</code> suffix for fallible ones.</li><li>Add the "API shape" preamble comment.</li><li>Add Go-style wrappers for every fallible extern.</li><li>Add tests exercising both the success and error paths of each wrapper.</li><li>Add an example under <code>examples/stdlib/&lt;name&gt;-demo.ae</code> showing idiomatic use of the Go-style API.</li></ol>
+<ol><li>Create <code>std/&lt;name&gt;/</code> with <code>module.ae</code> and <code>aether_&lt;name&gt;.c</code>/<code>.h</code>.</li><li>Write the C functions first; split into <code>&lt;op&gt;_raw</code> (fallible) and <code>&lt;op&gt;</code> (infallible) per the rules above.</li><li>Mirror each function as an <code>extern</code> in <code>module.ae</code>, copying the <code>_raw</code> suffix for fallible ones.</li><li>Add the "API shape" preamble comment.</li><li>Add Go-style wrappers for every fallible extern.</li><li>Add tests exercising both the success and error paths of each wrapper, as a co-located <code>std/&lt;name&gt;/test_&lt;name&gt;.ae</code> (#1584): the sweep runs it, the install strips it, and <code>make check-tests</code> fails a module that has no test anywhere.</li><li>Add an example under <code>examples/stdlib/&lt;name&gt;-demo.ae</code> showing idiomatic use of the Go-style API.</li></ol>
 <nav class="doc-prevnext" aria-label="Previous and next page"><a class="pn-prev" href="/Docs/locale-independent-float-text.html"><span class="pn-k">Previous</span><span class="pn-t">Plan: locale-independent float text conversion (LC_NUMERIC correctness)</span></a><a class="pn-next" href="/Docs/stdlib-vs-contrib.html"><span class="pn-k">Next</span><span class="pn-t">std/ vs contrib/ placement decisions</span></a></nav>
       </article>
     </main>
@@ -739,7 +739,7 @@ open(path: string, mode: string) -&gt; {
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.748 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.749 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>
