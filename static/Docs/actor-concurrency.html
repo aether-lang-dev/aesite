@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.749</span>
+      <span class="vtag">v0.750</span>
     </nav>
   </div>
 </header>
@@ -793,14 +793,14 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 }</code></pre>
 <p>Identifiers in the timeout <strong>expression</strong> resolve against actor state fields only. <code>self</code> is <strong>not</strong> in scope there: the timeout expression is generated at spawn time (in <code>spawn_&lt;Actor&gt;</code>, before <code>self</code> exists), so a state-field reference such as <code>after interval_ms</code> resolves against the freshly-allocated actor handle. The timeout <strong>body</strong> (above) runs later inside the step function, where <code>self</code> <em>is</em> in scope, <code>self ! Tick {}</code> is fine.</p>
 <h2 id="panic-and-stack-traces">Panic and Stack Traces</h2>
-<p><code>panic("reason")</code> unwinds via <code>aether_panic</code>. If a <code>try { ... } catch e { ... }</code> block (or the scheduler's per-step barrier for actor handlers) is on the stack, the panic is caught and <code>e</code> binds to the reason. If no frame catches, the runtime prints the reason to stderr along with a filtered stack trace, then aborts:</p>
+<p><code>panic("reason")</code> unwinds via <code>aether_panic</code>. If a <code>try { ... } catch e { ... }</code> block (or the scheduler's per-step barrier for actor handlers) is on the stack, the panic is caught and <code>e</code> binds to the reason. A reason built at run time (<code>panic("bad value ${n}")</code>, a concatenation, a string local) belongs to the catcher: <code>e</code> is freed when the handler ends unless the handler keeps it (<code>kept = e</code>), returns it, stores it or panics with it again, so catching in a loop does not accumulate messages. An actor killed by such a panic releases the reason after its death hook runs. If no frame catches, the runtime prints the reason to stderr along with a filtered stack trace, then aborts:</p>
 <pre><code>aether: panic outside any try/catch or actor: divide by zero
 
 Stack trace (most recent call first):
   0: math.safe_divide
   1: calculate_value
   2: main</code></pre>
-<p>The trace is captured at the call site (codegen wires <code>aether_panic_capture_stack</code> in front of every <code>aether_panic</code> call) so the user's caller frames survive <code>-O2</code> tail-call optimisation. Symbols starting with <code>aether_</code> are pretty-printed back to their dotted Aether names, <code>aether_std_string_concat</code> reads as <code>std.string.concat</code>. User-code symbols pass through verbatim.</p>
+<p>The trace is captured at the call site (codegen wires <code>aether_panic_capture_stack</code> in front of every <code>panic</code> it lowers) so the user's caller frames survive <code>-O2</code> tail-call optimisation. Symbols starting with <code>aether_</code> are pretty-printed back to their dotted Aether names, <code>aether_std_string_concat</code> reads as <code>std.string.concat</code>. User-code symbols pass through verbatim.</p>
 <p>The trace is <strong>best-effort diagnostic info</strong>. Under <code>-O2</code>, function inlining can fuse callers into one frame; a panic deep inside a chain of small helpers may show only <code>main</code>. For richer development-time traces, build with <code>ae build --quick</code>, which compiles at <code>-O0 -g</code> instead of the default <code>-O2</code>; the per-call frames return.</p>
 <p>To suppress the trace block entirely (useful for tests that diff stderr line-for-line), set <code>AETHER_STACK_TRACE=0</code> in the environment. The reason line still prints.</p>
 <p>Available on glibc-Linux and macOS today (uses <code>&lt;execinfo.h&gt;</code> <code>backtrace()</code> from libc proper, no extra link dependency). On musl, Windows, Emscripten, and freestanding targets the trace block is skipped, <code>panic</code>/<code>try</code>/<code>catch</code> themselves still work.</p>
@@ -875,7 +875,7 @@ Stack trace (most recent call first):
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.749 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.750 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>
