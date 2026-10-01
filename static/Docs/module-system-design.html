@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.751</span>
+      <span class="vtag">v0.752</span>
     </nav>
   </div>
 </header>
@@ -923,6 +923,17 @@ modules = <span class="str">"."</span></code></pre>
 <span class="str">"github.com/aether-lang-dev/other"</span> = { path = <span class="str">"../other"</span> }</code></pre>
 <p>Only a local path override is supported. A table naming anything else (a git URL, say) is an error rather than a silently-ignored line.</p>
 <p>Either way the build prints <code>Overriding &lt;dep&gt; -&gt; &lt;path&gt;</code>. A <code>--override</code> for a dependency also overridden by <code>[patch]</code> wins, since the invocation is the more specific instruction. The override target is read exactly like an installed package: it needs its own <code>[package] modules</code> declaration.</p>
+<h4 id="dependencies-of-dependencies">Dependencies of dependencies</h4>
+<p>A dependency's own <code>[dependencies]</code> resolve too, transitively (#2335). A project lists only what it imports itself. A game built on an engine does not declare the engine's physics package, and it does not patch that package to a path inside the engine's checkout. The graph is walked breadth-first, so the project's direct dependencies come first on the search path, in manifest order. <code>ae lib-path</code> lists every package in the graph.</p>
+<p>Each package resolves through the first of these that names it:</p>
+<ol><li><code>--override</code> on the command line;</li><li>the <strong>project's</strong> <code>[patch]</code>, so the consumer always has the last word;</li><li>the <code>[patch]</code> of the manifest that declares the dependency, a path relative to <strong>that package's</strong> root (an engine patching its physics to its own <code>deps/physics</code> submodule works from any consumer);</li><li>the installed package.</li></ol>
+<p>A package reached twice at the same place (a diamond) and a cycle are both fine. A package that resolves to two <strong>different</strong> places is an error. The error names both paths and who required each, and the command stops instead of building against whichever was reached first:</p>
+<pre><code>Error: dependency 'example.com/pkgb' resolves to two places:
+         ../pkga/../pkgb (required by example.com/pkga)
+         ../pkgc/../pkgb2 (required by example.com/pkgc)
+       One build can use only one. Patch it in the project's
+       aether.toml to choose: [patch] "example.com/pkgb" = "&lt;path&gt;"</code></pre>
+<p>A transitive dependency that is not installed fails by name and says who needs it: <code>Error: dependency 'x' (required by example.com/pkga) is not installed.</code></p>
 <h3 id="namespace-convention">Namespace Convention</h3>
 <p>Function names must be prefixed with the namespace:</p>
 <ul><li>Import: <code>import utils</code></li><li>Call: <code>utils.double_value(x)</code></li><li>C function: <code>utils_double_value()</code></li></ul>
@@ -986,7 +997,7 @@ main() {
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.751 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.752 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>
