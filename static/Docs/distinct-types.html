@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.760</span>
+      <span class="vtag">v0.761</span>
     </nav>
   </div>
 </header>
@@ -690,8 +690,8 @@ open(p: Path) -&gt; (FD, string) { ... }</code></pre>
 <p>A function declared <code>open(p: Path)</code> accepts only values whose static type is <code>Path</code>. A bare <code>string</code> argument is a type error at the call site; an explicit unwrap-and-rewrap is required. The C codegen sees <code>Path</code> as <code>const char*</code> (no wrapper struct, no tag, no boxing); the distinction is entirely in the type checker.</p>
 <h2 id="why-this-matters-for-aether">Why this matters for Aether</h2>
 <p>Four pulls, in order of how directly the language design touches each:</p>
-<ol><li><strong>Capability discipline.</strong> A <code>GrantedFD = distinct int</code> lets the sandbox grant-list contract (<code>docs/containment-sandbox.md</code>) be expressed in types. Today the contract is doc-prose; the compiler can't enforce that a function expecting a granted FD didn't get handed an arbitrary <code>int</code>. Distinct types make the narrowing point, where an <code>int</code> becomes a <code>GrantedFD</code> the obvious place to validate the grant.</li><li><strong>Composes with <code>Isolated[T]</code></strong>. An <code>Isolated[GrantedFD]</code> is a non-aliasable one-shot capability token. The two features stack cleanly.</li><li><strong>Helps the <code>(value, err)</code> convention.</strong> A <code>Sanitized = distinct string</code> return from <code>validate_input(...)</code> makes it a type error to forward an unvalidated string to a sink that requires validation. The Go-style return convention stays; distinct types add a nuance that the type checker can see.</li><li><strong>Stdlib internal hygiene.</strong> <code>*StringSeq</code> vs. <code>string[]</code> is already a documented footgun in <code>LLM.md</code>. A pair of distinct types over the underlying representations would let the compiler diagnose the mistake with a clear message rather than a lowering-time C compile error.</li></ol>
-<p>Two downstream projects (<code>avn / svn-aether</code>, <code>aether-ui</code>) have asked for this in spec form (per <code>LLM.md</code> § "Working with downstream users").</p>
+<ol><li><strong>Capability discipline.</strong> A <code>GrantedFD = distinct int</code> lets the sandbox grant-list contract (<code>docs/containment-sandbox.md</code>) be expressed in types. Today the contract is doc-prose; the compiler can't enforce that a function expecting a granted FD didn't get handed an arbitrary <code>int</code>. Distinct types make the narrowing point, where an <code>int</code> becomes a <code>GrantedFD</code> the obvious place to validate the grant.</li><li><strong>Composes with <code>Isolated[T]</code></strong>. An <code>Isolated[GrantedFD]</code> is a non-aliasable one-shot capability token. The two features stack cleanly.</li><li><strong>Helps the <code>(value, err)</code> convention.</strong> A <code>Sanitized = distinct string</code> return from <code>validate_input(...)</code> makes it a type error to forward an unvalidated string to a sink that requires validation. The Go-style return convention stays; distinct types add a nuance that the type checker can see.</li><li><strong>Stdlib internal hygiene.</strong> <code>*StringSeq</code> vs. <code>string[]</code> is already a documented footgun in <code>AGENTS.md</code>. A pair of distinct types over the underlying representations would let the compiler diagnose the mistake with a clear message rather than a lowering-time C compile error.</li></ol>
+<p>Two downstream projects (<code>avn / svn-aether</code>, <code>aether-ui</code>) have asked for this in spec form (per <code>AGENTS.md</code> § "Working with downstream users").</p>
 <h2 id="sketch">Sketch</h2>
 <pre><code>type Path = distinct string
 type Port = distinct int
@@ -748,7 +748,7 @@ main() {
 <ol><li><strong>Parser</strong>: <code>type X = distinct Y</code> syntax. New AST node or annotation on the existing <code>type</code> declaration node.</li><li><strong>Type checker</strong>: nominal-inequality rule. The cast surface from TBD-1. The operator-inheritance rule from TBD-2.</li><li><strong>Codegen</strong>: confirm zero-cost lowering. <code>Path</code> should emit identical C to a bare <code>string</code> at every use site (variable decls, function params, return slots, ABI <code>--emit=lib</code> boundary).</li><li><strong>Stdlib pilot</strong>: introduce <code>Path</code>, <code>FD</code>, <code>Port</code> (or some subset) once the language feature lands.</li></ol>
 <p>Each phase gets its own follow-up issue.</p>
 <h2 id="references">References</h2>
-<ul><li><code>Isolated[T]</code> composes with distinct types.</li><li><code>Duration</code>, the first tagged-int type in Aether; serves as the operator-inheritance precedent (see TBD-2).</li><li>Bare-int → Duration at parameter passing is rejected; the strictness precedent for distinct types at call sites.</li><li><code>LLM.md</code> § "Runtime sequence of strings → <code>*StringSeq</code>, not <code>string[]</code>", exactly the class of mistake distinct types diagnose.</li><li><code>LLM.md</code> § "Ownership of <code>ptr</code>-typed returns", borrowed-vs-ref-counted is another candidate distinction.</li><li><code>docs/containment-sandbox.md</code> capability tokens, the prime use case.</li><li>Nim manual § "Distinct type", reference design including the <code>borrow</code> annotation (TBD-2 option C / D).</li></ul>
+<ul><li><code>Isolated[T]</code> composes with distinct types.</li><li><code>Duration</code>, the first tagged-int type in Aether; serves as the operator-inheritance precedent (see TBD-2).</li><li>Bare-int → Duration at parameter passing is rejected; the strictness precedent for distinct types at call sites.</li><li><code>AGENTS.md</code> § "Runtime sequence of strings → <code>*StringSeq</code>, not <code>string[]</code>", exactly the class of mistake distinct types diagnose.</li><li><code>AGENTS.md</code> § "Ownership of <code>ptr</code>-typed returns", borrowed-vs-ref-counted is another candidate distinction.</li><li><code>docs/containment-sandbox.md</code> capability tokens, the prime use case.</li><li>Nim manual § "Distinct type", reference design including the <code>borrow</code> annotation (TBD-2 option C / D).</li></ul>
 <nav class="doc-prevnext" aria-label="Previous and next page"><a class="pn-prev" href="/Docs/type-inference-multi-value-returns.html"><span class="pn-k">Previous</span><span class="pn-t">Multi-Value Return Type Inference</span></a><a class="pn-next" href="/Docs/sequences.html"><span class="pn-k">Next</span><span class="pn-t">Sequences (*StringSeq)</span></a></nav>
       </article>
     </main>
@@ -761,7 +761,7 @@ main() {
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.760 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.761 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>
