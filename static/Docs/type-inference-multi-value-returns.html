@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.756</span>
+      <span class="vtag">v0.760</span>
     </nav>
   </div>
 </header>
@@ -676,7 +676,7 @@ hash_file(p: string) {
     if string.length(rerr) &gt; 0 {
         return "", rerr                              // multi-value, mixes literal "" with destructured local
     }
-    return cryptography.sha256_hex(bytes, length)    // single-value tuple-typed call
+    return cryptography.sha256_hex(string.bytes(bytes)[0..length])    // single-value tuple-typed call
 }</code></pre>
 <p><code>hash_file</code> returns <code>(string, string)</code> in both branches. Pre-fix, codegen emitted it as <code>_tuple_string_int</code> and every caller produced <code>-Wint-conversion</code> errors. Four distinct bugs combined to produce that result. Each is fixable in isolation; the test <code>tests/integration/multi_return_destructure_chain/</code> exercises the combination.</p>
 <h2 id="bug-1-cross-module-local-var-pollution">Bug 1, cross-module local-var pollution</h2>
@@ -704,7 +704,7 @@ hash_file(p: string) {
     if string.length(rerr) &gt; 0 {
         return "", rerr                              // &lt;-- right here
     }
-    return cryptography.sha256_hex(bytes, length)
+    return cryptography.sha256_hex(string.bytes(bytes)[0..length])
 }</code></pre>
 <p><code>rerr</code>'s <code>AST_IDENTIFIER</code> inside the <code>return "", rerr</code> has no <code>node_type</code> set (no symbol-table entry survives across iterations after the bug-1 unwind), and <code>infer_return_type_impl</code> for the nested return falls back to <code>lookup_symbol</code>, which doesn't have it, so the slot is UNKNOWN.</p>
 <p><strong>Cause.</strong> The <code>AST_BLOCK</code> case of <code>infer_return_type_impl</code> had a pre-resolve pass for direct single-value <code>return v</code> returns, calling <code>resolve_local_var_type(v, body, i, symbols)</code> to pull the type from a preceding sibling. But:</p>
@@ -737,7 +737,7 @@ hash_file(p: string) {
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.756 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.760 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

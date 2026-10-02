@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.756</span>
+      <span class="vtag">v0.760</span>
     </nav>
   </div>
 </header>
@@ -686,7 +686,7 @@ sudo make install-contrib</code></pre>
 <p>Optional <strong>system libraries</strong> that enable specific stdlib features (each is auto-detected via <code>pkg-config</code>; without it, the related stdlib calls return a clean "built without ..." diagnostic rather than failing the build):</p>
 <div class="tw"><table><thead><tr><th>Lib</th><th>Enables</th></tr></thead><tbody><tr><td><code>libssl-dev</code> / <code>libcrypto-dev</code> (OpenSSL)</td><td>TLS in <code>std.http.client</code> (HTTPS) and the <code>std.http</code> server</td></tr><tr><td><code>zlib1g-dev</code> (zlib)</td><td><code>std.zlib.deflate</code>/<code>inflate</code>; HTTP gzip</td></tr><tr><td><code>libnghttp2-dev</code></td><td>HTTP/2 server (<code>std.http</code> h2/h2c + HPACK)</td></tr><tr><td><code>libpcre2-dev</code></td><td><code>std.regex</code> (Perl-compatible regex via libpcre2-8)</td></tr></tbody></table></div>
 <p>Optional, only if you want the corresponding <strong>contrib</strong> module built natively (each is independently probed and <strong>skipped if its dev library is absent</strong>, a skip is normal, not an error):</p>
-<div class="tw"><table><thead><tr><th>Contrib module</th><th>Needs</th><th>Probe</th></tr></thead><tbody><tr><td><code>sqlite</code></td><td><code>libsqlite3-dev</code></td><td><code>pkg-config sqlite3</code> / <code>&lt;sqlite3.h&gt;</code></td></tr><tr><td><code>host_lua</code></td><td><code>liblua5.4-dev</code> (or 5.3)</td><td><code>pkg-config lua5.4\|lua5.3\|lua</code></td></tr><tr><td><code>host_python</code></td><td><code>python3-dev</code></td><td><code>python3-config --includes</code></td></tr><tr><td><code>host_ruby</code></td><td><code>ruby-dev</code></td><td><code>pkg-config ruby-3.x\|ruby</code></td></tr><tr><td><code>host_perl</code></td><td><code>perl</code> + <code>ExtUtils::Embed</code></td><td><code>perl -MExtUtils::Embed -e ccopts</code></td></tr><tr><td><code>host_tcl</code></td><td><code>tcl-dev</code></td><td><code>pkg-config tcl</code></td></tr><tr><td><code>host_js</code></td><td><code>duktape</code> dev</td><td><code>pkg-config duktape</code></td></tr></tbody></table></div>
+<div class="tw"><table><thead><tr><th>Contrib module</th><th>Needs</th><th>Probe</th></tr></thead><tbody><tr><td><code>sqlite</code></td><td>nothing: fetches the pinned amalgamation (#1372); <code>libsqlite3-dev</code> only when offline</td><td><code>scripts/fetch-sqlite-amalgamation.sh</code>, else <code>pkg-config sqlite3</code> / <code>&lt;sqlite3.h&gt;</code></td></tr><tr><td><code>host_lua</code></td><td><code>liblua5.4-dev</code> (or 5.3)</td><td><code>pkg-config lua5.4\|lua5.3\|lua</code></td></tr><tr><td><code>host_python</code></td><td><code>python3-dev</code></td><td><code>python3-config --includes</code></td></tr><tr><td><code>host_ruby</code></td><td><code>ruby-dev</code></td><td><code>pkg-config ruby-3.x\|ruby</code></td></tr><tr><td><code>host_perl</code></td><td><code>perl</code> + <code>ExtUtils::Embed</code></td><td><code>perl -MExtUtils::Embed -e ccopts</code></td></tr><tr><td><code>host_tcl</code></td><td><code>tcl-dev</code></td><td><code>pkg-config tcl</code></td></tr><tr><td><code>host_js</code></td><td><code>duktape</code> dev</td><td><code>pkg-config duktape</code></td></tr></tbody></table></div>
 <p>On Windows, build under MSYS2 (<code>pacman -S mingw-w64-x86_64-gcc make git</code>); see the README "Building on Windows" section.</p>
 <hr>
 <h2 id="step-by-step">Step by step</h2>
@@ -771,7 +771,7 @@ printf <span class="str">'main() { println("ok") }\n'</span> &gt; /tmp/smoke.ae
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.756 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.760 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

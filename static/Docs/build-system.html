@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.756</span>
+      <span class="vtag">v0.760</span>
     </nav>
   </div>
 </header>
@@ -703,8 +703,8 @@ path = <span class="str">"src/main.ae"</span>
 extra_sources = [<span class="str">"src/ffi_helpers.c"</span>, <span class="str">"src/renderer.c"</span>]</code></pre>
 <h3 id="link-flags-you-do-not-have-to-write">Link flags you do not have to write</h3>
 <p><code>link_flags</code> is for libraries <em>your</em> program needs. A library that a <em>module</em> needs is declared by that module, with <code>@link</code> at the top of its <code>module.ae</code>:</p>
-<pre><code>@link("-laether_sqlite -lsqlite3")</code></pre>
-<p>Codegen unions those declarations across the resolved import closure into a <code>// aether-link:</code> comment on the generated C, and <code>ae build</code> puts them on the link command (#1549). So <code>import contrib.sqlite</code> links libsqlite3 without any <code>aether.toml</code> entry, and it works transitively, a module three imports deep contributes its own dependencies.</p>
+<pre><code>@link("-laether_sqlite -lsqlite3 -lm")</code></pre>
+<p>Codegen unions those declarations across the resolved import closure into a <code>// aether-link:</code> comment on the generated C, and <code>ae build</code> puts them on the link command (#1549). So <code>import contrib.sqlite</code> links SQLite without any <code>aether.toml</code> entry, and it works transitively, a module three imports deep contributes its own dependencies.</p>
 <p>Two consequences worth knowing:</p>
 <ul><li><strong>Your <code>link_flags</code> still win.</strong> Module flags are placed before them on the command line, so anything you specify takes precedence.</li><li><strong>A <code>-D</code>-dropped import drops its libraries too.</strong> Because the flags come from the AST, an <code>import</code> inside a losing <code>when defined(...)</code> region never contributes them, the library is absent from the binary, not merely unused. Restating it in <code>link_flags</code> defeats this, since that is static and applies to every build. Prefer <code>@link</code> for a module's own dependencies.</li></ul>
 <p><code>-L</code> search paths remain yours to supply; they are site-specific. The one exception is <code>&lt;lib_dir&gt;/contrib</code>, added automatically so the veneer archives <code>make contrib</code> builds resolve without configuration.</p>
@@ -1017,7 +1017,7 @@ make ae AETHER_ENABLE_LLM=<span class="num">1</span> \
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.756 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.760 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.756</span>
+      <span class="vtag">v0.760</span>
     </nav>
   </div>
 </header>
@@ -906,7 +906,7 @@ http.server_add_route(server, "CONNECT", "*", handle_connect, 0)</code></pre>
 
 http.server_websocket(server, "/echo", echo_handler, null)</code></pre>
 <p>Same handler-owns-the-connection shape as SSE. The server runs the upgrade handshake first (computes <code>Sec-WebSocket-Accept = Base64(SHA-1(client_key + magic-uuid))</code>), sends <code>101 Switching Protocols</code>, then hands an <code>HttpWsConn*</code> to the handler. Inside the handler:</p>
-<div class="tw"><table><thead><tr><th>Call</th><th>Behaviour</th></tr></thead><tbody><tr><td><code>ws_recv(ws)</code></td><td>block for next data frame; returns <code>1</code> (text), <code>2</code> (binary), <code>-1</code> (closed). Auto-handles ping/pong; reassembles continuation frames.</td></tr><tr><td><code>ws_message(ws)</code></td><td>the message contents from the most recent <code>ws_recv</code> (NUL-terminated for text).</td></tr><tr><td><code>ws_message_length(ws)</code></td><td>byte length of the most recent message.</td></tr><tr><td><code>ws_send_text(ws, text)</code></td><td>emit one text frame; <code>0</code> on success, <code>-1</code> on transport error.</td></tr><tr><td><code>ws_send_binary(ws, data, len)</code></td><td>emit one binary frame, binary-safe via explicit length.</td></tr><tr><td><code>ws_close(ws, code, reason)</code></td><td>emit a close frame; <code>1000</code> = normal, <code>1001</code> = going away, <code>1011</code> = internal error.</td></tr></tbody></table></div>
+<div class="tw"><table><thead><tr><th>Call</th><th>Behaviour</th></tr></thead><tbody><tr><td><code>ws_recv(ws)</code></td><td>block for next data frame; returns <code>1</code> (text), <code>2</code> (binary), <code>-1</code> (closed). Auto-handles ping/pong; reassembles continuation frames.</td></tr><tr><td><code>ws_message(ws)</code></td><td>the message contents from the most recent <code>ws_recv</code> (NUL-terminated for text).</td></tr><tr><td><code>ws_message_bytes(ws)</code></td><td>the most recent message as a borrowed <code>byte[]</code> view (binary-safe; <code>.len</code> is its length), valid until the next recv/send/close.</td></tr><tr><td><code>ws_send_text(ws, text)</code></td><td>emit one text frame; <code>0</code> on success, <code>-1</code> on transport error.</td></tr><tr><td><code>ws_send_binary(ws, data)</code></td><td>emit one binary frame holding the bytes of <code>data</code> (a <code>byte[]</code>; binary-safe).</td></tr><tr><td><code>ws_close(ws, code, reason)</code></td><td>emit a close frame; <code>1000</code> = normal, <code>1001</code> = going away, <code>1011</code> = internal error.</td></tr></tbody></table></div>
 <p>Returning from the handler closes with code <code>1000</code> automatically.</p>
 <h2 id="server-sent-events">Server-Sent Events</h2>
 <pre><code>@c_callback events_handler(req: ptr, sse: ptr, ud: ptr) {
@@ -994,7 +994,7 @@ http.server_set_health_probes(server, "/healthz", "/readyz", ready_check, null)<
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.756 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.760 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>
