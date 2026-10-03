@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.762</span>
+      <span class="vtag">v0.763</span>
     </nav>
   </div>
 </header>
@@ -827,7 +827,7 @@ call_into_aether();                        <span class="com">// returns inside b
      * the host's to interpret. */</span>
 }</code></pre>
 <p><strong>Memory cap.</strong> Process-wide. The cap-aware allocators (<code>std/string</code>, <code>std/collections</code>, <code>runtime/memory/{arena,pool}</code>) check + account against a single <code>_Atomic uint64_t</code> counter. The counter tracks <strong>current usage</strong>, not high-water-mark, long-running guests that allocate-and-free in a loop don't trip the cap on cumulative churn. Allocations past the cap return NULL through the existing error-string convention; stdlib functions surface "out of memory: cap exceeded" up the call chain rather than aborting. Pass <code>0</code> to disable.</p>
-<p><strong>Wall-clock deadline.</strong> Per-thread monotonic (<code>CLOCK_MONOTONIC</code>). The codegen emits <code>if (aether_caps_deadline_tripped()) { __aether_abort_call(); break; }</code> at every <code>for</code> / <code>while</code> loop head under <code>--emit=lib</code> not under <code>--emit=exe</code> (zero overhead on non-sandboxed builds). On trip the sticky flag flips; subsequent loop heads in the same call exit too, so any depth of nested loops unwinds in O(N) tripwire-bounded breaks. Pass <code>0</code> to disable; pass a fresh ms value to clear the sticky flag and re-arm.</p>
+<p><strong>Wall-clock deadline.</strong> Per-thread monotonic (<code>CLOCK_MONOTONIC</code>). The codegen emits <code>if (aether_caps_armed &amp;&amp; aether_caps_deadline_tripped()) { __aether_abort_call(); break; }</code> at every <code>for</code> / <code>while</code> loop head under <code>--emit=lib</code> not under <code>--emit=exe</code> (zero overhead on non-sandboxed builds). <code>aether_caps_armed</code> is a plain global that goes nonzero once any thread arms a deadline (or trips one) and stays so; until then a loop head costs one load, with no call and no thread-local read. (The call reads two thread-locals, and on macOS each of those is itself a call: in a ported interpreter that was a fifth of the run time.) On trip the sticky flag flips; subsequent loop heads in the same call exit too, so any depth of nested loops unwinds in O(N) tripwire-bounded breaks. Pass <code>0</code> to disable; pass a fresh ms value to clear the sticky flag and re-arm.</p>
 <p>The trip is observable via <code>aether_deadline_tripped()</code> the host checks after the call to know whether the result was complete or truncated. Retrying a tripped deadline is the host's policy: re-arm + call again with a more generous budget, or surface <code>Deadline</code> to the user.</p>
 <h2 id="whats-out-of-scope-for-v1">What's out of scope for v1</h2>
 <ol><li><strong>Callbacks held live</strong>, a host can't pass a closure into Aether and have it retained. If you want this (the ARexx / rules-engine model), track the "Shape B" design note in <a href="/Docs/aether-embedded-in-host-applications.html">aether-embedded-in-host-applications.md</a>.</li><li><strong>Per-function capability grants</strong>, <code>--with=</code> flags are coarse (fs / net / os). Fine-grained gates like "allow file_open but not dir_delete" don't match any concrete threat model for the default-deny shape, and every additional flag is API surface.</li><li><strong>Typed returns beyond <code>void*</code></strong>, functions returning <code>map</code>/<code>list</code> come back as <code>AetherValue*</code> with no schema. Host knows the shape.</li></ol>
@@ -1008,7 +1008,7 @@ for i in range(meta.function_count):
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.762 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.763 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>
