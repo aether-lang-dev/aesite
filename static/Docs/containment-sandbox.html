@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.770</span>
+      <span class="vtag">v0.772</span>
     </nav>
   </div>
 </header>
@@ -677,237 +677,124 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <h3 id="permission-model">Permission model</h3>
 <p>Permissions are capabilities granted to a scope. A child scope cannot exceed its parent's permissions, it can only narrow them.</p>
 <pre><code>outermost: grant("*")              → everything allowed
-  child:   grant_tcp("*.corp", 80) → only TCP to *.corp:80
-    inner:  grant_tcp("db.corp", 5432) → only TCP to db.corp:5432</code></pre>
+  child:   grant_tcp("*.corp")  → only TCP to *.corp hosts
+    inner:  grant_tcp("db.corp") → only TCP to db.corp</code></pre>
 <h3 id="aether-implementation">Aether implementation</h3>
-<p>The sandbox uses:</p>
-<ul><li><strong>Builder DSL</strong> (<code>_ctx: ptr</code>) for declarative nesting</li><li><strong>Closures</strong> (<code>fn</code> params) for isolation, contained code runs in a hoisted function, cannot reach parent locals</li><li><strong>Ref cells / lists</strong> for the permissions registry</li><li><strong>Wrapper functions</strong> that check permissions before executing</li></ul>
+<p>The grant list and the block that enforces it come from <code>std.sandbox</code>:</p>
+<ul><li><strong><code>sandbox.new(name) { grant_… }</code></strong> builds a grant list. The trailing block is a builder: each <code>grant_*</code> call inside it adds one grant.</li><li><strong><code>sandbox.enforce(perms) { … }</code></strong> runs a block with those grants in force. Every sandbox-checked call inside it (and in anything it calls) must match a grant; nested <code>enforce</code> blocks intersect.</li><li><strong><code>sandbox.free(perms)</code></strong> releases the list.</li></ul>
+<div class="tw"><table><thead><tr><th>Grant</th><th>Category checked</th><th>Resource matched</th></tr></thead><tbody><tr><td><code>grant_fs_read(path)</code></td><td><code>fs_read</code></td><td>path being opened for reading</td></tr><tr><td><code>grant_fs_write(path)</code></td><td><code>fs_write</code></td><td>path being opened, created or written</td></tr><tr><td><code>grant_fs(path)</code></td><td><code>fs_read</code>, <code>fs_write</code> and <code>fs</code></td><td>reads, writes and directory operations such as <code>os.chdir</code></td></tr><tr><td><code>grant_exec(cmd)</code></td><td><code>exec</code></td><td>command line</td></tr><tr><td><code>grant_env(name)</code></td><td><code>env</code></td><td>environment variable name</td></tr><tr><td><code>grant_tcp(host)</code></td><td><code>tcp</code></td><td>host name (std.net) or resolved IP (LD_PRELOAD); ports are not checked</td></tr><tr><td><code>grant_tcp_listen()</code></td><td><code>tcp_listen</code></td><td>any listening socket</td></tr><tr><td><code>grant_udp(host)</code></td><td><code>udp</code></td><td>host</td></tr><tr><td><code>grant_native(path)</code></td><td><code>native</code></td><td>library being <code>dlopen</code>ed</td></tr><tr><td><code>grant_all()</code></td><td><code>*</code></td><td>everything</td></tr></tbody></table></div>
+<p>The same grant list is what <code>spawn_sandboxed(perms, prog, ...)</code> hands a child process and what the <code>contrib/host/&lt;lang&gt;</code> modules take as their <code>perms</code> argument (<code>python.run_sandboxed(worker, code)</code>).</p>
 <h3 id="the-key-insight">The key insight</h3>
 <p>Trailing blocks <code>{ }</code> are inlined, they CAN reach the enclosing scope. These are used for <strong>configuration</strong> (granting permissions).</p>
-<p>Closures <code>|ctx| { }</code> are hoisted, they CANNOT reach the enclosing scope unless explicitly passed. These are used for <strong>contained code</strong>.</p>
+<p>The contained code is the block handed to <code>sandbox.enforce</code>. It can still name what is in scope (add <code>seal except</code> to stop that, see <a href="/Docs/hide-and-seal.html">hide-and-seal.md</a>), but every capability it exercises through std (files, environment, processes, sockets) is checked against the grants.</p>
 <p>This maps directly to the container/contained boundary:</p>
-<ul><li>Container configures grants (trailing block, full access)</li><li>Contained runs with only what was granted (closure, restricted)</li></ul>
+<ul><li>Container configures grants (trailing block, full access)</li><li>Contained runs with only what was granted (enforced block, restricted)</li></ul>
 <h2 id="working-example">Working example</h2>
-<pre><code><span class="kw">import</span> std.list
+<p>The contained code below calls ordinary <code>os.getenv</code>, <code>fs.read</code> and <code>os.exec</code>. It does not know it is sandboxed; a refused call looks like a missing variable, an unreadable file or a failed command.</p>
+<pre><code><span class="kw">import</span> std.sandbox
+<span class="kw">import</span> std.os
+<span class="kw">import</span> std.fs
 
-<span class="com">// ---- Sandbox library ----</span>
-
-<span class="com">// Permission entry: category + pattern</span>
-<span class="com">// Categories: "tcp", "fs_read", "fs_write", "exec", "env", "*"</span>
-
-add_permission(_ctx: <span class="fn">ptr</span>, category: <span class="fn">string</span>, pattern: <span class="fn">string</span>) {
-    list.add(_ctx, category)
-    list.add(_ctx, pattern)
-}
-
-<span class="com">// Convenience grant functions, configure what the contained can do</span>
-grant_all(_ctx: <span class="fn">ptr</span>) {
-    add_permission(<span class="str">"*"</span>, <span class="str">"*"</span>)
-}
-
-grant_tcp(_ctx: <span class="fn">ptr</span>, host: <span class="fn">string</span>, port: <span class="fn">int</span>) {
-    add_permission(<span class="str">"tcp"</span>, host)
-}
-
-grant_fs_read(_ctx: <span class="fn">ptr</span>, path: <span class="fn">string</span>) {
-    add_permission(<span class="str">"fs_read"</span>, path)
-}
-
-grant_fs_write(_ctx: <span class="fn">ptr</span>, path: <span class="fn">string</span>) {
-    add_permission(<span class="str">"fs_write"</span>, path)
-}
-
-grant_exec(_ctx: <span class="fn">ptr</span>, cmd: <span class="fn">string</span>) {
-    add_permission(<span class="str">"exec"</span>, cmd)
-}
-
-grant_env(_ctx: <span class="fn">ptr</span>, var_name: <span class="fn">string</span>) {
-    add_permission(<span class="str">"env"</span>, var_name)
-}
-
-<span class="com">// Create a sandbox scope, returns the permission list</span>
-sandbox(name: <span class="fn">string</span>) {
-    perms = list.new()
-    println(<span class="str">"sandbox: ${name}"</span>)
-    <span class="kw">return</span> perms
-}
-
-<span class="com">// Check if a permission is granted</span>
-check_permission(perms: <span class="fn">ptr</span>, category: <span class="fn">string</span>, resource: <span class="fn">string</span>) {
-    n = list.size(perms)
-    <span class="kw">for</span> (i = <span class="num">0</span>; i &lt; n; i = i + <span class="num">2</span>) {
-        <span class="com">// list_get_raw returns the bare ptr; list.get would return a</span>
-        <span class="com">// (value, err) tuple that str_eq can't take.</span>
-        cat = list_get_raw(perms, i)
-        pat = list_get_raw(perms, i + <span class="num">1</span>)
-        <span class="com">// Wildcard "*" matches everything</span>
-        <span class="kw">if</span> str_eq(cat, <span class="str">"*"</span>) == <span class="num">1</span> &amp;&amp; str_eq(pat, <span class="str">"*"</span>) == <span class="num">1</span> { <span class="kw">return</span> <span class="num">1</span> }
-        <span class="com">// Category match + pattern match (exact or wildcard)</span>
-        <span class="kw">if</span> str_eq(cat, category) == <span class="num">1</span> {
-            <span class="kw">if</span> str_eq(pat, <span class="str">"*"</span>) == <span class="num">1</span> { <span class="kw">return</span> <span class="num">1</span> }
-            <span class="kw">if</span> str_eq(pat, resource) == <span class="num">1</span> { <span class="kw">return</span> <span class="num">1</span> }
-        }
+try_env(name: <span class="fn">string</span>) {
+    <span class="kw">if</span> os.getenv(name) != <span class="kw">null</span> {
+        println(<span class="str">"  [ALLOW] env ${name}"</span>)
+    } <span class="kw">else</span> {
+        println(<span class="str">"  [DENY]  env ${name}"</span>)
     }
-    <span class="kw">return</span> <span class="num">0</span>
 }
 
-<span class="com">// ---- Sandboxed operations ----</span>
-<span class="com">// These wrappers check permissions before executing</span>
-
-sandboxed_tcp_connect(perms: <span class="fn">ptr</span>, host: <span class="fn">string</span>, port: <span class="fn">int</span>) {
-    <span class="kw">if</span> check_permission(perms, <span class="str">"tcp"</span>, host) == <span class="num">1</span> {
-        println(<span class="str">"  [ALLOW] tcp connect ${host}:${port}"</span>)
-        <span class="com">// In real code: tcp.connect(host, port)</span>
-        <span class="kw">return</span> <span class="num">1</span>
-    }
-    println(<span class="str">"  [DENY]  tcp connect ${host}:${port}"</span>)
-    <span class="kw">return</span> <span class="num">0</span>
-}
-
-sandboxed_read_file(perms: <span class="fn">ptr</span>, path: <span class="fn">string</span>) {
-    <span class="kw">if</span> check_permission(perms, <span class="str">"fs_read"</span>, path) == <span class="num">1</span> {
+try_read(path: <span class="fn">string</span>) {
+    _content, err = fs.read(path)
+    <span class="kw">if</span> err == <span class="str">""</span> {
         println(<span class="str">"  [ALLOW] read ${path}"</span>)
-        <span class="kw">return</span> <span class="num">1</span>
+    } <span class="kw">else</span> {
+        println(<span class="str">"  [DENY]  read ${path}"</span>)
     }
-    println(<span class="str">"  [DENY]  read ${path}"</span>)
-    <span class="kw">return</span> <span class="num">0</span>
 }
 
-sandboxed_exec(perms: <span class="fn">ptr</span>, cmd: <span class="fn">string</span>) {
-    <span class="kw">if</span> check_permission(perms, <span class="str">"exec"</span>, cmd) == <span class="num">1</span> {
+try_exec(cmd: <span class="fn">string</span>) {
+    _out, err = os.exec(cmd)
+    <span class="kw">if</span> err == <span class="str">""</span> {
         println(<span class="str">"  [ALLOW] exec ${cmd}"</span>)
-        <span class="kw">return</span> <span class="num">1</span>
+    } <span class="kw">else</span> {
+        println(<span class="str">"  [DENY]  exec ${cmd}"</span>)
     }
-    println(<span class="str">"  [DENY]  exec ${cmd}"</span>)
-    <span class="kw">return</span> <span class="num">0</span>
 }
-
-sandboxed_env(perms: <span class="fn">ptr</span>, var_name: <span class="fn">string</span>) {
-    <span class="kw">if</span> check_permission(perms, <span class="str">"env"</span>, var_name) == <span class="num">1</span> {
-        println(<span class="str">"  [ALLOW] env ${var_name}"</span>)
-        <span class="kw">return</span> <span class="num">1</span>
-    }
-    println(<span class="str">"  [DENY]  env ${var_name}"</span>)
-    <span class="kw">return</span> <span class="num">0</span>
-}
-
-<span class="com">// ---- Run contained code ----</span>
-<span class="com">// The contained closure receives ONLY the permissions context.</span>
-<span class="com">// It cannot reach the parent's locals, file handles, or other state.</span>
-
-run_contained(perms: <span class="fn">ptr</span>, code: fn) {
-    call(code, perms)
-}
-
-<span class="com">// ---- Usage ----</span>
 
 main() {
-    <span class="com">// Outermost: the application sandbox</span>
-    app = sandbox(<span class="str">"app"</span>) {
-        grant_all()  <span class="com">// app can do anything</span>
+    <span class="com">// A worker that can read one config file and one variable</span>
+    worker = sandbox.new(<span class="str">"db-worker"</span>) {
+        grant_fs_read(<span class="str">"/etc/passwd"</span>)
+        grant_env(<span class="str">"HOME"</span>)
     }
 
-    <span class="com">// A worker that can only talk to the database and read config</span>
-    worker_perms = sandbox(<span class="str">"db-worker"</span>) {
-        grant_tcp(<span class="str">"db.internal"</span>, <span class="num">5432</span>)
-        grant_fs_read(<span class="str">"/etc/app/config.yaml"</span>)
-        grant_env(<span class="str">"DATABASE_URL"</span>)
+    <span class="com">// An untrusted plugin that may only run echo</span>
+    plugin = sandbox.new(<span class="str">"plugin"</span>) {
+        grant_exec(<span class="str">"echo *"</span>)
     }
 
-    <span class="com">// An untrusted plugin that can only make HTTP calls to one host</span>
-    plugin_perms = sandbox(<span class="str">"plugin"</span>) {
-        grant_tcp(<span class="str">"api.example.com"</span>, <span class="num">443</span>)
-    }
-
-    <span class="com">// Run contained code, each closure is isolated</span>
-    println(<span class="str">""</span>)
     println(<span class="str">"=== db-worker ==="</span>)
-    worker_code = |perms: <span class="fn">ptr</span>| {
-        sandboxed_tcp_connect(perms, <span class="str">"db.internal"</span>, <span class="num">5432</span>)
-        sandboxed_tcp_connect(perms, <span class="str">"evil.com"</span>, <span class="num">80</span>)
-        sandboxed_read_file(perms, <span class="str">"/etc/app/config.yaml"</span>)
-        sandboxed_read_file(perms, <span class="str">"/etc/shadow"</span>)
-        sandboxed_env(perms, <span class="str">"DATABASE_URL"</span>)
-        sandboxed_env(perms, <span class="str">"AWS_SECRET_KEY"</span>)
+    sandbox.enforce(worker) <span class="kw">callback</span> {
+        try_read(<span class="str">"/etc/passwd"</span>)
+        try_read(<span class="str">"/etc/hosts"</span>)
+        try_env(<span class="str">"HOME"</span>)
+        try_env(<span class="str">"PATH"</span>)
+        try_exec(<span class="str">"echo hi"</span>)
     }
-    run_contained(worker_perms, worker_code)
 
-    println(<span class="str">""</span>)
     println(<span class="str">"=== plugin ==="</span>)
-    plugin_code = |perms: <span class="fn">ptr</span>| {
-        sandboxed_tcp_connect(perms, <span class="str">"api.example.com"</span>, <span class="num">443</span>)
-        sandboxed_tcp_connect(perms, <span class="str">"db.internal"</span>, <span class="num">5432</span>)
-        sandboxed_exec(perms, <span class="str">"rm -rf /"</span>)
-        sandboxed_read_file(perms, <span class="str">"/etc/passwd"</span>)
+    sandbox.enforce(plugin) <span class="kw">callback</span> {
+        try_exec(<span class="str">"echo hi"</span>)
+        try_exec(<span class="str">"uname"</span>)
+        try_env(<span class="str">"HOME"</span>)
+        try_read(<span class="str">"/etc/passwd"</span>)
     }
-    run_contained(plugin_perms, plugin_code)
 
-    println(<span class="str">""</span>)
-    println(<span class="str">"=== app (full access) ==="</span>)
-    app_code = |perms: <span class="fn">ptr</span>| {
-        sandboxed_tcp_connect(perms, <span class="str">"anywhere.com"</span>, <span class="num">80</span>)
-        sandboxed_exec(perms, <span class="str">"make build"</span>)
-        sandboxed_read_file(perms, <span class="str">"/any/path"</span>)
-    }
-    run_contained(app, app_code)
-
-    list.free(app)
-    list.free(worker_perms)
-    list.free(plugin_perms)
+    sandbox.free(worker)
+    sandbox.free(plugin)
 }</code></pre>
 <h3 id="expected-output">Expected output</h3>
-<pre><code>sandbox: app
-sandbox: db-worker
-sandbox: plugin
-
-=== db-worker ===
-  [ALLOW] tcp connect db.internal:5432
-  [DENY]  tcp connect evil.com:80
-  [ALLOW] read /etc/app/config.yaml
-  [DENY]  read /etc/shadow
-  [ALLOW] env DATABASE_URL
-  [DENY]  env AWS_SECRET_KEY
-
+<pre><code>=== db-worker ===
+  [ALLOW] read /etc/passwd
+  [DENY]  read /etc/hosts
+  [ALLOW] env HOME
+  [DENY]  env PATH
+  [DENY]  exec echo hi
 === plugin ===
-  [ALLOW] tcp connect api.example.com:443
-  [DENY]  tcp connect db.internal:5432
-  [DENY]  exec rm -rf /
-  [DENY]  read /etc/passwd
-
-=== app (full access) ===
-  [ALLOW] tcp connect anywhere.com:80
-  [ALLOW] exec make build
-  [ALLOW] read /any/path</code></pre>
+  [ALLOW] exec echo hi
+  [DENY]  exec uname
+  [DENY]  env HOME
+  [DENY]  read /etc/passwd</code></pre>
 <h2 id="how-containment-works">How containment works</h2>
 <h3 id="container-sees-contained">Container sees contained</h3>
-<p>The <code>sandbox("db-worker") { grant_tcp(...) }</code> block runs in the parent scope. The parent configures exactly what the worker can do. The parent has full visibility into the permissions it grants.</p>
+<p>The <code>sandbox.new("db-worker") { grant_… }</code> block runs in the parent scope. The parent configures exactly what the worker can do, and has full visibility into the permissions it grants.</p>
 <h3 id="contained-cannot-reach-container">Contained cannot reach container</h3>
-<p>The <code>worker_code = |perms: ptr| { ... }</code> closure is a hoisted C function. It receives only <code>perms</code> as its argument. It cannot access:</p>
-<ul><li>The parent's <code>app</code> permissions</li><li>The parent's <code>plugin_perms</code></li><li>Any variables in main's scope</li><li>Any file handles, sockets, or state from the parent</li></ul>
-<p>The closure is compiled to:</p>
-<pre><code><span class="kw">static</span> <span class="kw">void</span> _closure_fn_N(_closure_env_N* _env, <span class="kw">void</span>* perms) {
-    <span class="com">// Can only use 'perms', nothing else from parent scope</span>
-    sandboxed_tcp_connect(perms, <span class="str">"db.internal"</span>, <span class="num">5432</span>);
-}</code></pre>
+<p>The block handed to <code>sandbox.enforce(worker) { … }</code> runs with the worker's grants installed: <code>sandbox.enforce</code> pushes the grant list, installs the checker, runs the block, then pops and uninstalls. Every capability the block exercises through std (<code>fs.read</code>, <code>os.getenv</code>, <code>os.exec</code>, <code>tcp.connect</code>, …) is checked, and so is everything those functions call, however deep. Names are a separate matter: the block can still mention variables in scope. Add <code>seal except</code> (see <a href="/Docs/hide-and-seal.html">hide-and-seal.md</a>) when the block should not see them either.</p>
 <h3 id="nesting-rules">Nesting rules</h3>
-<p>Sandboxes can nest, and each level can only narrow permissions:</p>
-<pre><code>outer = sandbox("outer") {
-    grant_tcp("*", 0)        // any TCP
+<p>Sandboxes nest, and each level can only narrow permissions:</p>
+<pre><code>outer = sandbox.new("outer") {
+    grant_tcp("*")           // any TCP
     grant_fs_read("*")       // any file read
 }
 
-inner = sandbox("inner") {
-    // Can only grant what outer has
-    grant_tcp("db.corp", 5432)   // narrowed to one host
-    // fs_read not granted, inner cannot read files
+inner = sandbox.new("inner") {
+    grant_tcp("db.corp")     // narrowed to one host
+    grant_env("HOME")        // outer has no env grant, so this adds nothing
+}
+
+sandbox.enforce(outer) callback {
+    sandbox.enforce(inner) callback {
+        // TCP to db.corp only; no file reads (inner did not grant them);
+        // no HOME (outer did not grant it)
+    }
 }</code></pre>
-<p>The <code>check_permission</code> function only looks at the scope's own grants. If the parent didn't grant something, the child can't either, because the child's grant functions only add to the child's own permission list.</p>
+<p>The checker consults every grant list on the stack and allows an operation only when each of them does, so the inner block gets the intersection of the two. An inner grant list cannot widen what an outer one refused.</p>
 <h3 id="the--wildcard">The <code>*</code> wildcard</h3>
-<p><code>grant_all()</code> adds <code>("*", "*")</code> a wildcard category and pattern. <code>check_permission</code> checks wildcards first, so <code>grant_all()</code> permits everything. Individual grants like <code>grant_tcp("host", port)</code> add specific entries. The check function matches exact or wildcard.</p>
+<p><code>grant_all()</code> adds the wildcard category and pattern <code>("*", "*")</code>, which matches every check. Within a category, a pattern of <code>"*"</code> matches any resource (<code>grant_tcp("*")</code> is any host), <code>"/etc/*"</code> a prefix, and <code>"*.example.com"</code> a suffix.</p>
 <h2 id="mapping-to-your-java-securitypolicydemo">Mapping to your Java SecurityPolicyDemo</h2>
-<div class="tw"><table><thead><tr><th>Java concept</th><th>Aether equivalent</th></tr></thead><tbody><tr><td><code>new SecureSystem() {{ ... }}</code></td><td><code>sandbox("name") { ... }</code></td></tr><tr><td><code>classLoader(() -&gt; { ... })</code></td><td><code>sandbox("child") { ... }</code> (nested)</td></tr><tr><td><code>classPathElement("x.jar")</code></td><td>Not applicable (Aether is single-binary)</td></tr><tr><td><code>grant(new SocketPermission(...))</code></td><td><code>grant_tcp("host", port)</code></td></tr><tr><td><code>component("Bear")</code></td><td><code>run_contained(perms, bear_code)</code></td></tr><tr><td>SecurityManager check</td><td><code>check_permission(perms, cat, resource)</code></td></tr><tr><td>ClassLoader isolation</td><td>Closure isolation (hoisted C function)</td></tr></tbody></table></div>
+<div class="tw"><table><thead><tr><th>Java concept</th><th>Aether equivalent</th></tr></thead><tbody><tr><td><code>new SecureSystem() {{ ... }}</code></td><td><code>sandbox.new("name") { ... }</code></td></tr><tr><td><code>classLoader(() -&gt; { ... })</code></td><td>a nested <code>sandbox.enforce(child) { ... }</code></td></tr><tr><td><code>classPathElement("x.jar")</code></td><td>Not applicable (Aether is single-binary)</td></tr><tr><td><code>grant(new SocketPermission(...))</code></td><td><code>grant_tcp("host")</code></td></tr><tr><td><code>component("Bear")</code></td><td><code>sandbox.enforce(perms) { bear_code() }</code></td></tr><tr><td>SecurityManager check</td><td>the checker <code>sandbox.enforce</code> installs, consulted by std</td></tr><tr><td>ClassLoader isolation</td><td><code>seal except</code> on the enforced block</td></tr></tbody></table></div>
 <h2 id="mapping-to-dockervm-containment">Mapping to Docker/VM containment</h2>
-<div class="tw"><table><thead><tr><th>Docker/VM concept</th><th>Aether equivalent</th></tr></thead><tbody><tr><td>Container image</td><td><code>sandbox("name") { grants... }</code></td></tr><tr><td>Volume mount (read-only)</td><td><code>grant_fs_read("/path")</code></td></tr><tr><td>Volume mount (read-write)</td><td><code>grant_fs_write("/path")</code></td></tr><tr><td>Port mapping</td><td><code>grant_tcp("host", port)</code></td></tr><tr><td><code>--cap-drop ALL</code></td><td>No <code>grant_all()</code> deny by default</td></tr><tr><td><code>--cap-add NET_RAW</code></td><td><code>grant_tcp("*", 0)</code></td></tr><tr><td>Entrypoint/CMD</td><td><code>run_contained(perms, code)</code></td></tr><tr><td>Namespace isolation</td><td>Closure cannot reach parent scope</td></tr></tbody></table></div>
+<div class="tw"><table><thead><tr><th>Docker/VM concept</th><th>Aether equivalent</th></tr></thead><tbody><tr><td>Container image</td><td><code>sandbox.new("name") { grants... }</code></td></tr><tr><td>Volume mount (read-only)</td><td><code>grant_fs_read("/path")</code></td></tr><tr><td>Volume mount (read-write)</td><td><code>grant_fs_write("/path")</code></td></tr><tr><td>Port mapping</td><td><code>grant_tcp("host")</code> (hosts only; ports are not checked)</td></tr><tr><td><code>--cap-drop ALL</code></td><td>No <code>grant_all()</code> deny by default</td></tr><tr><td><code>--cap-add NET_RAW</code></td><td><code>grant_tcp("*")</code></td></tr><tr><td>Entrypoint/CMD</td><td><code>sandbox.enforce(perms) { code }</code></td></tr><tr><td>Namespace isolation</td><td><code>seal except</code> on the enforced block</td></tr></tbody></table></div>
 <h2 id="whats-enforced">What's enforced</h2>
 <p>The sandbox intercepts at the <strong>stdlib level</strong>. These calls are checked transparently, the contained code uses normal stdlib wrappers and cannot tell it's sandboxed. The check happens inside the underlying <code>_raw</code> C function, so both the Go-style wrapper (<code>tcp.connect</code>) and direct calls to the raw extern (<code>tcp_connect_raw</code>) are enforced.</p>
 <div class="tw"><table><thead><tr><th>Wrapper</th><th>Raw C symbol</th><th>Category</th><th>Enforced</th></tr></thead><tbody><tr><td><code>tcp.connect(host, port)</code></td><td><code>tcp_connect_raw</code></td><td><code>"tcp"</code></td><td>Yes, wrapper returns <code>(null, "connect failed")</code> if denied</td></tr><tr><td><code>tcp.listen(port)</code></td><td><code>tcp_listen_raw</code></td><td><code>"tcp_listen"</code></td><td>Yes, wrapper returns <code>(null, "listen failed")</code> if denied</td></tr><tr><td><code>file.open(path, "r")</code></td><td><code>file_open_raw</code></td><td><code>"fs_read"</code></td><td>Yes, wrapper returns <code>(null, "cannot open file")</code> if denied</td></tr><tr><td><code>file.open(path, "w")</code></td><td><code>file_open_raw</code></td><td><code>"fs_write"</code></td><td>Yes, wrapper returns <code>(null, "cannot open file")</code> if denied</td></tr><tr><td><code>file.exists(path)</code></td><td><code>file_exists</code></td><td><code>"fs_read"</code></td><td>Yes, returns 0 if denied</td></tr><tr><td><code>file.delete(path)</code></td><td><code>file_delete_raw</code></td><td><code>"fs_write"</code></td><td>Yes, wrapper returns <code>"cannot delete file"</code> if denied</td></tr><tr><td><code>file.size(path)</code></td><td><code>file_size_raw</code></td><td><code>"fs_read"</code></td><td>Yes, wrapper returns <code>(0, "cannot stat file")</code> if denied</td></tr><tr><td><code>os.system(cmd)</code></td><td><code>os_system</code></td><td><code>"exec"</code></td><td>Yes, returns -1 if denied</td></tr><tr><td><code>os.exec(cmd)</code></td><td><code>os_exec_raw</code></td><td><code>"exec"</code></td><td>Yes, wrapper returns <code>("", "command failed")</code> if denied</td></tr><tr><td><code>os.getenv(name)</code></td><td><code>os_getenv</code></td><td><code>"env"</code></td><td>Yes, returns null if denied</td></tr></tbody></table></div>
@@ -923,8 +810,10 @@ classify(req: Request) -&gt; int { ... }            // must touch no filesystem<
 <h2 id="pattern-matching">Pattern matching</h2>
 <div class="tw"><table><thead><tr><th>Pattern</th><th>Matches</th><th>Example</th></tr></thead><tbody><tr><td><code>"*"</code></td><td>Anything</td><td><code>grant_tcp("*")</code></td></tr><tr><td><code>"/etc/*"</code></td><td>Prefix match</td><td><code>/etc/hostname</code>, <code>/etc/app/config.yaml</code></td></tr><tr><td><code>"*.example.com"</code></td><td>Suffix match</td><td><code>api.example.com</code>, <code>db.example.com</code></td></tr><tr><td><code>"echo *"</code></td><td>Prefix match</td><td><code>echo hello</code>, <code>echo goodbye</code></td></tr><tr><td><code>"exact.host"</code></td><td>Exact only</td><td>Only <code>exact.host</code></td></tr></tbody></table></div>
 <h3 id="path-resolution-before-fs-match">Path resolution before fs match</h3>
-<p>For <code>fs_read</code> / <code>fs_write</code> grants the LD_PRELOAD layer resolves the resource path with <code>realpath(3)</code> <em>before</em> running the pattern match. This closes the path-identity bypass: a grant for <code>/tmp/*</code> can no longer be subverted by <code>/tmp/../etc/shadow</code>, and a symlink under a granted prefix can no longer escape it.</p>
-<p>When the path doesn't exist yet (writing a new file), the resolver falls back to resolving the parent directory and reattaching the basename, the kernel will refuse the create syscall otherwise, and the parent must be real for any meaningful operation. If even the parent can't be resolved (truly unusable path), the original string is matched as a baseline, same behaviour as before this fix, so the gate never silently tightens or loosens at the edges.</p>
+<p>An fs resource is matched where it leads, not as it is spelt, by both layers: the in-process checks in std and the LD_PRELOAD library share one resolver (<code>runtime/aether_sandbox_path.h</code>). It walks the path a component at a time, as the kernel does: <code>.</code> is dropped, <code>..</code> goes to the parent of what is resolved so far, and a component that exists is resolved with <code>realpath(3)</code>, so a symlink is followed to where it points. A component that does not exist yet (a file about to be created, directories <code>mkdir -p</code> will make) is kept as written, and a <code>..</code> after it removes it again. So a grant for <code>/box/*</code> is not left through <code>/box/../etc/shadow</code>, <code>mkdir -p /box/../x/y</code>, a symlink in <code>/box</code> that points out, <code>/box/link/../x</code> when <code>link</code> points out, or a dangling symlink in <code>/box</code> whose target is outside.</p>
+<p>Resolving <code>..</code> as text first would be wrong: with <code>link</code> pointing at <code>/elsewhere/dir</code>, <code>/box/link/../x</code> opens <code>/elsewhere/x</code>.</p>
+<p>A path that cannot be resolved (a dangling symlink, a loop, a directory that cannot be searched) is refused, not matched as written.</p>
+<p>An fs grant's pattern is resolved the same way when it is made (<code>grant_fs_read("/var/x/*")</code> covers <code>/private/var/x/...</code> on macOS, and a grant named through a symlink covers where the symlink leads); <code>*</code> and suffix patterns such as <code>*.log</code> are kept as written. On Windows paths are made absolute and normalised with <code>_fullpath</code>; symlinks there are not followed.</p>
 <p>Non-fs categories (<code>tcp</code>, <code>env</code>, <code>exec</code>) carry no path semantics; their resources are matched verbatim.</p>
 <h2 id="scope-boundaries">Scope boundaries</h2>
 <p>The sandbox mediates stdlib I/O only. These are the places its enforcement line sits, and where it deliberately stops.</p>
@@ -1003,7 +892,7 @@ find /usr/bin -type f -exec file {} \; | grep <span class="str">"statically link
 <h3 id="5-grant-list-follows-least-privilege">5. Grant list follows least privilege</h3>
 <p>Review grants like you'd review Docker capabilities:</p>
 <pre><code>// Each grant should be justified
-worker = sandbox("worker") {
+worker = sandbox.new("worker") {
     grant_env("DATABASE_URL")       // needs DB connection string
     grant_fs_read("/app/config/*")  // needs config files
     grant_tcp("db.internal")        // talks to database
@@ -1052,14 +941,14 @@ cat sandbox-config.ae</code></pre>
 <p>Bash is a common choice for build steps, deployment scripts, and system orchestration. It can be sandboxed via <code>spawn_sandboxed</code>, but with an important caveat.</p>
 <h3 id="the-model-aether-orchestrates-bash-works">The model: Aether orchestrates, bash works</h3>
 <p>Aether is the guard. Bash is the tool. Each bash invocation gets specific grants for that step:</p>
-<pre><code>compile_sandbox = sandbox("compile") {
+<pre><code>compile_sandbox = sandbox.new("compile") {
     grant_fs_read("src/*")
     grant_fs_write("build/*")
     grant_exec("/usr/bin/gcc")
     grant_exec("/usr/bin/bash")
 }
 
-deploy_sandbox = sandbox("deploy") {
+deploy_sandbox = sandbox.new("deploy") {
     grant_fs_read("build/bin/*")
     grant_tcp("deploy.internal")
     grant_exec("/usr/bin/bash")
@@ -1088,7 +977,7 @@ spawn_sandboxed(deploy_sandbox, "bash", "-c 'scp build/bin/app deploy.internal:/
 <p>Aether spawns the child process with <code>LD_PRELOAD=libaether_sandbox.so</code>. This shared library intercepts libc calls and checks against the Aether grant list, the child process has no idea.</p>
 <pre><code>Aether process                     Python process
 ─────────────                      ──────────────
-worker = sandbox("worker") {       import socket
+worker = sandbox.new("worker") {   import socket
     grant_tcp("api.example.com")   s.connect(("api.example.com", 443))  → OK
     grant_fs_read("/app/data/*")   open("/app/data/input.csv")          → OK
     grant_env("DATABASE_URL")      os.getenv("DATABASE_URL")            → OK
@@ -1108,7 +997,7 @@ spawn_sandboxed(worker,            os.getenv("AWS_SECRET_KEY")          → deni
 <p>This technique is proven in production:</p>
 <ul><li><strong>proxychains</strong> / <strong>tsocks</strong>, intercept <code>connect()</code> to route through SOCKS</li><li><strong>faketime</strong>, intercept <code>time()</code> / <code>gettimeofday()</code> to lie about the clock</li><li><strong>libeatmydata</strong>, intercept <code>fsync()</code> to skip disk flushes for test speed</li><li><strong>Electric Fence</strong>, intercept <code>malloc()</code> for memory debugging</li></ul>
 <h3 id="what-it-looks-like-in-aether">What it looks like in Aether</h3>
-<pre><code>worker = sandbox("python-worker") {
+<pre><code>worker = sandbox.new("python-worker") {
     grant_tcp("*.internal")
     grant_tcp("api.example.com")
     grant_fs_read("/app/data/*")
@@ -1168,7 +1057,7 @@ spawn_sandboxed(worker, "python3", "plugin.py")</code></pre>
 <h3 id="gvisor-google-go">gVisor (Google, Go)</h3>
 <div class="tw"><table><thead><tr><th>Aspect</th><th>gVisor</th><th>Aether Sandbox</th></tr></thead><tbody><tr><td>Intercepts</td><td>Linux syscalls (200+)</td><td>Stdlib functions (tcp, fs, os, env)</td></tr><tr><td>Enforcement</td><td>Kernel boundary, inescapable</td><td>Stdlib boundary, extern bypasses</td></tr><tr><td>Performance</td><td>Significant (every syscall through Go)</td><td>Near zero (pointer check + list scan)</td></tr><tr><td>Nesting</td><td>Containers don't nest</td><td>Sandboxes nest, inner restricted</td></tr><tr><td>Implementation</td><td>100k+ lines of Go</td><td>~80 lines of C + codegen</td></tr><tr><td>Scope</td><td>Full OS virtualization</td><td>Application-level containment</td></tr></tbody></table></div>
 <h3 id="docker--oci">Docker / OCI</h3>
-<div class="tw"><table><thead><tr><th>Docker concept</th><th>Aether equivalent</th></tr></thead><tbody><tr><td><code>FROM scratch</code> (empty image)</td><td><code>sandbox("name") { }</code> (deny all)</td></tr><tr><td><code>--cap-drop ALL --cap-add NET_RAW</code></td><td>Only grant what's needed</td></tr><tr><td>Volume mount read-only</td><td><code>grant_fs_read("/path/*")</code></td></tr><tr><td>Volume mount read-write</td><td><code>grant_fs_write("/path/*")</code></td></tr><tr><td><code>--network=none</code></td><td>No <code>grant_tcp</code></td></tr><tr><td>Entrypoint</td><td><code>run_sandboxed(perms) \|ctx\| { ... }</code></td></tr><tr><td>Nested containers</td><td>Nested sandboxes, inner can't escalate</td></tr></tbody></table></div>
+<div class="tw"><table><thead><tr><th>Docker concept</th><th>Aether equivalent</th></tr></thead><tbody><tr><td><code>FROM scratch</code> (empty image)</td><td><code>sandbox.new("name") { }</code> (deny all)</td></tr><tr><td><code>--cap-drop ALL --cap-add NET_RAW</code></td><td>Only grant what's needed</td></tr><tr><td>Volume mount read-only</td><td><code>grant_fs_read("/path/*")</code></td></tr><tr><td>Volume mount read-write</td><td><code>grant_fs_write("/path/*")</code></td></tr><tr><td><code>--network=none</code></td><td>No <code>grant_tcp</code></td></tr><tr><td>Entrypoint</td><td><code>sandbox.enforce(perms) { ... }</code></td></tr><tr><td>Nested containers</td><td>Nested sandboxes, inner can't escalate</td></tr></tbody></table></div>
 <h3 id="openbsd-pledge--unveil">OpenBSD pledge / unveil</h3>
 <p>The closest philosophical match. A process declares upfront what capabilities it will use; the kernel kills it if it tries anything else.</p>
 <pre><code><span class="com">// OpenBSD C</span>
@@ -1177,7 +1066,7 @@ unveil(<span class="str">"/etc"</span>, <span class="str">"r"</span>);          
 unveil(<span class="str">"/tmp"</span>, <span class="str">"rwc"</span>);             <span class="com">// /tmp read-write-create</span>
 unveil(NULL, NULL);                <span class="com">// lock it down, no more unveil calls</span></code></pre>
 <pre><code>// Aether equivalent
-worker = sandbox("worker") {
+worker = sandbox.new("worker") {
     grant_fs_read("/etc/*")
     grant_fs_write("/tmp/*")
     grant_tcp("*")
@@ -1190,7 +1079,7 @@ worker = sandbox("worker") {
 <pre><code><span class="com"># Deno CLI</span>
 deno run --allow-net=api.example.com --allow-read=/tmp --allow-env=HOME app.ts</code></pre>
 <pre><code>// Aether equivalent
-app = sandbox("app") {
+app = sandbox.new("app") {
     grant_tcp("api.example.com")
     grant_fs_read("/tmp/*")
     grant_env("HOME")
@@ -1227,12 +1116,12 @@ db = connect_database("/etc/app/db-config.yaml")
 // It encapsulates the privileged connection, the worker never
 // sees the filesystem or raw TCP
 
-worker = sandbox("worker") {
+worker = sandbox.new("worker") {
     // No grant_fs_read, no grant_tcp, worker can't touch either
     // But it CAN use the db service that was injected
 }
 
-run_sandboxed(worker) |ctx: ptr| {
+sandbox.enforce(worker) callback {
     // Worker calls db.query(), db.insert(), business logic with
     // mutation, not just read-only data. The privileged connection
     // is behind the service interface. Worker never escalates.
@@ -1240,6 +1129,16 @@ run_sandboxed(worker) |ctx: ptr| {
     call(db_insert, db, "INSERT INTO logs VALUES (...)")
 }</code></pre>
 <p>The contained code has no filesystem access, no TCP access, but full database read/write capability, because the container injected a service that encapsulates the privilege. The privilege boundary is the service interface, not a <code>doPrivileged</code> escalation.</p>
+<p>What makes this work is <em>when</em> the privilege was used. The checks sit where authority is acquired (opening a path, <code>connect</code>, <code>exec</code>, <code>getenv</code>), and inside <code>sandbox.enforce</code> every acquisition is checked, by whatever code makes it, wherever that code was defined. <code>db</code> connected before the block, so using the connection inside needs no grant. A <code>db_query</code> that opened a new connection on each call would be refused like any other code in the block: a function does not carry the authority of the place it was written, only of the resources it already holds.</p>
+<p>When the container <em>wants</em> a function to keep its own authority inside the block, it says so at the <code>enforce</code>, by name:</p>
+<pre><code>sandbox.enforce(worker, audit_log, db) callback {
+    audit_log("job started")     // trusted: the container's authority
+    rows = db.query("...")       // trusted: every call into module db
+    fs.read("/etc/shadow")       // still refused
+}</code></pre>
+<p>This keeps the property that made <code>doPrivileged</code> unnecessary. The exemption is granted by the container, in the container's code, at the point it hands the work over; contained code cannot claim it. Concretely:</p>
+<ul><li>A trusted call's authority is the depth the <code>enforce</code> was entered at. Contained code that writes its own <code>enforce(everything, peek)</code> enters it already sandboxed, so a call it trusts drops back no further than the sandbox it is in.</li><li>Trust is lexical. It covers calls written in the block (and nested blocks and closures written there), not a function called from elsewhere that happens to call <code>audit_log</code>, and the names cannot be used as values in the block, so they cannot be passed on.</li><li>The trusted call's arguments are evaluated inside the sandbox; only the trusted function's own body runs outside it. <code>audit_log(fs.read(secret))</code> still has the read refused.</li><li>Only Aether functions can be trusted (each gets a generated wrapper with its exact signature), not C externs.</li><li>A panic that unwinds through a trusted call, or out of the block, puts the depth back where the catching <code>try</code> found it.</li></ul>
+<p>The mechanism lives in the compiler (<code>compiler/analysis/sandbox_trust.c</code> and the trusted-call wrappers in <code>compiler/codegen/codegen.c</code>), beside the <code>sandbox_push</code> / <code>sandbox_pop</code> builtins the sandbox already rests on.</p>
 <p>This is the IoC principle applied to sandboxing: <strong>inject capabilities, don't let the contained reach for them.</strong></p>
 <h2 id="design-influences-summary">Design influences, summary</h2>
 <p>The Aether sandbox draws from:</p>
@@ -1267,7 +1166,7 @@ contrib/host/tcl/, import contrib.host.tcl      (Tcl 8.5+)</code></pre>
 import contrib.host.python   // or lua, js, perl, ruby, tcl
 
 // Define sandbox grants
-worker = sandbox("worker") {
+worker = sandbox.new("worker") {
     grant_env("HOME")
     grant_fs_read("/etc/hostname")
 }
@@ -1309,7 +1208,7 @@ SCRIPT
 <h3 id="example">Example</h3>
 <pre><code>import contrib.host.python
 
-worker = sandbox("worker") {
+worker = sandbox.new("worker") {
     grant_env("HOME")
     grant_fs_read("/etc/*")
 }
@@ -1380,7 +1279,7 @@ db.credentials.user = admin</code></pre>
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.770 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.772 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

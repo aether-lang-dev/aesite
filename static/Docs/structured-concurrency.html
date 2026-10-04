@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.770</span>
+      <span class="vtag">v0.772</span>
     </nav>
   </div>
 </header>
@@ -715,11 +715,14 @@ main() {
 <ul><li><code>spawn(X())</code> rejected if <code>X</code> is hidden or not on the seal whitelist.</li><li><code>ref ! Msg {}</code> rejected if <code>ref</code> is hidden or not whitelisted.</li><li><code>ref ? Request {}</code> (the <code>?</code> ask operator), same check on <code>ref</code>.</li></ul>
 <p>The error message reuses the existing <code>E0304</code> (hidden in this scope) diagnostic.</p>
 <h3 id="worked-example">Worked example</h3>
-<pre><code>sandbox("payment-handler") {
+<pre><code>handler = sandbox.new("payment-handler") {
     grant_tcp("payments.example.com")
+}
+sandbox.enforce(handler) callback {
     seal except req, res, payment_client, logger
 
-    // This block can only see the five whitelisted names.
+    // This block can only see the four whitelisted names, and its
+    // network access is limited to payments.example.com.
     // It cannot spawn any actor type not named here.
     // It cannot send to any actor reference not named here.
     // It cannot ask any outside service.
@@ -732,7 +735,7 @@ main() {
         res.status = 502
     }
 }</code></pre>
-<p>The subtree rooted at this block has both lifetime containment (the <code>sandbox</code> scope's containment runtime) and capability containment (the <code>seal except</code> list). A malicious or buggy handler cannot spawn a crypto-miner actor because it cannot name one.</p>
+<p>The subtree rooted at this block has both lifetime containment (the <code>sandbox.enforce</code> block's runtime checks) and capability containment (the <code>seal except</code> list). A malicious or buggy handler cannot spawn a crypto-miner actor because it cannot name one.</p>
 <h2 id="whats-not-in-scope">What's not in scope</h2>
 <ul><li><strong>Fork-join / <code>parallel_for</code></strong>, useful for data parallelism, does not solve the lifecycle or reachability problem. Can be added later as a narrow stdlib feature layered on the existing work-stealing scheduler. Not part of this design.</li><li><strong>Nurseries</strong>, would require a second concurrency primitive (lightweight tasks distinct from actors). High cost for small marginal benefit given the actor model already exists. Revisit only if users ask for it after Phases 1 and 2 ship.</li><li><strong>Channels</strong>, actors already cover this. No plan.</li></ul>
 <h2 id="order-of-work">Order of work</h2>
@@ -752,7 +755,7 @@ main() {
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.770 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.772 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>
