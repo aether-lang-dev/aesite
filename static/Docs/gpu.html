@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.778</span>
+      <span class="vtag">v0.779</span>
     </nav>
   </div>
 </header>
@@ -818,11 +818,11 @@ vulkan.present(sc, target)</code></pre>
 <p>In all three, <code>present</code> scales the target to the window and encodes an sRGB or float target for display. The swapchain follows the window's size, and a minimised window is skipped without an error. <code>target_resize</code> keeps every pipeline made for the target.</p>
 <p>The tests present into real windows made by a small fixture, <code>tests/support/native_window</code>, with Win32, X11 and AppKit backends. It stands in for aether-ui's <code>native_view</code>, because this repository's CI cannot depend on a toolkit that is itself built with this compiler.</p>
 <h2 id="where-each-is-tested">Where each is tested</h2>
-<div class="tw"><table><thead><tr><th>CI leg</th><th>Runs</th><th>On</th></tr></thead><tbody><tr><td>Linux contrib</td><td><code>contrib.vulkan</code>, and the generated declarations against the installed registry</td><td>lavapipe (Mesa's CPU Vulkan), with Xvfb as the display, and weston's headless backend for the Wayland surface</td></tr><tr><td>Windows</td><td><code>contrib.vulkan</code> and <code>contrib.d3d12</code></td><td>lavapipe from MSYS2, and WARP</td></tr><tr><td>macOS contrib</td><td><code>contrib.metal</code>, and <code>contrib.vulkan</code> through MoltenVK</td><td>the runner's Metal device</td></tr></tbody></table></div>
+<div class="tw"><table><thead><tr><th>CI leg</th><th>Runs</th><th>On</th></tr></thead><tbody><tr><td>Linux contrib</td><td><code>contrib.vulkan</code>, and the generated declarations against the installed registry</td><td>lavapipe (Mesa's CPU Vulkan), with Xvfb as the display, and weston's headless backend for the Wayland surface, whose screen is read through weston's capture protocol</td></tr><tr><td>Windows</td><td><code>contrib.vulkan</code> and <code>contrib.d3d12</code></td><td>lavapipe from MSYS2, and WARP</td></tr><tr><td>macOS contrib</td><td><code>contrib.metal</code>, and <code>contrib.vulkan</code> through MoltenVK</td><td>the runner's Metal device</td></tr></tbody></table></div>
 <p>Each leg asserts that the tests ran instead of skipping, because a GPU test that quietly skips on a machine that has the driver is coverage lost. The exceptions are the cases the window fixture cannot do on a platform, which each test names: reading the screen back on macOS, for example.</p>
 <h2 id="not-here-yet">Not here yet</h2>
 <p>Each gap has an issue:</p>
-<div class="tw"><table><thead><tr><th>Missing</th><th>Issue</th></tr></thead><tbody><tr><td>The pixels a Wayland compositor shows are not checked: the Wayland leg checks presents and the target, not the screen</td><td><a href="https://github.com/aether-lang-dev/aether/issues/2389">#2389</a></td></tr><tr><td><code>native_view</code> on GTK4 and AppKit, so aether-ui hands out kinds 2 to 4</td><td><a href="https://github.com/aether-lang-dev/aether-ui/issues/208">aether-ui#208</a></td></tr></tbody></table></div>
+<div class="tw"><table><thead><tr><th>Missing</th><th>Issue</th></tr></thead><tbody><tr><td><code>native_view</code> on GTK4 and AppKit, so aether-ui hands out kinds 2 to 4</td><td><a href="https://github.com/aether-lang-dev/aether-ui/issues/208">aether-ui#208</a></td></tr></tbody></table></div>
 <nav class="doc-prevnext" aria-label="Previous and next page"><a class="pn-prev" href="/Docs/edge-cases.html"><span class="pn-k">Previous</span><span class="pn-t">Edge cases: what is settled, and what only happens to be true</span></a><a class="pn-next" href="/Docs/swiftui-ios-app.html"><span class="pn-k">Next</span><span class="pn-t">Using an Aether library from a SwiftUI iOS app</span></a></nav>
       </article>
     </main>
@@ -835,7 +835,7 @@ vulkan.present(sc, target)</code></pre>
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.778 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.779 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>
