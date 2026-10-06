@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.786</span>
+      <span class="vtag">v0.787</span>
     </nav>
   </div>
 </header>
@@ -846,7 +846,7 @@ main() {
     <span class="com">// [3, 4, 5]</span>
 }</code></pre>
 <h2 id="builder-context-stack">Builder Context Stack</h2>
-<p>When a function call has a trailing block, Aether automatically pushes the function's return value onto a <strong>builder context stack</strong> before executing the block, and pops it after. Library functions can access the current context via <code>builder_context()</code>.</p>
+<p>When a function call has a trailing block, Aether automatically pushes the function's return value onto a <strong>builder context stack</strong> before executing the block, and pops it when the block is left, however it is left: falling off the end, a <code>return</code> from inside it, or a <code>break</code>/<code>continue</code> to a loop outside it. The pop runs after the block's own <code>defer</code>s. Library functions can access the current context via <code>builder_context()</code>.</p>
 <p>This enables automatic parent-child wiring without the caller specifying parents:</p>
 <pre><code><span class="kw">import</span> std.list
 
@@ -1096,7 +1096,7 @@ r = assert.expect_int(5).to_equal(5).to_be_gt(0)  // matchers imported, chain lo
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.786 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.787 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>
