@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.785</span>
+      <span class="vtag">v0.786</span>
     </nav>
   </div>
 </header>
@@ -805,6 +805,7 @@ scheduler_send_batch_flush();  <span class="com">// Bulk send with one atomic pe
 <h3 id="computed-goto-dispatch">Computed Goto Dispatch</h3>
 <p><strong>Implementation:</strong> <code>compiler/codegen/codegen_actor.c</code> (generated code)</p>
 <p>The code generator emits a <code>dispatch_table[256]</code> with GCC computed goto (<code>goto *dispatch_table[_msg_id]</code>) for message handler selection. This replaces indirect function calls or switch statements with direct label jumps. The message ID is read from <code>msg.type</code> (<code>int _msg_id = msg.type;</code>) rather than dereferencing the payload pointer.</p>
+<p>The same lowering applies to interpreter loops written in Aether (#2378; <code>compiler/codegen/codegen_stmt.c</code>, <code>td_loop_switch</code>): a <code>while true { head; switch sel { ... continue ... } }</code> loop gets a static label table per loop, and each <code>continue</code> that targets it repeats the head and jumps with <code>goto *_ae_td_tbl_N[sel]</code>. A value with no entry jumps back to the plain <code>switch</code>, so the table is never needed for correctness; under MSVC or <code>-DAETHER_NO_THREADED_DISPATCH</code> the loop compiles as it did before. In an <code>--emit=lib</code> build the call-deadline check that sits at the loop head is repeated at every threaded dispatch. See the language reference, <em>Interpreter dispatch loops</em>, for the recognised shape.</p>
 <h3 id="progressive-backoff-strategy">Progressive Backoff Strategy</h3>
 <p><strong>Implementation:</strong> <code>runtime/scheduler/multicore_scheduler.c</code></p>
 <p>Three-phase idle strategy:</p>
@@ -1001,7 +1002,7 @@ while j &lt; N {
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.785 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.786 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>
