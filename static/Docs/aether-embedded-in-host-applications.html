@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.788</span>
+      <span class="vtag">v0.790</span>
     </nav>
   </div>
 </header>
@@ -690,7 +690,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <ul><li>Aether compiles <code>.ae</code> -&gt; C -&gt; native binary</li><li>No library mode, it's always a standalone executable</li><li>No foreign-language embedding API</li><li>Output is "run the program," not "return a data structure"</li></ul>
 <h3 id="whats-needed">What's needed</h3>
 <h4 id="1-aether-as-a-library-compile--eval-return-a-value---done">1. Aether-as-a-library: compile + eval, return a value  ✅ Done</h4>
-<blockquote>Built as <code>aetherc --emit=lib</code> (the <code>--embed</code> name in the original design was renamed to fit the broader emit-mode taxonomy alongside <code>--emit=exe</code> and <code>--emit=both</code>). Every top-level Aether function is exported as <code>aether_&lt;name&gt;(...)</code> with a fixed-width C signature. The user's <code>main()</code> body is dropped in lib-only mode (a future Shape B addition could expose it as <code>aether_main()</code>). See <strong><a href="/Docs/emit-lib.html"><code>emit-lib.md</code></a></strong> for the full reference.</blockquote>
+<blockquote>Built as <code>aetherc --emit=lib</code> (the <code>--embed</code> name in the original design was renamed to fit the broader emit-mode taxonomy alongside <code>--emit=exe</code> and <code>--emit=both</code>). Every top-level Aether function is exported as <code>aether_&lt;name&gt;(...)</code> with a fixed-width C signature. The user's <code>main()</code> is exported as <code>aether_main()</code> / <code>aether_main_exit()</code>: run the program, then stop it. See <strong><a href="/Docs/emit-lib.html"><code>emit-lib.md</code></a></strong> for the full reference.</blockquote>
 <p>The original sketch:</p>
 <pre><code>AetherConfig config = Aether.eval("server.ae");  // compile, run, get result
 Map&lt;String, Route&gt; routes = config.getMap("routes");</code></pre>
@@ -899,7 +899,7 @@ aether_spawn_sandboxed(grants, "/tmp/pricing", input_json)</code></pre>
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.788 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.790 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>
