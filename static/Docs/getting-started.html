@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.790</span>
+      <span class="vtag">v0.791</span>
     </nav>
   </div>
 </header>
@@ -1060,6 +1060,10 @@ make docker-ci-wasm        <span class="com"># Emscripten + Node.js execution</s
 make docker-ci-embedded    <span class="com"># ARM Cortex-M4 syntax-check</span></code></pre>
 <p>On threadless platforms, the cooperative scheduler (<code>aether_scheduler_coop.c</code>) replaces the multi-core scheduler. All actors run on a single thread via <code>aether_scheduler_poll()</code>. Multi-actor programs work correctly, messages are processed cooperatively during <code>wait_for_idle()</code>.</p>
 <p>Stdlib modules that depend on filesystem or networking return errors gracefully (NULL, 0, -1). Console I/O (<code>print</code>, <code>println</code>) always works.</p>
+<h4 id="esp32-xtensa">ESP32 (Xtensa)</h4>
+<p>The generated C builds as an <a href="https://docs.espressif.com/projects/esp-idf/">ESP-IDF</a> component for the ESP32 (the chip on boards such as the ESP32-2432S028R "cheap yellow display"): ESP-IDF's <code>xtensa-esp32-elf-gcc</code> compiles it with the runtime, using the cooperative scheduler, and the generated C supplies the <code>app_main()</code> entry point ESP-IDF calls. <code>tests/esp32/project/</code> is a working project; its <code>main/CMakeLists.txt</code> lists the runtime sources and the settings an ESP32 needs, notably smaller scheduler tables (<code>MAX_CORES=1 QUEUE_SIZE=64 SCHEDULER_DRAIN_BATCH=32 MAX_ACTORS_PER_CORE=256</code>; at the defaults they need about 10 MB, against roughly 320 KB of DRAM).</p>
+<pre><code>make ci-esp32   <span class="com"># needs podman or docker; pulls espressif/idf</span></code></pre>
+<p>builds a few programs (hello-world, a stateful actor, an actor pipeline, ping-pong) into firmware and boots each in Espressif's QEMU, checking the console output. A program is about 150 KB of firmware. Not yet covered: threads (FreeRTOS has pthreads, so the multicore scheduler is a candidate), the filesystem and networking, and real hardware.</p>
 <h3 id="platform-specific-notes">Platform-Specific Notes</h3>
 <p><strong>macOS:</strong></p>
 <ul><li>May need <code>xcode-select --install</code> for command line tools</li><li>Homebrew GCC recommended: <code>brew install gcc</code></li><li>Apple Silicon (M1/M2/M3): Runtime auto-detects P-cores for consistent performance</li><li>Thread affinity is advisory on macOS; occasional benchmark variance is normal</li></ul>
@@ -1079,7 +1083,7 @@ make docker-ci-embedded    <span class="com"># ARM Cortex-M4 syntax-check</span>
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.790 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.791 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>
