@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.791</span>
+      <span class="vtag">v0.793</span>
     </nav>
   </div>
 </header>
@@ -856,11 +856,11 @@ Stack trace (most recent call first):
 <h3 id="message-routing">Message Routing</h3>
 <ul><li><strong>Same-core messages:</strong> Direct mailbox or SPSC queue write (verified via <code>current_core_id</code>)</li><li><strong>Cross-core messages:</strong> Enqueued to target core's lock-free incoming queue</li><li><strong>Migrated actor messages:</strong> Forwarded to the actor's current core with spin-retry</li></ul>
 <h2 id="memory-management">Memory Management</h2>
-<p>Actor memory is allocated using NUMA-aware allocation (<code>aether_numa_alloc</code>) at spawn time. The <code>scheduler_spawn_actor</code> function accepts the full derived-struct size to ensure correct allocation for user-defined actor types.</p>
+<p>Actor memory is allocated using NUMA-aware allocation (<code>aether_numa_alloc_aligned</code>, on a 64-byte boundary) at spawn time. The <code>scheduler_spawn_actor</code> function accepts the full derived-struct size to ensure correct allocation for user-defined actor types.</p>
 <p>Message payloads are managed by thread-local pools. Payloads are returned to the pool on free via <code>aether_free_message</code>, which checks whether the pointer falls within the pool range before falling back to <code>free</code>.</p>
 <h2 id="memory-model">Memory Model</h2>
 <p>The actor runtime uses several allocation strategies for automatic cleanup:</p>
-<ul><li><strong>Actor memory</strong>: one NUMA-aware allocation per actor at spawn time (<code>aether_numa_alloc</code>), freed with <code>aether_numa_free</code> when the actor is destroyed. The mailbox is an inline struct member, not a separate allocation.</li><li><strong>Message payloads</strong>: thread-local pools with automatic return</li><li><strong>Arenas</strong>: a general-purpose arena allocator provides bulk deallocation without per-object tracking for opt-in uses (<code>std.arena</code>, JSON parsing). The actor path does not use arenas.</li></ul>
+<ul><li><strong>Actor memory</strong>: one NUMA-aware, 64-byte-aligned allocation per actor at spawn time (<code>aether_numa_alloc_aligned</code>), or the kept block of a released actor of the same size. <code>scheduler_release_actor</code> takes the actor out of its core's table and retires it; it is reclaimed once every core's scheduler thread and every per-actor thread has passed the top of its loop since, and no other thread is walking the tables. The scheduler threads, per-actor threads and <code>aether_scheduler_poll</code> read the tables without a lock, so the reclaim has to wait for them; a core blocked in a long step delays it. A reclaimed block is not returned to the allocator while the scheduler runs: it stays marked released, so a send to it is dropped rather than reading freed memory, and the next spawn of that size takes it. The blocks go back with the scheduler's tables. The mailbox is an inline struct member, not a separate allocation.</li><li><strong>Message payloads</strong>: thread-local pools with automatic return</li><li><strong>Arenas</strong>: a general-purpose arena allocator provides bulk deallocation without per-object tracking for opt-in uses (<code>std.arena</code>, JSON parsing). The actor path does not use arenas.</li></ul>
 <p>See <a href="/Docs/memory-management.html">Memory Management</a> for details on arenas, pools, and allocation strategies.</p>
 <h2 id="patterns">Patterns</h2>
 <ul><li><strong>Per-process configuration</strong>, Aether rejects mutable assignment to module-level identifiers, so the C <code>static char *g_config</code> shape doesn't transcribe. The canonical replacement is the actor-singleton pattern: spawn one config actor at startup, drive writes via <code>Set*</code> messages, drive reads via <code>Get*</code> messages that carry an <code>actor_ref</code> reply target. See <a href="/Docs/per-process-config.html">per-process-config.md</a> for the worked example, the trade-offs (when message round-trip is acceptable vs. when to plumb the value as a parameter or worker-actor cache), and a port of a real C global-state shim.</li></ul>
@@ -876,7 +876,7 @@ Stack trace (most recent call first):
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.791 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.793 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

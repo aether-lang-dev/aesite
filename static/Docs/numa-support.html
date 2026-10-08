@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.791</span>
+      <span class="vtag">v0.793</span>
     </nav>
   </div>
 </header>
@@ -693,6 +693,13 @@ aether_numa_topology_t aether_numa_init(<span class="kw">void</span>);
 <span class="com">// Free NUMA-allocated memory</span>
 <span class="kw">void</span> aether_numa_free(<span class="kw">void</span>* ptr, <span class="kw">size_t</span> size);
 
+<span class="com">// Allocate on a NUMA node, aligned to `align` (actors use 64); the heap</span>
+<span class="com">// fallback is _aligned_malloc on Windows and posix_memalign elsewhere</span>
+<span class="kw">void</span>* aether_numa_alloc_aligned(<span class="kw">size_t</span> size, <span class="kw">size_t</span> align, <span class="kw">int</span> node);
+
+<span class="com">// Free memory from aether_numa_alloc_aligned (and nothing else)</span>
+<span class="kw">void</span> aether_numa_free_aligned(<span class="kw">void</span>* ptr, <span class="kw">size_t</span> size);
+
 <span class="com">// Cleanup</span>
 <span class="kw">void</span> aether_numa_cleanup(<span class="kw">void</span>);</code></pre>
 <h3 id="integration-points">Integration Points</h3>
@@ -783,7 +790,7 @@ make EXTRA_CFLAGS=<span class="str">"-DHAVE_LIBNUMA"</span> LDFLAGS=<span class=
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.791 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.793 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

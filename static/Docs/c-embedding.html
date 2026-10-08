@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.791</span>
+      <span class="vtag">v0.793</span>
     </nav>
   </div>
 </header>
@@ -853,7 +853,9 @@ ActorBase* scheduler_spawn_actor(
     <span class="kw">size_t</span> actor_size        <span class="com">// sizeof(YourActorType)</span>
 );
 
-<span class="com">// Return actor to pool when done</span>
+<span class="com">// End an actor: out of its core's table now, freed once no scheduler</span>
+<span class="com">// thread can still be looking at it. Safe from the actor's own step. Call it</span>
+<span class="com">// only when nothing sends to the actor any more.</span>
 <span class="kw">void</span> scheduler_release_actor(ActorBase* actor);
 
 <span class="com">// Register existing actor (alternative to pooled)</span>
@@ -941,9 +943,9 @@ target_link_libraries(myapp aether pthread)</code></pre>
 <ul><li>Each actor runs on one core at a time</li><li>Messages are delivered via thread-safe queues</li><li>Actor state is only accessed by one thread</li><li>Cross-core sends use lock-free queues</li></ul>
 <h2 id="host-process-boundary">Host-process boundary</h2>
 <p>The C host and the Aether runtime share a process but have distinct ownership rules. Respect these at every integration point:</p>
-<ol><li><strong>State is message-only.</strong> Actor state is owned by the actor; the host reads and writes it exclusively through messages. Reach-in access bypasses message-ordering guarantees and races with the scheduler.</li><li><strong>Sends are fire-and-forget.</strong> There's no synchronous reply from <code>aether_send_message()</code>. When you need a value back, either (a) have the actor send a response message to a host-registered event handler, or (b) have the actor write into shared atomic state the host polls.</li><li><strong>References are manually lifetime-managed.</strong> The host holds the raw <code>ActorBase*</code> (or the generated <code>Counter*</code>) returned by spawn; there's no handle type or automatic refcount across the FFI boundary. Keep the pointer as long as you intend to send to the actor. Release it with <code>scheduler_release_actor()</code> when done.</li><li><strong>One runtime per process.</strong> <code>aether_runtime_init()</code> initializes process-global scheduler state. Calling it twice from the same process is not supported; use separate processes if you need isolated runtimes.</li></ol>
+<ol><li><strong>State is message-only.</strong> Actor state is owned by the actor; the host reads and writes it exclusively through messages. Reach-in access bypasses message-ordering guarantees and races with the scheduler.</li><li><strong>Sends are fire-and-forget.</strong> There's no synchronous reply from <code>aether_send_message()</code>. When you need a value back, either (a) have the actor send a response message to a host-registered event handler, or (b) have the actor write into shared atomic state the host polls.</li><li><strong>References are manually lifetime-managed.</strong> The host holds the raw <code>ActorBase*</code> (or the generated <code>Counter*</code>) returned by spawn; there's no handle type or automatic refcount across the FFI boundary. Keep the pointer as long as you intend to send to the actor. Release it with <code>scheduler_release_actor()</code> when done, after the last message you send it has been handled: the actor is reclaimed later, once the scheduler threads are past it. Nothing may send to it after the release. A send that does so anyway is defined, not a use after free: a released actor's memory is kept, marked released, until a later spawn of the same size reuses it, so the message is dropped (counted by <code>scheduler_released_sends()</code>, reported once on stderr), but a send made after the memory has become another actor reaches that actor, which a raw pointer cannot detect.</li><li><strong>One runtime per process.</strong> <code>aether_runtime_init()</code> initializes process-global scheduler state. Calling it twice from the same process is not supported; use separate processes if you need isolated runtimes.</li></ol>
 <h2 id="header-generation">Header Generation</h2>
-<p>Pass <code>--emit-header</code> to <code>aetherc</code> to generate a C header alongside the C output. The header contains message struct definitions, <code>MSG_*</code> constants, and actor spawn prototypes, everything needed to send messages to Aether actors from C without copying struct definitions by hand.</p>
+<p>Pass <code>--emit-header</code> to <code>aetherc</code> to generate a C header alongside the C output. The header contains message struct definitions, <code>MSG_*</code> constants, actor spawn prototypes and a typed send helper per message an actor receives, everything needed to send messages to Aether actors from C without copying struct definitions by hand. The message structs are the ones the generated C declares, field for field: the fields are packed (ints and bools first, then pointer-sized fields, then the rest), not in declaration order, so build a message by field name, or through its helper, whose parameters are in declaration order.</p>
 <pre><code>aetherc --emit-header counter.ae counter.c
 <span class="com"># Produces: counter.c  counter.h</span></code></pre>
 <p><code>--emit-header</code> must precede the input/output paths. Placed after the positional arguments it is ignored and only <code>counter.c</code> is written.</p>
@@ -954,21 +956,26 @@ target_link_libraries(myapp aether pthread)</code></pre>
 
 #include &lt;stdint.h&gt;
 #include <span class="str">"runtime/scheduler/multicore_scheduler.h"</span>
+#include <span class="str">"runtime/actors/aether_send_message.h"</span>
 
 <span class="com">// Message IDs (numbered from 0 in declaration order)</span>
 #define MSG_Increment <span class="num">0</span>
-#define MSG_GetValue  <span class="num">1</span>
-#define MSG_Reset     <span class="num">2</span>
+#define MSG_Label     <span class="num">1</span>
 
 <span class="com">// Message structs, first field is the message ID; single-int payloads</span>
 <span class="com">// widen to intptr_t to match Message.payload_int.</span>
 <span class="kw">typedef</span> <span class="kw">struct</span> { <span class="kw">int</span> _message_id; intptr_t amount; } Increment;
+<span class="com">// `message Label { tag: int, text: string, weight: float }`: packed, so</span>
+<span class="com">// the string lands before the float.</span>
+<span class="kw">typedef</span> <span class="kw">struct</span> { <span class="kw">int</span> _message_id; <span class="kw">int</span> tag; <span class="kw">const</span> <span class="kw">char</span>* text; <span class="kw">double</span> weight; } Label;
 
-<span class="com">// Spawn prototype</span>
+<span class="com">// Spawn prototype and typed send helpers (parameters in declaration order)</span>
 Counter* spawn_Counter(<span class="kw">void</span>);
+<span class="kw">static</span> <span class="kw">inline</span> <span class="kw">void</span> Counter_Increment(Counter* actor, intptr_t amount) { ... }
+<span class="kw">static</span> <span class="kw">inline</span> <span class="kw">void</span> Counter_Label(Counter* actor, <span class="kw">int</span> tag, <span class="kw">const</span> <span class="kw">char</span>* text, <span class="kw">double</span> weight) { ... }
 
 #endif</code></pre>
-<p>Include the header in your C host application and use the constants with <code>scheduler_send_remote</code>.</p>
+<p>Include the header in your C host application and send through the helpers, or build a struct by field name and pass it to <code>aether_send_message(actor, &amp;msg, sizeof msg)</code>. A <code>string</code> field takes a <code>const char*</code> the host keeps alive until the message has been handled; the actor does not free it.</p>
 <hr>
 <h2 id="polling-from-a-c-event-loop">Polling from a C Event Loop</h2>
 <p>When a C event loop (raylib, SDL, game loop, etc.) holds the main thread, Aether actors in main-thread mode cannot process messages, the scheduler has no opportunity to run.</p>
@@ -1004,7 +1011,7 @@ Counter* spawn_Counter(<span class="kw">void</span>);
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.791 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.793 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

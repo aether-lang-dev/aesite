@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.791</span>
+      <span class="vtag">v0.793</span>
     </nav>
   </div>
 </header>
@@ -1304,8 +1304,8 @@ main() {
 <ul><li>Compiling Aether to C and linking with your application</li><li>Using the Aether runtime API directly from C</li><li>The <code>--emit-header</code> compiler flag for generating C headers</li></ul>
 <h2 id="c-symbol-namespace-libc-collision-avoidance">C symbol namespace (libc collision avoidance)</h2>
 <p>Aether is free with its identifier space, you can define an Aether function called <code>bind</code>, <code>listen</code>, <code>accept</code>, or <code>connect</code> without upsetting the parser. At the C-codegen layer, however, those names collide with libc's own <code>bind(2)</code>, <code>listen(2)</code>, etc., and the linker silently picks the wrong symbol, your <code>bind</code> either never runs, or runs when libc's was expected.</p>
-<p>Mitigation: the codegen keeps a curated list of libc / POSIX symbol names (see <code>compiler/codegen/codegen.c</code>'s <code>is_c_reserved_word</code> for the full set, it covers C keywords, the entire BSD/POSIX network sockets API, POSIX I/O, process control, memory + dynamic linking, string + stdio, and time + env). Any Aether function whose name appears in the list gets transparently emitted with an <code>ae_</code> prefix in the C output:</p>
-<div class="tw"><table><thead><tr><th>Aether-side spelling</th><th>Emitted C symbol</th></tr></thead><tbody><tr><td><code>bind</code></td><td><code>ae_bind</code></td></tr><tr><td><code>listen</code></td><td><code>ae_listen</code></td></tr><tr><td><code>read</code></td><td><code>ae_read</code></td></tr><tr><td><code>write</code></td><td><code>ae_write</code></td></tr><tr><td><code>connect</code></td><td><code>ae_connect</code></td></tr><tr><td><code>socket</code></td><td><code>ae_socket</code></td></tr><tr><td><code>fork</code></td><td><code>ae_fork</code></td></tr><tr><td><code>malloc</code></td><td><code>ae_malloc</code></td></tr></tbody></table></div>
+<p>Mitigation: the codegen keeps a curated list of libc / POSIX symbol names (see <code>compiler/codegen/codegen.c</code>'s <code>is_c_reserved_word</code> for the full set, it covers C keywords, the entire BSD/POSIX network sockets API, POSIX I/O, process control, memory + dynamic linking, string + stdio, time + env, and the rest of the C11 library: every <code>&lt;math.h&gt;</code> function with its <code>f</code> and <code>l</code> forms, <code>&lt;ctype.h&gt;</code>, <code>&lt;setjmp.h&gt;</code> and <code>&lt;locale.h&gt;</code>). Any Aether function whose name appears in the list gets transparently emitted with an <code>ae_</code> prefix in the C output:</p>
+<div class="tw"><table><thead><tr><th>Aether-side spelling</th><th>Emitted C symbol</th></tr></thead><tbody><tr><td><code>bind</code></td><td><code>ae_bind</code></td></tr><tr><td><code>listen</code></td><td><code>ae_listen</code></td></tr><tr><td><code>read</code></td><td><code>ae_read</code></td></tr><tr><td><code>write</code></td><td><code>ae_write</code></td></tr><tr><td><code>connect</code></td><td><code>ae_connect</code></td></tr><tr><td><code>socket</code></td><td><code>ae_socket</code></td></tr><tr><td><code>fork</code></td><td><code>ae_fork</code></td></tr><tr><td><code>malloc</code></td><td><code>ae_malloc</code></td></tr><tr><td><code>floor</code></td><td><code>ae_floor</code></td></tr><tr><td><code>isdigit</code></td><td><code>ae_isdigit</code></td></tr></tbody></table></div>
 <p>The renaming is <strong>invisible to Aether source</strong>, you call your function <code>bind(...)</code> and the compiler does the right thing. The only place you see the prefix is in the emitted C (useful if you're debugging with <code>nm</code>, <code>objdump</code>, or a stack trace).</p>
 <p>A renamed function is equally usable <strong>as a value</strong>, passing it across an ABI boundary as a <code>ptr</code> handler reaches the renamed definition, not a same-named libc symbol:</p>
 <pre><code>_h_health(req: ptr, res: ptr, ud: ptr) -&gt; int { return 0 }
@@ -1335,7 +1335,7 @@ server_get(raw, "/health", _h_health, 0)   // references ae_h_health</code></pre
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.791 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.793 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

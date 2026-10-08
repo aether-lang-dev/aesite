@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.791</span>
+      <span class="vtag">v0.793</span>
     </nav>
   </div>
 </header>
@@ -725,15 +725,22 @@ scheduler_wait();
 <span class="com">// At program exit: wait for quiescence, stop and join scheduler threads</span>
 scheduler_shutdown();</code></pre>
 <h2 id="actor-allocation">Actor Allocation</h2>
-<pre><code><span class="com">// NUMA-aware allocation with correct derived-struct size</span>
+<pre><code><span class="com">// NUMA-aware, 64-byte-aligned allocation with the derived-struct size.</span>
+<span class="com">// NULL means the allocation failed.</span>
 ActorBase* actor = scheduler_spawn_actor(preferred_core, step_fn, <span class="kw">sizeof</span>(MyActor));
-<span class="kw">if</span> (!actor) {
-    <span class="com">// Fallback to manual allocation</span>
-    actor = aligned_alloc(<span class="num">64</span>, <span class="kw">sizeof</span>(MyActor));
-    memset(actor, <span class="num">0</span>, <span class="kw">sizeof</span>(MyActor));
-    mailbox_init(&amp;actor-&gt;mailbox);
-    spsc_queue_init(&amp;actor-&gt;spsc_queue);
-}</code></pre>
+<span class="kw">if</span> (!actor) <span class="kw">return</span> NULL;
+
+<span class="com">// Release it with scheduler_release_actor, never free(). It takes the actor</span>
+<span class="com">// out of its core's table at once and reclaims it once no scheduler thread,</span>
+<span class="com">// table reader or per-actor thread can still hold it, so it is safe from the</span>
+<span class="com">// actor's own step, and never blocks: an actor with its own thread</span>
+<span class="com">// (auto_process) is only marked, and that thread ends it when it leaves its</span>
+<span class="com">// loop. Nothing may send to the</span>
+<span class="com">// actor after this: the memory stays allocated and marked released until a</span>
+<span class="com">// spawn of the same size reuses it, so a late send is dropped and counted</span>
+<span class="com">// (scheduler_released_sends), and a send after the reuse reaches the new</span>
+<span class="com">// actor.</span>
+scheduler_release_actor(actor);</code></pre>
 <h2 id="message-flow">Message Flow</h2>
 <pre><code>sender -&gt; scheduler_send_remote -&gt; lock-free queue -&gt; batch dequeue
        -&gt; coalesce buffer -&gt; redirect/deliver -&gt; mailbox -&gt; actor step</code></pre>
@@ -799,7 +806,7 @@ ActorBase* actor = scheduler_spawn_actor(preferred_core, step_fn, <span class="k
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.791 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.793 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

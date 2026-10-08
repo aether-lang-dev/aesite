@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.791</span>
+      <span class="vtag">v0.793</span>
     </nav>
   </div>
 </header>
@@ -1020,7 +1020,7 @@ action = |x: ptr| { ref_set(x, ref_get(x) + 1) }
 list.add(handlers, box_closure(action))
 
 // Later: retrieve and invoke
-boxed = list.get(handlers, 0)
+boxed = list.get_raw(handlers, 0)
 handler = unbox_closure(boxed)
 call(handler, some_ref)</code></pre>
 <h3 id="interactive-calculator-example">Interactive Calculator Example</h3>
@@ -1046,7 +1046,7 @@ g = grid() {
 }
 
 // Event loop: press button → invoke its callback
-handler = unbox_closure(list.get(list.get(g, 1), cur))
+handler = unbox_closure(list.get_raw(list.get_raw(g, 1), cur))
 call(handler, num, prev, op)</code></pre>
 <p>Each button's behavior is declared alongside the button, not in a separate dispatch table. The ref cells provide shared mutable state across all callbacks.</p>
 <h2 id="fluent-method-chaining-ufcs">Fluent Method Chaining (UFCS)</h2>
@@ -1096,7 +1096,7 @@ r = assert.expect_int(5).to_equal(5).to_be_gt(0)  // matchers imported, chain lo
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.791 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.793 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>
