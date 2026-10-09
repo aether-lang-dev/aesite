@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.795</span>
+      <span class="vtag">v0.796</span>
     </nav>
   </div>
 </header>
@@ -692,25 +692,12 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <h3 id="actor-lifecycle">Actor Lifecycle</h3>
 <ol><li><strong>Spawn</strong> - Create actor instance with <code>spawn(ActorName())</code></li><li><strong>Send</strong> - Send messages with the <code>!</code> operator or generated send functions</li><li><strong>Step</strong> - Scheduler calls the actor's step function to process mailbox messages</li><li><strong>Deactivate</strong> - Actor is marked inactive when its mailbox is empty</li></ol>
 <h3 id="actor-structure">Actor Structure</h3>
-<p>Each actor is a C struct. The first fields must match <code>ActorBase</code> layout:</p>
+<p>Each actor is a C struct whose first fields are <code>ActorBase</code>'s, since the scheduler casts a pointer to it to <code>ActorBase*</code>. The fields are declared once, in the <code>AETHER_ACTOR_BASE_FIELDS</code> macro (<code>runtime/scheduler/multicore_scheduler.h</code>), and an actor struct expands it first, so its layout cannot drift from the base:</p>
 <pre><code><span class="kw">typedef</span> <span class="kw">struct</span> {
-    atomic_int active;
-    <span class="kw">int</span> id;
-    Mailbox mailbox;
-    <span class="kw">void</span> (*step)(<span class="kw">void</span>*);
-    pthread_t thread;
-    <span class="kw">int</span> auto_process;
-    atomic_int assigned_core;
-    atomic_int migrate_to;           <span class="com">// Affinity hint: core to migrate to (-1 = none)</span>
-    atomic_int main_thread_only;     <span class="com">// If set, scheduler threads skip this actor</span>
-    SPSCQueue* spsc_queue;           <span class="com">// Lock-free same-core messaging (lazy alloc)</span>
-    _Atomic(ActorReplySlot*) reply_slot;  <span class="com">// Non-NULL during ask/reply</span>
-    atomic_flag step_lock;           <span class="com">// Prevents concurrent step() during work-steal</span>
-    <span class="kw">uint64_t</span> timeout_ns;             <span class="com">// Receive timeout in ns (0 = none)</span>
-    <span class="kw">uint64_t</span> last_activity_ns;       <span class="com">// Timestamp when idle started (0 = not idle)</span>
-    atomic_int dead;                 <span class="com">// 1 once step() unwound via panic; actor skipped after</span>
-} ActorBase;</code></pre>
-<p>User-defined actors extend this layout with additional fields after <code>dead</code>.</p>
+    AETHER_ACTOR_BASE_FIELDS
+    <span class="kw">int</span> count;                       <span class="com">// the actor's own state follows</span>
+} CounterActor;</code></pre>
+<p>The fields, in order: <code>active</code>, <code>id</code>, <code>mailbox</code>, <code>step</code>, <code>thread</code>, <code>auto_process</code>, <code>assigned_core</code>, <code>migrate_to</code>, <code>main_thread_only</code>, <code>spsc_queue</code>, <code>reply_slot</code>, <code>step_lock</code>, <code>timeout_ns</code>, <code>last_activity_ns</code>, <code>dead</code>, <code>alloc_size</code>, <code>destroy_state</code>, <code>scheduler_owned</code>, <code>inbox</code>, <code>thread_parked</code>. The header comments each one.</p>
 <h2 id="message-passing">Message Passing</h2>
 <h3 id="mailbox">Mailbox</h3>
 <p>Each actor has a ring buffer mailbox with 32 slots (power-of-2 for fast masking):</p>
@@ -876,7 +863,7 @@ Stack trace (most recent call first):
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.795 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.796 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

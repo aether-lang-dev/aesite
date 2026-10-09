@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.795</span>
+      <span class="vtag">v0.796</span>
     </nav>
   </div>
 </header>
@@ -754,7 +754,14 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <h3 id="actor-system">Actor System</h3>
 <p><strong>Design:</strong> Lightweight process model with per-core scheduling</p>
 <p><strong>Key Components:</strong></p>
-<ol><li><strong>Actor Structure</strong> (<code>runtime/scheduler/multicore_scheduler.h</code>) ``<code>c typedef struct { atomic_int active; int id; Mailbox mailbox; void (*step)(void*); pthread_t thread; int auto_process; atomic_int assigned_core; atomic_int migrate_to;           // Affinity hint: core to migrate to (-1 = none) atomic_int main_thread_only;     // If set, scheduler threads skip this actor SPSCQueue* spsc_queue;           // Lock-free same-core messaging (lazy alloc) _Atomic(ActorReplySlot*) reply_slot;  // Non-NULL during ask/reply atomic_flag step_lock;           // Prevents concurrent step() during work-steal } ActorBase; </code>``</li><li><strong>Message Structure</strong> (<code>runtime/actors/actor_state_machine.h</code>) ``<code>c typedef struct { int type; int sender_id; intptr_t payload_int; void* payload_ptr; struct { void* data; int size; int owned; } zerocopy; } Message; </code>``</li><li><strong>Message Queue</strong> (<code>runtime/scheduler/lockfree_queue.h</code>)<ul><li>Lock-free SPSC ring buffer with cache-line aligned head/tail</li><li>Batch enqueue and dequeue to reduce atomic operations</li><li>Power-of-2 sizing with bitwise AND masking</li></ul></li><li><strong>Message Dispatch</strong> (generated code)<ul><li>Computed goto dispatch table for direct label jumps</li><li>Message ID read from <code>msg.type</code> (not pointer dereference)</li></ul></li></ol>
+<ol><li><strong>Actor Structure</strong> (<code>runtime/scheduler/multicore_scheduler.h</code>)</li></ol>
+<p>The scheduler is handed a pointer to an actor and casts it to <code>ActorBase*</code>, so every actor struct starts with <code>ActorBase</code>'s fields. They are declared once, in the <code>AETHER_ACTOR_BASE_FIELDS</code> macro, and an actor struct expands the macro first; a hand-copied list drifts the moment a field is added.</p>
+<pre><code>   <span class="kw">typedef</span> <span class="kw">struct</span> {
+       AETHER_ACTOR_BASE_FIELDS
+       <span class="kw">int</span> count;                       <span class="com">// the actor's own state follows</span>
+   } CounterActor;</code></pre>
+<p>The fields, in order: <code>active</code>, <code>id</code>, <code>mailbox</code>, <code>step</code>, <code>thread</code>, <code>auto_process</code>, <code>assigned_core</code>, <code>migrate_to</code>, <code>main_thread_only</code>, <code>spsc_queue</code>, <code>reply_slot</code>, <code>step_lock</code>, <code>timeout_ns</code>, <code>last_activity_ns</code>, <code>dead</code>, <code>alloc_size</code>, <code>destroy_state</code>, <code>scheduler_owned</code>, <code>inbox</code>, <code>thread_parked</code>. The header comments each one.</p>
+<ol><li><strong>Message Structure</strong> (<code>runtime/actors/actor_state_machine.h</code>) ``<code>c typedef struct { int type; int sender_id; intptr_t payload_int; void* payload_ptr; struct { void* data; int size; int owned; } zerocopy; } Message; </code>``</li><li><strong>Message Queue</strong> (<code>runtime/scheduler/lockfree_queue.h</code>)<ul><li>Lock-free SPSC ring buffer with cache-line aligned head/tail</li><li>Batch enqueue and dequeue to reduce atomic operations</li><li>Power-of-2 sizing with bitwise AND masking</li></ul></li><li><strong>Message Dispatch</strong> (generated code)<ul><li>Computed goto dispatch table for direct label jumps</li><li>Message ID read from <code>msg.type</code> (not pointer dereference)</li></ul></li></ol>
 <h3 id="scheduler">Scheduler</h3>
 <p><strong>Design:</strong> Partitioned multicore scheduler with work stealing and message-driven migration</p>
 <p><strong>Architecture:</strong></p>
@@ -855,7 +862,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.795 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.796 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.795</span>
+      <span class="vtag">v0.796</span>
     </nav>
   </div>
 </header>
@@ -786,7 +786,7 @@ scheduler_release_actor(actor);</code></pre>
 <h3 id="high-latency">High Latency</h3>
 <ul><li>Tune <code>SCHEDULER_DRAIN_BATCH</code> for latency-sensitive workloads (lower = less batching delay)</li><li>Check progressive backoff thresholds</li><li>Avoid blocking operations in actor step functions</li></ul>
 <h3 id="crashes">Crashes</h3>
-<ul><li>Verify all actor structs match <code>ActorBase</code> layout (fields, in order: <code>active</code>, <code>id</code>, <code>mailbox</code>, <code>step</code>, <code>thread</code>, <code>auto_process</code>, <code>assigned_core</code>, <code>migrate_to</code>, <code>main_thread_only</code>, <code>spsc_queue</code>, <code>reply_slot</code>, <code>step_lock</code>, <code>timeout_ns</code>, <code>last_activity_ns</code>, <code>dead</code>)</li><li>Initialize <code>migrate_to = -1</code> after actor creation</li><li>Use <code>scheduler_send_remote</code> instead of direct mailbox writes for cross-core messages</li><li>Call <code>scheduler_shutdown()</code> before process exit (waits for quiescence, stops and joins threads)</li></ul>
+<ul><li>Verify every actor struct starts with <code>ActorBase</code>'s fields: expand <code>AETHER_ACTOR_BASE_FIELDS</code> first (or put an <code>ActorBase</code> member first) rather than copying the list, which drifts as fields are added. In order, they are <code>active</code>, <code>id</code>, <code>mailbox</code>, <code>step</code>, <code>thread</code>, <code>auto_process</code>, <code>assigned_core</code>, <code>migrate_to</code>, <code>main_thread_only</code>, <code>spsc_queue</code>, <code>reply_slot</code>, <code>step_lock</code>, <code>timeout_ns</code>, <code>last_activity_ns</code>, <code>dead</code>, <code>alloc_size</code>, <code>destroy_state</code>, <code>scheduler_owned</code>, <code>inbox</code>, <code>thread_parked</code>.</li><li>Initialize <code>migrate_to = -1</code> after actor creation</li><li>Use <code>scheduler_send_remote</code> instead of direct mailbox writes for cross-core messages</li><li>Call <code>scheduler_shutdown()</code> before process exit (waits for quiescence, stops and joins threads)</li></ul>
 <h2 id="files-reference">Files Reference</h2>
 <h3 id="headers">Headers</h3>
 <ul><li><code>runtime/actors/actor_state_machine.h</code> - Message struct, mailbox</li><li><code>runtime/scheduler/multicore_scheduler.h</code> - Scheduler API, ActorBase, spinlock</li><li><code>runtime/scheduler/lockfree_queue.h</code> - Cross-core message queue</li><li><code>runtime/actors/aether_spsc_queue.h</code> - Same-core SPSC queue</li><li><code>runtime/actors/aether_adaptive_batch.h</code> - Adaptive batch sizing</li></ul>
@@ -806,7 +806,7 @@ scheduler_release_actor(actor);</code></pre>
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.795 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.796 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.795</span>
+      <span class="vtag">v0.796</span>
     </nav>
   </div>
 </header>
@@ -891,7 +891,8 @@ ActorBase* scheduler_spawn_actor(
     <span class="kw">char</span>* my_string;
 } MyActor;</code></pre>
 <p>The <code>ActorBase</code> contains:</p>
-<ul><li><code>active</code>: Processing flag (<code>atomic_int</code>)</li><li><code>id</code>: Unique actor ID</li><li><code>mailbox</code>: Message queue (ring buffer)</li><li><code>step</code>: Your message handler</li><li><code>assigned_core</code>: Current core assignment (<code>atomic_int</code>, safe for cross-core reads)</li><li><code>migrate_to</code>: Affinity hint for message-driven migration (<code>atomic_int</code>)</li><li><code>main_thread_only</code>: If set, scheduler threads skip this actor (<code>atomic_int</code>)</li><li><code>spsc_queue</code>: Lock-free same-core messaging (pointer, lazily allocated)</li><li><code>reply_slot</code>: Non-NULL during ask/reply (<code>_Atomic</code> pointer)</li><li><code>step_lock</code>: Prevents concurrent <code>step()</code> during work-steal handoff (<code>atomic_flag</code>)</li></ul>
+<ul><li><code>active</code>: Processing flag (<code>atomic_int</code>)</li><li><code>id</code>: Unique actor ID</li><li><code>mailbox</code>: Message queue (ring buffer)</li><li><code>step</code>: Your message handler</li><li><code>assigned_core</code>: Current core assignment (<code>atomic_int</code>, safe for cross-core reads)</li><li><code>migrate_to</code>: Affinity hint for message-driven migration (<code>atomic_int</code>)</li><li><code>main_thread_only</code>: If set, scheduler threads skip this actor (<code>atomic_int</code>)</li><li><code>spsc_queue</code>: Lock-free same-core messaging (pointer, lazily allocated)</li><li><code>reply_slot</code>: Non-NULL during ask/reply (<code>_Atomic</code> pointer)</li><li><code>step_lock</code>: Prevents concurrent <code>step()</code> during work-steal handoff (<code>atomic_flag</code>)</li><li><code>timeout_ns</code>, <code>last_activity_ns</code>: Receive timeout and when idling began</li><li><code>dead</code>: Set once the actor panicked or was released; it is skipped after</li><li><code>alloc_size</code>, <code>destroy_state</code>, <code>scheduler_owned</code>: How the scheduler frees it</li><li><code>inbox</code>, <code>thread_parked</code>: For an actor with its own thread (<code>auto_process</code>), where every sender puts its messages and whether the thread sleeps idle</li></ul>
+<p>Embedding <code>ActorBase</code> as the first member, as above, keeps the layout right whatever fields it gains. The full list, in order, with a comment for each, is the <code>AETHER_ACTOR_BASE_FIELDS</code> macro in <code>runtime/scheduler/multicore_scheduler.h</code>.</p>
 <h2 id="message-handler-pattern">Message Handler Pattern</h2>
 <pre><code><span class="kw">void</span> my_actor_step(<span class="kw">void</span>* self) {
     MyActor* actor = (MyActor*)self;
@@ -1011,7 +1012,7 @@ Counter* spawn_Counter(<span class="kw">void</span>);
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.795 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.796 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>
