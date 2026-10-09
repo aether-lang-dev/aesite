@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.797</span>
+      <span class="vtag">v0.798</span>
     </nav>
   </div>
 </header>
@@ -789,6 +789,7 @@ sandbox.enforce(outer) callback {
     }
 }</code></pre>
 <p>The checker consults every grant list on the stack and allows an operation only when each of them does, so the inner block gets the intersection of the two. An inner grant list cannot widen what an outer one refused.</p>
+<p>A level cannot be widened from inside, either. <code>enforce</code> freezes the grant list when the block starts and checks against its own copy, which nothing else can reach, and the block's parameter is <code>null</code> rather than the list. So code inside the block that has been handed the list (<code>plugin(worker)</code>) and calls <code>sandbox.grant_env(worker, ...)</code> changes the caller's list for the <em>next</em> <code>enforce</code>, not the running one.</p>
 <h3 id="the--wildcard">The <code>*</code> wildcard</h3>
 <p><code>grant_all()</code> adds the wildcard category and pattern <code>("*", "*")</code>, which matches every check. Within a category, a pattern of <code>"*"</code> matches any resource (<code>grant_tcp("*")</code> is any host), <code>"/etc/*"</code> a prefix, and <code>"*.example.com"</code> a suffix.</p>
 <h2 id="mapping-to-your-java-securitypolicydemo">Mapping to your Java SecurityPolicyDemo</h2>
@@ -1279,7 +1280,7 @@ db.credentials.user = admin</code></pre>
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.797 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.798 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>
