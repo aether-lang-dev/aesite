@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.799</span>
+      <span class="vtag">v0.800</span>
     </nav>
   </div>
 </header>
@@ -787,7 +787,7 @@ if id_count &gt; 8 {
     ids = heap             // legal: `ids` is a reassignable pointer
 }</code></pre>
 <p>This is the stack-buffer-with-heap-fallback idiom (<code>T buf[N]; T* p = buf; if (n &gt; N) p = malloc(...)</code>). Only a <em>named array</em> decays; an array <em>literal</em> initializer (<code>x = [1, 2, 3]</code>) still binds a real array. To keep the array type, annotate the binding explicitly (<code>x: byte[128] = ...</code>).</p>
-<p><strong>A fixed-size array is a value.</strong> A parameter typed <code>int[3]</code> is the callee's own copy of the caller's elements, so a write to it, by the callee or by a closure in it, stays in the callee, and <code>xs.len</code> is the declared length; the argument must be an array of exactly that length (a slice parameter, <code>int[]</code>, takes any length). Binding an array to a variable that already holds one of the same length copies its elements (<code>a = b</code>); an array keeps the length of its first binding, so binding one of another length is a type error. An element of a <code>const</code> array cannot be written: copy the table into an array of your own first.</p>
+<p><strong>A fixed-size array is a value.</strong> A parameter typed <code>int[3]</code> is the callee's own copy of the caller's elements, so a write to it, by the callee or by a closure in it, stays in the callee, and <code>xs.len</code> is the declared length; the argument must be an array of exactly that length (a slice parameter, <code>int[]</code>, takes any length). Binding an array to a variable that already holds one of the same length copies its elements (<code>a = b</code>), and so does declaring one from another (<code>int[3] b = a</code>); an array keeps the length of its first binding, so binding one of another length is a type error. An element of a <code>const</code> array cannot be written: copy the table into an array of your own first.</p>
 <pre><code>sum3(xs: int[3]) -&gt; int {
     xs[0] = 100            // the callee's copy
     return xs[0] + xs[1] + xs[2]
@@ -2643,7 +2643,7 @@ process_file(path) {
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.799 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.800 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

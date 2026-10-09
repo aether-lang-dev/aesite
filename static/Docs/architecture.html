@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.799</span>
+      <span class="vtag">v0.800</span>
     </nav>
   </div>
 </header>
@@ -808,6 +808,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <p><code>runtime/config/aether_optimization_config.h</code> defines compile-time <code>AETHER_HAS_*</code> flags that gate all platform-dependent code. These are resolved before any other header is included.</p>
 <div class="tw"><table><thead><tr><th>Flag</th><th>Default 1 when</th><th>Default 0 when</th></tr></thead><tbody><tr><td><code>AETHER_HAS_THREADS</code></td><td>Linux/macOS/Windows</td><td><code>__EMSCRIPTEN__</code>, <code>-DAETHER_NO_THREADING</code></td></tr><tr><td><code>AETHER_HAS_ATOMICS</code></td><td>C11 stdatomic available</td><td><code>__STDC_NO_ATOMICS__</code>, <code>-DAETHER_NO_ATOMICS</code></td></tr><tr><td><code>AETHER_HAS_FILESYSTEM</code></td><td>Hosted platforms</td><td><code>-DAETHER_NO_FILESYSTEM</code></td></tr><tr><td><code>AETHER_HAS_NETWORKING</code></td><td>Linux/macOS/Windows</td><td><code>__EMSCRIPTEN__</code>, <code>-DAETHER_NO_NETWORKING</code></td></tr><tr><td><code>AETHER_HAS_NUMA</code></td><td>Linux/Windows</td><td>macOS, <code>__EMSCRIPTEN__</code>, <code>-DAETHER_NO_NUMA</code></td></tr><tr><td><code>AETHER_HAS_SIMD</code></td><td>x86_64/aarch64</td><td><code>-DAETHER_NO_SIMD</code>, <code>__EMSCRIPTEN__</code></td></tr><tr><td><code>AETHER_HAS_AFFINITY</code></td><td>Linux/macOS/Windows</td><td><code>-DAETHER_NO_AFFINITY</code>, <code>__EMSCRIPTEN__</code></td></tr><tr><td><code>AETHER_HAS_GETENV</code></td><td>Hosted platforms</td><td><code>-DAETHER_NO_GETENV</code>, freestanding</td></tr><tr><td><code>AETHER_HAS_MALLOC</code></td><td>Everywhere</td><td><code>-DAETHER_NO_MALLOC</code></td></tr></tbody></table></div>
 <p>When <code>AETHER_HAS_ATOMICS == 0</code>, <code>&lt;stdatomic.h&gt;</code> is replaced with fallback typedefs (<code>atomic_int</code> → <code>volatile int</code>). When <code>AETHER_HAS_THREADS == 0</code>, <code>aether_thread.h</code> provides no-op pthread stubs via macro redirects.</p>
+<p>On Windows <code>aether_thread.h</code> implements pthreads with Win32 primitives and includes <code>windows.h</code> for them, but a program's generated C defines <code>AETHER_THREAD_TYPES_ONLY</code> and gets the types alone: <code>pthread_t</code>, <code>pthread_mutex_t</code> and <code>pthread_cond_t</code> are declared with the layout of <code>HANDLE</code>, <code>CRITICAL_SECTION</code> and <code>CONDITION_VARIABLE</code> (checked with static asserts where <code>windows.h</code> is included), and the few Windows services a program needs (console setup, the monotonic clock, the preemption yield, an actor's own thread) are runtime functions. mingw-w64's <code>winnt.h</code> includes every x86 intrinsics header GCC ships, and keeping <code>windows.h</code> out of the program's C took about 80,000 lines off every build (#2673).</p>
 <h3 id="memory-management">Memory Management</h3>
 <p><strong>Message Payloads:</strong></p>
 <ul><li>Thread-local pool of 256 pre-allocated buffers (256 bytes each)</li><li>Pool acquisition and release use plain loads/stores (no atomics for TLS)</li><li>Falls back to malloc for oversized messages or pool exhaustion</li><li><code>aether_free_message</code> returns buffers to the pool or calls <code>free</code></li></ul>
@@ -862,7 +863,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.799 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.800 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

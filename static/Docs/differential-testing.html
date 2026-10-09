@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.799</span>
+      <span class="vtag">v0.800</span>
     </nav>
   </div>
 </header>
@@ -693,13 +693,19 @@ main() { run() }</code></pre>
 <p>There are no carveouts today. Nothing has yet been found that differs between <code>--emit=exe</code> and <code>--emit=lib</code>.</p>
 <h2 id="platform-note">Platform note</h2>
 <p>The <code>--emit=lib</code> half needs <code>dlopen</code>, which MSYS2/MinGW does not provide (the runtime's <code>-ldl</code> dependency does not exist there). On Windows the suite reports a skip with that reason rather than passing silently, the same treatment the C-interop link cases give their Windows gap.</p>
+<h2 id="optimisation-levels--o0-against--o2">Optimisation levels: -O0 against -O2</h2>
+<p><code>ae build</code> compiles the generated C at <code>-O2</code>; <code>ae run</code> and <code>ae build --quick</code> compile it at <code>-O0 -g</code>. The <code>.ae</code> corpus used to run only at <code>-O2</code>, so a bug that shows only at <code>-O0</code> passed every sweep and reached the people using <code>ae run</code>: a stack canary tripping on an overflow that <code>-O2</code> lays out harmlessly, a read of uninitialised memory, a string read after its owner was freed. #1957, #2128 and #2484 had that shape.</p>
+<p><code>make test-ae-opt-diff</code> (#2488) builds every program <code>make test-ae</code> builds at both levels, runs both, and compares stdout and the exit code. The list is the sweep's own (<code>tests/scripts/ae_sweep_list.sh</code>, which <code>test-ae</code> reads too), so the two cannot drift apart. Each program is built the way the sweep builds it, and both of its binaries run from the same path one after the other, so a program that prints <code>argv[0]</code> agrees with itself. A difference fails the target and prints both sides; a program that fails to build at either level fails it too.</p>
+<p>CI runs it on the Linux / GCC leg only, after <code>make ci</code>. The sweep there has just built every program at <code>-O2</code> with the same compiler and flags, so those builds are normally served from the build cache and the step costs about one <code>-O0</code> sweep.</p>
+<p>Its carveouts live in <code>tests/differential/opt_diff_carveouts.txt</code>, as <code>&lt;program&gt; &lt;reason&gt;</code>, and follow the rules above: reported on every run, an error if the program no longer exists. A carved-out program still has its exit codes compared, so a crash at one level is caught in it too; only its stdout is excused. A program belongs there only when its stdout varies from run to run at a single level (a clock, a pid, an interleaving of threads). One that prints the same thing each time at each level, but something different between them, is a bug in the compiler or in the test, and is fixed instead.</p>
+<p><code>OPT_DIFF_ONLY=&lt;regex&gt;</code> narrows a run to the matching programs, for re-running the ones a sweep reported.</p>
 <h2 id="extending-it">Extending it</h2>
-<p>The exe-vs-lib pair is the first path comparison, not the only possible one. Others worth adding when they exist: optimisation levels against each other, and per-target codegen (the Linux and MSYS2 builds CI already runs are currently each checked only against their own expectations, never against each other).</p>
+<p>The exe-vs-lib pair and the two optimisation levels are path comparisons; there are others. A UBSan build is the natural third configuration of the optimisation-level target. Per-target codegen is another (the Linux and MSYS2 builds CI already runs are each checked only against their own expectations, never against each other).</p>
 <p>The harness self-checks that its comparison can fail. Without that, a broken diff would make every case vacuously agree and the suite would report success while testing nothing.</p>
 <nav class="doc-prevnext" aria-label="Previous and next page"><a class="pn-prev" href="/Docs/mutation-testing.html"><span class="pn-k">Previous</span><span class="pn-t">Mutation testing, std.mutation</span></a><a class="pn-next" href="/Docs/performance-benchmarks.html"><span class="pn-k">Next</span><span class="pn-t">Aether Performance Benchmarks</span></a></nav>
       </article>
     </main>
-    <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#what-runs" class="l2" data-id="what-runs">What runs</a><a href="#writing-a-case" class="l2" data-id="writing-a-case">Writing a case</a><a href="#carveouts" class="l2" data-id="carveouts">Carveouts</a><a href="#platform-note" class="l2" data-id="platform-note">Platform note</a><a href="#extending-it" class="l2" data-id="extending-it">Extending it</a></nav>
+    <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#what-runs" class="l2" data-id="what-runs">What runs</a><a href="#writing-a-case" class="l2" data-id="writing-a-case">Writing a case</a><a href="#carveouts" class="l2" data-id="carveouts">Carveouts</a><a href="#platform-note" class="l2" data-id="platform-note">Platform note</a><a href="#optimisation-levels--o0-against--o2" class="l2" data-id="optimisation-levels--o0-against--o2">Optimisation levels: -O0 against -O2</a><a href="#extending-it" class="l2" data-id="extending-it">Extending it</a></nav>
   </div>
 </div>
 <script src="/docs.js" defer></script>
@@ -708,7 +714,7 @@ main() { run() }</code></pre>
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.799 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.800 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>
