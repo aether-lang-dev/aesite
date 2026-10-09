@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.798</span>
+      <span class="vtag">v0.799</span>
     </nav>
   </div>
 </header>
@@ -952,10 +952,11 @@ aether_http_request_duration_seconds_count{method="GET",path="/api/users"} 4239<
 <pre><code>err = http.server_shutdown_graceful(server, 5000ms)  // 5-second deadline
 if err != "" { println("warning: ${err}") }       // "timeout" if not drained</code></pre>
 <p>Stops accepting new connections (closes the listen socket), then waits up to the supplied <code>Duration</code> for in-flight ones to drain. Backed by an atomic <code>inflight_connections</code> counter accurate across both thread-pool and actor-dispatch modes. Typically wired into a SIGTERM handler.</p>
+<p>What a stop does to the connections it has (<code>http_server_stop</code>, which the graceful form starts with): a request already being handled finishes and its response is sent; no further request is started on any connection; a keep-alive connection waiting for its client's next request, or parked, is closed at once rather than after its idle timeout.</p>
 <hr>
 <h2 id="embedded--background-servers">Embedded / background servers</h2>
-<p><code>http_server_start_background_raw(server)</code> runs the accept loop on a detached thread and returns immediately, so a host can keep serving while doing other work (and stop it later with <code>http_server_stop</code>). This is the <em>embedded</em> mode and behaves like a library, not a CLI:</p>
-<ul><li><strong>No banner.</strong> It does not print <code>Server running at …</code> / <code>Press Ctrl+C to stop</code> an embedded server is controlled by <code>http_server_stop</code>, not a terminal. (Foreground <code>server_start</code> still prints the banner.)</li><li><strong>Quiet signals.</strong> Its detached accept/worker threads block async signals (<code>pthread_sigmask</code> SIGURG, SIGINT, SIGTERM, SIGPIPE, …), so the server's threads never intercept a process-directed signal meant for the host application; the synchronous fault signals (SEGV/FPE/BUS/…) stay deliverable.</li></ul>
+<p><code>http_server_start_background_raw(server)</code> runs the accept loop on a thread of its own and returns immediately, so a host can keep serving while doing other work (and stop it later with <code>http_server_stop</code>). Stop waits for that thread: when it returns, the accept loop, its workers and the parking lot are done, so the server can be freed at once, and another started in the same process. This is the <em>embedded</em> mode and behaves like a library, not a CLI:</p>
+<ul><li><strong>No banner.</strong> It does not print <code>Server running at …</code> / <code>Press Ctrl+C to stop</code> an embedded server is controlled by <code>http_server_stop</code>, not a terminal. (Foreground <code>server_start</code> still prints the banner.)</li><li><strong>Quiet signals.</strong> Its accept/worker threads block async signals (<code>pthread_sigmask</code> SIGURG, SIGINT, SIGTERM, SIGPIPE, …), so the server's threads never intercept a process-directed signal meant for the host application; the synchronous fault signals (SEGV/FPE/BUS/…) stay deliverable.</li></ul>
 <p><strong>Reap it, don't leave it lingering.</strong> A backgrounded server left alive past the end of a command is a finite process the surrounding harness (a sandboxed agent, CI runner, build tool) must still account for; some supervisors charge the <em>foreground</em> command a non-zero/SIGURG exit for a lingering multi-threaded child. Always tear an embedded server down explicitly, <code>http_server_stop</code> (or <code>server_shutdown_graceful</code>), then let the process exit, rather than orphaning it.</p>
 <hr>
 <h2 id="lifecycle-hooks">Lifecycle hooks</h2>
@@ -994,7 +995,7 @@ http.server_set_health_probes(server, "/healthz", "/readyz", ready_check, null)<
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.798 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.799 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>
