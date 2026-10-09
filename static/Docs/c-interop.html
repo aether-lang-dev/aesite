@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.794</span>
+      <span class="vtag">v0.795</span>
     </nav>
   </div>
 </header>
@@ -1314,11 +1314,10 @@ server_get(raw, "/health", _h_health, 0)   // references ae_h_health</code></pre
 <p>One sharp edge worth knowing: a <strong>local variable may shadow a top-level function's name</strong>, and such a local is emitted verbatim rather than renamed. That works on its own, but a single function that <em>both</em> shadows the name and passes the function as a value cannot work in either spelling, in the emitted C the value reference would precede the local's declaration. Pick one meaning per scope; the trailing-underscore file-local convention (<code>h_health_</code>) is the idiomatic way to keep them apart.</p>
 <h3 id="collisions-with-the-aether-standard-library">Collisions with the Aether standard library</h3>
 <p>The curated list above covers libc, but <code>libaether.a</code> exports a couple of thousand bare C symbols of its own (<code>string_*</code>, <code>list_*</code>, <code>map_*</code>, …), and it grows with every release. A top-level function in your entry file called <code>string_replace_all</code> used to emit a bare C symbol of that name and collide with <code>libaether.a</code> the moment <code>std.string</code> gained a function that lowered to the same symbol, breaking a build that had worked for months with no change to your code (#1366).</p>
-<p>Two things prevent that now, and neither is a name list that has to be kept up to date:</p>
-<ul><li><strong>Top-level functions in an executable build get internal linkage.</strong> The generated C for an executable is a single translation unit, so nothing outside it can legitimately reference those functions by name, and <code>static</code> means the linker never compares them against <code>libaether.a</code> at all.</li><li><strong>A function whose name matches an extern the same file declares is renamed</strong> to the <code>ae_</code> spelling above. Importing <code>std.string</code> puts a <code>string_replace_all</code> prototype in your translation unit, so your own function of that name is emitted as <code>ae_string_replace_all</code>. Calls follow the rename; <code>string.replace_all(...)</code> still reaches the standard library.</li></ul>
-<p>Both are invisible to Aether source. <code>--emit=lib</code>, <code>--emit=both</code> and <code>--emit=csrc</code> are excluded from the linkage change, because there the bare symbols of functions the flattened ABI cannot express (builders, <code>fn</code>-typed parameters) are a documented part of what consumers link against.</p>
+<p>What prevents that now is not a name list that has to be kept up to date: <strong>a function whose name matches an extern the same file declares is renamed</strong> to the <code>ae_</code> spelling above. Importing <code>std.string</code> puts a <code>string_replace_all</code> prototype in your translation unit, so your own function of that name is emitted as <code>ae_string_replace_all</code>. Calls follow the rename; <code>string.replace_all(...)</code> still reaches the standard library. It is invisible to Aether source.</p>
+<p>A top-level function of the entry file keeps external linkage, under its own name when nothing collides with it: a C file built into the program can call it, against a header it shares with the Aether definition (#703). Making those functions <code>static</code> would also have kept them away from <code>libaether.a</code>, but it would break that. The functions of imported modules have internal linkage (each translation unit gets its own copy), and so does a file-local function whose name ends in <code>_</code> (#279).</p>
 <h3 id="when-to-use-c_callback-instead">When to use <code>@c_callback</code> instead</h3>
-<p>If your Aether function specifically needs a <strong>stable, unprefixed C symbol</strong>, e.g. it's going to be looked up via <code>dlsym()</code> from a host program, or passed as a function pointer to a C library, annotate it with <code>@c_callback("desired_c_name")</code>. That bypasses the prefix logic and emits exactly the symbol you ask for. It is also the opt-out from the internal-linkage rule above: a <code>@c_callback</code> function keeps external linkage in every emit mode, so a C file you pass with <code>--extra</code> (or <code>extra_sources</code> in <code>aether.toml</code>) can call it by name.</p>
+<p>If your Aether function specifically needs a <strong>stable, unprefixed C symbol</strong>, e.g. it's going to be looked up via <code>dlsym()</code> from a host program, or passed as a function pointer to a C library, annotate it with <code>@c_callback("desired_c_name")</code>. That bypasses the prefix logic and emits exactly the symbol you ask for, and it keeps external linkage in every emit mode, even in an imported module or for a name ending in <code>_</code>, so a C file you pass with <code>--extra</code> (or <code>extra_sources</code> in <code>aether.toml</code>) can call it by name.</p>
 <h3 id="aether-keyword-collisions">Aether-keyword collisions</h3>
 <p>A handful of libc names also happen to be Aether keywords (<code>send</code> is reserved for actor messaging). Those are caught one layer earlier by the parser with <code>error[E0100]</code> the codegen mitigation never sees them.</p>
 <h2 id="see-also">See Also</h2>
@@ -1335,7 +1334,7 @@ server_get(raw, "/health", _h_health, 0)   // references ae_h_health</code></pre
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.794 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.795 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>
