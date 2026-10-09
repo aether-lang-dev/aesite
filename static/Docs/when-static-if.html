@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.800</span>
+      <span class="vtag">v0.801</span>
     </nav>
   </div>
 </header>
@@ -694,8 +694,9 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <p>These compose freely with <code>&amp;&amp;</code>, <code>||</code>, and <code>!</code>.</p>
 <p>A condition that is <strong>not</strong> a compile-time constant (e.g. a runtime variable, an unsupported call, a comparison the folder doesn't recognise) is a <strong>hard compile error</strong>, the build fails with a message listing the supported forms. <code>when</code> never guesses an arm; if the compiler can't decide the condition at compile time, it stops.</p>
 <h3 id="targetos-and-targetarch"><code>target.os</code> and <code>target.arch</code></h3>
-<p><code>target.os</code> and <code>target.arch</code> are compiler-provided compile-time string constants describing the build target. They are sourced from the <strong>same C preprocessor macros</strong> the runtime's <code>os.platform()</code> uses (see <code>os_platform_raw</code> in <code>std/os/aether_os.c</code>), so the canonical names match across the toolchain. Note the "target" here is the host that built <code>aetherc</code>: <code>target_os_string</code> / <code>target_arch_string</code> in <code>compiler/codegen/optimizer.c</code> return values baked from the C preprocessor macros active when the compiler was compiled. <code>ae build --target wasm</code> does cross-compile the generated C to WebAssembly via <code>emcc</code>, but it does not change these constants: under <code>--target wasm</code> a <code>when target.os == ...</code> still reports the host, not <code>"wasm"</code>, exactly as <code>os.platform()</code> and <code>select()</code> also key off the host.</p>
-<div class="tw"><table><thead><tr><th>Constant</th><th>Canonical values</th></tr></thead><tbody><tr><td><code>target.os</code></td><td><code>"windows"</code>, <code>"darwin"</code> (macOS), <code>"linux"</code>, <code>"freebsd"</code>, <code>"openbsd"</code>, <code>"netbsd"</code>, <code>"dragonfly"</code>, <code>"solaris"</code>, <code>"wasm"</code>, <code>"unknown"</code></td></tr><tr><td><code>target.arch</code></td><td><code>"x86_64"</code>, <code>"aarch64"</code>, <code>"x86"</code>, <code>"arm"</code>, <code>"riscv64"</code>, <code>"ppc64"</code>, <code>"wasm"</code>, <code>"unknown"</code></td></tr></tbody></table></div>
+<p><code>target.os</code> and <code>target.arch</code> are compiler-provided compile-time string constants describing the build target. They are sourced from the <strong>same C preprocessor macros</strong> the runtime's <code>os.platform()</code> uses (see <code>os_platform_raw</code> in <code>std/os/aether_os.c</code>), so the canonical names match across the toolchain.</p>
+<p>For a native build they describe the machine <code>aetherc</code> runs on (<code>target_os_string</code> / <code>target_arch_string</code> in <code>compiler/codegen/optimizer.c</code>). For a cross build they describe the machine being built <strong>for</strong>: <code>ae build --target=&lt;triple&gt;</code> passes <code>--target-os</code> and <code>--target-arch</code> to <code>aetherc</code> (derived in <code>tools/ae_cross.c</code>, <code>cross_target_os_arch</code>), so <code>--target=x86_64-windows</code> on a Linux machine takes the <code>target.os == "windows"</code> arm, and <code>--target wasm</code> / <code>wasm32-wasi</code> report <code>"wasm"</code>. That matches <code>os.platform()</code>, which is compiled into the target binary and so reports the target at run time. iOS reports <code>"darwin"</code> and Android <code>"linux"</code>, as their compilers' <code>__APPLE__</code> / <code>__linux__</code> macros do. <code>aetherc</code> rejects a <code>--target-os</code> / <code>--target-arch</code> it does not know, rather than letting every <code>when</code> fall through to <code>else</code>.</p>
+<div class="tw"><table><thead><tr><th>Constant</th><th>Canonical values</th></tr></thead><tbody><tr><td><code>target.os</code></td><td><code>"windows"</code>, <code>"darwin"</code> (macOS), <code>"linux"</code>, <code>"freebsd"</code>, <code>"openbsd"</code>, <code>"netbsd"</code>, <code>"dragonfly"</code>, <code>"solaris"</code>, <code>"wasm"</code>, <code>"unknown"</code></td></tr><tr><td><code>target.arch</code></td><td><code>"x86_64"</code>, <code>"aarch64"</code>, <code>"x86"</code>, <code>"arm"</code>, <code>"riscv64"</code>, <code>"loongarch64"</code>, <code>"ppc64"</code>, <code>"wasm"</code>, <code>"unknown"</code></td></tr></tbody></table></div>
 <p>Note macOS is <code>"darwin"</code> (matching <code>os.platform()</code> and Go/Rust's convention), not <code>"macos"</code>. <code>target.os</code> / <code>target.arch</code> are only meaningful inside a <code>when</code> condition.</p>
 <h2 id="semantics-only-the-selected-arm-is-type-checked-and-emitted">Semantics: only the selected arm is type-checked and emitted</h2>
 <p>The condition is evaluated by a pre-typecheck pass (<code>resolve_when_statements</code>, in <code>compiler/codegen/optimizer.c</code>), run on the entry file between parse and type-check and on each imported module as soon as it is parsed. That pass:</p>
@@ -718,7 +719,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.800 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.801 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

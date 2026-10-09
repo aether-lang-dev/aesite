@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.800</span>
+      <span class="vtag">v0.801</span>
     </nav>
   </div>
 </header>
@@ -770,6 +770,9 @@ JNIEXPORT <span class="kw">void</span> JNICALL Java_..._onDestroy(JNIEnv* env, j
     <span class="kw">return</span> rc;
 }</code></pre>
 <p>So any build tool that links the object into a program, aeb's <code>c.program</code>, a Makefile, <code>cc app.o $(ae cflags --libs)</code>, gets the program's entry point, and its exit code, without a hand-written C file. A host that has its own <code>main()</code> keeps it: a strong definition beats a weak one. A shared library that <code>ae</code> links itself (<code>--emit=lib</code>, native or <code>--target=</code>) leaves it out, it exports no entry point, as does wasm (emscripten runs a module's <code>main</code> on load, which would turn a library into a program) and a compiler without weak definitions. <code>-DAETHER_NO_LIB_MAIN</code> leaves it out anywhere else.</p>
+<p><strong>On Windows (MinGW) the entry is an archive member instead.</strong> A COFF weak definition is a weak external, and GNU ld (2.46 at least) still searched the archives for <code>main</code>: it pulled <code>libmingw32.a</code>'s <code>crtexewin.o</code>, a strong <code>main()</code> that calls <code>WinMain</code>, and the link failed with <code>undefined reference to 'WinMain'</code>. So the object carries no <code>main()</code> there, and the same three lines are the one member of <code>libaether_main.a</code>, installed beside <code>libaether.a</code>. <code>ae cflags --libs</code> names it first (<code>-L&lt;lib&gt; -laether_main -laether ...</code>), and an archive member is linked only when the link still needs the symbol it defines, so:</p>
+<ul><li><code>cc app.o $(ae cflags --libs)</code> links the program's own entry, as elsewhere;</li><li>a host with its own <code>main()</code> keeps it (the member is never pulled), with nothing to change: the same command line works on every platform;</li><li>a GUI host that enters through <code>WinMain</code> names the C runtime's entry first, <code>cc app.o host.c -lmingw32 $(ae cflags --libs)</code>, so that <code>main()</code> is resolved (to the one that calls <code>WinMain</code>) before <code>libaether_main.a</code> is searched. Without that it starts in the program's <code>main()</code>.</li></ul>
+<p>A link line written by hand rather than from <code>ae cflags --libs</code> adds <code>-laether_main</code> before <code>-laether</code> itself. The shared runtime (<code>aether.dll</code>) and every DLL <code>ae</code> links export no <code>main</code>.</p>
 <p><strong>Calling them more than once.</strong></p>
 <ul><li><code>aether_main</code> while the program is already running (no <code>aether_main_exit</code> since) is rejected: it prints <code>aether_main: already running; call aether_main_exit() first</code> on stderr, runs nothing, and returns <code>-1</code>.</li><li><code>aether_main_exit</code> with nothing running is a no-op, so calling it twice is safe, as is calling it when <code>aether_main</code> never ran.</li><li>After <code>aether_main_exit</code>, <code>aether_main</code> may run the program again on a fresh scheduler: an Android activity destroyed and recreated in the same process. The previous run's scheduler tables are freed; the actor objects it spawned are not (an executable leaves those to process exit too).</li><li>Call both from one thread, the host's main or UI thread. They are not synchronized against each other.</li></ul>
 <p><strong>Finding them.</strong> They are plain exported symbols: <code>dlsym(h, "aether_main")</code>, a weak reference, or the <code>--emit=csrc</code> header, which declares both when the program has a <code>main()</code>. They are not catalog functions (<code>aether_lib_meta</code> lists the library's callable functions, and an Aether program importing the library must not bind a <code>main</code>). A library without <code>main()</code> has neither. A wasm <code>--emit=lib</code> exports the catalog by default; add <code>--export=main --export=main_exit</code> (with the rest of the list you want) to export the pair. <code>--emit=both</code> keeps the executable's C <code>main</code> and adds no pair.</p>
@@ -814,16 +817,18 @@ AetherValue* aether_config_list_get        (AetherValue* list, <span class="kw">
 <ul><li><code>std.net</code>, <code>std.http</code>, <code>std.tcp</code> networking</li><li><code>std.fs</code> filesystem</li><li><code>std.os</code> process / environment / shell</li></ul>
 <p>The rationale: a library embedded in a host process shouldn't have ambient network, filesystem, or process-spawning access. Those are capabilities the <strong>host</strong> grants; the script should only compute and return data. The host mediates I/O through whatever its own runtime provides.</p>
 <p><code>std.map</code>, <code>std.list</code>, <code>std.string</code>, <code>std.json</code>, <code>std.math</code>, and the other capability-free standard modules are allowed.</p>
+<p>It also rejects an <code>extern</code> declared in the program's own code (the entry file, an <code>@extern("…")</code> binding, or a local module it imports). An extern names a C function directly, so <code>extern system(cmd: string) -&gt; int</code> would reach what <code>import std.os</code> is gated to stop. Externs declared by <code>std.*</code> and <code>contrib.*</code> modules are not the program's and are unaffected: those modules sit behind the gates above. Opt in with <code>--with=extern</code>.</p>
 <h3 id="opting-in---withcapabilities">Opting in: <code>--with=&lt;capabilities&gt;</code></h3>
 <p>Projects that <strong>are</strong> the host, code that compiles <code>.ae</code> and handwritten C into one binary, rather than embedding Aether as an untrusted user script, opt into specific capability categories:</p>
 <pre><code>ae build --emit=lib --with=fs           file.ae   <span class="com"># std.fs</span>
 ae build --emit=lib --with=net          file.ae   <span class="com"># std.net, std.http, std.tcp</span>
 ae build --emit=lib --with=os           file.ae   <span class="com"># std.os</span>
 ae build --emit=lib --with=fs,os        file.ae   <span class="com"># multiple, comma-separated</span>
+ae build --emit=lib --with=extern       file.ae   <span class="com"># the program's own C externs</span>
 ae build --emit=lib --with=first-party  file.ae   <span class="com"># alias for fs,net,os</span>
 ae build --emit=lib --with=all          file.ae   <span class="com"># alias for fs,net,os</span></code></pre>
 <p>The gate stays default-deny: a build without <code>--with=fs</code> still rejects <code>import std.fs</code>. Unknown capability names are a hard error (typos shouldn't silently leave a gate closed). The categories mirror the banned-import groupings above, three buckets, chosen coarsely enough that opting in is an auditable event in a project's build invocation.</p>
-<p><code>--with=first-party</code> and <code>--with=all</code> both expand to <code>fs,net,os</code>. The two names are equivalent; pick whichever expresses intent better in your project. <code>first-party</code> reads as "this Aether code is trusted-as-first-party, give it everything"; <code>all</code> reads as a literal shorthand for the full set. Using either one is appropriate for tools like build systems and SDK generators where the <code>.ae</code> files ship with the toolchain itself; it is <strong>not</strong> appropriate for plugin / user- script scenarios, see "When NOT to use this" below.</p>
+<p><code>--with=first-party</code> and <code>--with=all</code> both expand to <code>fs,net,os,extern</code>. The two names are equivalent; pick whichever expresses intent better in your project. <code>first-party</code> reads as "this Aether code is trusted-as-first-party, give it everything"; <code>all</code> reads as a literal shorthand for the full set. Using either one is appropriate for tools like build systems and SDK generators where the <code>.ae</code> files ship with the toolchain itself; it is <strong>not</strong> appropriate for plugin / user- script scenarios, see "When NOT to use this" below.</p>
 <p><strong>When to use this.</strong> Systems code where the <code>.ae</code> files are first-party and version-controlled the same way as the <code>.c</code> files. The Aether-side <code>file_open_raw</code> is no different from the C side calling <code>fopen</code> there's no privilege boundary to police.</p>
 <p><strong>When NOT to use this.</strong> Anywhere the library could run untrusted Aether (user scripts, a plugin loader, a DSL evaluator). Leave the default in place; the host mediates I/O on the script's behalf.</p>
 <h2 id="symbol-visibility-matrix">Symbol visibility matrix</h2>
@@ -1042,7 +1047,7 @@ for i in range(meta.function_count):
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.800 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.801 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

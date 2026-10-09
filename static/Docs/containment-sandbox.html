@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.800</span>
+      <span class="vtag">v0.801</span>
     </nav>
   </div>
 </header>
@@ -822,7 +822,7 @@ classify(req: Request) -&gt; int { ... }            // must touch no filesystem<
 <p>Aether's <code>extern</code> keyword lets code call raw C functions directly. If contained code declares:</p>
 <pre><code>extern fopen(path: string, mode: string) -&gt; ptr</code></pre>
 <p>It can call <code>fopen</code> directly, bypassing <code>file_open</code> and its sandbox check entirely. The sandbox enforces stdlib calls, not raw C.</p>
-<p><strong>Today:</strong> this is not enforced. Extern calls inside sandboxed closures compile and run without restriction.</p>
+<p><strong>Today:</strong> under <code>--emit=lib</code> it is enforced at compile time: a library built without <code>--with=extern</code> may not declare its own externs (see <code>docs/emit-lib.md</code>, "Capability-empty default"), so a capability-empty library cannot name <code>fopen</code> or <code>system</code> itself. In an executable, extern calls inside sandboxed closures still compile and run without restriction; the check below is the remaining step.</p>
 <p><strong>Impact:</strong> the sandbox is effective when you control compilation and don't put <code>extern</code> declarations in contained code. It's the same trust model as Docker, you trust the container runtime (Aether's stdlib), but the contained code must use the provided APIs.</p>
 <h3 id="proposed-fix-compiler-enforced-extern-check">Proposed fix: compiler-enforced extern check</h3>
 <p>The compiler should reject <code>extern</code> function calls inside closures passed to <code>run_sandboxed</code>. Implementation:</p>
@@ -1280,7 +1280,7 @@ db.credentials.user = admin</code></pre>
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.800 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.801 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>
