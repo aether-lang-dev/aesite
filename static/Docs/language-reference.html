@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.804</span>
+      <span class="vtag">v0.805</span>
     </nav>
   </div>
 </header>
@@ -2062,6 +2062,7 @@ main() {
 <p>A selective import decides which names your file may write bare; it does not narrow the module. The whole module is merged into the build and every one of its functions is type-checked, the ones you did not select and the ones nothing calls included, so an error anywhere in it is reported by your build (#2613). Functions nothing calls are still left out of the emitted C. That is also what lets a selected function read a constant you did not select, and a qualified <code>m.other()</code> reach a function you did not select (#2630).</p>
 <h3 id="what-a-file-can-reach">What a file can reach</h3>
 <p>A qualified <code>ns.name</code> resolves against the imports of the file it is written in. A module that some other module of the program imports is loaded, but it is not visible to your code, and a library module is held to the same rule: a module calling <code>low.f()</code> must <code>import low</code> itself, even when another module it imports already does. <code>ae build</code> and <code>ae check</code> agree on this; the error is E0301, and its help line names the missing import (#2614). A module does see itself: <code>m.a()</code> and <code>m.K</code> inside module <code>m</code> name its own definitions, its private ones staying private (E0303), in a build and in <code>ae check</code> of the module's file alike (#2631).</p>
+<p>Bare names follow the same rule. A module's selective or glob import binds names for that module, including a module's extern-backed names (<code>import std.http (server_create)</code> for its <code>extern http_server_create</code>), and a program's selective or glob imports bind names for the program only. A module that calls <code>server_create(...)</code> without importing <code>std.http</code> itself fails with E0301, whichever program imports it; it used to build when the program happened to import the name, and fail when it did not.</p>
 <h3 id="module-public-api-exports-">Module Public API, <code>exports (…)</code></h3>
 <p>Each module declares its public surface once at the top of the file via an <code>exports (…)</code> list. Names in the list are callable from outside the module via either qualified (<code>mod.name(…)</code>) or short-alias (<code>import mod (*)</code>) forms. Names <strong>not</strong> in the list are private, still callable from inside the module's own functions, but rejected at qualified-call sites from outside.</p>
 <pre><code>// At the top of greeter/module.ae:
@@ -2670,7 +2671,7 @@ process_file(path) {
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.804 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.805 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>
