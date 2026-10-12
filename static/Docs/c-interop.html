@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.805</span>
+      <span class="vtag">v0.806</span>
     </nav>
   </div>
 </header>
@@ -992,7 +992,7 @@ link_flags = [<span class="str">"-lsqlite3"</span>]</code></pre>
 <pre><code>error: conflicting types for 'sleep'; have 'void(int)'
 note:  previous declaration … 'unsigned int(unsigned int)'</code></pre>
 <p>To avoid this collision class entirely:</p>
-<ul><li><strong>Built-ins are routed through <code>aether_</code>-prefixed runtime helpers</strong> in the generated C, they never emit a bare libc symbol.</li><li><strong>User <code>extern</code> declarations of well-known libc names</strong> (e.g. <code>sleep</code>, <code>exit</code>, <code>printf</code>, <code>puts</code>, <code>malloc</code>, <code>read</code>, <code>write</code>, <code>time</code>, …) are recognized and the compiler <strong>suppresses the C forward declaration</strong>. The libc header (already included by the prelude) supplies the canonical prototype, and call-site code generation still uses the registered Aether parameter types for type-aware casting.</li></ul>
+<ul><li><strong>Built-ins are routed through <code>aether_</code>-prefixed runtime helpers</strong> in the generated C, they never emit a bare libc symbol.</li><li><strong>User <code>extern</code> declarations of well-known libc names</strong> (e.g. <code>sleep</code>, <code>exit</code>, <code>printf</code>, <code>puts</code>, <code>malloc</code>, <code>read</code>, <code>write</code>, <code>signal</code>, <code>time</code>, …) are recognized and the compiler <strong>suppresses the C forward declaration</strong>. The system header supplies the canonical prototype: <code>stdio.h</code>, <code>stdlib.h</code>, <code>string.h</code> and <code>time.h</code> are always in the generated C, and the header of any other such name the program declares (<code>signal.h</code>, <code>unistd.h</code>, <code>sys/wait.h</code>, <code>sys/stat.h</code>, <code>fcntl.h</code>, <code>sys/time.h</code>, <code>strings.h</code>) is included for it, where the platform has it. Call-site code generation still uses the registered Aether parameter types for type-aware casting.</li></ul>
 <p>When you write a C shim or third-party binding, you can follow the same convention: prefix exported symbols with <code>aether_&lt;module&gt;_</code> (e.g. <code>aether_vcr_record</code>, <code>aether_http_get</code>) so they don't collide with vendor libraries the user might link via <code>[build] extra_sources = […]</code>.</p>
 <h2 id="working-with-pointers">Working with Pointers</h2>
 <p>The <code>ptr</code> type maps to <code>void*</code> in C, useful for opaque handles and callbacks:</p>
@@ -1345,7 +1345,7 @@ server_get(raw, "/health", _h_health, 0)   // references ae_h_health</code></pre
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.805 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.806 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

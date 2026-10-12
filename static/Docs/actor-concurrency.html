@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.805</span>
+      <span class="vtag">v0.806</span>
     </nav>
   </div>
 </header>
@@ -794,7 +794,7 @@ Stack trace (most recent call first):
 <p>Available on glibc-Linux and macOS today (uses <code>&lt;execinfo.h&gt;</code> <code>backtrace()</code> from libc proper, no extra link dependency). On musl, Windows, Emscripten, and freestanding targets the trace block is skipped, <code>panic</code>/<code>try</code>/<code>catch</code> themselves still work.</p>
 <h3 id="heap-cleanup-on-unwind">Heap cleanup on unwind</h3>
 <p>A caught panic does not leak the allocations made since the <code>try</code>. While any panic frame is live (a <code>try</code>/<code>catch</code> block, or the scheduler's per-step barrier), generated code journals every heap allocation whose deferred scope-exit free is armed; <code>aether_panic()</code> drains the innermost frame's still-live entries before the jump, freeing exactly the deferred frees the <code>longjmp</code> would have skipped. The journal mirrors the deferred frees one-for-one:</p>
-<ul><li>A value freed normally (explicit <code>string.release</code>, reassignment, scope exit) leaves the journal at the same moment, so the drain never double-frees.</li><li>A value that escaped the guarded block (returned, stored in a map, list, actor state, or message) is never journaled or is forgotten at the handoff, so the drain never frees something another owner holds.</li><li>Nested <code>try</code> drains only the inner frame's entries; the outer frame's allocations survive to their normal frees.</li></ul>
+<ul><li>A value freed normally (explicit <code>string.release</code>, reassignment, scope exit) leaves the journal at the same moment, so the drain never double-frees.</li><li>A value that escaped the guarded block (returned, stored in a map, list, actor state, or message) is never journaled or is forgotten at the handoff, so the drain never frees something another owner holds.</li><li>Nested <code>try</code> drains only the inner frame's entries; the outer frame's allocations survive to their normal frees.</li><li>A value stored inside a <code>try</code> into a local declared outside it is journaled for the frame the local is declared in (#2690): its free runs where the local's scope ends, which a panic the <code>try</code> catches does not skip, so the drain leaves it to the local.</li></ul>
 <p>For actor handlers this means a panicking actor's step-scoped allocations are reclaimed before the actor is marked dead. The journal is scoped to guarded regions: outside any frame the hooks are a TLS-load-and-return, and the no-panic hot path shows no measurable cost on the ping-pong messaging benchmark. Regression coverage: <code>tests/regression/test_panic_unwind_cleanup.ae</code> (the full matrix), <code>tests/integration/panic_unwind_no_leak/</code> (50000 caught panics, RSS flat), <code>tests/integration/panic_actor_step_drain/</code> (scheduler barrier).</p>
 <p>Main-thread inline mode (single-actor programs) has no step barrier by design, so a handler panic there still reaches the no-frame fallback (reason + trace + abort), unchanged.</p>
 <h2 id="cooperative-preemption">Cooperative Preemption</h2>
@@ -863,7 +863,7 @@ Stack trace (most recent call first):
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.805 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.806 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

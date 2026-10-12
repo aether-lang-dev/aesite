@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.805</span>
+      <span class="vtag">v0.806</span>
     </nav>
   </div>
 </header>
@@ -687,7 +687,21 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <pre><code>// Arrow closure (single expression, returns value)
 doubler = |x: int| -&gt; x * 2
 
-// Block closure (multiple statements)
+// Arrow closure with a block: returns its last value, as a function's
+// `-&gt; { ... }` body does
+scaled = |x: int| -&gt; {
+    y = x * 3
+    y + 1
+}
+
+// An arrow body that ends in a statement returns nothing: an assignment
+// (`count = count + 1`, `count += 1`, a new local), a call of a function
+// that returns nothing, or a `match` whose arms all end in one. This one
+// stores into the captured `count`.
+count = 0
+bump = || -&gt; { count = count + 1 }
+
+// Block closure (multiple statements; returns only what it `return`s)
 greeter = |name: string| {
     println("Hello ${name}")
 }
@@ -1097,7 +1111,7 @@ r = assert.expect_int(5).to_equal(5).to_be_gt(0)  // matchers imported, chain lo
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.805 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.806 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>
