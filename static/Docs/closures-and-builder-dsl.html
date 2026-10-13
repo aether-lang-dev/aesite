@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.809</span>
+      <span class="vtag">v0.810</span>
     </nav>
   </div>
 </header>
@@ -658,6 +658,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/compiled-module-artifacts.html">Compiled module artifacts (.aea)</a>
 <a href="/Docs/edge-cases.html">Edge cases: what is settled, and what only happens to be true</a>
 <a href="/Docs/gpu.html">The GPU tier</a>
+<a href="/Docs/quote.html">quote: a trailing block handed over as a tree</a>
 <a href="/Docs/swiftui-ios-app.html">Using an Aether library from a SwiftUI iOS app</a>
 <a href="/Docs/writing-security-sensitive-code.html">Writing security-sensitive code in Aether</a></nav>
     <main class="doc-main">
@@ -671,10 +672,10 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <h2 id="quick-reckoner-llm-cheat-sheet">Quick reckoner (LLM cheat-sheet)</h2>
 <p>Two <strong>independent</strong> axes describe every trailing-block usage:</p>
 <p><strong>Axis 1, Trailing-block form (what the <em>caller</em> writes after <code>)</code>):</strong></p>
-<div class="tw"><table><thead><tr><th>Form</th><th>Syntax</th><th>Runs</th><th>Captures</th></tr></thead><tbody><tr><td><strong>Immediate</strong></td><td><code>func() { body }</code></td><td>Inline, as DSL structure</td><td>Sees enclosing scope directly (it's just inline code)</td></tr><tr><td><strong>Closure (parameterised)</strong></td><td><code>func() \|x\| { body }</code> or <code>\|x\| -&gt; expr</code></td><td>Later, when invoked via <code>call(...)</code></td><td>Explicit parameters; captures enclosing locals by value</td></tr><tr><td><strong>Callback</strong></td><td><code>func() callback { body }</code> (optionally <code>callback \|x\|</code> or <code>callback \|x\| -&gt; expr</code>)</td><td>Later, when invoked via <code>call(...)</code></td><td>Implicit capture of enclosing-scope locals (closure with no required params)</td></tr></tbody></table></div>
+<div class="tw"><table><thead><tr><th>Form</th><th>Syntax</th><th>Runs</th><th>Captures</th></tr></thead><tbody><tr><td><strong>Immediate</strong></td><td><code>func() { body }</code></td><td>Inline, as DSL structure</td><td>Sees enclosing scope directly (it's just inline code)</td></tr><tr><td><strong>Closure (parameterised)</strong></td><td><code>func() \|x\| { body }</code> or <code>\|x\| -&gt; expr</code></td><td>Later, when invoked via <code>call(...)</code></td><td>Explicit parameters; captures enclosing locals by value</td></tr><tr><td><strong>Callback</strong></td><td><code>func() callback { body }</code> (optionally <code>callback \|x\|</code> or <code>callback \|x\| -&gt; expr</code>)</td><td>Later, when invoked via <code>call(...)</code></td><td>Implicit capture of enclosing-scope locals (closure with no required params)</td></tr><tr><td><strong>Quote</strong></td><td><code>func() quote \| x: T \| { body }</code> (or <code>quote -&gt; expr</code>, <code>quote { body }</code>)</td><td>Never: the function receives a tree describing the body (<a href="/Docs/quote.html">quote.md</a>)</td><td>Each enclosing variable read is a capture whose cell is the variable itself</td></tr></tbody></table></div>
 <p><strong>Axis 2, Trailing-block-accepting function (what the <em>definition</em> declares):</strong></p>
 <div class="tw"><table><thead><tr><th>Flavour</th><th>Definition</th><th>Order</th><th>Block provides</th><th>Function provides</th></tr></thead><tbody><tr><td><strong>Regular</strong></td><td>plain <code>func(...)</code> (often <code>_ctx: ptr</code> for auto-injection)</td><td>Function first, then block</td><td>Decoration / children</td><td>The container/value to fill</td></tr><tr><td><strong>Builder</strong></td><td><code>builder func(...)</code> (optionally <code>with &lt;factory&gt;</code> for the config object)</td><td><strong>Block first</strong>, then function</td><td>Configuration (a config object filled via setter calls)</td><td>The action that uses the filled config</td></tr></tbody></table></div>
-<p><strong>The axes multiply.</strong> Any of the three forms on the call side can target either flavour on the definition side, giving six legal combinations. Builder is not a fourth trailing-block form. It's a function-side contract that any of the three trailing-block forms can attach to.</p>
+<p><strong>The axes multiply.</strong> Any of the three forms on the call side can target either flavour on the definition side, giving six legal combinations. Builder is not a fourth trailing-block form. It's a function-side contract that any of the three trailing-block forms can attach to. The fourth form, <code>quote</code>, is outside both axes: its block never runs, and the function (whose last parameter is a <code>quote.Tree</code>) reads it as a tree instead (<a href="/Docs/quote.html">quote.md</a>).</p>
 <p><strong>Related supporting machinery (covered later):</strong></p>
 <ul><li><strong>Builder context stack</strong> (<code>_ctx: ptr</code> auto-injection, <code>builder_context()</code>, <code>_aether_ctx_push/pop</code>) wires parents to children automatically inside Immediate trailing blocks.</li><li><strong>Block-receiver scoping</strong>, <code>receiver.method(...) { body }</code> falls back through <code>&lt;receiver&gt;_&lt;name&gt;</code> for bare-name calls inside <code>body</code>.</li><li><strong>Ref cells</strong> (<code>ref(v)</code> / <code>ref_get</code> / <code>ref_set</code>), shared mutable state for closures (which otherwise capture by value).</li><li><strong>Boxed closures</strong> (<code>box_closure</code> / <code>unbox_closure</code>), heap-allocate a closure so it can be stored in <code>std.list</code> / struct fields.</li><li><strong><code>fn</code> type</strong>, the parameter type for "this function takes a closure"; invoked with <code>call(fn_var, args...)</code>.</li></ul>
 <p><strong>Same-line rule</strong> (line 100+): a trailing block is attached to a call only when <code>{</code> appears on the same line as the call's closing <code>)</code>. A <code>{</code> on the next line is an independent block. This is what stops <code>result = build()\n{ ... }</code> from greedily consuming the bare block as <code>build</code>'s closure.</p>
@@ -771,7 +772,7 @@ call(save_handler)    // prints "saved!"</code></pre>
 <p>This mirrors Groovy's <code>actionPerformed: { ... }</code> pattern.</p>
 <h3 id="callback-blocks">Callback blocks</h3>
 <p>The <code>callback</code> keyword before a trailing block creates a real closure (hoisted, with variable capture) without requiring explicit parameters. This is the third trailing-block mode:</p>
-<div class="tw"><table><thead><tr><th>Mode</th><th>Syntax</th><th>Semantics</th></tr></thead><tbody><tr><td>Immediate</td><td><code>func() { block }</code></td><td>Runs inline as DSL structure</td></tr><tr><td>Closure</td><td><code>func() \|x\| { block }</code></td><td>Real closure with explicit params</td></tr><tr><td>Callback</td><td><code>func() callback { block }</code></td><td>Real closure, captures from scope</td></tr></tbody></table></div>
+<div class="tw"><table><thead><tr><th>Mode</th><th>Syntax</th><th>Semantics</th></tr></thead><tbody><tr><td>Immediate</td><td><code>func() { block }</code></td><td>Runs inline as DSL structure</td></tr><tr><td>Closure</td><td><code>func() \|x\| { block }</code></td><td>Real closure with explicit params</td></tr><tr><td>Callback</td><td><code>func() callback { block }</code></td><td>Real closure, captures from scope</td></tr><tr><td>Quote</td><td><code>func() quote \| x: T \| { block }</code></td><td>Not run: handed over as a tree (<a href="/Docs/quote.html">quote.md</a>)</td></tr></tbody></table></div>
 <pre><code>counter = ref(0)
 
 btn("increment") callback { ref_set(counter, ref_get(counter) + 1) }
@@ -1111,7 +1112,7 @@ r = assert.expect_int(5).to_equal(5).to_be_gt(0)  // matchers imported, chain lo
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.809 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.810 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>
