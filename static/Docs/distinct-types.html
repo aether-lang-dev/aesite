@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.806</span>
+      <span class="vtag">v0.809</span>
     </nav>
   </div>
 </header>
@@ -677,7 +677,19 @@ main() {
     <span class="kw">let</span> total = charge(price)
     <span class="kw">let</span> cents = total <span class="kw">as</span> <span class="fn">float</span>       <span class="com">// unwrap: distinct -&gt; base (explicit `as`)</span>
 }</code></pre>
-<ul><li><strong>Declaration:</strong> <code>type Name = distinct Base</code> at top level. <code>type</code> and <code>distinct</code> are contextual identifiers (usable as names elsewhere).</li><li><strong>Zero cost:</strong> a distinct type lowers to its base C type, no boxing, no vtable. <code>USD</code> is a C <code>double</code>, <code>Fd</code> a C <code>int</code>.</li><li><strong>Nominal identity:</strong> the type checker treats <code>USD</code> as separate from <code>float</code> and from any other distinct type. Crossing the boundary requires an explicit cast: <code>value as USD</code> (wrap), <code>usd as float</code> (unwrap). The same <code>as</code> form also does ordinary numeric conversions.</li><li><strong>Enforced at:</strong> variable declarations / assignments (a raw <code>float</code> cannot initialise a <code>USD</code>, and vice-versa) <strong>and</strong> call-argument boundaries (a function taking <code>Fd</code> cannot be passed a raw <code>int</code>, nor an <code>EUR</code> where <code>USD</code> is wanted), the capability-token discipline the design below describes. (Aether's argument checking is otherwise lenient; the distinct check is scoped to distinct types.)</li><li><strong>Base kinds:</strong> scalars (<code>int</code>/<code>long</code>/<code>uint64</code>/<code>float</code>/<code>byte</code>/<code>bool</code>), <code>string</code>, and <code>ptr</code>.</li></ul>
+<ul><li><strong>Declaration:</strong> <code>type Name = distinct Base</code> at top level. <code>type</code> and <code>distinct</code> are contextual identifiers (usable as names elsewhere).</li><li><strong>Zero cost:</strong> a distinct type lowers to its base C type, no boxing, no vtable. <code>USD</code> is a C <code>double</code>, <code>Fd</code> a C <code>int</code>.</li><li><strong>Nominal identity:</strong> the type checker treats <code>USD</code> as separate from <code>float</code> and from any other distinct type. Crossing the boundary requires an explicit cast: <code>value as USD</code> (wrap), <code>usd as float</code> (unwrap). The same <code>as</code> form also does ordinary numeric conversions.</li><li><strong>Enforced at:</strong> variable declarations / assignments (a raw <code>float</code> cannot initialise a <code>USD</code>, and vice-versa) <strong>and</strong> call-argument boundaries (a function taking <code>Fd</code> cannot be passed a raw <code>int</code>, nor an <code>EUR</code> where <code>USD</code> is wanted), the capability-token discipline the design below describes. (Aether's argument checking is otherwise lenient; the distinct check is scoped to distinct types.)</li><li><strong>Base kinds:</strong> scalars (<code>int</code>/<code>long</code>/<code>uint64</code>/<code>float</code>/<code>byte</code>/<code>bool</code>), <code>string</code>, <code>ptr</code>, and the lane types (<code>type vec4 = distinct f32x4</code>).</li><li><strong>Operators</strong> (TBD-2 below, option B, the <code>Duration</code> precedent):<ul><li>The same distinct type on both sides keeps it: <code>USD + USD</code> is a <code>USD</code>, <code>vec4 * vec4</code> a <code>vec4</code>, <code>usd += other_usd</code> is legal. A comparison is a <code>bool</code> (a lane mask for a lane type).</li><li>Two <em>different</em> distinct types never mix, even over the same base: <code>USD + EUR</code>, <code>USD &lt; EUR</code>, <code>usd += eur</code> and <code>vec3 + vec4</code> (both <code>distinct f32x4</code>) are each a type error (E0200) naming both types, <code>'+' mixes distinct types USD and EUR</code>. Convert one side with <code>as</code>.</li><li>A distinct lane type scaled by a scalar keeps the type: <code>vec4 * 0.5</code> and <code>s * vec4</code> (a <code>float</code> <code>s</code>) are <code>vec4</code>s, as <code>Duration * n</code> is a <code>Duration</code>. The scalar is not the lane type's base, so nothing is unwrapped.</li><li>A distinct type beside a plain value of its own base (<code>USD + 1.0</code>, <code>usd * rate</code> for a <code>float</code> <code>rate</code>) is computed over the base and gives the base: the result is a <code>float</code>, and becomes a <code>USD</code> again only through <code>as USD</code>.</li></ul></li></ul>
+<pre><code>type USD = distinct <span class="fn">float</span>
+type EUR = distinct <span class="fn">float</span>
+
+main() {
+    a = <span class="num">1.5</span> <span class="kw">as</span> USD
+    b = <span class="num">2.0</span> <span class="kw">as</span> USD
+    total = a + b                    <span class="com">// a USD</span>
+    <span class="kw">let</span> shown: <span class="fn">float</span> = total <span class="kw">as</span> <span class="fn">float</span>
+    <span class="kw">let</span> raw: <span class="fn">float</span> = a * <span class="num">2.0</span>         <span class="com">// USD with its base: a float</span>
+    <span class="com">// a + (1.0 as EUR)              // error: '+' mixes distinct types USD and EUR</span>
+    println(<span class="str">"${shown} ${raw}"</span>)
+}</code></pre>
 <p>Original design rationale and open questions follow.</p>
 <h2 id="goal">Goal</h2>
 <p>A zero-runtime-cost way to give Aether's structurally-typed primitives nominal identity. The motivating example:</p>
@@ -726,7 +738,8 @@ main() {
 <h3 id="tbd-2-operator-inheritance">TBD-2: Operator inheritance</h3>
 <p>If <code>Port = distinct int</code>, does <code>port1 + port2</code> typecheck? Does <code>port + 5</code>? What about <code>port &lt; other_port</code>?</p>
 <div class="tw"><table><thead><tr><th>Option</th><th>Semantics</th></tr></thead><tbody><tr><td><strong>A. No operator inheritance by default</strong></td><td><code>Port + Port</code> is a type error. Each operator must be explicitly opted into per distinct type. Strictest; matches Aether's stance on tagged-int parameter passing where a bare int passed to a Duration param errors.</td></tr><tr><td><strong>B. All operators inherited by default</strong></td><td><code>Port + Port</code> works, gives <code>Port</code>. <code>Port + int</code> errors. Matches users' intuition; matches what <code>Duration + Duration</code> already does today.</td></tr><tr><td><strong>C. Nim's <code>borrow</code> opt-in</strong></td><td>No operators by default; opt in with <code>type Port = distinct int with borrow(+, -, &lt;, ==)</code>. Per-type fine-grained control.</td></tr><tr><td><strong>D. All-or-nothing per declaration</strong></td><td><code>type Port = distinct int with borrow</code> borrows everything; bare <code>distinct int</code> borrows nothing. Half-step between B and C.</td></tr></tbody></table></div>
-<p><strong>Maintainer call.</strong> The Duration precedent chose option <strong>B</strong> behaviour (<code>Duration + Duration</code> → <code>Duration</code>, <code>Duration * scalar</code> → <code>Duration</code>, mixed comparisons rejected). Consistency suggests this is the default to extend; the question is whether to also offer C's per-operator opt-in for cases that want stricter control.</p>
+<p><strong>Resolved:</strong> option B, as implemented above (same distinct type keeps it, two different distinct types are a type error, a distinct lane type scaled by a scalar keeps it, a distinct type with a plain value of its base gives the base). Per-operator opt-in (option C) is not offered.</p>
+<p><strong>Maintainer call (original).</strong> The Duration precedent chose option <strong>B</strong> behaviour (<code>Duration + Duration</code> → <code>Duration</code>, <code>Duration * scalar</code> → <code>Duration</code>, mixed comparisons rejected). Consistency suggests this is the default to extend; the question is whether to also offer C's per-operator opt-in for cases that want stricter control.</p>
 <h3 id="tbd-3-extern-signature-interaction">TBD-3: Extern signature interaction</h3>
 <p>An extern declares a raw C type. What types can it carry?</p>
 <div class="tw"><table><thead><tr><th>Option</th><th>Where the distinct wrapping happens</th></tr></thead><tbody><tr><td><strong>A. Extern carries underlying only; wrapper does the cast</strong></td><td>Matches the existing <code>_raw</code> / wrapper-suffix pattern. <code>extern foo_raw(p: string) -&gt; int</code> + <code>foo(p: Path) -&gt; int { return foo_raw(p.string) }</code>. Keeps externs C-literal; the distinct discipline is an Aether-side layer.</td></tr><tr><td><strong>B. Extern can mention the distinct type</strong></td><td><code>extern foo(p: Path) -&gt; FD</code>. Type checker unwraps for codegen. Reads more naturally; risks erasing the boundary between Aether-side and C-side type discipline.</td></tr></tbody></table></div>
@@ -761,7 +774,7 @@ main() {
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.806 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.809 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

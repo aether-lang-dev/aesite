@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.806</span>
+      <span class="vtag">v0.809</span>
     </nav>
   </div>
 </header>
@@ -755,7 +755,7 @@ main() {
 <pre><code>3 9 24 16</code></pre>
 <p><strong>A lane type is nominal.</strong> It converts with nothing: not with <code>f32</code>, not with another width, not with an array. A scalar becomes lanes through <code>splat4</code> (or <code>f32x4(a, b, c, d)</code>), lanes become scalars through <code>.x</code> / <code>.y</code> / <code>.z</code> / <code>.w</code>, <code>lane4</code> or <code>sum4</code>. <code>f32x4 + f64x2</code> is a type error, and <code>.z</code> on an <code>f64x2</code> names a lane it does not have.</p>
 <p><strong>A comparison yields a mask, not a bool.</strong> <code>a &lt; b</code> on lane values is an integer vector of the <em>same width</em> whose lane is all-ones where the comparison held: <code>i32x4</code> for <code>f32x4</code>, <code>i64x2</code> for <code>f64x2</code>, the widths match because a mask of the other width would reinterpret the same register and scramble the lanes. That is what <code>lanes.select4</code> / <code>select2</code> take, what <code>mask_and</code> / <code>mask_or</code> / <code>mask_not</code> (and their <code>mask2_*</code> siblings) combine, and what <code>any4</code> / <code>all4</code> / <code>any2</code> / <code>all2</code> reduce to a <code>bool</code> when a branch is wanted. A scalar <code>if</code> over lanes is a mistake the type catches.</p>
-<p><strong>A scalar operand splats.</strong> <code>v * 2.0</code>, <code>v + n</code> (an integer) and <code>v &gt; 2.0</code> apply to every lane, as in C, arithmetic and comparison alike. Mixing two different lane widths does not. <code>%</code> and <code>~</code> apply to integer lanes only: a float lane has no remainder or bit pattern in that sense, and either one on an <code>f32x4</code> is a type error at the source line.</p>
+<p><strong>A scalar operand splats.</strong> <code>v * 2.0</code>, <code>v + n</code> (an integer) and <code>v &gt; 2.0</code> apply to every lane, as in C, arithmetic and comparison alike, with the scalar on either side, and a variable as well as a literal: <code>v * s</code> for a <code>float</code> <code>s</code> beside an <code>f32x4</code> converts <code>s</code> to the lane's element type and then broadcasts it. The same holds for every lane type and for a distinct type over one (<code>type vec4 = distinct f32x4</code>; <code>vec4 * s</code> is a <code>vec4</code>, see <a href="/Docs/distinct-types.html">distinct types</a>). Mixing two different lane widths does not. <code>%</code> and <code>~</code> apply to integer lanes only: a float lane has no remainder or bit pattern in that sense, and either one on an <code>f32x4</code> is a type error at the source line.</p>
 <p><strong>Eight lanes: <code>f32x8</code> and its mask <code>i32x8</code>.</strong> The <code>f32x4</code> surface at twice the width (<code>splat8</code>, <code>f32x8(...)</code>, <code>load8</code> / <code>store8</code>, <code>lane8</code>, <code>sum8</code>, <code>min8</code> / <code>max8</code>, <code>select8</code>, <code>sqrt8</code>, <code>abs8</code>, <code>lt8</code>…<code>eq8</code>, <code>mask8_and</code> / <code>mask8_or</code> / <code>mask8_not</code>, <code>any8</code> / <code>all8</code>). <code>.x</code> to <code>.w</code> read lanes 0-3, and <code>lanes.lane8</code> reads any of the eight. The width is a build choice: with <code>-mavx2</code> (or <code>-march=native</code>) in aether.toml's <code>[build] cflags</code>, an <code>f32x8</code> is one 256-bit register and each operation one instruction; without AVX2 it is two four-lane halves, which costs what two <code>f32x4</code> operations cost. The same source runs either way, and gives the same results, so a kernel written eight-wide is never slower than the four-lane one and runs twice as wide where AVX2 is on. On Windows an AVX build is assembled with <code>-Wa,-muse-unaligned-vector-move</code>, because GCC there can spill a 256-bit value with an aligned move to a stack that is only 16-byte aligned (#2476).</p>
 <p>See <a href="https://github.com/aether-lang-dev/aether/blob/main/std/lanes/README.md"><code>std/lanes/README.md</code></a> for the full surface and the measured speedup.</p>
 <h4 id="longdouble-c-long-double"><code>longdouble</code> C <code>long double</code></h4>
@@ -908,7 +908,7 @@ float temperature = 98.6</code></pre>
 <p><strong><code>let</code> / <code>var</code> are optional keywords</strong>, accepted but not required. Bare Python-style assignment is the canonical form and is what most stdlib code uses. <code>let x = 10</code> and <code>var x = 10</code> parse identically to <code>x = 10</code>. There is no semantic distinction between <code>let</code> and <code>var</code> Aether is not Rust; mutability is a property of the binding's later use, not its declaration. There is no <code>mut</code>: <code>let mut x = 0</code> is an error, because a <code>let</code> must bind something and <code>mut</code> is not a keyword the language has. A typed declaration is written without <code>let</code> (<code>int n = 0</code>, <code>Pair p</code>), so two names after <code>let</code> is always a mistake.</p>
 <p><strong>Semicolons are optional.</strong> Aether parses end-of-line as a statement terminator. The samples above use no semicolons; older samples in this doc may show <code>;</code> for clarity. Either is fine, after any statement, <code>if x { a } ; b</code> is <code>if x { a }</code> then <code>b</code>.</p>
 <p><strong>Keywords are not names.</strong> A statement keyword used as a variable (<code>when = 0.0</code>, <code>message = "hi"</code>) is refused at the keyword: <code>'when' is a reserved keyword and cannot be used as an identifier; rename it</code>.</p>
-<p><strong>A local has one type: the one its first binding gave it.</strong> A later bare assignment is an assignment, not a new variable, so <code>x = 5</code> then <code>x = "s"</code> (or <code>x = true</code>, <code>x = null</code>) is a compile error, <em>cannot re-bind 'x' as string: it was bound as int by its first assignment</em>, rather than a C error about <code>const char*</code>. Use a new name for the other value. A name first bound inside a branch or loop body and <strong>used after it</strong> is one variable for the whole function: it takes the numeric join of every binding (<code>if a { n = 1 } else { n = 4000000000 }</code> makes <code>n</code> a <code>long</code>; <code>f = 1.5</code> in one branch and <code>f = 2</code> in the other keeps <code>f</code> a <code>float</code>), and a binding of another kind anywhere in the function, or of another struct or pointer type, is the same compile error: <em>cannot bind 'v' as int: it is bound as string in another branch or loop body of this function</em>. A local of a <code>while</code> body is declared before the loop, and a name both arms of an <code>if</code>/<code>else</code> bind is declared before the <code>if</code>, so each is one variable whether or not it is used after them: <code>view = p as *Apple</code> in one <code>while</code> and <code>view = p as *Pear</code> in the next is that error, where a bare <code>ptr</code> or <code>null</code> binding would fit either. A read of such a local in the body before its binding, which sees the value the previous pass bound, has the binding's type (<code>out = "${out}${prev}"</code> ahead of <code>prev = "p${i}"</code> reads a string). A name bound in the bodies of separate <code>if</code>s or <code>for</code> loops and used only inside them is a separate variable per body, except a <code>string</code> local, which is always one variable for the whole function, as its heap tracker is. The conversions the <a href="#casting-between-types">table below</a> permits still apply at a re-bind, and the local keeps its first type: after <code>f = 1.5</code>, <code>f = 2</code> stores <code>2.0</code> and <code>f</code> stays a <code>float</code>; after <code>int x = 0</code>, <code>x = 2.5</code> stores <code>2</code>. A <code>string</code> accepts <code>null</code> (it is a nullable <code>const char*</code>), and a value that would not fit an <em>inferred</em> <code>int</code> (a 64-bit integer, a <code>uint32</code>, a float) is the narrowing error described there.</p>
+<p><strong>A local has one type: the one its first binding gave it.</strong> A later bare assignment is an assignment, not a new variable, so <code>x = 5</code> then <code>x = "s"</code> (or <code>x = true</code>, <code>x = null</code>) is a compile error, <em>cannot re-bind 'x' as string: it was bound as int by its first assignment</em>, rather than a C error about <code>const char*</code>. Use a new name for the other value. A name first bound inside a branch or loop body and <strong>used after it</strong> is one variable for the whole function: it takes the numeric join of every binding (<code>if a { n = 1 } else { n = 4000000000 }</code> makes <code>n</code> a <code>long</code>; <code>f = 1.5</code> in one branch and <code>f = 2</code> in the other keeps <code>f</code> a <code>float</code>), and a binding of another kind anywhere in the function, or of another struct or pointer type, is the same compile error: <em>cannot bind 'v' as int: it is bound as string in another branch or loop body of this function</em>. A <code>switch</code> case is a branch here as an <code>if</code> arm is. A local of a <code>while</code> body is declared before the loop, and a name both arms of an <code>if</code>/<code>else</code> (or every case of a <code>switch</code> with a <code>default</code>) bind is declared before the <code>if</code> (or <code>switch</code>), so each is one variable whether or not it is used after them: <code>view = p as *Apple</code> in one <code>while</code> and <code>view = p as *Pear</code> in the next is that error, where a bare <code>ptr</code> or <code>null</code> binding would fit either. A read of such a local in the body before its binding, which sees the value the previous pass bound, has the binding's type (<code>out = "${out}${prev}"</code> ahead of <code>prev = "p${i}"</code> reads a string). A name bound in the bodies of separate <code>if</code>s or <code>for</code> loops and used only inside them is a separate variable per body, except a <code>string</code> local, which is always one variable for the whole function, as its heap tracker is. The conversions the <a href="#casting-between-types">table below</a> permits still apply at a re-bind, and the local keeps its first type: after <code>f = 1.5</code>, <code>f = 2</code> stores <code>2.0</code> and <code>f</code> stays a <code>float</code>; after <code>int x = 0</code>, <code>x = 2.5</code> stores <code>2</code>. A <code>string</code> accepts <code>null</code> (it is a nullable <code>const char*</code>), and a value that would not fit an <em>inferred</em> <code>int</code> (a 64-bit integer, a <code>uint32</code>, a float) is the narrowing error described there.</p>
 <p><strong>A local's scope starts after its initializer.</strong> In <code>count = count() + 1</code> the call is the function <code>count</code>, and from that binding on, to the end of the function, <code>count</code> is the local. So is a local declared ahead of its binding because both arms of an <code>if</code> bind it: until the checker reaches the first binding in source order, the name is still the function's. A reference that comes before the binding, such as the function passed as a value, is the function too:</p>
 <pre><code>count() -&gt; int { return 41 }
 
@@ -1356,7 +1356,20 @@ case 400..&lt;500:     kind = "client-error";
 default:            kind = "other";
 }</code></pre>
 <p>A comma-list case lowers to several C <code>case</code> labels sharing one body; a <code>switch</code> containing any ranged case is lowered to an equivalent if-else chain (safe because there is no fall-through to preserve).</p>
-<p>A <code>break</code> in a case leaves the <code>switch</code>, and nothing more, whichever of the two forms it lowers to: inside a loop, the loop goes on with the statement after the <code>switch</code>. On its way out it runs the defers of the scopes it leaves inside the case, not those of the loop body around the <code>switch</code>. A <code>break</code> in a <code>match</code> arm leaves the <code>switch</code> or loop around the <code>match</code>. <code>continue</code> goes on to the loop's next iteration, and <code>break label</code> leaves the loop it names. Each case is a scope of its own, as an <code>if</code> branch is: a <code>defer</code> in it runs when the case ends, and only when the case ran.</p>
+<p>A <code>switch</code> over a string, a pointer or a float compares by an if-chain as well, a string by content. Its cases are checked against the value as a <code>match</code> arm's are (<a href="#match-expressions">Match Expressions</a>): a case naming a value the <code>switch</code>'s value can never equal, or a name that is no variable, constant or enum member, is an error at the case, and a value that cannot be compared (an optional, a sum, a struct) is one at the <code>switch</code>. A bare enum member (<code>case Red:</code>) is that member, as in a <code>match</code>.</p>
+<p>A <code>break</code> in a case leaves the <code>switch</code>, and nothing more, whichever of the two forms it lowers to: inside a loop, the loop goes on with the statement after the <code>switch</code>. On its way out it runs the defers of the scopes it leaves inside the case, not those of the loop body around the <code>switch</code>. A <code>break</code> in a <code>match</code> arm leaves the <code>switch</code> or loop around the <code>match</code>. <code>continue</code> goes on to the loop's next iteration, and <code>break label</code> leaves the loop it names. Each case is a scope of its own, as an <code>if</code> branch is: a <code>defer</code> in it runs when the case ends, and only when the case ran. A name a case binds is one variable with the rest of the function exactly where a name an <code>if</code> branch binds would be (<a href="#variables">Variables</a>): read after a <code>switch</code> at the top of the function body, bound in a <code>while</code> body, or bound by every case of a <code>switch</code> with a <code>default</code>. Elsewhere a read after the <code>switch</code> is <code>Undefined variable</code>:</p>
+<pre><code>pick(x: int) -&gt; int {
+    switch x {
+        case 1: v = 10
+        default: v = 20
+    }
+    return v
+}
+
+main() {
+    println("${pick(1)} ${pick(2)}")
+}</code></pre>
+<pre><code>10 20</code></pre>
 <pre><code>main() {
     hits = 0
     i = 0
@@ -2482,7 +2495,7 @@ SQL</code></pre>
 <hr>
 <h2 id="compiler-errors">Compiler Errors</h2>
 <p>An error stops the build and prints its code, <code>error[E0301]: ...</code>, with the source line and a <code>help:</code> line. The codes:</p>
-<div class="tw"><table><thead><tr><th>Code</th><th>Kind</th></tr></thead><tbody><tr><td><code>E0100</code></td><td>Syntax: the source does not parse, or a reserved word stands where a name must</td></tr><tr><td><code>E0200</code></td><td>Type mismatch, and the other type rules (a cast the types cannot justify, <code>string + string</code>)</td></tr><tr><td><code>E0300</code></td><td>Undefined variable</td></tr><tr><td><code>E0301</code></td><td>Undefined function, a function of a module the calling module does not import, or a function a local of its name hides (<a href="#variables">a local's scope</a>)</td></tr><tr><td><code>E0303</code></td><td>A name the module does not export</td></tr><tr><td><code>E0304</code></td><td>A name hidden in this scope by <code>hide</code> or <code>seal except</code> (<a href="/Docs/hide-and-seal.html">hide and seal</a>)</td></tr><tr><td><code>E0600</code></td><td>An actor rule, such as a closure in a handler writing the actor's state</td></tr><tr><td><code>E0700</code></td><td>Missing return: control can reach the end of a function whose result is not void (<a href="#returning-on-every-path-e0700">Returning on every path</a>)</td></tr></tbody></table></div>
+<div class="tw"><table><thead><tr><th>Code</th><th>Kind</th></tr></thead><tbody><tr><td><code>E0100</code></td><td>Syntax: the source does not parse, or a reserved word stands where a name must</td></tr><tr><td><code>E0200</code></td><td>Type mismatch, and the other type rules (a cast the types cannot justify, <code>string + string</code>, a <code>match</code> arm or <code>switch</code> case that can never equal the value it compares, an arm that gives no value to a <code>match</code> whose value is used: <a href="#match-expressions">Match Expressions</a>)</td></tr><tr><td><code>E0300</code></td><td>Undefined variable, and a name in a <code>match</code> arm or <code>switch</code> case that is no variable, constant or member</td></tr><tr><td><code>E0301</code></td><td>Undefined function, a function of a module the calling module does not import, or a function a local of its name hides (<a href="#variables">a local's scope</a>)</td></tr><tr><td><code>E0303</code></td><td>A name the module does not export</td></tr><tr><td><code>E0304</code></td><td>A name hidden in this scope by <code>hide</code> or <code>seal except</code> (<a href="/Docs/hide-and-seal.html">hide and seal</a>)</td></tr><tr><td><code>E0600</code></td><td>An actor rule, such as a closure in a handler writing the actor's state</td></tr><tr><td><code>E0700</code></td><td>Missing return: control can reach the end of a function whose result is not void (<a href="#returning-on-every-path-e0700">Returning on every path</a>)</td></tr></tbody></table></div>
 <h2 id="compiler-warnings">Compiler Warnings</h2>
 <p>The compiler emits structured warnings for common issues:</p>
 <h3 id="unused-variables-w1001">Unused Variables [W1001]</h3>
@@ -2527,7 +2540,7 @@ cv = span * 50 / 225000000          // 11, no warning</code></pre>
         _ -&gt; { println(<span class="str">"other"</span>) }
     }
 }</code></pre>
-<p>The check reports only where the shadowing is certain, so the arms it compares with each other are literals; an arm that is a bare identifier is never compared. Over a value that is not an enum, a sum type or an optional, such an arm names a variable already in scope (a local, a parameter, or a module <code>const</code> or <code>var</code>) and matches when the value equals that variable's value at the time, as <code>if x == limit</code> would. It binds nothing. That value is not known when the program is compiled, so an arm after it with the same value is not reported:</p>
+<p>The check reports only where the shadowing is certain. The arms it compares with each other are literals, and over an enum, a sum type or an optional, where the cases are known, members (bare or qualified, <code>Red</code> and <code>Color.Red</code> being one case), variants and <code>none</code> / <code>some(v)</code> too. An arm that is a comma-list is reported when an earlier arm already names every one of its values. Over any other value a bare identifier arm is never compared: it names a variable already in scope (a local, a parameter, or a module <code>const</code> or <code>var</code>) and matches when the value equals that variable's value at the time, as <code>if x == limit</code> would. It binds nothing. That value is not known when the program is compiled, so an arm after it with the same value is not reported:</p>
 <pre><code>main() {
     limit = 2
     x = 2
@@ -2539,7 +2552,7 @@ cv = span * 50 / 225000000          // 11, no warning</code></pre>
     }
 }</code></pre>
 <pre><code>at the limit</code></pre>
-<p>Over an enum a bare identifier names a member (<code>Red</code> for <code>Color.Red</code>) and over a sum type a variant; a variable is not accepted there. The arms that bind a name are <code>some(v)</code> over an optional and the list patterns (<code>[h|t]</code>, <code>[x, y]</code>). An identifier that names no variable binds nothing either, so <code>n</code> below is undeclared where the arm uses it. To act on every other value, write <code>_</code> and use the value matched on:</p>
+<p>Over an enum a bare identifier names a member (<code>Red</code> for <code>Color.Red</code>) and over a sum type a variant; a variable is not accepted there. The arms that bind a name are <code>some(v)</code> over an optional and the list patterns (<code>[h|t]</code>, <code>[x, y]</code>). An identifier that names no variable binds nothing either, and is an error at the arm. To act on every other value, write <code>_</code> and use the value matched on:</p>
 <pre><code>main() {
     x = 5
     match x {
@@ -2547,7 +2560,10 @@ cv = span * 50 / 225000000          // 11, no warning</code></pre>
         n -&gt; { println("got ${n}") }
     }
 }
-// error[E0300]: Undefined variable 'n'</code></pre>
+// error[E0300]: 'n' names no variable: a match arm compares the value
+// matched with what it names, and binds no new name
+// help: write `_` to take every other value, and use the value matched
+// itself in the arm</code></pre>
 <p>A third shape is the mirror of the exhaustiveness check: a <code>_</code> arm on a <code>match</code> over a sum type or enum where every case is already handled.</p>
 <pre><code>enum Direction { North, East, South, West }
 
@@ -2578,7 +2594,125 @@ msg = match status {
     _ -&gt; "error"
 }
 println(msg)</code></pre>
-<p>Supported patterns: integer literals, string literals, <code>_</code> (wildcard), list patterns.</p>
+<p>Arms are tried in source order and the first that matches runs. An arm is one of these patterns:</p>
+<div class="tw"><table><thead><tr><th>Pattern</th><th>Matches</th><th>Over</th></tr></thead><tbody><tr><td><code>0</code>, <code>-1</code>, <code>2.5</code>, <code>true</code>, <code>"stop"</code></td><td>a value equal to the literal; a string compares by content</td><td>a value of the literal's type</td></tr><tr><td><code>limit</code>, <code>LIMIT</code></td><td>a value equal to that variable or constant at the time; the arm binds nothing</td><td>a value of the variable's type</td></tr><tr><td><code>1..=9</code>, <code>0..&lt;10</code></td><td>a value in the range, <code>..=</code> inclusive and <code>..&lt;</code> half-open</td><td>an integer, a float or an enum</td></tr><tr><td><code>10, 20, 30</code></td><td>a value equal to any of them; each may be a value or a range</td><td>as its values</td></tr><tr><td><code>_</code></td><td>every value; an arm of its own, last</td><td>anything</td></tr><tr><td><code>Red</code>, <code>Color.Red</code></td><td>that member, bare or qualified; every member needs an arm, or <code>_</code></td><td>an enum</td></tr><tr><td><code>Circle</code></td><td>that variant, and inside the arm the value matched is that struct; every variant needs an arm, or <code>_</code></td><td>a sum type</td></tr><tr><td><code>none</code>, <code>some(v)</code></td><td>no value, or a value bound to <code>v</code> for the arm</td><td>an optional</td></tr><tr><td><code>[]</code>, <code>[x]</code>, <code>[a, b]</code>, <code>[h\|t]</code></td><td>a list of that length (<code>[h\|t]</code>: at least one), binding its elements</td><td>an array, a slice or a <code>*StringSeq</code></td></tr></tbody></table></div>
+<pre><code>const LIMIT = 100
+
+classify(n: int, lucky: int) -&gt; string {
+    return match n {
+        0 -&gt; "zero"
+        lucky -&gt; "lucky"
+        LIMIT -&gt; "the limit"
+        1..=9 -&gt; "a digit"
+        10, 20, 30 -&gt; "a round ten"
+        _ -&gt; "something else"
+    }
+}
+
+main() {
+    println(classify(0, 7))
+    println(classify(7, 7))
+    println(classify(100, 7))
+    println(classify(4, 7))
+    println(classify(20, 7))
+    println(classify(55, 7))
+    command = "stop"
+    answer = match command {
+        "start" -&gt; "starting"
+        "stop" -&gt; "stopping"
+        _ -&gt; "unknown"
+    }
+    println(answer)
+}</code></pre>
+<pre><code>zero
+lucky
+the limit
+a digit
+a round ten
+something else
+stopping</code></pre>
+<p>Over an enum, a sum type or an optional the cases are known, so a bare name is a member or a variant, and a missing one is a compile error unless <code>_</code> takes the rest:</p>
+<pre><code>enum Color { Red, Green, Blue }
+
+struct Circle { r: int }
+struct Square { side: int }
+type Shape = Circle | Square
+
+warmth(c: Color) -&gt; string {
+    return match c {
+        Red, Green -&gt; "warm"
+        Color.Blue -&gt; "cool"
+    }
+}
+
+area(s: Shape) -&gt; int {
+    return match s {
+        Circle -&gt; 3 * s.r * s.r
+        Square -&gt; s.side * s.side
+    }
+}
+
+describe(m: int?) -&gt; string {
+    return match m {
+        none -&gt; "nothing"
+        some(v) -&gt; "got ${v}"
+    }
+}
+
+main() {
+    println(warmth(Color.Green))
+    println(warmth(Color.Blue))
+    println(area(Circle { r: 2 }))
+    println(area(Square { side: 3 }))
+    let empty: int? = none
+    println(describe(empty))
+    println(describe(5))
+}</code></pre>
+<pre><code>warm
+cool
+12
+9
+nothing
+got 5</code></pre>
+<p>List patterns take an array with its <code>_len</code> variable (<a href="#list-pattern-matching">List Pattern Matching</a>), a slice, which carries its length, or a <code>*StringSeq</code>:</p>
+<pre><code>describe(xs: int[]) -&gt; string {
+    return match xs {
+        [] -&gt; "empty"
+        [x] -&gt; "one: ${x}"
+        [a, b] -&gt; "two: ${a} ${b}"
+        [h|_] -&gt; "starts with ${h}"
+    }
+}
+
+main() {
+    all = [4, 5, 6]
+    println(describe(all[0..0]))
+    println(describe(all[0..1]))
+    println(describe(all[0..2]))
+    println(describe(all))
+}</code></pre>
+<pre><code>empty
+one: 4
+two: 4 5
+starts with 4</code></pre>
+<p>Each value an arm names must be one the value matched can equal, and the compiler says so at the arm (E0200): a string arm over an <code>int</code>, <code>none</code> or <code>some(v)</code> over a value that is not an optional, a range over a string, a list pattern over a scalar, or <code>_</code> inside a comma-list. A <code>match</code> over an optional takes only <code>none</code>, <code>some(name)</code> and <code>_</code> arms, and one over a sum type one variant per arm or <code>_</code>. A name that is no variable, constant or member is E0300 at the arm: an arm compares, it never binds a new name (<code>_</code> takes every other value).</p>
+<p>When the value of a <code>match</code> is used (bound, returned, or the value of an arm of such a <code>match</code>), every arm that ends in a value gives the <code>match</code> its value. An arm that ends in a call of a function that returns nothing has none, and is an error at the call. An arm that ends in a statement, such as a <code>return</code>, gives no value and is accepted:</p>
+<pre><code>note(x: int) { println("note ${x}") }
+
+pick(n: int) -&gt; int {
+    return match n {
+        1 -&gt; note(1)
+        _ -&gt; 5
+    }
+}
+
+main() {
+    println("${pick(2)}")
+}
+// error[E0200]: 'note' returns no value, so this arm gives the `match` none,
+// and the value of the `match` is used
+// help: give the arm a value: a block arm can make the call and end with one,
+// `{ note(...)  0 }`</code></pre>
 <hr>
 <h2 id="keywords">Keywords</h2>
 <p>The following identifiers are reserved:</p>
@@ -2762,7 +2896,7 @@ process_file(path) {
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.806 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.809 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>
