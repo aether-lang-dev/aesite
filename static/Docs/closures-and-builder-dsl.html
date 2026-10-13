@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.810</span>
+      <span class="vtag">v0.811</span>
     </nav>
   </div>
 </header>
@@ -748,6 +748,24 @@ main() {
     button("OK")       // runs now, during construction
     button("Cancel")
 }</code></pre>
+<p>Because the block runs inline, it is not a function of its own: a <code>return</code> in it returns from the function the call is written in, and is one of that function's returns. A function with no written result type whose only <code>return</code> with a value is in a trailing block returns that value, typed from it, and one that returns a value from a block on one path must return one on every path (the missing-return check). Inside a closure, a block's <code>return</code> is the closure's.</p>
+<pre><code>scope(tag: int) -&gt; int {
+    return tag
+}
+
+first_positive(a: int, b: int) {
+    scope(1) {
+        if a &gt; 0 {
+            return a
+        }
+    }
+    return b
+}
+
+main() {
+    println("${first_positive(3, 4)} ${first_positive(0, 4)}")
+}</code></pre>
+<pre><code>3 4</code></pre>
 <h3 id="same-line-rule-for-trailing-blocks">Same-line rule for trailing blocks</h3>
 <p>A trailing block <code>{ ... }</code> is recognised as part of a function call only when <code>{</code> appears on the <strong>same source line</strong> as the call's closing <code>)</code>. A <code>{</code> on a later line is parsed as an independent block, not as a trailing closure for the preceding call.</p>
 <pre><code>result = build() { ... }    // trailing closure of build()
@@ -787,6 +805,7 @@ store(action) callback |x: int| -&gt; x * 2</code></pre>
 <h2 id="dsl-block-receiver-scoping">DSL Block Receiver Scoping</h2>
 <p>When a trailing closure is bound to a member-access call, <code>receiver.method(args) { body }</code> bare-name function references inside <code>body</code> fall back through the receiver's namespace before erroring as undefined. Resolution order:</p>
 <ol><li>Block-local definitions (closure params, <code>let</code> bindings).</li><li><code>&lt;receiver&gt;_&lt;name&gt;</code> looked up walking the scope chain.</li><li>The current file's scope (existing imports, top-level decls).</li><li>Otherwise: undefined-name error.</li></ol>
+<p>So the receiver's function also comes before a local of the function the block is written in, and before a top-level function of the same name: in <code>blk.run("x") { return note(n) }</code>, <code>note</code> is <code>blk.note</code> even beside a <code>note(n: int) -&gt; int</code> of the program, and the function returns what <code>blk.note</code> returns.</p>
 <p>Pre-fix, every downstream project consuming an SDK module had to write a two-line import preamble:</p>
 <pre><code>import bash
 import bash (script, jobs, env)        // ← this companion line
@@ -950,6 +969,7 @@ compile("Main.java") {
 
 // Without trailing block, _builder is null, zero-config
 compile("Test.java")</code></pre>
+<p>The call's arguments are evaluated after the block, left to right, just before the function runs, whether the call is a statement of its own or a value used inside an expression (<code>println(compile("Main.java") { ... })</code>).</p>
 <p>The setter functions (<code>set_release</code>, <code>set_lint</code>) are regular DSL functions with <code>_ctx: ptr</code> they work on whatever was pushed to the context stack. The compiler creates the config object (currently a map), pushes it, runs the block, pops, then calls the function with the filled config.</p>
 <h3 id="builder-functions-can-return-values">Builder functions can return values</h3>
 <pre><code>builder make_greeting(name: string): string {
@@ -984,6 +1004,9 @@ query_builder_new() {
 }
 builder execute_query(db: string) with query_builder_new { ... }</code></pre>
 <p>The factory just needs to be a zero-argument function returning <code>ptr</code>. The trailing block's setter functions and the builder function body must agree on the protocol, the compiler doesn't care what the object is, only that it can be pushed to the context stack as <code>void*</code>.</p>
+<h3 id="leaving-the-block-early">Leaving the block early</h3>
+<p>The builder takes the config when the block ends. A <code>return</code>, <code>break</code> or <code>continue</code> that leaves the block skips the builder, so the call itself releases the config on that way out: with <code>map_free</code> for the default <code>map_new</code>, and with <code>&lt;stem&gt;_free</code> for a <code>&lt;stem&gt;_new</code> factory the program defines or declares with one <code>ptr</code> parameter (<code>list_new</code> and <code>list_free</code>, or a <code>query_builder_free(m: ptr)</code> beside <code>query_builder_new</code> above). In a nested builder call's block, the way out releases both calls' configs. A factory named otherwise has no release the compiler can find, and an early exit leaves its object unreleased (#2802), so pair a custom factory with its <code>_free</code>.</p>
+<p>A panic that leaves the block skips the builder too. When a <code>try</code> catches it, the catch puts the builder context stack back to its depth at the <code>try</code> and releases, with the same function, the configs of the blocks the panic abandoned; a block after the <code>try</code> fills its own call's config. Before (#2810), each caught panic left an entry on the stack, and after 64 of them a block's setters filled the config of a call a panic had abandoned.</p>
 <h3 id="generated-code">Generated code</h3>
 <p>For <code>compile("Main.java") { set_release("21") }</code>, the compiler generates:</p>
 <pre><code>{
@@ -1103,7 +1126,7 @@ r = assert.expect_int(5).to_equal(5).to_be_gt(0)  // matchers imported, chain lo
 <nav class="doc-prevnext" aria-label="Previous and next page"><a class="pn-prev" href="/Docs/named-args-and-select.html"><span class="pn-k">Previous</span><span class="pn-t">Named Arguments and select()</span></a><a class="pn-next" href="/Docs/closures-and-lifetimes.html"><span class="pn-k">Next</span><span class="pn-t">Closures and Environment Lifetimes</span></a></nav>
       </article>
     </main>
-    <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#quick-reckoner-llm-cheat-sheet" class="l2" data-id="quick-reckoner-llm-cheat-sheet">Quick reckoner (LLM cheat-sheet)</a><a href="#background" class="l2" data-id="background">Background</a><a href="#closure-syntax" class="l2" data-id="closure-syntax">Closure Syntax</a><a href="#invoking-closures" class="l2" data-id="invoking-closures">Invoking Closures</a><a href="#closures-as-function-parameters" class="l2" data-id="closures-as-function-parameters">Closures as Function Parameters</a><a href="#trailing-blocks" class="l2" data-id="trailing-blocks">Trailing Blocks</a><a href="#immediate-blocks-dsl-structure" class="l3" data-id="immediate-blocks-dsl-structure">Immediate blocks (DSL structure)</a><a href="#same-line-rule-for-trailing-blocks" class="l3" data-id="same-line-rule-for-trailing-blocks">Same-line rule for trailing blocks</a><a href="#closure-blocks-callbacks" class="l3" data-id="closure-blocks-callbacks">Closure blocks (callbacks)</a><a href="#callback-blocks" class="l3" data-id="callback-blocks">Callback blocks</a><a href="#dsl-block-receiver-scoping" class="l2" data-id="dsl-block-receiver-scoping">DSL Block Receiver Scoping</a><a href="#higher-order-functions" class="l2" data-id="higher-order-functions">Higher-Order Functions</a><a href="#builder-context-stack" class="l2" data-id="builder-context-stack">Builder Context Stack</a><a href="#invisible-context-injection" class="l2" data-id="invisible-context-injection">Invisible Context Injection</a><a href="#builder-functions-configure-then-execute" class="l2" data-id="builder-functions-configure-then-execute">Builder Functions, "Configure Then Execute"</a><a href="#defining-a-builder-function" class="l3" data-id="defining-a-builder-function">Defining a builder function</a><a href="#calling-a-builder-function" class="l3" data-id="calling-a-builder-function">Calling a builder function</a><a href="#builder-functions-can-return-values" class="l3" data-id="builder-functions-can-return-values">Builder functions can return values</a><a href="#choosing-the-config-factory-with-with" class="l3" data-id="choosing-the-config-factory-with-with">Choosing the config factory with with</a><a href="#generated-code" class="l3" data-id="generated-code">Generated code</a><a href="#ref-cells-shared-mutable-state-for-closures" class="l2" data-id="ref-cells-shared-mutable-state-for-closures">Ref Cells, Shared Mutable State for Closures</a><a href="#lazy-values" class="l3" data-id="lazy-values">Lazy Values</a><a href="#storing-closures-in-collections" class="l3" data-id="storing-closures-in-collections">Storing Closures in Collections</a><a href="#interactive-calculator-example" class="l3" data-id="interactive-calculator-example">Interactive Calculator Example</a><a href="#fluent-method-chaining-ufcs" class="l2" data-id="fluent-method-chaining-ufcs">Fluent Method Chaining (UFCS)</a><a href="#comparison-with-other-languages" class="l2" data-id="comparison-with-other-languages">Comparison with Other Languages</a><a href="#implementation-notes" class="l2" data-id="implementation-notes">Implementation Notes</a></nav>
+    <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#quick-reckoner-llm-cheat-sheet" class="l2" data-id="quick-reckoner-llm-cheat-sheet">Quick reckoner (LLM cheat-sheet)</a><a href="#background" class="l2" data-id="background">Background</a><a href="#closure-syntax" class="l2" data-id="closure-syntax">Closure Syntax</a><a href="#invoking-closures" class="l2" data-id="invoking-closures">Invoking Closures</a><a href="#closures-as-function-parameters" class="l2" data-id="closures-as-function-parameters">Closures as Function Parameters</a><a href="#trailing-blocks" class="l2" data-id="trailing-blocks">Trailing Blocks</a><a href="#immediate-blocks-dsl-structure" class="l3" data-id="immediate-blocks-dsl-structure">Immediate blocks (DSL structure)</a><a href="#same-line-rule-for-trailing-blocks" class="l3" data-id="same-line-rule-for-trailing-blocks">Same-line rule for trailing blocks</a><a href="#closure-blocks-callbacks" class="l3" data-id="closure-blocks-callbacks">Closure blocks (callbacks)</a><a href="#callback-blocks" class="l3" data-id="callback-blocks">Callback blocks</a><a href="#dsl-block-receiver-scoping" class="l2" data-id="dsl-block-receiver-scoping">DSL Block Receiver Scoping</a><a href="#higher-order-functions" class="l2" data-id="higher-order-functions">Higher-Order Functions</a><a href="#builder-context-stack" class="l2" data-id="builder-context-stack">Builder Context Stack</a><a href="#invisible-context-injection" class="l2" data-id="invisible-context-injection">Invisible Context Injection</a><a href="#builder-functions-configure-then-execute" class="l2" data-id="builder-functions-configure-then-execute">Builder Functions, "Configure Then Execute"</a><a href="#defining-a-builder-function" class="l3" data-id="defining-a-builder-function">Defining a builder function</a><a href="#calling-a-builder-function" class="l3" data-id="calling-a-builder-function">Calling a builder function</a><a href="#builder-functions-can-return-values" class="l3" data-id="builder-functions-can-return-values">Builder functions can return values</a><a href="#choosing-the-config-factory-with-with" class="l3" data-id="choosing-the-config-factory-with-with">Choosing the config factory with with</a><a href="#leaving-the-block-early" class="l3" data-id="leaving-the-block-early">Leaving the block early</a><a href="#generated-code" class="l3" data-id="generated-code">Generated code</a><a href="#ref-cells-shared-mutable-state-for-closures" class="l2" data-id="ref-cells-shared-mutable-state-for-closures">Ref Cells, Shared Mutable State for Closures</a><a href="#lazy-values" class="l3" data-id="lazy-values">Lazy Values</a><a href="#storing-closures-in-collections" class="l3" data-id="storing-closures-in-collections">Storing Closures in Collections</a><a href="#interactive-calculator-example" class="l3" data-id="interactive-calculator-example">Interactive Calculator Example</a><a href="#fluent-method-chaining-ufcs" class="l2" data-id="fluent-method-chaining-ufcs">Fluent Method Chaining (UFCS)</a><a href="#comparison-with-other-languages" class="l2" data-id="comparison-with-other-languages">Comparison with Other Languages</a><a href="#implementation-notes" class="l2" data-id="implementation-notes">Implementation Notes</a></nav>
   </div>
 </div>
 <script src="/docs.js" defer></script>
@@ -1112,7 +1135,7 @@ r = assert.expect_int(5).to_equal(5).to_be_gt(0)  // matchers imported, chain lo
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.810 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.811 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

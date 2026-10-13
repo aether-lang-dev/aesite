@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.810</span>
+      <span class="vtag">v0.811</span>
     </nav>
   </div>
 </header>
@@ -670,7 +670,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <p>What does <strong>not</strong> go here: bugs. A wrong answer, a crash, a leak is a tracker issue, not an edge case, file it. This document is for behaviour that is correct-or-tolerated but puzzling, and for behaviour whose status has not been chosen. Append-only in spirit: when an entry moves from <em>By implementation</em> to <em>Settled</em>, update its status and point at the decision rather than deleting it.</p>
 <p>(The shape is borrowed from Mojo's <code>edge-case-behaviors.md</code>; the contents are entirely ours.)</p>
 <h2 id="slices-t">Slices (<code>T[]</code>)</h2>
-<p><strong><code>null</code> is an empty slice, but an empty slice is not <code>null</code>.</strong>, <em>Settled, and easy to get backwards.</em> <code>null</code> converts to a slice with <code>.len == 0</code> that compares equal to <code>null</code>. The converse does not hold: a zero-length slice over real storage, <code>b[2..2]</code> of a live buffer, has <code>.len == 0</code> and compares <strong>not</strong> equal to <code>null</code>, because the comparison is on the pointer, not the length. So <code>if s == null</code> means "has no storage", not "is empty"; test <code>.len</code> for emptiness. <code>free(s)</code> on either kind frees the pointer, whatever the length. <a href="/Docs/language-reference.html#slices-t">language-reference.md § Slices</a>.</p>
+<p><strong><code>null</code> is an empty slice, but an empty slice is not <code>null</code>.</strong>, <em>Settled, and easy to get backwards.</em> <code>null</code> converts to a slice with <code>.len == 0</code> that compares equal to <code>null</code>, and so does the empty literal <code>[]</code>, which has no elements to hold and so no storage (#2767). The converse does not hold: a zero-length slice over real storage, <code>b[2..2]</code> of a live buffer, has <code>.len == 0</code> and compares <strong>not</strong> equal to <code>null</code>, because the comparison is on the pointer, not the length. So <code>if s == null</code> means "has no storage", not "is empty"; test <code>.len</code> for emptiness. <code>free(s)</code> on either kind frees the pointer, whatever the length. <a href="/Docs/language-reference.html#slices-t">language-reference.md § Slices</a>.</p>
 <p><strong>A view over a raw pointer is unbounded, and sub-slicing it trusts you.</strong>, <em>Settled.</em> <code>p as T[]</code> and a <code>T[]</code> returned by a C extern have <code>.len == -1</code>; indexing them is unchecked, as it was before slices existed. Bounding with an explicit end, <code>(p as byte[])[0..n]</code>, is the documented way to get checking back, and it is the one place <code>[lo..hi]</code> performs <strong>no</strong> check: there is nothing to check <code>n</code> against, so <code>n</code> is a claim the producer must know is true. Never derive it from untrusted input. <a href="/Docs/language-reference.html#slices-t">language-reference.md § Slices</a>; the constraints list on #2301.</p>
 <p><strong>A slice decays to its pointer at every C boundary and the length is dropped.</strong>, <em>Settled.</em> A <code>T[]</code> parameter or return of an <code>extern</code> is the bare <code>T*</code> C declares, not the <code>{ptr, len}</code> struct. A wrapper that wants the C side bounded must pass <code>.len</code> itself, and check sizes before the decay. <a href="/Docs/language-reference.html#slices-t">language-reference.md § Slices</a>, <a href="/Docs/c-interop.html">c-interop.md</a>.</p>
 <p><strong>A negative index is out of range, never a read before the buffer.</strong>, <em>Settled.</em> <code>s[-1]</code> is the same bounds panic as <code>s[s.len]</code>; there is no Python-style wraparound. <a href="/Docs/language-reference.html#slices-t">language-reference.md § Slices</a>.</p>
@@ -701,7 +701,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.810 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.811 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>
