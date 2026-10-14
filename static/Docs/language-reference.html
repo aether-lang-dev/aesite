@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.812</span>
+      <span class="vtag">v0.814</span>
     </nav>
   </div>
 </header>
@@ -2287,6 +2287,13 @@ main() {
     a = sqrt(<span class="num">16.0</span>)            <span class="com">// bare-name binding the selective import adds</span>
     b = math.pow(<span class="num">2.0</span>, <span class="num">3.0</span>)    <span class="com">// qualified, always available, even un-selected</span>
 }</code></pre>
+<p><strong>A type can be qualified the same way.</strong> <code>mod.T</code> and <code>*mod.T</code> are types wherever a type is written (a parameter, a return type, a struct field, an <code>as</code> cast, a typed declaration), with no selective import of <code>T</code>:</p>
+<pre><code>import gpu
+
+compile(id: int) -&gt; *gpu.GpuShader {
+    return gpu.make_shader(id) as *gpu.GpuShader
+}</code></pre>
+<p>Struct names are one namespace across the modules of a program, so <code>gpu.GpuShader</code> is the same struct <code>import gpu (GpuShader)</code> would bring in; the qualifier says where it comes from and is checked: <code>gpu</code> has to be a module the file imports, and it has to define and export the type (<code>module 'gpu' has no type 'Missing'</code>, <code>'Scratch' is not exported from module 'gpu'</code>).</p>
 <h3 id="import-with-alias">Import with Alias</h3>
 <p>The <code>import mod as alias</code> syntax parses and records the alias, but calls through the alias prefix (<code>str.new(...)</code>) do not currently resolve, the aliased name is not wired into namespace lookup, so the call fails typechecking. Until that lands, use the module's own namespace directly:</p>
 <pre><code>// Aliased-call form parses but does not yet resolve:
@@ -2972,7 +2979,7 @@ process_file(path) {
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.812 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.814 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>
