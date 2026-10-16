@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.818</span>
+      <span class="vtag">v0.819</span>
     </nav>
   </div>
 </header>
@@ -745,13 +745,14 @@ struct ContentView: View {
 }</code></pre>
 <p>Run Aether calls <strong>off the main actor</strong> if they are not instant, exactly as you would any other blocking computation, nothing about the FFI makes a slow function safe to call from the UI thread.</p>
 <h3 id="types-across-the-boundary">Types across the boundary</h3>
-<div class="tw"><table><thead><tr><th>Aether</th><th>C / Swift</th></tr></thead><tbody><tr><td><code>int</code></td><td><code>int32_t</code> / <code>Int32</code></td></tr><tr><td><code>long</code></td><td><code>int64_t</code> / <code>Int64</code></td></tr><tr><td><code>float</code></td><td><code>double</code> / <code>Double</code></td></tr><tr><td><code>bool</code></td><td><code>int</code> / <code>Int32</code> (0 or 1)</td></tr><tr><td><code>string</code> (param)</td><td><code>const char*</code> / <code>UnsafePointer&lt;CChar&gt;</code></td></tr><tr><td><code>string</code> (return)</td><td><code>const char*</code> / <code>UnsafePointer&lt;CChar&gt;?</code></td></tr></tbody></table></div>
+<div class="tw"><table><thead><tr><th>Aether</th><th>C / Swift</th></tr></thead><tbody><tr><td><code>int</code></td><td><code>int32_t</code> / <code>Int32</code></td></tr><tr><td><code>long</code></td><td><code>int64_t</code> / <code>Int64</code></td></tr><tr><td><code>float</code></td><td><code>double</code> / <code>Double</code></td></tr><tr><td><code>bool</code></td><td><code>int</code> / <code>Int32</code> (0 or 1)</td></tr><tr><td><code>string</code> (param)</td><td><code>const char*</code> / <code>UnsafePointer&lt;CChar&gt;</code></td></tr><tr><td><code>string</code> (return)</td><td><code>const void*</code> / <code>UnsafeRawPointer?</code></td></tr></tbody></table></div>
 <p>The full table is in <a href="/Docs/emit-lib.html#type-mapping">emit-lib.md</a>.</p>
-<p><strong>Strings need care.</strong> For a <code>-&gt; string</code> export the generated wrapper calls <code>aether_string_data()</code> for you, so what Swift receives really is a NUL-terminated C string rather than an opaque handle. Copy it immediately and do not retain the raw pointer:</p>
-<pre><code>if let p = aether_greet("SwiftUI") {
-    let s = String(cString: p)     // copy now
-    // `p` must not be stored, its lifetime is not yours to manage
-}</code></pre>
+<p><strong>Strings need care.</strong> A <code>-&gt; string</code> export hands Swift a string it owns, as an opaque handle. Read its bytes with <code>aether_string_data()</code> and <code>aether_string_length()</code>, copy them, and give the handle back through the library's release function, which the generated header declares (<code>aether_fibcore_string_release</code> for <code>libfibcore.a</code>):</p>
+<pre><code>let h = aether_greet("SwiftUI")
+defer { aether_fibcore_string_release(h) }
+let bytes = UnsafeRawBufferPointer(start: aether_string_data(h),
+                                   count: aether_string_length(h))
+let s = String(decoding: bytes, as: UTF8.self)   // a copy</code></pre>
 <p>Prefer scalars across the boundary where you can. If you need to return structured data, returning a JSON string that Swift decodes is usually less work than hand-marshalling, and it keeps the ABI surface one function wide.</p>
 <h2 id="step-5--get-it-into-the-bundle">Step 5, get it into the bundle</h2>
 <h3 id="the-xcode-way">The Xcode way</h3>
@@ -799,7 +800,7 @@ xcrun simctl io      booted screenshot shot.png</code></pre>
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.818 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.819 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

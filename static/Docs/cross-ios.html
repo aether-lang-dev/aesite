@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.818</span>
+      <span class="vtag">v0.819</span>
     </nav>
   </div>
 </header>
@@ -696,7 +696,7 @@ ae build --target=aarch64-ios --emit=csrc mylib.ae -o mylib</code></pre>
 <pre><code>ae build --target=aarch64-ios --emit=csrc mylib.ae -o mylib   <span class="com"># -&gt; mylib.h</span></code></pre>
 <pre><code>// bridging header: #include "mylib.h"
 let sum = aether_add(2, 3)</code></pre>
-<p>A <code>-&gt; string</code> export surfaces as <code>const char*</code>: the generated <code>aether_&lt;name&gt;()</code> wrapper calls <code>aether_string_data()</code> on the <code>AetherString*</code> for you, so Swift receives a NUL-terminated C string. Copy it (<code>String(cString:)</code>) rather than retaining the pointer.</p>
+<p>A <code>-&gt; string</code> export returns a string Swift owns, as an opaque handle: read it with <code>aether_string_data()</code> / <code>aether_string_length()</code>, copy it, and give it back through the library's <code>aether_&lt;lib&gt;_string_release()</code>, which the generated header declares. The example is in <a href="/Docs/swiftui-ios-app.html#types-across-the-boundary">swiftui-ios-app.md</a>, and the rule in <a href="/Docs/emit-lib.html#strings-an-export-returns">emit-lib.md</a>.</p>
 <h2 id="deployment-target">Deployment target</h2>
 <p>The deployment target is part of the clang triple, so it is fixed at build time. The default is <strong>iOS 15.0</strong> for the device and simulator targets. Catalyst has its own floor, and it differs by architecture: <strong>13.1</strong> on x86_64 (the <code>macabi</code> ABI does not exist before it) and <strong>14.0</strong> on arm64, since arm64 Catalyst did not exist until Apple Silicon, clang silently raises anything lower to 14.0, so asking for less produces a triple that does not describe its own output. Override any of them with <code>AETHER_IOS_MIN</code>:</p>
 <pre><code>AETHER_IOS_MIN=<span class="num">17.0</span> ae build --target=aarch64-ios --emit=lib mylib.ae -o libmylib.dylib</code></pre>
@@ -733,7 +733,7 @@ xcodebuild -create-xcframework \
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.818 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.819 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

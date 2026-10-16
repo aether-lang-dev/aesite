@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.818</span>
+      <span class="vtag">v0.819</span>
     </nav>
   </div>
 </header>
@@ -1048,7 +1048,9 @@ main() {
     <span class="kw">size_t</span>      len    = aether_string_length(result);   <span class="com">// exact length</span>
     <span class="kw">if</span> (len &gt; cap) len = cap;
     memcpy(out, data, len);                               <span class="com">// binary-safe</span>
+    string_release(result);                               <span class="com">// the shim owns it</span>
 }</code></pre>
+<p>The result is the caller's: an Aether function's return hands over one reference (R3 in <a href="https://github.com/aether-lang-dev/aether/blob/main/docs/design/ownership-model.md">the ownership model</a>), so the shim releases it once it has copied what it needs. A string an <code>--emit=lib</code> export returns goes back through the library's own release function instead; see <a href="/Docs/emit-lib.html#strings-an-export-returns">emit-lib.md</a>.</p>
 <p>Both helpers accept either an <code>AetherString*</code> (the common case) or a raw <code>char*</code> (legacy TLS-arena externs whose names end in <code>_raw</code>), so shims can be agnostic about which flavour they got. Both are safe on NULL.</p>
 <blockquote><strong>Historical note:</strong> older shims open-coded this unwrap by pattern-matching the magic number themselves (<code>#define AETHER_STRING_MAGIC 0xAE57C0DE</code> + cast). <code>aether_string_data</code> / <code>aether_string_length</code> have replaced that pattern, downstream projects can delete the open-coded unwrap once they pick up the new headers.</blockquote>
 <h3 id="passing-string-values-into-c-externs-auto-unwrap">Passing <code>string</code> values INTO C externs (auto-unwrap)</h3>
@@ -1346,7 +1348,7 @@ server_get(raw, "/health", _h_health, 0)   // references ae_h_health</code></pre
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.818 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.819 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>
