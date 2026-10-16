@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.817</span>
+      <span class="vtag">v0.818</span>
     </nav>
   </div>
 </header>
@@ -699,7 +699,7 @@ walk(s: *StringSeq) {
     }
 }</code></pre>
 <h2 id="automatic-ownership">Automatic ownership</h2>
-<p>A <code>*StringSeq</code> local is reclaimed <strong>automatically</strong>, the compiler frees it on reassignment and at scope exit, so the explicit <code>string.seq_free(s)</code> above is optional. This mirrors the heap-string ownership model:</p>
+<p>Every place that holds a <code>*StringSeq</code> owns a reference to it, as it does a string (docs/memory-management.md, "Values the program owns"): a local, a struct field, a tuple position, an optional, an array element, a closure's capture, a message field, an actor's state and a module <code>var</code>. A place takes a fresh sequence (a literal, or a call whose result hands one over: an Aether function's, or a <code>string.seq_*</code> producer's) and retains any other; it releases what it holds when it is overwritten or left, a panic included. So the explicit <code>string.seq_free(s)</code> above is optional:</p>
 <pre><code>deep = string.seq_empty()
 i = 0
 while i &lt; 1000 {
@@ -707,8 +707,9 @@ while i &lt; 1000 {
     i = i + 1
 }
 // `deep` freed here at scope exit, no leak, no manual free needed</code></pre>
-<p>It is safe to <em>also</em> call <code>string.seq_free(s)</code> yourself: the explicit free clears the ownership tracker so the scope-exit free does not run twice. Freeing is a refcount <strong>decrement</strong> (<code>string_seq_free</code>), so a structurally-shared tail survives until its last owner is freed, <code>string.seq_cons(x, t)</code> and <code>string.seq_cons(y, t)</code> share <code>t</code> safely, and each rooted list can be freed independently.</p>
-<p>A sequence that <strong>escapes</strong> the function, returned, captured by a closure, or stored raw in a non-seq container (<code>list.add</code>, an actor message field), is <em>not</em> auto-freed; ownership transfers to the recipient, which is responsible for the eventual <code>string.seq_free</code>.</p>
+<p>It is safe to <em>also</em> call <code>string.seq_free(s)</code> on a local yourself: the local is left empty, so its own release finds nothing. Freeing is a refcount <strong>decrement</strong> (<code>string_seq_free</code>), so a structurally-shared tail survives until its last owner is freed, <code>string.seq_cons(x, t)</code> and <code>string.seq_cons(y, t)</code> share <code>t</code> safely, and each rooted list can be freed independently. A parameter is borrowed: the function may not free it (E0901), and one it rebinds takes a reference of its own first.</p>
+<p>A function returning a sequence hands its caller a reference (a local's, or a new one to a parameter it returns), and a call passing a fresh sequence as an argument releases it after the call. A message field takes a reference at the send and the message releases it after the receive arm; the cell counts are atomic, so a sequence may be shared across actors. <code>string.seq_tail</code> lends the tail of a sequence the caller holds; a place that keeps it takes a reference of its own.</p>
+<p>A <code>ptr</code> slot (a <code>list.add</code> element, a <code>ptr</code> field, a <code>@keep ptr</code> parameter) owns nothing. A sequence kept there needs a reference of its own, <code>string.seq_retain(s)</code>, given back with <code>string.seq_free</code> when it is taken out; giving one a <code>@keep ptr</code> parameter or a <code>ptr</code> field without it is refused (E0902).</p>
 <h2 id="pattern-match">Pattern match</h2>
 <p>The compiler dispatches <code>[]</code> / <code>[h|t]</code> arms differently based on the matched expression's type:</p>
 <ul><li><strong><code>*StringSeq</code> matched expression</strong> → NULL-checking pointer walk.<ul><li><code>[]</code> arm tests <code>s == NULL</code>.</li><li><code>[h | t]</code> arm tests <code>s != NULL</code> and binds <code>h: string = s-&gt;head</code>, <code>t: *StringSeq = s-&gt;tail</code>. Tail is typed as <code>*StringSeq</code> (not as an array), so recursive walks compose without an extra cast.</li></ul></li><li><strong><code>int[]</code> matched expression</strong> → existing slice-style lowering (untouched by this addition).</li></ul>
@@ -873,7 +874,7 @@ string.seq_free(b)        // b's head frees, then [y, z] drops to 0
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.817 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.818 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

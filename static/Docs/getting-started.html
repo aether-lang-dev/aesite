@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.817</span>
+      <span class="vtag">v0.818</span>
     </nav>
   </div>
 </header>
@@ -902,7 +902,7 @@ main() {
     println(content)
 }</code></pre>
 <p><code>free()</code> is still a language builtin for manually-allocated memory (e.g. <code>make</code>, <code>list.new</code>, <code>map.new</code>). <code>defer free(...)</code> or <code>defer list.free(...)</code> ensure cleanup on scope exit.</p>
-<p>For <code>std.string</code> managed strings (<code>string.new()</code>, <code>string.to_upper()</code>, etc.), use <code>defer string.release(s)</code> for reference counting.</p>
+<p>A string needs no cleanup: the local, field or element holding it releases it when it is overwritten or goes out of scope. <code>free(s)</code> or <code>release(s)</code> on a string releases it early and leaves the place empty.</p>
 <h2 id="pattern-matching">Pattern Matching</h2>
 <p>Functions can be defined as several clauses, each matching a different shape of argument, with guards to narrow a clause further. The first clause that matches runs.</p>
 <h3 id="function-pattern-matching">Function Pattern Matching</h3>
@@ -984,12 +984,11 @@ main() {
 
 main() {
     home = os.getenv(<span class="str">"HOME"</span>)
-    <span class="kw">defer</span> free(home)
     <span class="kw">if</span> home != <span class="num">0</span> {
         println(<span class="str">"Home directory: ${home}"</span>)
     }
 }</code></pre>
-<p>The builtin <code>getenv()</code> also works without an import for quick scripts (returns a malloc'd string, use <code>defer free()</code>).</p>
+<p>The builtin <code>getenv()</code> also works without an import for quick scripts; its string is released with the local that holds it.</p>
 <h2 id="when-something-doesnt-compile">When something doesn't compile</h2>
 <p>Aether's typer is precise, <code>error[E0301]: Undefined function 'super_token'</code> is the right output for a build pipeline but not always for an operator authoring a config script. <code>ae help &lt;script.ae&gt;</code> translates the typer's terse output into actionable, on-machine suggestions:</p>
 <pre><code>ae help my_script.ae              <span class="com"># Human-readable findings</span>
@@ -1084,7 +1083,7 @@ make docker-ci-embedded    <span class="com"># ARM Cortex-M4 syntax-check</span>
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.817 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.818 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>
