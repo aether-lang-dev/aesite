@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.819</span>
+      <span class="vtag">v0.820</span>
     </nav>
   </div>
 </header>
@@ -1016,7 +1016,7 @@ main() {
         → @link visible or not → // aether-link: → the link command</code></pre>
 <p>Transitive: a program that never names <code>contrib.sqlite</code> still links it when something it imports does, at any depth. <code>-D</code>-sensitive: an <code>import</code> inside a losing <code>when defined(...)</code> region is gone before codegen, so its <code>@link</code> contributes nothing and the library is absent from the binary entirely, not merely uncalled. That is the half a static <code>link_flags</code> cannot express, since it is passed on every build regardless of which regions survived.</p>
 <p><strong>What's supported:</strong></p>
-<ul><li>Functions (with type inference from call sites)</li><li>Constants (<code>const NAME = value</code>), including constants referencing other constants</li><li>Intra-module calls (functions calling other functions and referencing constants in the same module)</li><li>Export visibility (<code>export</code> keyword controls public API)</li><li>Multiple module imports in the same program</li><li>Mixing pure modules with stdlib imports</li><li>Parameter/local variable shadowing of module constants</li><li>Actors and their message types: <code>spawn</code> an <code>actor</code> and send a <code>message</code> declared in an imported module. Both enter the program under their bare name (like structs), so <code>spawn(Worker())</code> and <code>w ! Ping { ... }</code> resolve; the actor's handlers still have their intra-module function/constant references rewritten, and the per-program message registry assigns runtime type ids across the merge.</li></ul>
+<ul><li>Functions (with type inference from call sites)</li><li>Constants (<code>const NAME = value</code>), including constants referencing other constants</li><li>Intra-module calls (functions calling other functions and referencing constants in the same module)</li><li>Export visibility (<code>export</code> keyword controls public API)</li><li>Multiple module imports in the same program</li><li>Mixing pure modules with stdlib imports</li><li>Parameter/local variable shadowing of module constants</li><li>Actors and their message types: <code>spawn</code> an <code>actor</code> and send a <code>message</code> declared in an imported module. Both enter the program under their bare name (unlike structs, which are module-scoped and merged as <code>&lt;ns&gt;_&lt;Name&gt;</code>), so <code>spawn(Worker())</code> and <code>w ! Ping { ... }</code> resolve; the actor's handlers still have their intra-module function/constant references rewritten, and the per-program message registry assigns runtime type ids across the merge.</li></ul>
 <p><strong>On the module-system roadmap (language-level):</strong></p>
 <ul><li>Module-level mutable state</li></ul>
 <h3 id="roadmap">Roadmap</h3>
@@ -1035,7 +1035,7 @@ main() {
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.819 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.820 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

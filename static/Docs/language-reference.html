@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.819</span>
+      <span class="vtag">v0.820</span>
     </nav>
   </div>
 </header>
@@ -2315,7 +2315,18 @@ main() {
 compile(id: int) -&gt; *gpu.GpuShader {
     return gpu.make_shader(id) as *gpu.GpuShader
 }</code></pre>
-<p>Struct names are one namespace across the modules of a program, so <code>gpu.GpuShader</code> is the same struct <code>import gpu (GpuShader)</code> would bring in; the qualifier says where it comes from and is checked: <code>gpu</code> has to be a module the file imports, and it has to define and export the type (<code>module 'gpu' has no type 'Missing'</code>, <code>'Scratch' is not exported from module 'gpu'</code>).</p>
+<p><code>gpu.GpuShader</code> is the struct <code>import gpu (GpuShader)</code> would bring in. The qualifier is checked: <code>gpu</code> has to be a module the file imports, and it has to define and export the type (<code>module 'gpu' has no type 'Missing'</code>, <code>'Scratch' is not exported from module 'gpu'</code>).</p>
+<p><strong>Struct types belong to their module.</strong> Two modules may each define a struct of one name, and a program may use both: <code>gpu.Shader</code> and <code>core.Shader</code> are different types, as <code>gpu.compile</code> and <code>core.compile</code> are different functions.</p>
+<pre><code>import gpu      // struct Shader { id: int, stage: string }
+import core     // struct Shader { name: string, uniforms: int }
+
+struct Frame {
+    program: *gpu.Shader
+    material: core.Shader
+}</code></pre>
+<p>A struct name resolves where it is written, the way a function's does:</p>
+<ul><li><code>gpu.Shader</code>, <code>*gpu.Shader</code> and <code>gpu.Shader { ... }</code> name gpu's.</li><li>A bare <code>Shader</code> is the file's own struct of that name, if it has one; a module's code names its own structs bare, as before.</li><li>Otherwise it is the one struct of that name among the modules the file imports. When two imports define one, a selective import naming it decides (<code>import gpu (Shader)</code>); without one the bare name is an error, <code>struct 'Shader' is ambiguous here: the imported modules 'gpu' and 'core' each define one</code>, and the qualified spelling is the fix.</li></ul>
+<p>Diagnostics spell a module's struct qualified (<code>expected *core.Shader, got *gpu.Shader</code>). Two modules defining a struct identically, field for field, still share one type. In the C a module's struct is <code>&lt;ns&gt;_&lt;Name&gt;</code> (<code>gpu_Shader</code>), its module's namespace as its functions carry it; the program's own structs keep their names, and so, in an <code>--emit=lib</code> build, does a struct its module exports, since that name is part of the library's ABI (see <a href="/Docs/emit-lib.html">emit-lib.md</a>). Messages and actors are still one namespace across modules.</p>
 <h3 id="import-with-alias">Import with Alias</h3>
 <p>The <code>import mod as alias</code> syntax parses and records the alias, but calls through the alias prefix (<code>str.new(...)</code>) do not currently resolve, the aliased name is not wired into namespace lookup, so the call fails typechecking. Until that lands, use the module's own namespace directly:</p>
 <pre><code>// Aliased-call form parses but does not yet resolve:
@@ -2530,7 +2541,7 @@ main() {
     }
 }</code></pre>
 <p>The table is what C's own <code>offsetof</code> and <code>sizeof</code> say about the struct the compiler emitted, so it cannot drift from the layout; nothing is built at run time. Fields are numbered in declaration order from 0, the index a <code>std.observe</code> field observer receives for the same field.</p>
-<ul><li><strong>Field attributes.</strong> Any number of <code>@name</code> or <code>@name(arg, ...)</code> after a field's type. The compiler does not interpret them; the table carries them for the program to read (<code>reflect.attr_float(s, field, attr, arg)</code>). An argument is a literal: a number (optionally negative; decimal, <code>0x</code>, <code>0o</code> or <code>0b</code>), a string, <code>true</code> or <code>false</code>. A field names each attribute once, and attributes on a struct without <code>@derive(schema)</code> are an error, since nothing would carry them.</li><li><strong>Nested structs.</strong> A field that holds an Aether struct by value, points at one (<code>*T</code>), or is an array or slice of one names that struct's table (<code>reflect.field_schema</code>), whether or not that struct derives schema itself. A struct that points at itself names its own table.</li><li><strong>Strings.</strong> A <code>string</code> field owns a reference to the string it holds, so a generic writer releases the one there and stores one it took a reference to, as a compiled <code>x.label = ...</code> does.</li><li><strong>Modules.</strong> The derive pass runs after imported modules are merged, so a module's own functions call <code>T_schema()</code> by its bare name, and an importer calls it as <code>module.T_schema()</code> when the module lists it in <code>exports</code>.</li></ul>
+<ul><li><strong>Field attributes.</strong> Any number of <code>@name</code> or <code>@name(arg, ...)</code> after a field's type. The compiler does not interpret them; the table carries them for the program to read (<code>reflect.attr_float(s, field, attr, arg)</code>). An argument is a literal: a number (optionally negative; decimal, <code>0x</code>, <code>0o</code> or <code>0b</code>), a string, <code>true</code> or <code>false</code>. A field names each attribute once, and attributes on a struct without <code>@derive(schema)</code> are an error, since nothing would carry them.</li><li><strong>Nested structs.</strong> A field that holds an Aether struct by value, points at one (<code>*T</code>), or is an array or slice of one names that struct's table (<code>reflect.field_schema</code>), whether or not that struct derives schema itself. A struct that points at itself names its own table.</li><li><strong>Strings.</strong> A <code>string</code> field owns a reference to the string it holds, so a generic writer releases the one there and stores one it took a reference to, as a compiled <code>x.label = ...</code> does.</li><li><strong>Modules.</strong> The derive pass runs after imported modules are merged, so a module's own functions call <code>T_schema()</code> by its bare name, and an importer calls it as <code>module.T_schema()</code> when the module lists it in <code>exports</code>. A derived function is named after the struct as written, so of two modules' same-named structs only one can derive (a second is an error naming both).</li></ul>
 <p><code>@derive(schema)</code> combines with <code>@derive(eq)</code> (<code>@derive(eq, schema)</code>) and with <code>@observable</code>. The table's C layout is <code>runtime/aether_schema.h</code>, for a host that reads it without Aether.</p>
 <hr>
 <h2 id="built-in-functions">Built-in Functions</h2>
@@ -3001,7 +3012,7 @@ process_file(path) {
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.819 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.820 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>
