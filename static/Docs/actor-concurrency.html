@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.823</span>
+      <span class="vtag">v0.824</span>
     </nav>
   </div>
 </header>
@@ -736,7 +736,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <p>For single-int messages, the code generator emits an inline path that stores the value directly in <code>msg.payload_int</code>, bypassing pool allocation.</p>
 <h3 id="receiving-messages">Receiving Messages</h3>
 <p>The <code>receive</code> block in the actor definition becomes the step function. The code generator emits a computed goto dispatch table for message handler selection:</p>
-<pre><code><span class="kw">void</span> ActorName_step(ActorName* self) {
+<pre><code><span class="kw">void</span> _aether_step_ActorName(ActorName* self) {
     Message msg;
     <span class="kw">if</span> (!mailbox_receive(&amp;self-&gt;base.mailbox, &amp;msg)) {
         self-&gt;base.active = <span class="num">0</span>;
@@ -837,7 +837,7 @@ Stack trace (most recent call first):
     scheduler_shutdown();  <span class="com">// Waits for quiescence, stops threads, joins them</span>
 }</code></pre>
 <p><strong>Scheduler lifecycle functions:</strong></p>
-<ul><li><code>scheduler_wait()</code> -- waits for quiescence (all pending messages processed). Non-destructive: scheduler threads keep running. Safe to call multiple times.</li><li><code>scheduler_shutdown()</code> -- waits for quiescence, then stops scheduler threads and joins them. Called once at program exit.</li></ul>
+<ul><li><code>scheduler_wait()</code> -- waits for quiescence (all pending messages processed). Non-destructive: scheduler threads keep running. Safe to call multiple times.</li><li><code>scheduler_shutdown()</code> -- waits for quiescence, then stops scheduler threads and joins them. Called once at program exit.</li><li><strong>Senders the scheduler does not own</strong> (a <code>std.worker</code> job, an http pool worker, a C host's thread) must be stopped before <code>scheduler_shutdown()</code>: its quiescence wait does not end while one keeps sending. A send from such a thread while the scheduler is not running (shut down, starting again, cleaned up) is refused before it touches a core: the message is dropped, its payload released, the drop counted by <code>scheduler_stopped_sends()</code> and reported once on stderr (#2912).</li></ul>
 <h3 id="core-assignment-and-migration">Core Assignment and Migration</h3>
 <p>Actors are placed on the caller's core at spawn time. Actors spawned from the main thread default to core 0, keeping top-level actor groups co-located. Actors spawned from within actor handlers inherit the parent's core.</p>
 <p>During operation, cross-core message senders set a <code>migrate_to</code> hint on the target actor, requesting migration to the sender's core. The owning scheduler thread checks these hints after processing messages in the coalesce buffer and migrates the actor accordingly. This co-locates communicating actors regardless of their initial placement. Migration is non-blocking: if the destination lock cannot be acquired, migration is deferred to the next iteration.</p>
@@ -864,7 +864,7 @@ Stack trace (most recent call first):
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.823 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.824 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>
