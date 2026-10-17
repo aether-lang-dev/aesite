@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.820</span>
+      <span class="vtag">v0.821</span>
     </nav>
   </div>
 </header>
@@ -1139,7 +1139,7 @@ sandbox.enforce(worker) callback {
     fs.read("/etc/shadow")       // still refused
 }</code></pre>
 <p>This keeps the property that made <code>doPrivileged</code> unnecessary. The exemption is granted by the container, in the container's code, at the point it hands the work over; contained code cannot claim it. Concretely:</p>
-<ul><li>A trusted call's authority is the depth the <code>enforce</code> was entered at. Contained code that writes its own <code>enforce(everything, peek)</code> enters it already sandboxed, so a call it trusts drops back no further than the sandbox it is in.</li><li>Trust is lexical. It covers calls written in the block (and nested blocks and closures written there), not a function called from elsewhere that happens to call <code>audit_log</code>, and the names cannot be used as values in the block, so they cannot be passed on.</li><li>The trusted call's arguments are evaluated inside the sandbox; only the trusted function's own body runs outside it. <code>audit_log(fs.read(secret))</code> still has the read refused.</li><li>Only Aether functions can be trusted (each gets a generated wrapper with its exact signature), not C externs.</li><li>A panic that unwinds through a trusted call, or out of the block, puts the depth back where the catching <code>try</code> found it.</li></ul>
+<ul><li>A trusted call's authority is the sandbox levels in force when the <code>enforce</code> was entered: it pushes a barrier hiding the levels from that <code>enforce</code> up, so an <code>enforce</code> the trusted function writes itself stacks above the barrier and cannot disturb the block's grants. Contained code that writes its own <code>enforce(everything, peek)</code> enters it already sandboxed, so a call it trusts drops back no further than the sandbox it is in.</li><li>Trust is lexical. It covers calls written in the block (and nested blocks and closures written there), not a function called from elsewhere that happens to call <code>audit_log</code>, and the names cannot be used as values in the block, so they cannot be passed on.</li><li>The trusted call's arguments are evaluated inside the sandbox; only the trusted function's own body runs outside it. <code>audit_log(fs.read(secret))</code> still has the read refused.</li><li>Only Aether functions can be trusted (each gets a generated wrapper with its exact signature), not C externs.</li><li>A panic that unwinds through a trusted call, or out of the block, puts the depth back where the catching <code>try</code> found it.</li></ul>
 <p>The mechanism lives in the compiler (<code>compiler/analysis/sandbox_trust.c</code> and the trusted-call wrappers in <code>compiler/codegen/codegen.c</code>), beside the <code>sandbox_push</code> / <code>sandbox_pop</code> builtins the sandbox already rests on.</p>
 <p>This is the IoC principle applied to sandboxing: <strong>inject capabilities, don't let the contained reach for them.</strong></p>
 <h2 id="design-influences-summary">Design influences, summary</h2>
@@ -1281,7 +1281,7 @@ db.credentials.user = admin</code></pre>
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.820 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.821 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>
