@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.821</span>
+      <span class="vtag">v0.822</span>
     </nav>
   </div>
 </header>
@@ -2357,6 +2357,7 @@ main() {
 }</code></pre>
 <p>Externs are useful for:</p>
 <ul><li>Calling C standard library</li><li>Custom C extensions</li><li>Platform-specific APIs</li></ul>
+<p>A bare <code>extern</code> belongs to the file that declares it. Two files may declare one C function differently, as <code>extern memcpy(dst: ptr, src: int[], n: long)</code> in one module and <code>extern memcpy(dst: ptr, src: ptr, n: long)</code> in another: each file's calls are checked, and generated, against its own declaration (its parameter types, <code>@heap</code>, <code>@retain</code>), whatever else the program imports. A file that calls an extern it does not declare gets another file's declaration of that name.</p>
 <h3 id="typed-and-qualified-c-pointers">Typed and qualified C pointers</h3>
 <p>Plain <code>ptr</code> lowers to C <code>void *</code>. C headers use richer pointer spellings, and when an Aether <code>extern</code> (or an Aether-owned public function) must match a header <strong>exactly</strong>, so the generated C compiles with that header force-included, and the C compiler still cross-checks the signature against every caller, use these forms. Each affects only the <em>emitted C spelling</em>; the Aether-side <code>kind</code> (and so all typechecking) is unchanged.</p>
 <div class="tw"><table><thead><tr><th>Aether spelling</th><th>Emitted C</th><th>For</th></tr></thead><tbody><tr><td><code>const ptr</code></td><td><code>const void*</code></td><td><code>memcmp(const void *, const void *, size_t)</code></td></tr><tr><td><code>cstring</code></td><td><code>char*</code></td><td>a mutable C-string parameter</td></tr><tr><td><code>cstring_const</code></td><td><code>const char*</code></td><td><code>strlen(const char *)</code> (plain <code>string</code> also emits <code>const char*</code>)</td></tr><tr><td><code>*T</code></td><td><code>T*</code></td><td>a pointer to a header-defined type <code>T</code></td></tr><tr><td><code>const *T</code></td><td><code>const T*</code></td><td>a const pointer to <code>T</code></td></tr><tr><td><code>const string</code></td><td><code>const char*</code></td><td>qualified string</td></tr></tbody></table></div>
@@ -3012,7 +3013,7 @@ process_file(path) {
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.821 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.822 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>
