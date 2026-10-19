@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Aether Memory Management · Aether</title>
-<meta name="description" content="Aether&#x27;s memory model is deterministic scope-exit cleanup, not garbage collection.">
+<title>Memory Management · Aether</title>
+<meta name="description" content="Aether has no garbage collector. Every allocation is released at a point the source shows, in one of two ways">
 <link rel="canonical" href="https://aether-lang.dev/Docs/memory-management.html">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Aether Memory Management · Aether">
-<meta property="og:description" content="Aether&#x27;s memory model is deterministic scope-exit cleanup, not garbage collection.">
+<meta property="og:title" content="Memory Management · Aether">
+<meta property="og:description" content="Aether has no garbage collector. Every allocation is released at a point the source shows, in one of two ways">
 <meta property="og:url" content="https://aether-lang.dev/Docs/memory-management.html">
 <meta property="og:image" content="https://aether-lang.dev/og.png">
 <meta name="twitter:card" content="summary_large_image">
@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.831</span>
+      <span class="vtag">v0.832</span>
     </nav>
   </div>
 </header>
@@ -598,7 +598,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/architecture.html">Aether Architecture</a>
 <a href="/Docs/actor-concurrency.html">Aether Runtime Guide</a>
 <a href="/Docs/scheduler-quick-reference.html">Aether Scheduler - Quick Reference</a>
-<a href="/Docs/memory-management.html" class="on">Aether Memory Management</a>
+<a href="/Docs/memory-management.html" class="on">Memory Management</a>
 <a href="/Docs/runtime-optimizations.html">Runtime Optimizations</a>
 <a href="/Docs/numa-support.html">NUMA Support in Aether</a>
 <a href="/Docs/message-tracing.html">Message tracing</a>
@@ -629,7 +629,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/cross-ios.html">Cross-compiling for iOS (arm64)</a>
 <div class="grp">Testing</div>
 <a href="/Docs/testing.html">Testing with std.spec and ae test</a>
-<a href="/Docs/mutation-testing.html">Mutation testing, std.mutation</a>
+<a href="/Docs/mutation-testing.html">Mutation testing: std.mutation</a>
 <a href="/Docs/differential-testing.html">Differential testing across lowering paths</a>
 <div class="grp">Performance</div>
 <a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
@@ -646,8 +646,8 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
 <a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn't need macro_rules!</a>
 <a href="/Docs/lib-caller-info.html">--emit=lib caller-info channel</a>
-<a href="/Docs/liveview-lite-roadmap.html">LiveView-lite, a roadmap (Phoenix LiveView, on actors, without the framework)</a>
-<a href="/Docs/schema-projection-roadmap.html">std.schema, a projection-first roadmap (Ash, without the framework)</a>
+<a href="/Docs/liveview-lite-roadmap.html">LiveView-lite: a roadmap (Phoenix LiveView, on actors, without the framework)</a>
+<a href="/Docs/schema-projection-roadmap.html">std.schema: a projection-first roadmap (Ash, without the framework)</a>
 <a href="/Docs/locale-independent-float-text.html">Plan: locale-independent float text conversion (LC_NUMERIC correctness)</a>
 <div class="grp">Contributing</div>
 <a href="/Docs/stdlib-module-pattern.html">Aether Stdlib Module Pattern</a>
@@ -664,45 +664,90 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
     <main class="doc-main">
       <article class="doc-body" id="doc">
         <div class="bc"><span class="prompt">$</span>docs / runtime</div>
-<h1 id="aether-memory-management">Aether Memory Management</h1>
-<p>Aether's memory model is <strong>deterministic scope-exit cleanup</strong>, not garbage collection.</p>
-<p>The guiding principle:</p>
-<blockquote><strong>Allocations visible at call site. Cleanup explicit and composable. <code>defer</code> is your primary tool.</strong></blockquote>
-<p>Allocations are visible at the call site, and there are no GC pauses.</p>
-<h3 id="why-defer">Why <code>defer</code>?</h3>
-<ol><li><strong>Visible</strong> -- you can see every allocation and its cleanup in the source</li><li><strong>Composable</strong> -- works with any function, not just stdlib types</li><li><strong>Predictable</strong> -- no special naming conventions, no hidden registry, no surprises</li><li><strong>Familiar</strong> -- same pattern as Go's <code>defer</code> and Zig's <code>defer</code></li></ol>
-<p>The one-line cost (<code>defer type.free(x)</code>) is the price for knowing exactly what your program does.</p>
-<hr>
-<h2 id="the-actual-model">The Actual Model</h2>
-<p>Aether uses two allocation mechanisms:</p>
-<div class="tw"><table><thead><tr><th>Layer</th><th>What</th><th>When</th></tr></thead><tbody><tr><td><strong>Actor allocation</strong></td><td>Actor state + inline mailbox</td><td>One NUMA-aware allocation per actor, freed when the actor is destroyed</td></tr><tr><td><strong>Stdlib heap</strong></td><td><code>map.new()</code>, <code>list.new()</code>, etc.</td><td>Freed via <code>defer</code> or explicit <code>.free()</code> call</td></tr></tbody></table></div>
-<p>There is <strong>no garbage collector</strong>.</p>
-<h3 id="arena-vs-defer-when-to-use-which">Arena vs defer: when to use which</h3>
-<p>They solve different problems and are used in different layers:</p>
-<div class="tw"><table><thead><tr><th></th><th>Arena</th><th>defer</th></tr></thead><tbody><tr><td><strong>What</strong></td><td>A region of memory; many small allocations share one region. One "free" destroys the whole region.</td><td>A language construct: run cleanup when leaving the current scope.</td></tr><tr><td><strong>Who uses it</strong></td><td>A general-purpose arena allocator backs bulk-allocation use cases such as <code>std.arena</code> and JSON parsing. You opt into it explicitly. The actor path does <strong>not</strong> use arenas.</td><td><strong>You</strong> use it in Aether code for stdlib types (<code>list.new</code>/<code>list.free</code>, <code>map.new</code>/<code>map.free</code>) and FFI buffers.</td></tr><tr><td><strong>Lifetime</strong></td><td>Everything in the arena lives until the arena is destroyed in one shot.</td><td>The resource lives until scope exit; the deferred call runs then.</td></tr><tr><td><strong>Typical use</strong></td><td>Bulk allocation where many objects share one lifetime and are reclaimed together (e.g. all nodes of a parsed JSON document).</td><td>Any heap allocation you make: <code>items = list.new(); defer list.free(items);</code> so the list is freed when the function (or block) exits.</td></tr></tbody></table></div>
-<hr>
-<h2 id="stdlib-convention">Stdlib Convention</h2>
-<p>All stdlib types follow one consistent naming pattern. In Aether you call them with dot syntax; the underlying C functions use underscores (<code>type_new</code>/<code>type_free</code>):</p>
-<pre><code>type.new()    -&gt; allocates on the heap, returns a pointer (must be freed)
-type.free(t)  -&gt; frees the allocation</code></pre>
-<div class="tw"><table><thead><tr><th>Module</th><th>Constructor</th><th>Destructor</th></tr></thead><tbody><tr><td><code>std.map</code></td><td><code>map.new()</code></td><td><code>map.free(m)</code></td></tr><tr><td><code>std.list</code></td><td><code>list.new()</code></td><td><code>list.free(l)</code></td></tr><tr><td><code>std.string</code></td><td><code>string.new()</code></td><td><code>string.free(s)</code></td></tr><tr><td><code>std.dir</code></td><td><code>dir.list(path)</code></td><td><code>dir.list_free(l)</code></td></tr></tbody></table></div>
-<p><strong>Rule</strong>: Any function whose name ends in <code>_new()</code> or <code>_create()</code> (at the C level) returns an allocated object. Its matching <code>_free()</code> is its destructor. In Aether, use <code>type.new()</code> and <code>type.free(x)</code>.</p>
-<hr>
-<h2 id="the-defer-pattern">The <code>defer</code> Pattern</h2>
-<p>Aether's primary memory management pattern is <code>defer</code>: allocate, immediately defer the free, then use the resource. Cleanup runs at scope exit in LIFO order, on every exit: a <code>return</code>, a <code>break</code>, or a panic a <code>try</code> catches further up.</p>
-<pre><code><span class="kw">import</span> std.map
+<h1 id="memory-management">Memory Management</h1>
+<p>Aether has no garbage collector. Every allocation is released at a point the source shows, in one of two ways:</p>
+<ul><li><strong>Values the program owns are counted by the compiler.</strong> Strings, closures, string sequences, and the structs, tuples, optionals and fixed-size arrays built from them carry a reference count. Every place that holds one owns a reference, a store takes one, and leaving a scope releases what the scope held. The program writes no free for them.</li><li><strong>Handles are freed by the program.</strong> A container (<code>list.new()</code>, <code>map.new()</code>), a C buffer (<code>malloc</code>), a parsed document or an open file is a <code>ptr</code>, and a <code>ptr</code> owns nothing by itself. The module that made the handle has a <code>free</code> or <code>close</code> for it, and <code>defer</code> keeps that call next to the allocation.</li></ul>
+<p>Counting is deterministic: a program releases the same values at the same points on every run, and nothing pauses to collect. Its one limit is a cycle: a value that reaches itself through its own references is not released (<a href="#cycles">Cycles</a>). The rules below are checked by a generated test grid that CI runs on every pull request (<a href="#how-the-rules-are-tested">How the rules are tested</a>).</p>
+<h2 id="values-the-program-owns">Values the program owns</h2>
+<p>Five rules decide where a counted value is released (the design and its implementation record are in <a href="https://github.com/aether-lang-dev/aether/blob/main/docs/design/ownership-model.md">design/ownership-model.md</a>):</p>
+<ul><li><strong>R1, every value carries its own count.</strong> A <code>string</code> is a counted <code>AetherString</code>; a literal is pinned (its count never changes and it is never freed). A closure's environment is counted. A composite owns each of its parts.</li><li><strong>R2, every place holds one reference.</strong> A local, a parameter's copy, a struct, tuple or optional field, an array element, a module <code>var</code>, an actor's state field, a message field, a list or map element, a closure's captured variable: each owns what it holds.</li><li><strong>R3, a store takes and a scope exit releases.</strong> A store takes the new value and releases the one it replaces; leaving a scope releases what its locals hold, on every exit (a <code>return</code>, a <code>break</code>, a caught panic). A parameter is borrowed: the callee never releases it, and one it keeps it takes a reference to. A call borrows its arguments, so a fresh argument is released after the call; a function returning a value hands its caller one reference.</li><li><strong>R4, only C boundaries are annotated</strong> (below).</li><li><strong>R5, moves.</strong> Taking a fresh value (a call's result, an interpolation) moves it; so does taking a local at its last use, which leaves the local empty. Otherwise a take retains a counted string, passes a pinned literal as it is, and copies a plain C string.</li></ul>
+<p>No rule reads another function's body: what a call does with its arguments, and what it hands back, is decided by the callee's signature.</p>
+<pre><code>import std.string
+
+label(n: int) -&gt; string {
+    s = "item-${n}"                 // owns the interpolation
+    return s                        // moves it to the caller
+}
+
+main() {
+    a = label(1)                    // a owns the result
+    b = a                           // b takes a reference; a still owns its own
+    a = string.concat(b, "!")       // releases the old value, owns the new one
+    println("${a} ${b}")
+}                                   // a and b are released here</code></pre>
+<pre><code>item-1! item-1</code></pre>
+<h3 id="strings">Strings</h3>
+<p>A string local owns the value it holds, whatever it was given: a literal, a call's result, another local, a field read. <code>string.free(s)</code> or <code>release(s)</code> on a local releases its reference early and leaves the local empty; on a parameter it is refused (E0901), since the function does not own it. Strings are immutable once made, so two places sharing one counted string is safe; a string stored where other threads can read it (a module <code>var</code>, a closure environment, a value reached through a pointer) is published, and its count becomes atomic from then on.</p>
+<h3 id="reading-a-string-out-of-a-container-or-a-ptr">Reading a string out of a container or a <code>ptr</code></h3>
+<p>A container element and a <code>ptr</code> are untyped, so a <code>string</code> local given one reads it as text whatever it points at. The typed accessors say the value is a string and check that it is one: <code>list.get_string(l, i)</code>, <code>map.get_string(m, key)</code> and <code>string.from_ptr(p)</code> each return <code>(string, string)</code>, the string with <code>""</code>, or <code>null</code> with <code>"not a string"</code> when the element is some other pointer. The string handed back holds a reference of its own, so it outlives the container.</p>
+<pre><code>import std.list
+
+main() {
+    names = list.new()
+    defer list.free(names)
+    list.add(names, "ada")
+    nested = list.new()
+    defer list.free(nested)
+    list.add(nested, names)
+
+    first, err = list.get_string(names, 0)
+    println("${first} [${err}]")
+    text, err2 = list.get_string(nested, 0)
+    println("${text == null} [${err2}]")
+}</code></pre>
+<pre><code>ada []
+true [not a string]</code></pre>
+<p>A <code>string</code> local re-bound to a bare <code>ptr</code> (<code>name, _ = map.get(m, "name")</code>) is warning W1005, which names the accessor to use; a later release makes it an error (<a href="/Docs/language-reference.html#pointer-given-to-a-string-local-w1005">W1005</a>).</p>
+<h3 id="closures">Closures</h3>
+<p>A closure literal's environment is counted. A local holding a closure owns a reference; capturing a variable takes one; a closure field, element or state field takes one; a closure passed to an <code>fn</code> parameter is borrowed. A variable a closure writes lives in a shared cell, counted the same way, so the closure and its creator see one value. <a href="/Docs/closures-and-lifetimes.html">closures-and-lifetimes.md</a> goes through each place a closure can be held.</p>
+<h3 id="string-sequences">String sequences</h3>
+<p>A <code>*StringSeq</code> is counted per cell and owned like a closure: every place holding one owns a reference, a fresh sequence (a literal, an Aether function's result, a <code>string.seq_*</code> producer's) moves in, any other is retained, and <code>string.seq_tail</code> lends. The counts are atomic, so a sequence crosses actors by reference. See <a href="/Docs/sequences.html">sequences.md</a>.</p>
+<h3 id="structs-tuples-optionals-and-fixed-size-arrays">Structs, tuples, optionals and fixed-size arrays</h3>
+<p>Each owning type has one generated retain and one drop, which every place uses: a copy retains every part, a drop releases every part. A struct parameter is borrowed; one its body writes into is copied on entry. A struct boxed with <code>heap.new(T)</code> owns its fields as a local struct does, and <code>heap.free(p)</code> releases them before it frees the box. A fixed-size array is held by value wherever it goes: a local, a field, a message field, an optional's payload, a function's result (returned in a struct of its own), a temporary passed as an argument.</p>
+<h3 id="containers-module-variables-actor-state-messages">Containers, module variables, actor state, messages</h3>
+<p><code>list.add</code>, <code>list.set</code> and <code>map.put</code> take a reference to a string or a closure, released when the element leaves (<code>list.remove</code>, <code>list.clear</code>, a store over it, <code>map.remove</code>, <code>free</code>); a <code>list.set</code> that fails gives back what it was handed. A module <code>var</code> and an actor's state field take what is stored and release what they replace; the actor's state is released when the actor is destroyed. A message owns its fields: the send takes them, a receive arm reads them in place, and the message is released after the arm. What the arm keeps (in state, in a container) it takes.</p>
+<h3 id="c-boundaries-r4">C boundaries (R4)</h3>
+<p>C sees a string as its characters. An extern borrows what it is given for the call. An extern that keeps a value declares the parameter <code>@retain</code>: the call then hands it a reference of its own (a fresh value as it is, a place's retained), for a <code>string</code> and for a closure. <code>@aether</code> passes the counted string itself, for C written against Aether's runtime. <code>@noescape</code> states what a parameter that is not <code>@retain</code> already is.</p>
+<p>An extern returning a fresh string declares it <code>@heap</code> (<code>-&gt; string @heap</code>; <code>-&gt; ptr @heap</code> for a counted string returned untyped, as <code>string.from_int</code> does; per position of a tuple result, <code>-&gt; (string @heap, int, string)</code>); the string is adopted at the call, and the caller owns it. Any other string an extern returns is C's and is copied when a place takes it.</p>
+<p>A string stored into a header-defined struct's field (<code>extern struct ... @c_import</code>) is given a reference of its own, which nothing in the program releases: it is C's from then on. One stored into C memory viewed as <code>string[]</code> is given no reference (see <code>ptr</code> slots, below).</p>
+<h3 id="ptr-slots"><code>ptr</code> slots</h3>
+<p>A <code>ptr</code> slot owns nothing. A string goes into one only through <code>string.keep(s)</code>, which hands over a reference the program gives back with <code>string.release_kept(p)</code>. C memory viewed as <code>string[]</code> owns nothing either: <code>(names as string[])[i] = s</code> gives C the characters and no reference, so the string must outlive every read. A local does only while the memory ends with the function (an argv array built, handed to C and freed in one function). Memory that outlives it (reached through a parameter, a module-level <code>var</code>, a field or a heap box, or whose pointer is returned or stored) takes <code>(names as ptr[])[i] = string.keep(s)</code>, given back with <code>string.release_kept</code> where the memory is freed; any other string stored there is refused (E0902), as is a string built in the statement. A literal is pinned and goes into either as it is.</p>
+<p>A closure goes into a <code>ptr</code> slot boxed (<code>box_closure(f)</code>, or the coercion a store into a <code>ptr</code> makes), the box holding a reference of its own, which <code>release_closure(p)</code> gives back.</p>
+<p>A function that keeps a <code>ptr</code> parameter (stores it where it outlives the call, returns it, or passes it to another keeping parameter) declares it <code>@keep</code>; keeping one that is not declared so is E0902. A struct local to the function, or a closure that runs and is dropped inside the call, does not outlive it: putting the parameter in one keeps nothing unless the struct or the closure escapes itself. A <code>ptr</code> parameter that only borrows is given a closure in a box on the caller's stack, so nothing is allocated. The full rule, with what counts as escaping, is in the language reference's <a href="/Docs/language-reference.html#string-ownership">String ownership</a>.</p>
+<h3 id="panics">Panics</h3>
+<p>A panic caught by a <code>try</code> releases what the scopes it leaves hold, as their exits would have: every owning local, temporary and argument is recorded in an unwind journal while it is live, and every plain <code>defer</code> of those scopes runs, newest first. <code>defer try</code> and <code>defer catch</code> do not run on a panic.</p>
+<h3 id="cycles">Cycles</h3>
+<p>Counting does not free a cycle: a closure stored in a cell it captures, or values that hold each other through <code>ptr</code> slots, live until the program ends. Break the cycle (store <code>none</code>, release the slot) before dropping the last outside reference.</p>
+<h2 id="handles-and-defer">Handles and <code>defer</code></h2>
+<p>A handle is a <code>ptr</code> to memory a module or C allocated: a list, a map, a set, a string builder, a parsed document, a <code>malloc</code> buffer, an open file. A <code>ptr</code> owns nothing, so the program frees each handle itself. <code>defer</code> schedules the free when the handle is made, and runs it when the scope ends, in LIFO order, on every exit: a <code>return</code>, a <code>break</code>, or a panic a <code>try</code> catches further up.</p>
+<pre><code>import std.map
 
 main() {
     m = map.new()
-    <span class="kw">defer</span> map.free(m)
+    defer map.free(m)
 
-    map.put(m, <span class="str">"k"</span>, <span class="str">"v"</span>)
-    print(map.get(m, <span class="str">"k"</span>))
-    print(<span class="str">"\n"</span>)
-    <span class="com">// map.free(m) runs here (scope exit)</span>
+    map.put(m, "k", "v")
+    v, _ = map.get_string(m, "k")
+    println(v)
+    // map.free(m) runs here (scope exit)
 }</code></pre>
-<p>This is explicit, visible, and composable. It works with any function -- not just stdlib types.</p>
-<h3 id="multiple-allocations">Multiple allocations</h3>
+<pre><code>v</code></pre>
+<h3 id="the-stdlib-convention">The stdlib convention</h3>
+<p>A module's constructor returns a handle and its destructor frees it. In Aether they are called through the module (<code>list.new()</code>, <code>list.free(l)</code>); the C functions underneath carry the module prefix (<code>list_new</code>, <code>list_free</code>).</p>
+<div class="tw"><table><thead><tr><th>Module</th><th>Constructor</th><th>Destructor</th></tr></thead><tbody><tr><td><code>std.list</code></td><td><code>list.new()</code></td><td><code>list.free(l)</code></td></tr><tr><td><code>std.map</code></td><td><code>map.new()</code></td><td><code>map.free(m)</code></td></tr><tr><td><code>std.set</code></td><td><code>set.new()</code></td><td><code>set.free(s)</code></td></tr><tr><td><code>std.strbuilder</code></td><td><code>strbuilder.new(n)</code></td><td><code>strbuilder.finish(b)</code> (the built string) or <code>strbuilder.free(b)</code></td></tr><tr><td><code>std.dir</code></td><td><code>dir.list(path)</code></td><td><code>dir.list_free(l)</code></td></tr></tbody></table></div>
+<p>A function whose C name ends in <code>_new</code> or <code>_create</code> returns an allocated object, and its module's <code>free</code> (or <code>close</code>) is the destructor.</p>
+<p>A string needs none of this. <code>string.new(s)</code> exists for C-facing code: it returns a counted copy typed <code>ptr</code>, which no place owns, so a program that calls it gives the copy back with <code>string.release</code>. Code that works with <code>string</code> values never needs it.</p>
+<h3 id="several-handles">Several handles</h3>
 <pre><code><span class="kw">import</span> std.list
 <span class="kw">import</span> std.map
 
@@ -716,8 +761,8 @@ main() {
     <span class="com">// Use both...</span>
     <span class="com">// At scope exit: list.free(items) runs first (LIFO), then map.free(m)</span>
 }</code></pre>
-<h3 id="returning-allocated-values">Returning allocated values</h3>
-<p>When a function allocates and returns a value, the caller receives ownership:</p>
+<h3 id="returning-a-handle">Returning a handle</h3>
+<p>A function that allocates a handle and returns it gives it to the caller, which frees it:</p>
 <pre><code><span class="kw">import</span> std.list
 
 build_items(n) : <span class="fn">ptr</span> {
@@ -737,9 +782,8 @@ main() {
     print(list.size(items))
     print(<span class="str">"\n"</span>)
 }</code></pre>
-<hr>
-<h2 id="actor-state">Actor State</h2>
-<p>Actor <code>state</code> variables initialized with <code>*.new()</code> outlive any single message handler. Free them in the actor's <code>Stop</code> handler (or wherever the actor is shut down):</p>
+<h3 id="actor-state">Actor state</h3>
+<p>An actor <code>state</code> field initialized with a constructor outlives any single message handler. Free it in the handler that shuts the actor down:</p>
 <pre><code>import std.map
 
 message Store { key: string, value: string }
@@ -754,98 +798,71 @@ actor Cache {
             map.put(data, key, value)
         }
         Lookup(key) -&gt; {
-            print(map.get(data, key))
-            print("\n")
+            v, _ = map.get_string(data, key)
+            println(v)
         }
         Stop() -&gt; {
             map.free(data)
         }
     }
 }</code></pre>
-<p>The actor runtime frees the actor's single NUMA-aware allocation (the actor struct and its inline mailbox) when the actor is shut down. Stdlib allocations held in <code>state</code> fields are not part of that block, free them yourself, e.g. in the <code>Stop</code> handler above.</p>
-<hr>
-<h2 id="common-mistakes">Common Mistakes</h2>
-<p><strong>Forgetting <code>defer</code> after allocation:</strong></p>
+<p>The runtime frees the actor's own allocation (the actor struct and its inline mailbox) and releases its counted state (strings, closures) when the actor is destroyed. A handle held in <code>state</code> is not part of that; free it yourself, as in the <code>Stop</code> handler above.</p>
+<h3 id="common-mistakes">Common mistakes</h3>
+<p><strong>A handle with no <code>defer</code>:</strong></p>
 <pre><code>m = map.new()
 map.put(m, "k", "v")
 // LEAK: m is never freed</code></pre>
-<p>Fix: always pair allocation with <code>defer</code>:</p>
+<p>Pair the allocation with its free:</p>
 <pre><code>m = map.new()
 defer map.free(m)</code></pre>
-<p><strong>Deferring before the allocation succeeds:</strong></p>
-<p><code>defer</code> registers immediately. Place it right after the allocation, not before.</p>
-<p><strong>Allocating inside a loop:</strong></p>
-<p><code>defer</code> is block-scoped: a <code>defer</code> placed inside a loop body fires at the end of each iteration, not just once at function exit. So an allocation made inside the loop is reclaimed every pass, no manual per-iteration free is needed:</p>
+<p><strong>A <code>defer</code> placed before the allocation:</strong> <code>defer</code> registers when it runs. Place it right after the allocation it frees.</p>
+<p><strong>Allocating inside a loop:</strong> <code>defer</code> is block-scoped, so a <code>defer</code> inside a loop body runs at the end of each iteration, not once at function exit. An allocation made inside the loop is freed on every pass:</p>
 <pre><code>while i &lt; n {
     item = list.new()
     defer list.free(item)   // runs at the end of THIS iteration
     // ... use item ...
     i = i + 1
 }</code></pre>
-<hr>
-<h2 id="summary-when-to-use-what">Summary: When to Use What</h2>
-<div class="tw"><table><thead><tr><th>Situation</th><th>Approach</th></tr></thead><tbody><tr><td>Typical local allocation</td><td><code>defer type.free(x)</code> right after allocation</td></tr><tr><td>Value returned from function</td><td>Caller defers the free</td></tr><tr><td>Value passed to an actor via <code>!</code></td><td>Actor owns it; no defer in sender</td></tr><tr><td>Actor <code>state</code> initialized with <code>*.new()</code></td><td>Free in <code>Stop</code> handler: <code>map.free(data)</code></td></tr></tbody></table></div>
-<hr>
-<h2 id="values-the-program-owns">Values the program owns</h2>
-<p>Strings, closures and the composites built from them (structs, tuples, optionals, fixed-size arrays) are managed by the compiler, with no <code>defer</code> and no garbage collector: every value is released at a point the source shows. Five rules decide where (the design and its record are in <a href="https://github.com/aether-lang-dev/aether/blob/main/docs/design/ownership-model.md">design/ownership-model.md</a>):</p>
-<ul><li><strong>R1, every value carries its own count.</strong> A <code>string</code> is a counted <code>AetherString</code>; a literal is pinned (its count never changes and it is never freed). A closure's environment is counted. A composite owns each of its parts.</li><li><strong>R2, every place holds one reference.</strong> A local, a parameter's copy, a struct, tuple or optional field, an array element, a module <code>var</code>, an actor's state field, a message field, a list or map element, a closure's captured variable: each owns what it holds.</li><li><strong>R3, a store takes and a scope exit releases.</strong> A store takes the new value and releases the one it replaces; leaving a scope releases what its locals hold, on every exit (a <code>return</code>, a <code>break</code>, a caught panic). A parameter is borrowed: the callee never releases it, and one it keeps it takes a reference to. A call borrows its arguments, so a fresh argument is released after the call; a function returning a value hands its caller one reference.</li><li><strong>R4, only C boundaries are annotated</strong> (below).</li><li><strong>R5, moves.</strong> Taking a fresh value (a call's result, an interpolation) moves it; so does taking a local at its last use, which leaves the local empty. Otherwise a take retains a counted string, passes a pinned literal as it is, and copies a plain C string.</li></ul>
-<p>No rule reads another function's body: what a call does with its arguments, and what it hands back, is decided by the callee's signature.</p>
-<pre><code><span class="kw">import</span> std.<span class="fn">string</span>
+<h3 id="arenas">Arenas</h3>
+<p>An arena is a region in which many small allocations share one lifetime and are freed together. <code>std.arena</code> provides one, and the JSON parser uses one for a parsed document's nodes. An arena is opt-in; the actor path does not use arenas. Where <code>defer</code> frees one handle at scope exit, an arena frees a whole batch at once. <a href="/Docs/allocators.html">allocators.md</a> covers <code>std.alloc</code>, the allocator handle the containers accept.</p>
+<h3 id="summary">Summary</h3>
+<div class="tw"><table><thead><tr><th>Situation</th><th>What the program does</th></tr></thead><tbody><tr><td>A string, a closure, or a struct, tuple or optional of them</td><td>Nothing: the compiler releases it</td></tr><tr><td>A string read out of a container or a <code>ptr</code></td><td><code>list.get_string</code>, <code>map.get_string</code> or <code>string.from_ptr</code></td></tr><tr><td>A handle the function allocates</td><td><code>defer type.free(x)</code> right after the allocation</td></tr><tr><td>A handle returned from a function</td><td>The caller defers the free</td></tr><tr><td>A handle sent to an actor in a <code>ptr</code> field</td><td>The receiver frees it; the sender does not</td></tr><tr><td>A handle in actor <code>state</code></td><td>Free it in the handler that stops the actor</td></tr></tbody></table></div>
+<h2 id="scoped-bindings-checked-non-escape"><code>@scoped</code> bindings, checked non-escape</h2>
+<p>A binding annotated <code>@scoped</code> (<code>@scoped buf = ...</code>, or with <code>let</code> or <code>var</code>) states that its value must not outlive the block that introduced it, and the type checker enforces it. This is opt-in escape checking for one binding, not a borrow checker (Aether has none):</p>
+<pre><code>import std.string
 
-label(n: <span class="fn">int</span>) -&gt; <span class="fn">string</span> {
-    s = <span class="str">"item-${n}"</span>                 <span class="com">// owns the interpolation</span>
-    <span class="kw">return</span> s                        <span class="com">// moves it to the caller</span>
+total(n: int) -&gt; int {
+    @scoped buf = string.concat("abc", "def")
+    return string.length(buf) + n      // a value derived from buf leaves
 }
 
 main() {
-    a = label(<span class="num">1</span>)                    <span class="com">// a owns the result</span>
-    b = a                           <span class="com">// b takes a reference; a still owns its own</span>
-    a = <span class="fn">string</span>.concat(b, <span class="str">"!"</span>)       <span class="com">// releases the old value, owns the new one</span>
-    println(<span class="str">"${a} ${b}"</span>)
-}                                   <span class="com">// a and b are released here</span></code></pre>
-<h3 id="strings">Strings</h3>
-<p>A string local owns the value it holds, whatever it was given: a literal, a call's result, another local, a field read. <code>string.free(s)</code> or <code>release(s)</code> on a local releases its reference early and leaves the local empty; on a parameter it is refused (E0901), since the function does not own it. Strings are immutable once made, so two places sharing one counted string is safe; a string stored where other threads can read it (a module <code>var</code>, a closure environment, a value reached through a pointer) is published, and its count becomes atomic from then on.</p>
-<h3 id="closures">Closures</h3>
-<p>A closure literal's environment is counted. A local holding a closure owns a reference; capturing a variable takes one; a closure field, element or state field takes one; a closure passed to an <code>fn</code> parameter is borrowed. A variable a closure writes lives in a shared cell, counted the same way, so the closure and its creator see one value.</p>
-<h3 id="string-sequences">String sequences</h3>
-<p>A <code>*StringSeq</code> is counted per cell and owned like a closure: every place holding one owns a reference, a fresh sequence (a literal, an Aether function's result, a <code>string.seq_*</code> producer's) moves in, any other is retained, and <code>string.seq_tail</code> lends. The counts are atomic, so a sequence crosses actors by reference. See docs/sequences.md.</p>
-<h3 id="structs-tuples-optionals-and-fixed-size-arrays">Structs, tuples, optionals and fixed-size arrays</h3>
-<p>Each owning type has one generated retain and one drop, which every place uses: a copy retains every part, a drop releases every part. A struct parameter is borrowed; one its body writes into is copied on entry. A struct boxed with <code>heap.new(T)</code> owns its fields as a local struct does, and <code>heap.free(p)</code> releases them before it frees the box. A fixed-size array is held by value wherever it goes: a local, a field, a message field, an optional's payload, a function's result (returned in a struct of its own), a temporary passed as an argument.</p>
-<h3 id="containers-module-variables-actor-state-messages">Containers, module variables, actor state, messages</h3>
-<p><code>list.add</code>, <code>list.set</code> and <code>map.put</code> take a reference to a string or a closure, released when the element leaves (<code>list.remove</code>, <code>list.clear</code>, a store over it, <code>map.remove</code>, <code>free</code>); a <code>list.set</code> that fails gives back what it was handed. A module <code>var</code> and an actor's state field take what is stored and release what they replace; the actor's state is released when the actor is destroyed. A message owns its fields: the send takes them, a receive arm reads them in place, and the message is released after the arm. What the arm keeps (in state, in a container) it takes.</p>
-<h3 id="c-boundaries-r4">C boundaries (R4)</h3>
-<p>C sees a string as its characters. An extern borrows what it is given for the call. An extern that keeps a value declares the parameter <code>@retain</code>: the call then hands it a reference of its own (a fresh value as it is, a place's retained), for a <code>string</code> and for a closure. <code>@aether</code> passes the counted string itself, for C written against Aether's runtime. <code>@noescape</code> states what a parameter that is not <code>@retain</code> already is.</p>
-<p>An extern returning a fresh string declares it <code>@heap</code> (<code>-&gt; string @heap</code>; <code>-&gt; ptr @heap</code> for a counted string returned untyped, as <code>string.from_int</code> does; per position of a tuple result, <code>-&gt; (string @heap, int, string)</code>); the string is adopted at the call, and the caller owns it. Any other string an extern returns is C's and is copied when a place takes it.</p>
-<p>A string stored into a header-defined struct's field (<code>extern struct ... @c_import</code>) or into a slice over C memory is given a reference of its own, which nothing in the program releases: it is C's from then on.</p>
-<h3 id="ptr-slots"><code>ptr</code> slots</h3>
-<p>A <code>ptr</code> slot owns nothing. A string goes into one only through <code>string.keep(s)</code>, which hands over a reference the program gives back with <code>string.release_kept(p)</code>; a closure goes into one boxed (<code>box_closure(f)</code>, or the coercion a store into a <code>ptr</code> makes), the box holding a reference of its own, which <code>release_closure(p)</code> gives back. A function that keeps a <code>ptr</code> parameter declares it <code>@keep</code> (E0902); a <code>ptr</code> parameter that only borrows is given a closure in a box on the caller's stack, so nothing is allocated.</p>
-<h3 id="panics">Panics</h3>
-<p>A panic caught by a <code>try</code> releases what the scopes it leaves hold, as their exits would have: every owning local, temporary and argument is recorded in an unwind journal while it is live, and every plain <code>defer</code> of those scopes runs, newest first. <code>defer try</code> and <code>defer catch</code> do not run on a panic.</p>
-<h3 id="scoped-bindings-checked-non-escape"><code>@scoped</code> bindings, checked non-escape</h3>
-<p>A <code>let</code>/<code>var</code> declaration can be annotated <code>@scoped</code> to declare that its value <strong>must not outlive the lexical block</strong> that introduced it. This is opt-in escape analysis, not a borrow checker (Aether has none). It turns a footgun into a compile-time invariant and documents intent at the binding site:</p>
-<pre><code>process() -&gt; long {
-    @scoped buf = make_buffer(64 * 1024)
-    return buf.checksum()        // ok, a scalar DERIVED from buf escapes
+    println(total(1))
+}</code></pre>
+<pre><code>7</code></pre>
+<p>The type checker refuses every way the binding's value itself could outlive the block: returning it, assigning or aliasing it into another binding or a struct field, placing it in an array, struct or message literal, capturing it in a closure or a quote (either can outlive the block), and inserting it into a container (<code>list.add</code>, <code>list.set</code>, <code>map.put</code>, <code>set.add</code>):</p>
+<pre><code>import std.string
+
+leak() -&gt; string {
+    @scoped buf = string.concat("abc", "def")
+    return buf      // error: `@scoped` binding 'buf' escapes its block: it is returned
 }
 
-leak() -&gt; *Buffer {
-    @scoped buf = make_buffer(64 * 1024)
-    return buf                   // compile error: the @scoped binding escapes
+main() {
+    println(leak())
 }</code></pre>
-<p>The typechecker rejects every way the binding's value could outlive the block:</p>
-<ul><li>returning the binding,</li><li>assigning/aliasing it into another binding or a struct field,</li><li>placing it as an element of an array / struct / message literal,</li><li>capturing it in a closure (closures lower to plain C functions, so their lifetime is statically known),</li><li>inserting it into a container (<code>list.add</code>, <code>map.put</code>, <code>set.add</code>, …).</li></ul>
-<p>Only a value <em>derived</em> from the binding via a call (<code>buf.checksum()</code>, <code>string.length(buf)</code>) may escape, that carries the call result, not the binding. A value handed to a function that retains it beyond the call is governed by that function's own contract; <code>@scoped</code> checks the direct escape sites at the binding's own scope.</p>
-<h3 id="cycles">Cycles</h3>
-<p>Counting does not free a cycle: a closure stored in a cell it captures, or values that hold each other through <code>ptr</code> slots, live until the program ends. Break the cycle (store <code>none</code>, release the slot) before dropping the last outside reference.</p>
-<h3 id="history">History</h3>
+<p>Only a value derived from the binding through a call (<code>string.length(buf)</code>) may leave. A function the value is passed to is governed by its own signature; <code>@scoped</code> checks the escapes written in the binding's own scope.</p>
+<h2 id="how-the-rules-are-tested">How the rules are tested</h2>
+<p>The ownership grid (<code>tests/ownership_grid/</code>) generates one program per meaningful combination of a value kind (a fresh string, a <code>string?</code>, a closure that captures a string, an <code>fn[2]</code>, a struct owning a string, a tuple, a string array, ...), a place (a local, a struct field, an array element, a tuple slot, an optional, a module <code>var</code>, a capture or cell, a list or map, actor state, a message field, a <code>ptr</code> slot, ...) and a transfer (an overwrite, a <code>break</code>, an early <code>return</code>, a caught panic, a keeper, a return, an alias, ...). Each program checks every value it reads against the one it stored, measures heap growth over rounds of 100 calls, and runs a second time under an allocator that poisons freed memory and stops on a double free.</p>
+<p>Every cell is at its target. The baseline (<code>tests/ownership_grid/baseline.txt</code>) records 1909 cells that run clean, and 30 in which a function frees a parameter it borrows, which the compiler refuses (E0901). The Windows CI workflow runs the grid on every pull request, where the heap count is exact, and fails when any cell is worse than its baseline: a leak, a wrong value, a use after free, or a program that stopped compiling. See <a href="https://github.com/aether-lang-dev/aether/blob/main/tests/ownership_grid/README.md">tests/ownership_grid/README.md</a>.</p>
+<h2 id="history">History</h2>
 <p>Before this model, each value kind and place had its own mechanism: a per-variable ownership flag for strings (<code>_heap_&lt;name&gt;</code>), an escape walk that kept a value alive when it might be stored, a uniform-heap wrapper on returns, a copy-on-keep analysis of callee bodies, and per-struct field trackers. Each fixed one shape and its review found the next. They are replaced by the rules above; the tracking issue (#2918) lists the issues that recorded them, and the implementation record is in <a href="https://github.com/aether-lang-dev/aether/blob/main/docs/design/ownership-model.md">design/ownership-model.md</a>.</p>
 <h2 id="examples">Examples</h2>
-<p>See the following runnable examples:</p>
-<ul><li><a href="https://github.com/aether-lang-dev/aether/tree/main/examples/basics/memory_defer.ae">examples/basics/memory_defer.ae</a> -- defer pattern (recommended)</li><li><a href="https://github.com/aether-lang-dev/aether/tree/main/examples/basics/memory_manual.ae">examples/basics/memory_manual.ae</a> -- manual free pattern</li><li><a href="https://github.com/aether-lang-dev/aether/tree/main/examples/basics/memory_escape.ae">examples/basics/memory_escape.ae</a> -- returning allocated values</li></ul>
+<ul><li><a href="https://github.com/aether-lang-dev/aether/tree/main/examples/basics/string-ownership.ae">examples/basics/string-ownership.ae</a>: strings released by the compiler, with no <code>free</code></li><li><a href="https://github.com/aether-lang-dev/aether/tree/main/examples/basics/memory_defer.ae">examples/basics/memory_defer.ae</a>: handles freed with <code>defer</code></li><li><a href="https://github.com/aether-lang-dev/aether/tree/main/examples/basics/memory_manual.ae">examples/basics/memory_manual.ae</a>: the same pattern with one list</li><li><a href="https://github.com/aether-lang-dev/aether/tree/main/examples/basics/memory_escape.ae">examples/basics/memory_escape.ae</a>: a handle returned to the caller</li></ul>
 <nav class="doc-prevnext" aria-label="Previous and next page"><a class="pn-prev" href="/Docs/scheduler-quick-reference.html"><span class="pn-k">Previous</span><span class="pn-t">Aether Scheduler - Quick Reference</span></a><a class="pn-next" href="/Docs/runtime-optimizations.html"><span class="pn-k">Next</span><span class="pn-t">Runtime Optimizations</span></a></nav>
       </article>
     </main>
-    <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#why-defer" class="l3" data-id="why-defer">Why defer?</a><a href="#the-actual-model" class="l2" data-id="the-actual-model">The Actual Model</a><a href="#arena-vs-defer-when-to-use-which" class="l3" data-id="arena-vs-defer-when-to-use-which">Arena vs defer: when to use which</a><a href="#stdlib-convention" class="l2" data-id="stdlib-convention">Stdlib Convention</a><a href="#the-defer-pattern" class="l2" data-id="the-defer-pattern">The defer Pattern</a><a href="#multiple-allocations" class="l3" data-id="multiple-allocations">Multiple allocations</a><a href="#returning-allocated-values" class="l3" data-id="returning-allocated-values">Returning allocated values</a><a href="#actor-state" class="l2" data-id="actor-state">Actor State</a><a href="#common-mistakes" class="l2" data-id="common-mistakes">Common Mistakes</a><a href="#summary-when-to-use-what" class="l2" data-id="summary-when-to-use-what">Summary: When to Use What</a><a href="#values-the-program-owns" class="l2" data-id="values-the-program-owns">Values the program owns</a><a href="#strings" class="l3" data-id="strings">Strings</a><a href="#closures" class="l3" data-id="closures">Closures</a><a href="#string-sequences" class="l3" data-id="string-sequences">String sequences</a><a href="#structs-tuples-optionals-and-fixed-size-arrays" class="l3" data-id="structs-tuples-optionals-and-fixed-size-arrays">Structs, tuples, optionals and fixed-size arrays</a><a href="#containers-module-variables-actor-state-messages" class="l3" data-id="containers-module-variables-actor-state-messages">Containers, module variables, actor state, messages</a><a href="#c-boundaries-r4" class="l3" data-id="c-boundaries-r4">C boundaries (R4)</a><a href="#ptr-slots" class="l3" data-id="ptr-slots">ptr slots</a><a href="#panics" class="l3" data-id="panics">Panics</a><a href="#scoped-bindings-checked-non-escape" class="l3" data-id="scoped-bindings-checked-non-escape">@scoped bindings, checked non-escape</a><a href="#cycles" class="l3" data-id="cycles">Cycles</a><a href="#history" class="l3" data-id="history">History</a><a href="#examples" class="l2" data-id="examples">Examples</a></nav>
+    <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#values-the-program-owns" class="l2" data-id="values-the-program-owns">Values the program owns</a><a href="#strings" class="l3" data-id="strings">Strings</a><a href="#reading-a-string-out-of-a-container-or-a-ptr" class="l3" data-id="reading-a-string-out-of-a-container-or-a-ptr">Reading a string out of a container or a ptr</a><a href="#closures" class="l3" data-id="closures">Closures</a><a href="#string-sequences" class="l3" data-id="string-sequences">String sequences</a><a href="#structs-tuples-optionals-and-fixed-size-arrays" class="l3" data-id="structs-tuples-optionals-and-fixed-size-arrays">Structs, tuples, optionals and fixed-size arrays</a><a href="#containers-module-variables-actor-state-messages" class="l3" data-id="containers-module-variables-actor-state-messages">Containers, module variables, actor state, messages</a><a href="#c-boundaries-r4" class="l3" data-id="c-boundaries-r4">C boundaries (R4)</a><a href="#ptr-slots" class="l3" data-id="ptr-slots">ptr slots</a><a href="#panics" class="l3" data-id="panics">Panics</a><a href="#cycles" class="l3" data-id="cycles">Cycles</a><a href="#handles-and-defer" class="l2" data-id="handles-and-defer">Handles and defer</a><a href="#the-stdlib-convention" class="l3" data-id="the-stdlib-convention">The stdlib convention</a><a href="#several-handles" class="l3" data-id="several-handles">Several handles</a><a href="#returning-a-handle" class="l3" data-id="returning-a-handle">Returning a handle</a><a href="#actor-state" class="l3" data-id="actor-state">Actor state</a><a href="#common-mistakes" class="l3" data-id="common-mistakes">Common mistakes</a><a href="#arenas" class="l3" data-id="arenas">Arenas</a><a href="#summary" class="l3" data-id="summary">Summary</a><a href="#scoped-bindings-checked-non-escape" class="l2" data-id="scoped-bindings-checked-non-escape">@scoped bindings, checked non-escape</a><a href="#how-the-rules-are-tested" class="l2" data-id="how-the-rules-are-tested">How the rules are tested</a><a href="#history" class="l2" data-id="history">History</a><a href="#examples" class="l2" data-id="examples">Examples</a></nav>
   </div>
 </div>
 <script src="/docs.js" defer></script>
@@ -854,7 +871,7 @@ leak() -&gt; *Buffer {
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.831 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.832 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

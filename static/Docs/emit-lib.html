@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.831</span>
+      <span class="vtag">v0.832</span>
     </nav>
   </div>
 </header>
@@ -598,7 +598,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/architecture.html">Aether Architecture</a>
 <a href="/Docs/actor-concurrency.html">Aether Runtime Guide</a>
 <a href="/Docs/scheduler-quick-reference.html">Aether Scheduler - Quick Reference</a>
-<a href="/Docs/memory-management.html">Aether Memory Management</a>
+<a href="/Docs/memory-management.html">Memory Management</a>
 <a href="/Docs/runtime-optimizations.html">Runtime Optimizations</a>
 <a href="/Docs/numa-support.html">NUMA Support in Aether</a>
 <a href="/Docs/message-tracing.html">Message tracing</a>
@@ -629,7 +629,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/cross-ios.html">Cross-compiling for iOS (arm64)</a>
 <div class="grp">Testing</div>
 <a href="/Docs/testing.html">Testing with std.spec and ae test</a>
-<a href="/Docs/mutation-testing.html">Mutation testing, std.mutation</a>
+<a href="/Docs/mutation-testing.html">Mutation testing: std.mutation</a>
 <a href="/Docs/differential-testing.html">Differential testing across lowering paths</a>
 <div class="grp">Performance</div>
 <a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
@@ -646,8 +646,8 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
 <a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn't need macro_rules!</a>
 <a href="/Docs/lib-caller-info.html">--emit=lib caller-info channel</a>
-<a href="/Docs/liveview-lite-roadmap.html">LiveView-lite, a roadmap (Phoenix LiveView, on actors, without the framework)</a>
-<a href="/Docs/schema-projection-roadmap.html">std.schema, a projection-first roadmap (Ash, without the framework)</a>
+<a href="/Docs/liveview-lite-roadmap.html">LiveView-lite: a roadmap (Phoenix LiveView, on actors, without the framework)</a>
+<a href="/Docs/schema-projection-roadmap.html">std.schema: a projection-first roadmap (Ash, without the framework)</a>
 <a href="/Docs/locale-independent-float-text.html">Plan: locale-independent float text conversion (LC_NUMERIC correctness)</a>
 <div class="grp">Contributing</div>
 <a href="/Docs/stdlib-module-pattern.html">Aether Stdlib Module Pattern</a>
@@ -770,7 +770,7 @@ JNIEXPORT <span class="kw">void</span> JNICALL Java_..._onDestroy(JNIEnv* env, j
     aether_main_exit();
     <span class="kw">return</span> rc;
 }</code></pre>
-<p>So any build tool that links the object into a program, aeb's <code>c.program</code>, a Makefile, <code>cc app.o $(ae cflags --libs)</code>, gets the program's entry point, and its exit code, without a hand-written C file. A host that has its own <code>main()</code> keeps it: a strong definition beats a weak one. A shared library that <code>ae</code> links itself (<code>--emit=lib</code>, native or <code>--target=</code>) leaves it out, it exports no entry point, as does wasm (emscripten runs a module's <code>main</code> on load, which would turn a library into a program) and a compiler without weak definitions. <code>-DAETHER_NO_LIB_MAIN</code> leaves it out anywhere else.</p>
+<p>So any build tool that links the object into a program (aeb's <code>c.program</code>, a Makefile, <code>cc app.o $(ae cflags --libs)</code>) gets the program's entry point, and its exit code, without a hand-written C file. A host that has its own <code>main()</code> keeps it: a strong definition beats a weak one. A shared library that <code>ae</code> links itself (<code>--emit=lib</code>, native or <code>--target=</code>) leaves it out (it exports no entry point), as does wasm (emscripten runs a module's <code>main</code> on load, which would turn a library into a program) and a compiler without weak definitions. <code>-DAETHER_NO_LIB_MAIN</code> leaves it out anywhere else.</p>
 <p><strong>On Windows (MinGW) the entry is an archive member instead.</strong> A COFF weak definition is a weak external, and GNU ld (2.46 at least) still searched the archives for <code>main</code>: it pulled <code>libmingw32.a</code>'s <code>crtexewin.o</code>, a strong <code>main()</code> that calls <code>WinMain</code>, and the link failed with <code>undefined reference to 'WinMain'</code>. So the object carries no <code>main()</code> there, and the same three lines are the one member of <code>libaether_main.a</code>, installed beside <code>libaether.a</code>. <code>ae cflags --libs</code> names it first (<code>-L&lt;lib&gt; -laether_main -laether ...</code>), and an archive member is linked only when the link still needs the symbol it defines, so:</p>
 <ul><li><code>cc app.o $(ae cflags --libs)</code> links the program's own entry, as elsewhere;</li><li>a host with its own <code>main()</code> keeps it (the member is never pulled), with nothing to change: the same command line works on every platform;</li><li>a GUI host that enters through <code>WinMain</code> names the C runtime's entry first, <code>cc app.o host.c -lmingw32 $(ae cflags --libs)</code>, so that <code>main()</code> is resolved (to the one that calls <code>WinMain</code>) before <code>libaether_main.a</code> is searched. Without that it starts in the program's <code>main()</code>.</li></ul>
 <p>A link line written by hand rather than from <code>ae cflags --libs</code> adds <code>-laether_main</code> before <code>-laether</code> itself. The shared runtime (<code>aether.dll</code>) and every DLL <code>ae</code> links export no <code>main</code>.</p>
@@ -780,7 +780,7 @@ JNIEXPORT <span class="kw">void</span> JNICALL Java_..._onDestroy(JNIEnv* env, j
 <p><strong>Reserved names.</strong> Every top-level function exports as <code>aether_&lt;name&gt;</code>, so a function called <code>main_exit</code> would export as <code>aether_main_exit</code>. In a program that defines <code>main()</code>, <code>--emit=lib</code> rejects it with a compile error naming both. Rename it, or end its name with <code>_</code> to keep it private. Without a <code>main()</code>, or in an executable, <code>main_exit</code> is an ordinary name.</p>
 <h2 id="type-mapping">Type mapping</h2>
 <p>Parameter and return types on exported functions are mapped to a fixed public ABI:</p>
-<div class="tw"><table><thead><tr><th>Aether type</th><th>Public C type</th><th>Notes</th></tr></thead><tbody><tr><td><code>int</code></td><td><code>int32_t</code></td><td>Fixed width for cross-language clarity</td></tr><tr><td><code>long</code></td><td><code>int64_t</code></td><td>The Aether source keyword for 64-bit integers is <code>long</code>; the lexer token <code>TOKEN_INT64</code> backs both <code>long</code> and <code>int64_t</code> internally</td></tr><tr><td><code>float</code></td><td><code>float</code></td><td>IEEE 754 binary32</td></tr><tr><td><code>bool</code></td><td><code>int32_t</code></td><td><code>0</code> = false, <code>1</code> = true</td></tr><tr><td><code>string</code> (parameter)</td><td><code>const char*</code></td><td>Borrowed for the call</td></tr><tr><td><code>string</code> (result)</td><td><code>const void*</code></td><td>A string the caller owns; see below</td></tr><tr><td><code>ptr</code> / <code>list</code> / <code>map</code></td><td><code>AetherValue*</code></td><td>Opaque handle; walk with <code>aether_config_*</code> accessors</td></tr><tr><td><code>*Struct</code></td><td><code>AetherValue*</code></td><td>Opaque to a C host; an Aether importer gets the typed pointer back (the catalog's source signature) and reaches the fields</td></tr><tr><td><code>Struct</code> (by value)</td><td>the struct, by name</td><td>Its layout is in the catalog's struct records, which an Aether importer re-declares; an <code>--emit=csrc</code> header leaves these prototypes out and says why (#2297)</td></tr><tr><td><code>fn(A, B) -&gt; R</code></td><td><code>void*</code></td><td>A C function pointer</td></tr><tr><td><code>fn</code> (a closure)</td><td><code>_AeClosure</code></td><td>Its function and captured environment, by value. Both ways: a library calls the closure a program passes, and a program calls one the library returns, captures included. Only an Aether importer declares <code>_AeClosure</code> and its calling convention, so an <code>--emit=csrc</code> header leaves these prototypes out, as for a struct by value (#2297)</td></tr></tbody></table></div>
+<div class="tw"><table><thead><tr><th>Aether type</th><th>Public C type</th><th>Notes</th></tr></thead><tbody><tr><td><code>int</code></td><td><code>int32_t</code></td><td>Fixed width for cross-language clarity</td></tr><tr><td><code>long</code></td><td><code>int64_t</code></td><td>The Aether source keyword for 64-bit integers is <code>long</code>; the lexer token <code>TOKEN_INT64</code> backs both <code>long</code> and <code>int64_t</code> internally</td></tr><tr><td><code>float</code></td><td><code>double</code></td><td>IEEE 754 binary64, as everywhere in Aether</td></tr><tr><td><code>f32</code></td><td><code>float</code></td><td>IEEE 754 binary32</td></tr><tr><td><code>bool</code></td><td><code>int32_t</code></td><td><code>0</code> = false, <code>1</code> = true</td></tr><tr><td><code>string</code> (parameter)</td><td><code>const char*</code></td><td>Borrowed for the call</td></tr><tr><td><code>string</code> (result)</td><td><code>const void*</code></td><td>A string the caller owns; see below</td></tr><tr><td><code>ptr</code> / <code>list</code> / <code>map</code></td><td><code>AetherValue*</code></td><td>Opaque handle; walk with <code>aether_config_*</code> accessors</td></tr><tr><td><code>*Struct</code></td><td><code>AetherValue*</code></td><td>Opaque to a C host; an Aether importer gets the typed pointer back (the catalog's source signature) and reaches the fields</td></tr><tr><td><code>Struct</code> (by value)</td><td>the struct, by name</td><td>Its layout is in the catalog's struct records, which an Aether importer re-declares; an <code>--emit=csrc</code> header leaves these prototypes out and says why (#2297)</td></tr><tr><td><code>fn(A, B) -&gt; R</code></td><td><code>void*</code></td><td>A C function pointer</td></tr><tr><td><code>fn</code> (a closure)</td><td><code>_AeClosure</code></td><td>Its function and captured environment, by value. Both ways: a library calls the closure a program passes, and a program calls one the library returns, captures included. Only an Aether importer declares <code>_AeClosure</code> and its calling convention, so an <code>--emit=csrc</code> header leaves these prototypes out, as for a struct by value (#2297)</td></tr></tbody></table></div>
 <h3 id="strings-an-export-returns">Strings an export returns</h3>
 <p>A <code>-&gt; string</code> export hands its caller one reference to a counted string, as any Aether function does (R3 in <a href="https://github.com/aether-lang-dev/aether/blob/main/docs/design/ownership-model.md">the ownership model</a>). The caller reads it with <code>aether_string_data()</code> and <code>aether_string_length()</code> and gives it back to the library's runtime, which made it, through the library's release function, <code>aether_&lt;lib&gt;_string_release</code>:</p>
 <pre><code><span class="kw">const</span> <span class="kw">void</span>* s = aether_greet(<span class="str">"world"</span>);
@@ -911,7 +911,7 @@ aether_config_free_deep(root);   <span class="com">/* nested map + list freed to
 <p>Every <code>--emit=lib</code> artifact exports a single reflection entry point:</p>
 <pre><code><span class="kw">const</span> AetherLibMeta* aether_lib_meta(<span class="kw">void</span>);</code></pre>
 <p>declared in <code>runtime/aether_lib_meta.h</code>. The returned struct describes every exported function, Aether name, C symbol, public signature, source file, source line, in a layout-stable, allocation-free form that any FFI consumer (Python ctypes, Java Panama, Ruby Fiddle, Node-API, hand-rolled <code>dlsym</code>) can walk directly.</p>
-<p>The entry point is emitted <strong>weak</strong> (<code>__attribute__((weak))</code> under GCC/Clang, #1590), so an orchestrator that links several <code>--emit=lib</code> TUs into one artifact (aeb's regen shape: one C per module, one final link) needs no <code>-Wl,--allow-multiple-definition</code>, the multi-TU static-clone link model of 0.539 holds for lib TUs too, on ld64 as well as GNU ld. In a lone <code>.so</code> nothing changes: one definition, same dlsym contract. In a deliberate multi-TU link the first TU's catalog wins; treat <code>aether_lib_meta</code> as meaningful only on single-module artifacts.</p>
+<p>The entry point is emitted <strong>weak</strong> (<code>__attribute__((weak))</code> under GCC/Clang, #1590), so an orchestrator that links several <code>--emit=lib</code> TUs into one artifact (aeb's regen shape: one C per module, one final link) needs no <code>-Wl,--allow-multiple-definition</code>: the multi-TU static-clone link model of 0.539 holds for lib TUs too, on ld64 as well as GNU ld. In a lone <code>.so</code> nothing changes: one definition, same dlsym contract. In a deliberate multi-TU link the first TU's catalog wins; treat <code>aether_lib_meta</code> as meaningful only on single-module artifacts.</p>
 <pre><code><span class="kw">typedef</span> <span class="kw">struct</span> {
     <span class="kw">const</span> <span class="kw">char</span>* aether_name;     <span class="com">/* "double_int", "std.fs.copy"      */</span>
     <span class="kw">const</span> <span class="kw">char</span>* c_symbol;         <span class="com">/* unmangled symbol to dlsym         */</span>
@@ -1055,7 +1055,7 @@ for i in range(meta.function_count):
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.831 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.832 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

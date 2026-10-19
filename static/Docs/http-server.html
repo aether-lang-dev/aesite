@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.831</span>
+      <span class="vtag">v0.832</span>
     </nav>
   </div>
 </header>
@@ -598,7 +598,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/architecture.html">Aether Architecture</a>
 <a href="/Docs/actor-concurrency.html">Aether Runtime Guide</a>
 <a href="/Docs/scheduler-quick-reference.html">Aether Scheduler - Quick Reference</a>
-<a href="/Docs/memory-management.html">Aether Memory Management</a>
+<a href="/Docs/memory-management.html">Memory Management</a>
 <a href="/Docs/runtime-optimizations.html">Runtime Optimizations</a>
 <a href="/Docs/numa-support.html">NUMA Support in Aether</a>
 <a href="/Docs/message-tracing.html">Message tracing</a>
@@ -629,7 +629,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/cross-ios.html">Cross-compiling for iOS (arm64)</a>
 <div class="grp">Testing</div>
 <a href="/Docs/testing.html">Testing with std.spec and ae test</a>
-<a href="/Docs/mutation-testing.html">Mutation testing, std.mutation</a>
+<a href="/Docs/mutation-testing.html">Mutation testing: std.mutation</a>
 <a href="/Docs/differential-testing.html">Differential testing across lowering paths</a>
 <div class="grp">Performance</div>
 <a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
@@ -646,8 +646,8 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
 <a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn't need macro_rules!</a>
 <a href="/Docs/lib-caller-info.html">--emit=lib caller-info channel</a>
-<a href="/Docs/liveview-lite-roadmap.html">LiveView-lite, a roadmap (Phoenix LiveView, on actors, without the framework)</a>
-<a href="/Docs/schema-projection-roadmap.html">std.schema, a projection-first roadmap (Ash, without the framework)</a>
+<a href="/Docs/liveview-lite-roadmap.html">LiveView-lite: a roadmap (Phoenix LiveView, on actors, without the framework)</a>
+<a href="/Docs/schema-projection-roadmap.html">std.schema: a projection-first roadmap (Ash, without the framework)</a>
 <a href="/Docs/locale-independent-float-text.html">Plan: locale-independent float text conversion (LC_NUMERIC correctness)</a>
 <div class="grp">Contributing</div>
 <a href="/Docs/stdlib-module-pattern.html">Aether Stdlib Module Pattern</a>
@@ -734,7 +734,7 @@ main() {
 <pre><code>http.server_set_h2(server, 0)                          // h2 enabled
 http.server_set_h2_concurrent_dispatch(server, 4)      // 4-way fan-out</code></pre>
 <p>Sizing guidance:</p>
-<div class="tw"><table><thead><tr><th><code>n</code></th><th>When to use</th></tr></thead><tbody><tr><td><code>0</code> (default)</td><td>Handlers are CPU-light or already async. Sequential dispatch keeps memory + thread count low.</td></tr><tr><td><code>4</code></td><td>Most servers, handlers do a DB hit / upstream call per request.</td></tr><tr><td><code>8</code>–<code>16</code></td><td>Heavy fan-out, handlers block on slow I/O.</td></tr><tr><td><code>&gt; 16</code></td><td>Diminishing returns; bound by physical cores and the connection accept queue. The setter caps at 64.</td></tr></tbody></table></div>
+<div class="tw"><table><thead><tr><th><code>n</code></th><th>When to use</th></tr></thead><tbody><tr><td><code>0</code> (default)</td><td>Handlers are CPU-light or already async. Sequential dispatch keeps memory + thread count low.</td></tr><tr><td><code>4</code></td><td>Most servers, handlers do a DB hit / upstream call per request.</td></tr><tr><td><code>8</code>-<code>16</code></td><td>Heavy fan-out, handlers block on slow I/O.</td></tr><tr><td><code>&gt; 16</code></td><td>Diminishing returns; bound by physical cores and the connection accept queue. The setter caps at 64.</td></tr></tbody></table></div>
 <h4 id="why-pthreads-not-actors">Why pthreads, not actors?</h4>
 <p>Aether actors are <strong>virtual</strong>, N actors are M:N-scheduled over a small pool of OS threads. They're ideal for non-blocking, cooperative work: spawning 10,000 actors costs near-zero memory and switches happen in user-space. They're <em>wrong</em> for HTTP handlers, though: HTTP handlers in this stack call arbitrary blocking C/Aether code (<code>sleep</code>, <code>fs.read</code>, <code>db.query</code>, <code>http.client_get</code>). A blocking actor monopolises its scheduler thread until it returns. With the actor scheduler holding only a few worker threads, blocking handlers under load would starve the host's entire actor system, including unrelated actors that have nothing to do with HTTP.</p>
 <p>Pool threads sidestep that: each blocked handler ties up <em>one</em> OS thread but the kernel keeps the rest of the system responsive. The OS scheduler is the right primitive when work units may block.</p>
@@ -776,8 +776,8 @@ curl --http2 https://localhost:<span class="num">443</span>/        <span class=
 <p>Server emits <code>Connection: keep-alive</code> and <code>Keep-Alive: timeout=N, max=M</code> headers per response.</p>
 <hr>
 <h2 id="per-connection-actor-dispatch">Per-connection actor dispatch</h2>
-<blockquote><strong>Status: C-internal mechanism, not a usable Aether API from a release.</strong> The <code>http_server_set_actor_handler</code> entry point and its <code>MSG_HTTP_CONNECTION</code> protocol are compiled into a <code>--with=net</code> build, but the <code>.ae</code> surface needed to <em>drive</em> them is not exposed: <code>unwrap_msg_http_connection</code> is not a released <code>.ae</code> extern (it appears only in the fragment below), and the <code>spawn_fn</code>/<code>send_fn</code>/<code>release_fn</code> actor primitives the entry demands are not exposed either, <code>std.actors</code> gives you the registry, not the actor spawn/send/release function pointers. A program written against the fragment below fails with <code>undefined: unwrap_msg_http_connection</code> and cannot construct the four pointers <code>http_server_set_actor_handler</code> requires. Completing the <code>.ae</code> API is a subset of the send-path fix in <a href="https://github.com/aether-lang-dev/aether/issues/2083">#2083</a> (actor dispatch "fixes" the send only because the handler then runs on-scheduler). The fragment is retained only to describe the <em>shape</em> of the C-internal path, not as a copyable example.</blockquote>
-<pre><code>// SHAPE ONLY, does NOT compile from a release (unwrap_msg_http_connection
+<blockquote><strong>Status: C-internal mechanism, not a usable Aether API from a release.</strong> The <code>http_server_set_actor_handler</code> entry point and its <code>MSG_HTTP_CONNECTION</code> protocol are compiled into a <code>--with=net</code> build, but the <code>.ae</code> surface needed to <em>drive</em> them is not exposed: <code>unwrap_msg_http_connection</code> is not a released <code>.ae</code> extern (it appears only in the fragment below), and the <code>spawn_fn</code>/<code>send_fn</code>/<code>release_fn</code> actor primitives the entry demands are not exposed either: <code>std.actors</code> gives you the registry, not the actor spawn/send/release function pointers. A program written against the fragment below fails with <code>undefined: unwrap_msg_http_connection</code> and cannot construct the four pointers <code>http_server_set_actor_handler</code> requires. Completing the <code>.ae</code> API is a subset of the send-path fix in <a href="https://github.com/aether-lang-dev/aether/issues/2083">#2083</a> (actor dispatch "fixes" the send only because the handler then runs on-scheduler). The fragment is retained only to describe the <em>shape</em> of the C-internal path, not as a copyable example.</blockquote>
+<pre><code>// SHAPE ONLY: does NOT compile from a release (unwrap_msg_http_connection
 // and the spawn/send/release fn-pointers are not exposed to .ae). See the
 // status note above.
 @c_callback worker_step(msg_ptr: ptr) {
@@ -788,7 +788,7 @@ curl --http2 https://localhost:<span class="num">443</span>/        <span class=
 <h3 id="handler--actor-from-a-release-what-works-today">Handler → actor from a release (what works today)</h3>
 <p>Handlers run on an off-scheduler pthread pool (see <em>Why pthreads, not actors?</em> above). What that means for talking to actors:</p>
 <ul><li>A fire-and-forget <code>actors.whereis(name) ! Msg{}</code> from a handler <strong>arrives</strong>: a send from a thread that is not a scheduler core goes through the target core's shared ingress channel, which serializes its producers (the main thread, pool workers, <code>std.worker</code> threads, C-library callback threads). Until 0.701 that channel took one producer at a time and a pool worker's send raced the main thread's, so the message was lost without a diagnostic (<a href="https://github.com/aether-lang-dev/aether/issues/2083">#2083</a>).</li><li>A synchronous handler → actor <em>read</em> is not expressible (there is no ask/reply primitive, and the handler is off-scheduler).</li></ul>
-<p><strong>For state a handler must read as well as write, keep it on the pool thread rather than in an actor:</strong> a lock-free copy-on-write cell (<code>std.snapshot</code>, issue #840) read via <code>snapshot.load</code> and written via a <code>snapshot.cas</code> retry loop, with the cell handed to handlers through the <code>ud</code> slot. This is the same shape the reverse-proxy load balancer uses one layer down in C (<code>std/http/proxy/aether_proxy_lb.c</code>: atomics + mutex). Correct reclamation of the displaced value uses <a href="https://github.com/aether-lang-dev/aether/blob/main/std/sync/README.md"><code>std.sync</code></a> (issue #2082): guard each published value with a <code>std.sync</code> refcount and free it when the count reaches zero after a grace period, its README has the retire-ring pattern in full.</p>
+<p><strong>For state a handler must read as well as write, keep it on the pool thread rather than in an actor:</strong> a lock-free copy-on-write cell (<code>std.snapshot</code>, issue #840) read via <code>snapshot.load</code> and written via a <code>snapshot.cas</code> retry loop, with the cell handed to handlers through the <code>ud</code> slot. This is the same shape the reverse-proxy load balancer uses one layer down in C (<code>std/http/proxy/aether_proxy_lb.c</code>: atomics + mutex). Correct reclamation of the displaced value uses <a href="https://github.com/aether-lang-dev/aether/blob/main/std/sync/README.md"><code>std.sync</code></a> (issue #2082): guard each published value with a <code>std.sync</code> refcount and free it when the count reaches zero after a grace period; its README has the retire-ring pattern in full.</p>
 <hr>
 <h2 id="middleware">Middleware</h2>
 <p>Eleven production middleware in <code>std.http.middleware</code>. All registered via the existing function-pointer chain, hot path stays C function pointers, no closure indirection.</p>
@@ -983,7 +983,7 @@ http.server_set_health_probes(server, "/healthz", "/readyz", ready_check, null)<
 <p>Either path may be <code>""</code> to skip; <code>ready_check</code> may be null. Mirrors Kubernetes / Docker probe conventions.</p>
 <hr>
 <h2 id="performance-tuning-checklist">Performance tuning checklist</h2>
-<ul><li>TLS termination: <code>AETHER_HAS_OPENSSL</code> enables it; cert + key must be PEM. SNI / ALPN advertising for HTTP/2 lands in the follow-up HTTP/2 PR.</li><li>Keep-alive: turn it on for any server fronting a chatty client (browsers, internal microservices). <code>max_requests</code> of 100–1000 + <code>idle_ms</code> of 30–60s is the standard tuning.</li><li>Per-connection actor dispatch: only matters for keep-alive sessions and SSE/WebSocket. Default thread-pool path is fine for short-lived requests.</li><li>gzip: turn on for text responses ≥ 1KB. Skip for already-compressed content (images, video), the middleware skips automatically based on the absence of the <code>Content-Encoding</code> header from the handler.</li><li>Response transformer chain: keep transformers cheap. They run on every response; expensive transforms (template rendering, image manipulation) belong in route handlers, not transformers.</li></ul>
+<ul><li>TLS termination: <code>AETHER_HAS_OPENSSL</code> enables it; cert + key must be PEM. SNI / ALPN advertising for HTTP/2 lands in the follow-up HTTP/2 PR.</li><li>Keep-alive: turn it on for any server fronting a chatty client (browsers, internal microservices). <code>max_requests</code> of 100-1000 + <code>idle_ms</code> of 30-60s is the standard tuning.</li><li>Per-connection actor dispatch: only matters for keep-alive sessions and SSE/WebSocket. Default thread-pool path is fine for short-lived requests.</li><li>gzip: turn on for text responses ≥ 1KB. Skip for already-compressed content (images, video), the middleware skips automatically based on the absence of the <code>Content-Encoding</code> header from the handler.</li><li>Response transformer chain: keep transformers cheap. They run on every response; expensive transforms (template rendering, image manipulation) belong in route handlers, not transformers.</li></ul>
 <nav class="doc-prevnext" aria-label="Previous and next page"><a class="pn-prev" href="/Docs/stdlib-api.html"><span class="pn-k">Previous</span><span class="pn-t">Aether Standard Library Guide</span></a><a class="pn-next" href="/Docs/http-reverse-proxy.html"><span class="pn-k">Next</span><span class="pn-t">std.http.proxy reverse proxy</span></a></nav>
       </article>
     </main>
@@ -996,7 +996,7 @@ http.server_set_health_probes(server, "/healthz", "/readyz", ready_check, null)<
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.831 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.832 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.831</span>
+      <span class="vtag">v0.832</span>
     </nav>
   </div>
 </header>
@@ -598,7 +598,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/architecture.html">Aether Architecture</a>
 <a href="/Docs/actor-concurrency.html">Aether Runtime Guide</a>
 <a href="/Docs/scheduler-quick-reference.html">Aether Scheduler - Quick Reference</a>
-<a href="/Docs/memory-management.html">Aether Memory Management</a>
+<a href="/Docs/memory-management.html">Memory Management</a>
 <a href="/Docs/runtime-optimizations.html">Runtime Optimizations</a>
 <a href="/Docs/numa-support.html">NUMA Support in Aether</a>
 <a href="/Docs/message-tracing.html">Message tracing</a>
@@ -629,7 +629,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/cross-ios.html">Cross-compiling for iOS (arm64)</a>
 <div class="grp">Testing</div>
 <a href="/Docs/testing.html">Testing with std.spec and ae test</a>
-<a href="/Docs/mutation-testing.html">Mutation testing, std.mutation</a>
+<a href="/Docs/mutation-testing.html">Mutation testing: std.mutation</a>
 <a href="/Docs/differential-testing.html">Differential testing across lowering paths</a>
 <div class="grp">Performance</div>
 <a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
@@ -646,8 +646,8 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
 <a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn't need macro_rules!</a>
 <a href="/Docs/lib-caller-info.html" class="on">--emit=lib caller-info channel</a>
-<a href="/Docs/liveview-lite-roadmap.html">LiveView-lite, a roadmap (Phoenix LiveView, on actors, without the framework)</a>
-<a href="/Docs/schema-projection-roadmap.html">std.schema, a projection-first roadmap (Ash, without the framework)</a>
+<a href="/Docs/liveview-lite-roadmap.html">LiveView-lite: a roadmap (Phoenix LiveView, on actors, without the framework)</a>
+<a href="/Docs/schema-projection-roadmap.html">std.schema: a projection-first roadmap (Ash, without the framework)</a>
 <a href="/Docs/locale-independent-float-text.html">Plan: locale-independent float text conversion (LC_NUMERIC correctness)</a>
 <div class="grp">Contributing</div>
 <a href="/Docs/stdlib-module-pattern.html">Aether Stdlib Module Pattern</a>
@@ -711,7 +711,7 @@ main() {
 <h2 id="relationship-to-other-isolation-layers">Relationship to other isolation layers</h2>
 <div class="tw"><table><thead><tr><th>Layer</th><th>Granularity</th><th>Decision time</th><th>Issue</th></tr></thead><tbody><tr><td><code>--with=fs</code>/<code>--with=net</code> build flags</td><td>per-build</td><td>compile</td><td>existing</td></tr><tr><td><code>hide</code> / <code>seal except</code> lexical denial</td><td>per-scope</td><td>compile</td><td>existing</td></tr><tr><td><code>libaether_sandbox.so</code> LD_PRELOAD libc gate</td><td>per-process</td><td>runtime</td><td>existing</td></tr><tr><td><strong>caller-info channel</strong></td><td><strong>per-call</strong></td><td><strong>runtime</strong></td><td><strong>this document</strong></td></tr><tr><td>Resource caps (memory + deadline)</td><td>per-call</td><td>runtime</td><td>resource caps</td></tr></tbody></table></div>
 <p>Each layer answers a different question. The build flags answer "what is this binary allowed to do." The lexical layer answers "what can this scope name." The libc gate answers "what syscalls can this process make." Caller-info answers "who's calling me right now, and what authority did the host stamp on them." Compose them as needed; they don't conflict.</p>
-<nav class="doc-prevnext" aria-label="Previous and next page"><a class="pn-prev" href="/Docs/dsl-without-macros.html"><span class="pn-k">Previous</span><span class="pn-t">DSL without macros, why Aether doesn't need macro_rules!</span></a><a class="pn-next" href="/Docs/liveview-lite-roadmap.html"><span class="pn-k">Next</span><span class="pn-t">LiveView-lite, a roadmap (Phoenix LiveView, on actors, without the framework)</span></a></nav>
+<nav class="doc-prevnext" aria-label="Previous and next page"><a class="pn-prev" href="/Docs/dsl-without-macros.html"><span class="pn-k">Previous</span><span class="pn-t">DSL without macros, why Aether doesn't need macro_rules!</span></a><a class="pn-next" href="/Docs/liveview-lite-roadmap.html"><span class="pn-k">Next</span><span class="pn-t">LiveView-lite: a roadmap (Phoenix LiveView, on actors, without the framework)</span></a></nav>
       </article>
     </main>
     <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#trust-model-explicit-non-goal" class="l2" data-id="trust-model-explicit-non-goal">Trust model, explicit non-goal</a><a href="#host-c-api" class="l2" data-id="host-c-api">Host C API</a><a href="#aether-side-accessors" class="l2" data-id="aether-side-accessors">Aether-side accessors</a><a href="#lifetime" class="l2" data-id="lifetime">Lifetime</a><a href="#storage-limits" class="l2" data-id="storage-limits">Storage limits</a><a href="#threading" class="l2" data-id="threading">Threading</a><a href="#relationship-to-other-isolation-layers" class="l2" data-id="relationship-to-other-isolation-layers">Relationship to other isolation layers</a></nav>
@@ -723,7 +723,7 @@ main() {
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.831 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.832 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

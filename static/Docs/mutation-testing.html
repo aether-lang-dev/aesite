@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Mutation testing, std.mutation · Aether</title>
-<meta name="description" content="Mutation testing measures how good your tests are. It changes the code under test (the &quot;SUT&quot;) one tiny edit at a time, + becomes -, &gt; becomes &lt;, and...">
+<title>Mutation testing: std.mutation · Aether</title>
+<meta name="description" content="Mutation testing measures how good your tests are. It changes the code under test (the &quot;SUT&quot;) one tiny edit at a time (+ becomes -, &gt; becomes &lt;), and...">
 <link rel="canonical" href="https://aether-lang.dev/Docs/mutation-testing.html">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Mutation testing, std.mutation · Aether">
-<meta property="og:description" content="Mutation testing measures how good your tests are. It changes the code under test (the &quot;SUT&quot;) one tiny edit at a time, + becomes -, &gt; becomes &lt;, and...">
+<meta property="og:title" content="Mutation testing: std.mutation · Aether">
+<meta property="og:description" content="Mutation testing measures how good your tests are. It changes the code under test (the &quot;SUT&quot;) one tiny edit at a time (+ becomes -, &gt; becomes &lt;), and...">
 <meta property="og:url" content="https://aether-lang.dev/Docs/mutation-testing.html">
 <meta property="og:image" content="https://aether-lang.dev/og.png">
 <meta name="twitter:card" content="summary_large_image">
@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.831</span>
+      <span class="vtag">v0.832</span>
     </nav>
   </div>
 </header>
@@ -598,7 +598,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/architecture.html">Aether Architecture</a>
 <a href="/Docs/actor-concurrency.html">Aether Runtime Guide</a>
 <a href="/Docs/scheduler-quick-reference.html">Aether Scheduler - Quick Reference</a>
-<a href="/Docs/memory-management.html">Aether Memory Management</a>
+<a href="/Docs/memory-management.html">Memory Management</a>
 <a href="/Docs/runtime-optimizations.html">Runtime Optimizations</a>
 <a href="/Docs/numa-support.html">NUMA Support in Aether</a>
 <a href="/Docs/message-tracing.html">Message tracing</a>
@@ -629,7 +629,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/cross-ios.html">Cross-compiling for iOS (arm64)</a>
 <div class="grp">Testing</div>
 <a href="/Docs/testing.html">Testing with std.spec and ae test</a>
-<a href="/Docs/mutation-testing.html" class="on">Mutation testing, std.mutation</a>
+<a href="/Docs/mutation-testing.html" class="on">Mutation testing: std.mutation</a>
 <a href="/Docs/differential-testing.html">Differential testing across lowering paths</a>
 <div class="grp">Performance</div>
 <a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
@@ -646,8 +646,8 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
 <a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn't need macro_rules!</a>
 <a href="/Docs/lib-caller-info.html">--emit=lib caller-info channel</a>
-<a href="/Docs/liveview-lite-roadmap.html">LiveView-lite, a roadmap (Phoenix LiveView, on actors, without the framework)</a>
-<a href="/Docs/schema-projection-roadmap.html">std.schema, a projection-first roadmap (Ash, without the framework)</a>
+<a href="/Docs/liveview-lite-roadmap.html">LiveView-lite: a roadmap (Phoenix LiveView, on actors, without the framework)</a>
+<a href="/Docs/schema-projection-roadmap.html">std.schema: a projection-first roadmap (Ash, without the framework)</a>
 <a href="/Docs/locale-independent-float-text.html">Plan: locale-independent float text conversion (LC_NUMERIC correctness)</a>
 <div class="grp">Contributing</div>
 <a href="/Docs/stdlib-module-pattern.html">Aether Stdlib Module Pattern</a>
@@ -664,17 +664,17 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
     <main class="doc-main">
       <article class="doc-body" id="doc">
         <div class="bc"><span class="prompt">$</span>docs / testing</div>
-<h1 id="mutation-testing--stdmutation">Mutation testing, <code>std.mutation</code></h1>
-<p>Mutation testing measures <strong>how good your tests are</strong>. It changes the code under test (the "SUT") one tiny edit at a time, <code>+</code> becomes <code>-</code>, <code>&gt;</code> becomes <code>&lt;</code>, and re-runs your test suite for each change. A change your tests <em>catch</em> is a <strong>killed</strong> mutant (good). A change that slips through is a <strong>survivor</strong>, proof your tests have a gap.</p>
+<h1 id="mutation-testing-stdmutation">Mutation testing: <code>std.mutation</code></h1>
+<p>Mutation testing measures <strong>how good your tests are</strong>. It changes the code under test (the "SUT") one tiny edit at a time (<code>+</code> becomes <code>-</code>, <code>&gt;</code> becomes <code>&lt;</code>), and re-runs your test suite for each change. A change your tests <em>catch</em> is a <strong>killed</strong> mutant (good). A change that slips through is a <strong>survivor</strong>: proof your tests have a gap.</p>
 <p><code>std.mutation</code> is a small library (one entry point, <code>mutation.run</code>) with a runnable front-end at <code>examples/mutation-testing/mutate.ae</code>. It was adopted from the sunsetting aeocha repo's <code>contrib/mutate</code> and uses <code>std.spec</code> purely as an <strong>oracle</strong>, through the structured-report contract (<code>AE_SPEC_FORMAT</code> / <code>AE_SPEC_REPORT</code>, docs/testing.md).</p>
 <h2 id="why-its-an-outer-driver-not-a-test-helper">Why it's an outer driver (not a test helper)</h2>
-<p>The compiler has already run by the time any test executes, so a mutant can't be produced in-process, there's no source or AST left to perturb, only compiled machine code. Mutation therefore has to, once per mutant:</p>
-<ol><li>edit the SUT <strong>source on disk</strong> and clear the build cache,</li><li><strong><code>ae check</code></strong> the test, if the mutant doesn't type-check, it's <em>no-compile</em> (excluded from the score; a mutant that won't build was never really tested),</li><li><strong><code>ae build</code></strong> the test to a binary and run it with <code>AE_SPEC_FORMAT=aeocha</code> + <code>AE_SPEC_REPORT=&lt;file&gt;</code> set, <strong>reading the structured report</strong> from that file rather than scraping stdout. The report's <code>failed=N</code> is the verdict: <code>N &gt; 0</code> → killed, <code>N == 0</code> → survived.</li></ol>
+<p>The compiler has already run by the time any test executes, so a mutant can't be produced in-process: there's no source or AST left to perturb, only compiled machine code. Mutation therefore has to, once per mutant:</p>
+<ol><li>edit the SUT <strong>source on disk</strong> and clear the build cache,</li><li><strong><code>ae check</code></strong> the test: if the mutant doesn't type-check, it's <em>no-compile</em> (excluded from the score; a mutant that won't build was never really tested),</li><li><strong><code>ae build</code></strong> the test to a binary and run it with <code>AE_SPEC_FORMAT=aeocha</code> + <code>AE_SPEC_REPORT=&lt;file&gt;</code> set, <strong>reading the structured report</strong> from that file rather than scraping stdout. The report's <code>failed=N</code> is the verdict: <code>N &gt; 0</code> → killed, <code>N == 0</code> → survived.</li></ol>
 <p><code>mutation.run</code> is that outer loop; your test file is completely unaware mutation is happening. Using the structured report (not just a process exit code) is what lets the tool tell <em>killed</em> (a test actually failed) apart from <em>no-compile</em> (the mutation produced invalid code), so a non-compiling mutant never inflates the score by masquerading as a kill.</p>
-<blockquote>Compiler note: the no-compile gate greps <code>ae check</code>'s output for an <code>error[</code> diagnostic rather than trusting its exit code. On the current <code>ae</code>, both <code>ae check</code> and <code>ae build</code> can print a compile error to stderr yet still exit 0 (and <code>build</code> will even emit a binary linked against a stale module), see issue #953. Grepping the diagnostic is the reliable signal until that's fixed.</blockquote>
+<blockquote>Compiler note: the no-compile gate greps <code>ae check</code>'s output for an <code>error[</code> diagnostic rather than trusting its exit code. On the current <code>ae</code>, both <code>ae check</code> and <code>ae build</code> can print a compile error to stderr yet still exit 0 (and <code>build</code> will even emit a binary linked against a stale module): see issue #953. Grepping the diagnostic is the reliable signal until that's fixed.</blockquote>
 <h2 id="usage">Usage</h2>
 <pre><code>ae run examples/mutation-testing/mutate.ae -- &lt;sut.ae&gt; &lt;test.ae&gt; [lib_dir]</code></pre>
-<p><code>lib_dir</code> is a module search dir handed to the per-mutant sub-builds via <code>AETHER_LIB_DIR</code>; it defaults to the SUT's directory (which is usually right, the test's <code>import &lt;sut-module&gt;</code> resolves there). The <code>ae</code> used for the sub-builds is <code>ae</code> on PATH, overridable with the <code>AE_BIN</code> environment variable (the in-tree regression harness points it at <code>build/ae</code>).</p>
+<p><code>lib_dir</code> is a module search dir handed to the per-mutant sub-builds via <code>AETHER_LIB_DIR</code>; it defaults to the SUT's directory (which is usually right: the test's <code>import &lt;sut-module&gt;</code> resolves there). The <code>ae</code> used for the sub-builds is <code>ae</code> on PATH, overridable with the <code>AE_BIN</code> environment variable (the in-tree regression harness points it at <code>build/ae</code>).</p>
 <p>Or from a program / build script:</p>
 <pre><code>import std.mutation
 
@@ -697,9 +697,9 @@ survivors = mutation.run(sut_path, test_path, "")
   killed     calc.ae:11  LT-&gt;GT
 
   3/3 mutants killed, mutation score 100%</code></pre>
-<p>100%, every single-operator change to <code>calc.ae</code> was caught by <code>calc_test.ae</code>. Each line is one mutant, anchored to its source location: <code>ADD-&gt;SUB</code> flips the <code>+</code> in <code>add</code>; <code>SUB-&gt;ADD</code> flips the <code>0 - n</code> in <code>abs</code>; <code>LT-&gt;GT</code> flips the <code>n &lt; 0</code> guard. The suite asserts both branches of <code>abs</code> and an addition with a negative, so all three are killed.</p>
+<p>100%: every single-operator change to <code>calc.ae</code> was caught by <code>calc_test.ae</code>. Each line is one mutant, anchored to its source location: <code>ADD-&gt;SUB</code> flips the <code>+</code> in <code>add</code>; <code>SUB-&gt;ADD</code> flips the <code>0 - n</code> in <code>abs</code>; <code>LT-&gt;GT</code> flips the <code>n &lt; 0</code> guard. The suite asserts both branches of <code>abs</code> and an addition with a negative, so all three are killed.</p>
 <h3 id="what-a-survivor-looks-like">What a survivor looks like</h3>
-<p>A survivor is the interesting case, it's a <em>test gap</em>. Delete the negative-input case from <code>calc_test.ae</code> (the <code>abs(-7)</code> assertion), and the <code>SUB-&gt;ADD</code> mutant suddenly survives:</p>
+<p>A survivor is the interesting case: it's a <em>test gap</em>. Delete the negative-input case from <code>calc_test.ae</code> (the <code>abs(-7)</code> assertion), and the <code>SUB-&gt;ADD</code> mutant suddenly survives:</p>
 <pre><code>  killed     calc.ae:8  ADD-&gt;SUB
   SURVIVED   calc.ae:11  SUB-&gt;ADD
   killed     calc.ae:11  LT-&gt;GT
@@ -707,19 +707,19 @@ survivors = mutation.run(sut_path, test_path, "")
   2/3 mutants killed, mutation score 66%
   1 survived (test gaps):
     - calc.ae:11  SUB-&gt;ADD</code></pre>
-<p><code>SUB-&gt;ADD</code> flips the <code>0 - n</code> in <code>abs</code> to <code>0 + n</code>, which only changes the result for a <em>negative</em> input. With <code>abs(-7)</code> removed, nothing feeds <code>abs</code> a negative, so the mutant goes unnoticed. (Note <code>LT-&gt;GT</code> is still killed: flipping the <code>n &lt; 0</code> guard sends the positive <code>abs(7)</code> down the negation branch, and that case is still tested.) Add the negative-input assertion back and <code>SUB-&gt;ADD</code> returns to killed. That is the whole point, survivors are your missing tests.</p>
+<p><code>SUB-&gt;ADD</code> flips the <code>0 - n</code> in <code>abs</code> to <code>0 + n</code>, which only changes the result for a <em>negative</em> input. With <code>abs(-7)</code> removed, nothing feeds <code>abs</code> a negative, so the mutant goes unnoticed. (Note <code>LT-&gt;GT</code> is still killed: flipping the <code>n &lt; 0</code> guard sends the positive <code>abs(7)</code> down the negation branch, and that case is still tested.) Add the negative-input assertion back and <code>SUB-&gt;ADD</code> returns to killed. That is the whole point: survivors are your missing tests.</p>
 <h2 id="mutation-operators-core-set">Mutation operators (core set)</h2>
 <p>Operator mutators are matched <strong>whitespace-padded</strong> (<code>" + "</code>, <code>" &gt; "</code>), so normal Aether spacing is required for a site to be seen, and a padded operator that sits <em>inside a string literal</em> is skipped (the tool tracks string boundaries, so <code>"a + b"</code> in your code is never mutated as arithmetic).</p>
 <div class="tw"><table><thead><tr><th>Operator</th><th>Mutation</th></tr></thead><tbody><tr><td><code>+</code> ↔ <code>-</code></td><td>arithmetic</td></tr><tr><td><code>*</code> → <code>/</code></td><td>arithmetic</td></tr><tr><td><code>&gt;</code> <code>&lt;</code> <code>&gt;=</code> <code>&lt;=</code></td><td>comparison flips</td></tr><tr><td><code>==</code> ↔ <code>!=</code></td><td>equality flips</td></tr><tr><td><code>&amp;&amp;</code> ↔ <code>\|\|</code></td><td>boolean</td></tr></tbody></table></div>
 <p>String-literal mutators target the literal's <em>content</em> (quotes preserved):</p>
 <div class="tw"><table><thead><tr><th>Mutator</th><th>Mutation</th></tr></thead><tbody><tr><td><code>STR-&gt;EMPTY</code></td><td>a non-empty <code>"foo"</code> → <code>""</code> (catches tests that don't pin the returned string)</td></tr><tr><td><code>EMPTY-&gt;NONEMPTY</code></td><td>an empty <code>""</code> → a sentinel (catches an unchecked empty-string case)</td></tr></tbody></table></div>
 <h2 id="reading-the-result">Reading the result</h2>
-<ul><li><strong>Mutation score</strong> = killed / (killed + survived). Higher is better; 100% means every single-operator change that <em>compiled</em> was caught by some test.</li><li><strong>Survivors</strong> are your to-do list: each one is reported as <code>file:line  MUTATION</code> so you can jump straight to the unguarded code. Either add a test that distinguishes it, or convince yourself it's an <em>equivalent mutant</em> (see caveats).</li><li><strong>No-compile</strong> mutants (the mutation produced invalid code) are reported as <code>(N excluded, did not compile)</code> and left out of the denominator, they were never really tested, so they neither help nor hurt the score. With the core operator set they're rare (most operator swaps stay valid), but the category keeps the score honest when they happen.</li></ul>
+<ul><li><strong>Mutation score</strong> = killed / (killed + survived). Higher is better; 100% means every single-operator change that <em>compiled</em> was caught by some test.</li><li><strong>Survivors</strong> are your to-do list: each one is reported as <code>file:line  MUTATION</code> so you can jump straight to the unguarded code. Either add a test that distinguishes it, or convince yourself it's an <em>equivalent mutant</em> (see caveats).</li><li><strong>No-compile</strong> mutants (the mutation produced invalid code) are reported as <code>(N excluded: did not compile)</code> and left out of the denominator: they were never really tested, so they neither help nor hurt the score. With the core operator set they're rare (most operator swaps stay valid), but the category keeps the score honest when they happen.</li></ul>
 <h2 id="honest-limitations">Honest limitations</h2>
 <p>This is a Tier-1, text-based tool. Know what it does and doesn't do:</p>
-<ul><li><strong>Text, not AST.</strong> Operators are matched as padded tokens, so <code>++</code>, <code>+=</code>, and operators that abut other characters are skipped. The tool <em>is</em> string-boundary aware, a padded operator inside a <code>"..."</code> literal won't be mutated as code, and string-literal mutators only touch real literals. The remaining blind spot is <strong>comments</strong>: a <code>"..."</code> or a padded operator written in a <code>//</code> comment is still treated as source, so it can produce a harmless false mutant (it changes nothing the suite sees → survives). Keep operator/quote characters out of comments in a SUT you mutate, or expect a stray survivor.</li><li><strong>Equivalent mutants.</strong> Some changes don't alter behaviour (e.g. <code>&lt;</code> → <code>&lt;=</code> on a boundary your code never reaches). They "survive" without being real gaps. This is inherent to mutation testing, not a bug here.</li><li><strong>Slow.</strong> Every mutant pays a cache-clear + <code>ae check</code> + <code>ae build</code> + run, and the cache-clear is mandatory (an imported-module edit doesn't invalidate the cache, so you'd otherwise test a stale build). Three compiler invocations per mutant, no warm-cache reuse, point it at a focused SUT, not your whole codebase.</li><li><strong>Crash safety.</strong> The driver restores the original SUT at the end of the run (the regression fixtures verify byte-identical restore). But it mutates the real file in place, so if the driver is killed mid-run (Ctrl-C, OOM), the SUT is left mutated, recover with <code>git checkout &lt;sut.ae&gt;</code>. Run it on a clean working tree.</li><li><strong>Every mutant is a sub-process pair.</strong> The oracle launches <code>ae check</code>, <code>ae build</code> and the test binary argv-based through <code>std.os</code> (<code>os.run_full</code>, no shell), so it runs the same on Windows; the probe binary and its private build cache live under <code>os.temp_dir()</code>.</li></ul>
+<ul><li><strong>Text, not AST.</strong> Operators are matched as padded tokens, so <code>++</code>, <code>+=</code>, and operators that abut other characters are skipped. The tool <em>is</em> string-boundary aware: a padded operator inside a <code>"..."</code> literal won't be mutated as code, and string-literal mutators only touch real literals. The remaining blind spot is <strong>comments</strong>: a <code>"..."</code> or a padded operator written in a <code>//</code> comment is still treated as source, so it can produce a harmless false mutant (it changes nothing the suite sees → survives). Keep operator/quote characters out of comments in a SUT you mutate, or expect a stray survivor.</li><li><strong>Equivalent mutants.</strong> Some changes don't alter behaviour (e.g. <code>&lt;</code> → <code>&lt;=</code> on a boundary your code never reaches). They "survive" without being real gaps. This is inherent to mutation testing, not a bug here.</li><li><strong>Slow.</strong> Every mutant pays a cache-clear + <code>ae check</code> + <code>ae build</code> + run, and the cache-clear is mandatory (an imported-module edit doesn't invalidate the cache, so you'd otherwise test a stale build). Three compiler invocations per mutant, no warm-cache reuse: point it at a focused SUT, not your whole codebase.</li><li><strong>Crash safety.</strong> The driver restores the original SUT at the end of the run (the regression fixtures verify byte-identical restore). But it mutates the real file in place, so if the driver is killed mid-run (Ctrl-C, OOM), the SUT is left mutated: recover with <code>git checkout &lt;sut.ae&gt;</code>. Run it on a clean working tree.</li><li><strong>Every mutant is a sub-process pair.</strong> The oracle launches <code>ae check</code>, <code>ae build</code> and the test binary argv-based through <code>std.os</code> (<code>os.run_full</code>, no shell), so it runs the same on Windows; the probe binary and its private build cache live under <code>os.temp_dir()</code>.</li></ul>
 <h2 id="the-upgrade-path-why-this-lives-in-the-aether-tree">The upgrade path (why this lives in the aether tree)</h2>
-<p>Every limitation above is a compiler-adjacency problem: text-based mutation can produce mutants a parser would never emit; every mutant pays full rebuilds; there's no equivalent-mutant detection; and the #953 grep-workaround exists only because the tool used to sit outside the compiler. Precise, false-mutant-free mutation needs <strong>AST-level edits</strong>, operator sites from the real parser, positions from <code>ae inspect</code>-grade data, perhaps an <code>ae mutate</code> subcommand. Adopting the Tier-1 tool into the tree puts that upgrade path where the compiler is.</p>
+<p>Every limitation above is a compiler-adjacency problem: text-based mutation can produce mutants a parser would never emit; every mutant pays full rebuilds; there's no equivalent-mutant detection; and the #953 grep-workaround exists only because the tool used to sit outside the compiler. Precise, false-mutant-free mutation needs <strong>AST-level edits</strong>: operator sites from the real parser, positions from <code>ae inspect</code>-grade data, perhaps an <code>ae mutate</code> subcommand. Adopting the Tier-1 tool into the tree puts that upgrade path where the compiler is.</p>
 <p>Regression coverage: <code>tests/integration/mutation_testing/</code> (a deterministic operator fixture pinning <code>1/2 … 50%</code> with a MUL→DIV survivor and byte-identical SUT restore, plus a string-literal fixture covering the boundary-awareness skip).</p>
 <nav class="doc-prevnext" aria-label="Previous and next page"><a class="pn-prev" href="/Docs/testing.html"><span class="pn-k">Previous</span><span class="pn-t">Testing with std.spec and ae test</span></a><a class="pn-next" href="/Docs/differential-testing.html"><span class="pn-k">Next</span><span class="pn-t">Differential testing across lowering paths</span></a></nav>
       </article>
@@ -733,7 +733,7 @@ survivors = mutation.run(sut_path, test_path, "")
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.831 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.832 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

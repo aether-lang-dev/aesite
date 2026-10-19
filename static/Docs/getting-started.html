@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.831</span>
+      <span class="vtag">v0.832</span>
     </nav>
   </div>
 </header>
@@ -598,7 +598,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/architecture.html">Aether Architecture</a>
 <a href="/Docs/actor-concurrency.html">Aether Runtime Guide</a>
 <a href="/Docs/scheduler-quick-reference.html">Aether Scheduler - Quick Reference</a>
-<a href="/Docs/memory-management.html">Aether Memory Management</a>
+<a href="/Docs/memory-management.html">Memory Management</a>
 <a href="/Docs/runtime-optimizations.html">Runtime Optimizations</a>
 <a href="/Docs/numa-support.html">NUMA Support in Aether</a>
 <a href="/Docs/message-tracing.html">Message tracing</a>
@@ -629,7 +629,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/cross-ios.html">Cross-compiling for iOS (arm64)</a>
 <div class="grp">Testing</div>
 <a href="/Docs/testing.html">Testing with std.spec and ae test</a>
-<a href="/Docs/mutation-testing.html">Mutation testing, std.mutation</a>
+<a href="/Docs/mutation-testing.html">Mutation testing: std.mutation</a>
 <a href="/Docs/differential-testing.html">Differential testing across lowering paths</a>
 <div class="grp">Performance</div>
 <a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
@@ -646,8 +646,8 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
 <a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn't need macro_rules!</a>
 <a href="/Docs/lib-caller-info.html">--emit=lib caller-info channel</a>
-<a href="/Docs/liveview-lite-roadmap.html">LiveView-lite, a roadmap (Phoenix LiveView, on actors, without the framework)</a>
-<a href="/Docs/schema-projection-roadmap.html">std.schema, a projection-first roadmap (Ash, without the framework)</a>
+<a href="/Docs/liveview-lite-roadmap.html">LiveView-lite: a roadmap (Phoenix LiveView, on actors, without the framework)</a>
+<a href="/Docs/schema-projection-roadmap.html">std.schema: a projection-first roadmap (Ash, without the framework)</a>
 <a href="/Docs/locale-independent-float-text.html">Plan: locale-independent float text conversion (LC_NUMERIC correctness)</a>
 <div class="grp">Contributing</div>
 <a href="/Docs/stdlib-module-pattern.html">Aether Stdlib Module Pattern</a>
@@ -743,7 +743,7 @@ ae add codeberg.org/user/repo         <span class="com"># Codeberg</span>
 ae add github.com/user/repo@v1.<span class="num">0.0</span> --source   <span class="com"># force the git clone</span></code></pre>
 <p>With <code>@version</code>, <code>ae add</code> prefers a <strong>published release artifact</strong> when the package ships one for your platform, and falls back to cloning otherwise. The asset is expected at the same layout Aether's own releases use:</p>
 <pre><code>https://&lt;package&gt;/releases/download/&lt;tag&gt;/&lt;repo&gt;-&lt;tag&gt;-&lt;os&gt;-&lt;arch&gt;.tar.gz</code></pre>
-<p>(<code>.zip</code> is tried too; <code>&lt;os&gt;-&lt;arch&gt;</code> is <code>linux-x86_64</code>, <code>macos-arm64</code>, and so on.) A sibling <code>&lt;asset&gt;.sha256</code> is verified when present, a <strong>mismatch is fatal and installs nothing</strong>, and there is no silent fall-back to git, which would defeat the check. An artifact with no published checksum installs with a warning.</p>
+<p>(<code>.zip</code> is tried too; <code>&lt;os&gt;-&lt;arch&gt;</code> is <code>linux-x86_64</code>, <code>macos-arm64</code>, and so on.) A sibling <code>&lt;asset&gt;.sha256</code> is verified when present: a <strong>mismatch is fatal and installs nothing</strong>, and there is no silent fall-back to git, which would defeat the check. An artifact with no published checksum installs with a warning.</p>
 <p>Prebuilt <code>--emit=lib</code> artifacts are directly importable: the binary-import prepass reads the artifact's catalog and synthesizes the interface, so a released library needs no toolchain to consume. Set <code>AE_RELEASE_BASE_URL</code> to point at an internal mirror serving the same layout.</p>
 <h2 id="error-handling">Error Handling</h2>
 <p>Functions that can fail return <code>(value, error)</code> tuples. Check the error first, handle it, then continue, no <code>else</code> needed:</p>
@@ -847,7 +847,7 @@ main() {
 <pre><code>body, err = http.get("http://example.com")
 if err != "" { println("failed: ${err}"); return }
 println(body)</code></pre>
-<div class="tw"><table><thead><tr><th>Import</th><th>Namespace</th><th>Example</th></tr></thead><tbody><tr><td><code>import std.string</code></td><td><code>string</code></td><td><code>string.new("hello")</code>, <code>n, err = string.to_int("42")</code></td></tr><tr><td><code>import std.file</code></td><td><code>file</code></td><td><code>content, err = file.read("f")</code>, <code>file.exists("f")</code></td></tr><tr><td><code>import std.dir</code></td><td><code>dir</code></td><td><code>err = dir.create("d")</code>, <code>dir.exists("d")</code></td></tr><tr><td><code>import std.path</code></td><td><code>path</code></td><td><code>path.join("a", "b")</code>, <code>path.basename("a/b")</code></td></tr><tr><td><code>import std.list</code></td><td><code>list</code></td><td><code>list.new()</code>, <code>err = list.add(l, item)</code></td></tr><tr><td><code>import std.map</code></td><td><code>map</code></td><td><code>map.new()</code>, <code>err = map.put(m, k, v)</code></td></tr><tr><td><code>import std.json</code></td><td><code>json</code></td><td><code>v, err = json.parse(str)</code>, <code>json.create_object()</code></td></tr><tr><td><code>import std.math</code></td><td><code>math</code></td><td><code>math.abs_int(x)</code>, <code>math.sqrt(x)</code></td></tr><tr><td><code>import std.http</code></td><td><code>http</code></td><td><code>body, err = http.get(url)</code>, <code>http.server_create(port)</code></td></tr><tr><td><code>import std.tcp</code></td><td><code>tcp</code></td><td><code>sock, err = tcp.connect(host, port)</code>, <code>tcp.write(sock, data)</code></td></tr><tr><td><code>import std.log</code></td><td><code>log</code></td><td><code>err = log.init("app.log", 0)</code>, <code>log.write(0, msg)</code></td></tr><tr><td><code>import std.io</code></td><td><code>io</code></td><td><code>content, err = io.read_file("f")</code>, <code>io.getenv("HOME")</code></td></tr><tr><td><code>import std.os</code></td><td><code>os</code></td><td><code>out, err = os.exec("ls")</code>, <code>os.system("cmd")</code></td></tr></tbody></table></div>
+<div class="tw"><table><thead><tr><th>Import</th><th>Namespace</th><th>Example</th></tr></thead><tbody><tr><td><code>import std.string</code></td><td><code>string</code></td><td><code>string.length(s)</code>, <code>n, err = string.to_int("42")</code></td></tr><tr><td><code>import std.file</code></td><td><code>file</code></td><td><code>content, err = file.read("f")</code>, <code>file.exists("f")</code></td></tr><tr><td><code>import std.dir</code></td><td><code>dir</code></td><td><code>err = dir.create("d")</code>, <code>dir.exists("d")</code></td></tr><tr><td><code>import std.path</code></td><td><code>path</code></td><td><code>path.join("a", "b")</code>, <code>path.basename("a/b")</code></td></tr><tr><td><code>import std.list</code></td><td><code>list</code></td><td><code>list.new()</code>, <code>err = list.add(l, item)</code></td></tr><tr><td><code>import std.map</code></td><td><code>map</code></td><td><code>map.new()</code>, <code>err = map.put(m, k, v)</code></td></tr><tr><td><code>import std.json</code></td><td><code>json</code></td><td><code>v, err = json.parse(str)</code>, <code>json.create_object()</code></td></tr><tr><td><code>import std.math</code></td><td><code>math</code></td><td><code>math.abs_int(x)</code>, <code>math.sqrt(x)</code></td></tr><tr><td><code>import std.http</code></td><td><code>http</code></td><td><code>body, err = http.get(url)</code>, <code>http.server_create(port)</code></td></tr><tr><td><code>import std.tcp</code></td><td><code>tcp</code></td><td><code>sock, err = tcp.connect(host, port)</code>, <code>tcp.write(sock, data)</code></td></tr><tr><td><code>import std.log</code></td><td><code>log</code></td><td><code>err = log.init("app.log", 0)</code>, <code>log.write(0, msg)</code></td></tr><tr><td><code>import std.io</code></td><td><code>io</code></td><td><code>content, err = io.read_file("f")</code>, <code>io.getenv("HOME")</code></td></tr><tr><td><code>import std.os</code></td><td><code>os</code></td><td><code>out, err = os.exec("ls")</code>, <code>os.system("cmd")</code></td></tr></tbody></table></div>
 <p>Raw externs are preserved under a <code>_raw</code> suffix (e.g. <code>http.get_raw</code>) for advanced callers who need direct access to the underlying ptr or status code.</p>
 <h3 id="creating-your-own-modules">Creating Your Own Modules</h3>
 <p>You can write reusable modules in pure Aether, no C required. Place your module in <code>lib/&lt;name&gt;/module.ae</code>:</p>
@@ -881,15 +881,15 @@ main() {
 <p>Aether includes a standard library with the following modules:</p>
 <div class="tw"><table><thead><tr><th>Module</th><th>Description</th></tr></thead><tbody><tr><td><code>std.string</code></td><td>String operations</td></tr><tr><td><code>std.file</code></td><td>File operations</td></tr><tr><td><code>std.dir</code></td><td>Directory operations</td></tr><tr><td><code>std.path</code></td><td>Path utilities</td></tr><tr><td><code>std.list</code></td><td>Dynamic array (ArrayList)</td></tr><tr><td><code>std.map</code></td><td>Hash map (HashMap)</td></tr><tr><td><code>std.json</code></td><td>JSON parsing and creation</td></tr><tr><td><code>std.http</code></td><td>HTTP client and server</td></tr><tr><td><code>std.tcp</code></td><td>TCP sockets</td></tr><tr><td><code>std.log</code></td><td>Structured logging</td></tr><tr><td><code>std.math</code></td><td>Math functions</td></tr><tr><td><code>std.io</code></td><td>Console I/O, environment variables</td></tr><tr><td><code>std.os</code></td><td>Shell execution, command output capture</td></tr></tbody></table></div>
 <p>See the <a href="/Docs/stdlib-reference.html">Standard Library Reference</a> for every module and its API.</p>
-<blockquote>When you read a file or get data from stdlib functions, the result is a regular string, you can <code>print()</code> it, use it in <code>"${interpolation}"</code>, or pass it in messages directly. No conversion needed.</blockquote>
+<blockquote>When you read a file or get data from stdlib functions, the result is a regular string: you can <code>print()</code> it, use it in <code>"${interpolation}"</code>, or pass it in messages directly. No conversion needed.</blockquote>
 <h3 id="error-handling-and-memory">Error Handling and Memory</h3>
-<p>Stdlib functions that can fail return a <code>(value, err)</code> tuple. Check the error string first, then use the value. The wrappers auto-free any heap allocations, so you don't need <code>defer free()</code> for stdlib returns:</p>
+<p>Stdlib functions that can fail return a <code>(value, err)</code> tuple. Check the error string first, then use the value. A string a stdlib function returns is a counted value that the local holding it owns, so there is nothing to free:</p>
 <pre><code><span class="kw">import</span> std.io
 
 main() {
     <span class="com">// io.getenv is infallible; returns null if unset</span>
     home = io.getenv(<span class="str">"HOME"</span>)
-    <span class="kw">if</span> home != <span class="num">0</span> {
+    <span class="kw">if</span> home != <span class="kw">null</span> {
         println(home)
     }
 
@@ -901,8 +901,8 @@ main() {
     }
     println(content)
 }</code></pre>
-<p><code>free()</code> is still a language builtin for manually-allocated memory (e.g. <code>make</code>, <code>list.new</code>, <code>map.new</code>). <code>defer free(...)</code> or <code>defer list.free(...)</code> ensure cleanup on scope exit.</p>
 <p>A string needs no cleanup: the local, field or element holding it releases it when it is overwritten or goes out of scope. <code>free(s)</code> or <code>release(s)</code> on a string releases it early and leaves the place empty.</p>
+<p>A handle is different: a list, a map or a C buffer is a <code>ptr</code> the program frees itself, through its module (<code>list.free</code>, <code>map.free</code>), or with the <code>free()</code> builtin for memory from <code>make</code> or <code>malloc</code>. <code>defer</code> keeps the free next to the allocation. See <a href="/Docs/memory-management.html">Memory Management</a>.</p>
 <h2 id="pattern-matching">Pattern Matching</h2>
 <p>Functions can be defined as several clauses, each matching a different shape of argument, with guards to narrow a clause further. The first clause that matches runs.</p>
 <h3 id="function-pattern-matching">Function Pattern Matching</h3>
@@ -933,22 +933,28 @@ gcd(a, b) when b &gt; 0 -&gt; gcd(b, a - (a / b) * b)</code></pre>
     _ -&gt; { println("Other") }
 }</code></pre>
 <h3 id="list-patterns">List Patterns</h3>
-<p>Match on arrays (requires corresponding <code>_len</code> variable):</p>
-<pre><code>nums = [1, 2, 3]
-nums_len = 3
-
-match (nums) {
-    [] -&gt; { println("empty") }
-    [x] -&gt; { println("one element") }
-    [h|t] -&gt; {
-        println("head: ${h}")
+<p>A slice (<code>int[]</code>) matches list patterns: <code>[]</code> for empty, <code>[x]</code> for one element, and <code>[h | t]</code> for a head and the rest, itself a slice. An array passes to a slice parameter with its length:</p>
+<pre><code>describe(nums: int[]) -&gt; string {
+    return match nums {
+        [] -&gt; "empty"
+        [x] -&gt; "one: ${x}"
+        [h | t] -&gt; "head ${h}, ${t.len} more"
     }
+}
+
+main() {
+    println(describe([1, 2, 3]))
+    println(describe([]))
 }</code></pre>
+<pre><code>head 1, 2 more
+empty</code></pre>
 <h2 id="project-configuration">Project Configuration</h2>
 <p>Projects use <code>aether.toml</code> for configuration. Created automatically by <code>ae init</code>:</p>
 <pre><code>[package]
 name = <span class="str">"myproject"</span>
 version = <span class="str">"0.1.0"</span>
+description = <span class="str">"A new Aether project"</span>
+license = <span class="str">"MIT"</span>
 
 [[bin]]
 name = <span class="str">"myproject"</span>
@@ -965,14 +971,13 @@ target = <span class="str">"native"</span>
 link_flags = <span class="str">"-lsqlite3 -lcurl -lssl"</span></code></pre>
 <p>This allows Aether programs to use libraries like SQLite, libcurl, OpenSSL, etc.</p>
 <h3 id="command-line-arguments">Command-Line Arguments</h3>
-<p>Access command-line arguments using the runtime's argument functions:</p>
-<pre><code><span class="kw">extern</span> aether_args_count() -&gt; <span class="fn">int</span>
-<span class="kw">extern</span> aether_args_get(index: <span class="fn">int</span>) -&gt; <span class="fn">string</span>
+<p>Read command-line arguments through <code>std.os</code>:</p>
+<pre><code><span class="kw">import</span> std.os
 
 main() {
-    count = aether_args_count()
+    count = os.args_count()
     <span class="kw">for</span> (i = <span class="num">0</span>; i &lt; count; i = i + <span class="num">1</span>) {
-        println(aether_args_get(i))
+        println(os.args_get(i))
     }
 }</code></pre>
 <p>To pass arguments, build and run the binary directly:</p>
@@ -984,7 +989,7 @@ main() {
 
 main() {
     home = os.getenv(<span class="str">"HOME"</span>)
-    <span class="kw">if</span> home != <span class="num">0</span> {
+    <span class="kw">if</span> home != <span class="kw">null</span> {
         println(<span class="str">"Home directory: ${home}"</span>)
     }
 }</code></pre>
@@ -1014,8 +1019,8 @@ ae lib-path --lib <span class="str">"lib:vendor"</span></code></pre>
 <h2 id="version-management">Version Management</h2>
 <p>Install, upgrade, and switch between Aether releases without reinstalling:</p>
 <pre><code>ae upgrade              <span class="com"># Install the latest release and switch to it</span>
-ae install v0.<span class="num">25.0</span>      <span class="com"># Install a specific release (latest if omitted)</span>
-ae use v0.<span class="num">25.0</span>          <span class="com"># Switch to an installed version</span>
+ae install v0.<span class="num">830.0</span>     <span class="com"># Install a specific release (latest if omitted)</span>
+ae use v0.<span class="num">830.0</span>         <span class="com"># Switch to an installed version</span>
 ae version              <span class="com"># Show current version</span>
 ae version list         <span class="com"># List all available releases (marks installed/active)</span>
 ae version installed    <span class="com"># List only what is installed locally</span></code></pre>
@@ -1025,13 +1030,13 @@ ae version installed    <span class="com"># List only what is installed locally<
 <p><code>ae version list</code> asks GitHub what exists and marks the releases it also finds locally, so it answers "what could I install?". <code>ae version installed</code> reads only the disk, which is the question to ask when your installs have aged out of the release window (they will show no Status in <code>list</code>) or when you are offline.</p>
 <h3 id="reclaiming-disk-space">Reclaiming disk space</h3>
 <p>Each release occupies its full size, so a store of several releases gets large. Two commands prune it:</p>
-<pre><code>ae version remove v0.<span class="num">25.0</span>        <span class="com"># Remove one or more installed releases</span>
+<pre><code>ae version remove v0.<span class="num">829.0</span>       <span class="com"># Remove one or more installed releases</span>
 ae version gc --dry-run          <span class="com"># Show what gc would remove</span>
 ae version gc --keep <span class="num">3</span>           <span class="com"># Keep the newest 3, remove the rest</span>
 ae version gc --keep <span class="num">3</span> --dedupe  <span class="com"># ...and share identical files afterwards</span>
 ae version dedupe                <span class="com"># Share identical files, remove nothing</span></code></pre>
-<p>Both <code>remove</code> and <code>gc</code> refuse to delete the release you are actually using, whether that is the one <code>current</code> points at or the one <code>~/.aether/active_version</code> pins, so the worst case is that they decline. Versions are ordered numerically, not alphabetically, so <code>--keep 2</code> on a store containing v0.9.0 and v0.10.0 keeps v0.10.0.</p>
-<p><code>dedupe</code> reclaims space without removing anything, by pointing identical files at the same storage. Roughly 70% of a multi-version store is byte-identical, and about 20% of a <em>single</em> version is duplicated between <code>include/aether/</code> and <code>share/aether/</code>, so it is worth running even with one release installed. It prefers copy-on-write reflinks (btrfs, XFS with <code>reflink=1</code>, APFS) and falls back to hardlinks; where the filesystem supports neither, FAT, some network mounts, a Windows account without Developer Mode, it reports that and changes nothing. It never alters file contents, and it is safe to re-run: a second pass finds nothing left to share.</p>
+<p>Both <code>remove</code> and <code>gc</code> refuse to delete the release you are using, whether that is the one <code>current</code> points at or the one <code>~/.aether/active_version</code> pins, so the worst case is that they decline. Versions are ordered numerically, not alphabetically, so <code>--keep 2</code> on a store containing v0.9.0 and v0.10.0 keeps v0.10.0.</p>
+<p><code>dedupe</code> reclaims space without removing anything, by pointing identical files at the same storage. Roughly 70% of a multi-version store is byte-identical, and about 20% of a <em>single</em> version is duplicated between <code>include/aether/</code> and <code>share/aether/</code>, so it is worth running even with one release installed. It prefers copy-on-write reflinks (btrfs, XFS with <code>reflink=1</code>, APFS) and falls back to hardlinks; where the filesystem supports neither (FAT, some network mounts, a Windows account without Developer Mode), it reports that and changes nothing. It never alters file contents, and it is safe to re-run: a second pass finds nothing left to share.</p>
 <p>One reporting quirk worth knowing: after a reflink dedupe, <code>du</code> still reports the old size, because it counts every reflinked file at full size even though the space really has come back. <code>df</code> shows the truth. After a <em>hardlink</em> dedupe <code>du</code> drops, because it counts a shared inode once.</p>
 <h2 id="troubleshooting">Troubleshooting</h2>
 <h3 id="build-failures">Build Failures</h3>
@@ -1083,7 +1088,7 @@ make docker-ci-embedded    <span class="com"># ARM Cortex-M4 syntax-check</span>
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.831 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.832 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

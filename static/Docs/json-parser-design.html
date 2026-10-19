@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.831</span>
+      <span class="vtag">v0.832</span>
     </nav>
   </div>
 </header>
@@ -598,7 +598,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/architecture.html">Aether Architecture</a>
 <a href="/Docs/actor-concurrency.html">Aether Runtime Guide</a>
 <a href="/Docs/scheduler-quick-reference.html">Aether Scheduler - Quick Reference</a>
-<a href="/Docs/memory-management.html">Aether Memory Management</a>
+<a href="/Docs/memory-management.html">Memory Management</a>
 <a href="/Docs/runtime-optimizations.html">Runtime Optimizations</a>
 <a href="/Docs/numa-support.html">NUMA Support in Aether</a>
 <a href="/Docs/message-tracing.html">Message tracing</a>
@@ -629,7 +629,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/cross-ios.html">Cross-compiling for iOS (arm64)</a>
 <div class="grp">Testing</div>
 <a href="/Docs/testing.html">Testing with std.spec and ae test</a>
-<a href="/Docs/mutation-testing.html">Mutation testing, std.mutation</a>
+<a href="/Docs/mutation-testing.html">Mutation testing: std.mutation</a>
 <a href="/Docs/differential-testing.html">Differential testing across lowering paths</a>
 <div class="grp">Performance</div>
 <a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
@@ -646,8 +646,8 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
 <a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn't need macro_rules!</a>
 <a href="/Docs/lib-caller-info.html">--emit=lib caller-info channel</a>
-<a href="/Docs/liveview-lite-roadmap.html">LiveView-lite, a roadmap (Phoenix LiveView, on actors, without the framework)</a>
-<a href="/Docs/schema-projection-roadmap.html">std.schema, a projection-first roadmap (Ash, without the framework)</a>
+<a href="/Docs/liveview-lite-roadmap.html">LiveView-lite: a roadmap (Phoenix LiveView, on actors, without the framework)</a>
+<a href="/Docs/schema-projection-roadmap.html">std.schema: a projection-first roadmap (Ash, without the framework)</a>
 <a href="/Docs/locale-independent-float-text.html">Plan: locale-independent float text conversion (LC_NUMERIC correctness)</a>
 <div class="grp">Contributing</div>
 <a href="/Docs/stdlib-module-pattern.html">Aether Stdlib Module Pattern</a>
@@ -727,7 +727,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
     JsonValue**  values;
 } JsonObjBlock;</code></pre>
 <p>Reading an object field is <code>obj-&gt;data.obj.blk-&gt;values[i]</code> one extra pointer load compared to inlining the three arrays in <code>JsonValue</code>. The payoff is that the <code>obj</code> union variant is 16 bytes instead of 32, which collapses <code>sizeof(JsonValue)</code> from 48 to 32 and lets two values share a 64-byte cache line on every machine we care about (see the next section). Since every non-trivial object access is going to miss cache <em>somewhere</em>, either on the value struct or on the block, putting the indirection at the block level is essentially free, and halving the value struct's footprint pays back across the whole parsed tree.</p>
-<p>Growth uses simple doubling with an initial capacity of <code>JSON_CONTAINER_INITIAL_CAP</code> (= 8). Realistic JSON objects cluster in the 5–15 key range, so starting at 8 skips one doubling cycle in the common case; tiny objects waste a few unused pointers which round-off into the arena anyway. Old buffers become arena garbage until the arena is freed, waste is bounded by <code>O(final size)</code> per container.</p>
+<p>Growth uses simple doubling with an initial capacity of <code>JSON_CONTAINER_INITIAL_CAP</code> (= 8). Realistic JSON objects cluster in the 5-15 key range, so starting at 8 skips one doubling cycle in the common case; tiny objects waste a few unused pointers which round-off into the arena anyway. Old buffers become arena garbage until the arena is freed, waste is bounded by <code>O(final size)</code> per container.</p>
 <p><strong>Iteration order.</strong> The parallel-array layout means objects iterate in insertion order by construction, the parser appends to the tail as it reads each <code>key: value</code> pair, and the builder's <code>json_object_set_raw</code> does the same on first insert. The public iteration API (<code>json_object_size_raw</code> / <code>json_object_key_at</code> / <code>json_object_value_at</code>, and the Aether-side <code>object_entry(obj, i)</code> wrapper) commits to this order: parsed JSON iterates in the order keys appeared in the source, built JSON iterates in the order <code>object_set</code> was called. Callers that need sorted iteration copy the keys and sort.</p>
 <h2 id="jsonvalue-sizing">JsonValue sizing</h2>
 <pre><code><span class="kw">struct</span> JsonValue {
@@ -792,7 +792,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.831 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.832 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

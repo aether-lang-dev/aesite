@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.831</span>
+      <span class="vtag">v0.832</span>
     </nav>
   </div>
 </header>
@@ -598,7 +598,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/architecture.html">Aether Architecture</a>
 <a href="/Docs/actor-concurrency.html">Aether Runtime Guide</a>
 <a href="/Docs/scheduler-quick-reference.html">Aether Scheduler - Quick Reference</a>
-<a href="/Docs/memory-management.html">Aether Memory Management</a>
+<a href="/Docs/memory-management.html">Memory Management</a>
 <a href="/Docs/runtime-optimizations.html">Runtime Optimizations</a>
 <a href="/Docs/numa-support.html">NUMA Support in Aether</a>
 <a href="/Docs/message-tracing.html">Message tracing</a>
@@ -629,7 +629,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/cross-ios.html">Cross-compiling for iOS (arm64)</a>
 <div class="grp">Testing</div>
 <a href="/Docs/testing.html">Testing with std.spec and ae test</a>
-<a href="/Docs/mutation-testing.html">Mutation testing, std.mutation</a>
+<a href="/Docs/mutation-testing.html">Mutation testing: std.mutation</a>
 <a href="/Docs/differential-testing.html">Differential testing across lowering paths</a>
 <div class="grp">Performance</div>
 <a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
@@ -646,8 +646,8 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
 <a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn't need macro_rules!</a>
 <a href="/Docs/lib-caller-info.html">--emit=lib caller-info channel</a>
-<a href="/Docs/liveview-lite-roadmap.html">LiveView-lite, a roadmap (Phoenix LiveView, on actors, without the framework)</a>
-<a href="/Docs/schema-projection-roadmap.html">std.schema, a projection-first roadmap (Ash, without the framework)</a>
+<a href="/Docs/liveview-lite-roadmap.html">LiveView-lite: a roadmap (Phoenix LiveView, on actors, without the framework)</a>
+<a href="/Docs/schema-projection-roadmap.html">std.schema: a projection-first roadmap (Ash, without the framework)</a>
 <a href="/Docs/locale-independent-float-text.html">Plan: locale-independent float text conversion (LC_NUMERIC correctness)</a>
 <div class="grp">Contributing</div>
 <a href="/Docs/stdlib-module-pattern.html">Aether Stdlib Module Pattern</a>
@@ -717,7 +717,7 @@ main() {
 (param a :float) (param n :int) (BLOCK (LET total :float (LIT 0.0 :float)) (FOR (LET i :int (LIT 0 :int)) (BINARY &lt; :bool (LOCAL i :int) (LOCAL n :int)) (ASSIGN += (LOCAL i :int) (LIT 1 :int)) (BLOCK (ASSIGN += (LOCAL total :float) (LOCAL a :float)))) (RETURN :float (CHOOSE :float (BINARY &gt; :bool (LOCAL total :float) (LIT 1.0 :float)) (LOCAL total :float) (LIT 0.0 :float))))</code></pre>
 <h2 id="freeing-a-tree">Freeing a tree</h2>
 <p>Each evaluation of a quote builds a new tree, and the function it is handed to owns it. A function that reads the tree and is done with it frees it, <code>defer quote.free(t)</code> being the idiom (as <code>show</code> above does); one that keeps it, in a struct or by returning it, hands that duty on with it, and whoever holds it last frees it (<code>defer quote.free(shader.tree)</code>). <code>quote.free</code> also gives back the tree's references to its captured cells.</p>
-<p>A tree is not released at scope exit the way a heap string is. A string's tracking follows a local the program binds; a tree is born as an argument, inside a call, and whether the callee keeps it, returns it or drops it is the callee's code, which the call site cannot see. Tracking it would mean carrying the heap-string escape analysis (returns, struct fields, closure captures, <code>try</code> frames) over to a second kind of owned value.</p>
+<p>A tree is not released at scope exit the way a string is. A string carries its own count, and every place that holds one takes and releases a reference; a tree carries none, so it is owned as a handle is, by the code that frees it.</p>
 <h2 id="captures">Captures</h2>
 <p>An outer variable the block reads becomes a <code>CAPTURE</code> node, and the tree's captures list holds one entry per variable: its name, its type, and its <strong>cell</strong>.</p>
 <p><strong>The cell is the variable itself, not a copy of its value.</strong> The compiler already moves a variable into a reference-counted heap cell when a closure writes it; a quote moves every variable it captures there, so the variable and the tree share the cell. When the program changes <code>time</code>, the next read through the cell sees the new value:</p>
@@ -824,7 +824,7 @@ fxaa(screen: Texture, texel: vec2, edge: float, edge_min: float, subpixel: float
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.831 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.832 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

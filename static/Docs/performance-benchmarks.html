@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.831</span>
+      <span class="vtag">v0.832</span>
     </nav>
   </div>
 </header>
@@ -598,7 +598,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/architecture.html">Aether Architecture</a>
 <a href="/Docs/actor-concurrency.html">Aether Runtime Guide</a>
 <a href="/Docs/scheduler-quick-reference.html">Aether Scheduler - Quick Reference</a>
-<a href="/Docs/memory-management.html">Aether Memory Management</a>
+<a href="/Docs/memory-management.html">Memory Management</a>
 <a href="/Docs/runtime-optimizations.html">Runtime Optimizations</a>
 <a href="/Docs/numa-support.html">NUMA Support in Aether</a>
 <a href="/Docs/message-tracing.html">Message tracing</a>
@@ -629,7 +629,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/cross-ios.html">Cross-compiling for iOS (arm64)</a>
 <div class="grp">Testing</div>
 <a href="/Docs/testing.html">Testing with std.spec and ae test</a>
-<a href="/Docs/mutation-testing.html">Mutation testing, std.mutation</a>
+<a href="/Docs/mutation-testing.html">Mutation testing: std.mutation</a>
 <a href="/Docs/differential-testing.html">Differential testing across lowering paths</a>
 <div class="grp">Performance</div>
 <a href="/Docs/performance-benchmarks.html" class="on">Aether Performance Benchmarks</a>
@@ -646,8 +646,8 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
 <a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn't need macro_rules!</a>
 <a href="/Docs/lib-caller-info.html">--emit=lib caller-info channel</a>
-<a href="/Docs/liveview-lite-roadmap.html">LiveView-lite, a roadmap (Phoenix LiveView, on actors, without the framework)</a>
-<a href="/Docs/schema-projection-roadmap.html">std.schema, a projection-first roadmap (Ash, without the framework)</a>
+<a href="/Docs/liveview-lite-roadmap.html">LiveView-lite: a roadmap (Phoenix LiveView, on actors, without the framework)</a>
+<a href="/Docs/schema-projection-roadmap.html">std.schema: a projection-first roadmap (Ash, without the framework)</a>
 <a href="/Docs/locale-independent-float-text.html">Plan: locale-independent float text conversion (LC_NUMERIC correctness)</a>
 <div class="grp">Contributing</div>
 <a href="/Docs/stdlib-module-pattern.html">Aether Stdlib Module Pattern</a>
@@ -696,9 +696,9 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <p>Each benchmark is run <strong>5 times</strong> (configurable via <code>BENCH_RUNS</code>). The <strong>median</strong> throughput is reported to reduce the impact of outliers. All individual run values are stored for transparency.</p>
 <p><strong>JVM/BEAM warmup:</strong> Java, Scala, Erlang, and Elixir receive 1 warmup run (discarded, not timed) before the measured runs. This allows JIT compilation to complete before measurement, matching how these runtimes perform in production.</p>
 <p><strong>Metrics reported per language:</strong></p>
-<div class="tw"><table><thead><tr><th>Metric</th><th>Description</th></tr></thead><tbody><tr><td>Throughput (M msg/s)</td><td>Messages processed per second (median of N runs)</td></tr><tr><td>Latency (ns/msg)</td><td>Nanoseconds per message (median)</td></tr><tr><td>Memory (MB)</td><td>Peak resident set size via <code>/usr/bin/time</code></td></tr><tr><td>Relative (%)</td><td>Percentage of the fastest language's throughput</td></tr><tr><td>CV%</td><td>Coefficient of variation (σ/μ × 100), measures run-to-run stability</td></tr><tr><td>Range</td><td>Min–Max throughput across all runs</td></tr><tr><td>Efficiency</td><td>Throughput per MB of memory (M msg/s/MB)</td></tr></tbody></table></div>
+<div class="tw"><table><thead><tr><th>Metric</th><th>Description</th></tr></thead><tbody><tr><td>Throughput (M msg/s)</td><td>Messages processed per second (median of N runs)</td></tr><tr><td>Latency (ns/msg)</td><td>Nanoseconds per message (median)</td></tr><tr><td>Memory (MB)</td><td>Peak resident set size via <code>/usr/bin/time</code></td></tr><tr><td>Relative (%)</td><td>Percentage of the fastest language's throughput</td></tr><tr><td>CV%</td><td>Coefficient of variation (σ/μ × 100), measures run-to-run stability</td></tr><tr><td>Range</td><td>Min-Max throughput across all runs</td></tr><tr><td>Efficiency</td><td>Throughput per MB of memory (M msg/s/MB)</td></tr></tbody></table></div>
 <p><strong>CV% interpretation.</strong> The thresholds below are general statistical stability bands for coefficient of variation, not Aether-specific targets. They tell you how much to trust a single run's headline figure, regardless of which language is being measured:</p>
-<ul><li><strong>&lt; 5%</strong> (green): run-to-run variance is small; reported medians are trustworthy.</li><li><strong>5–15%</strong> (orange): moderate variance; read medians alongside Min–Max range.</li><li><strong>&gt; 15%</strong> (red): high variance; investigate thermal throttling, OS scheduling, or shared-host noise before citing numbers.</li></ul>
+<ul><li><strong>&lt; 5%</strong> (green): run-to-run variance is small; reported medians are trustworthy.</li><li><strong>5-15%</strong> (orange): moderate variance; read medians alongside Min-Max range.</li><li><strong>&gt; 15%</strong> (red): high variance; investigate thermal throttling, OS scheduling, or shared-host noise before citing numbers.</li></ul>
 <p>The runner computes CV in 64-bit and refuses to publish a negative value. Both matter for the fastest patterns: throughput in the hundreds of millions of msg/sec makes <code>range * 50</code> exceed the 32-bit ceiling before the divide, which used to yield a NEGATIVE CV for exactly the results most likely to be quoted. A negative coefficient of variation is arithmetically impossible, so if one ever appears the runner reports it and substitutes zero rather than letting a consumer read it as a stability signal.</p>
 <h3 id="measurement">Measurement</h3>
 <ul><li>Wall-clock time via <code>CLOCK_MONOTONIC</code> (not CPU time)</li><li>All compiled languages use highest optimization flags</li><li>Correctness validated (e.g., skynet sum = 499,999,500,000 for 1M leaves)</li><li>Memory measured as peak RSS via <code>/usr/bin/time -l</code> (macOS) or <code>/usr/bin/time -v</code> (Linux)</li></ul>
@@ -726,7 +726,7 @@ BENCH_WARMUP=<span class="num">3</span> make benchmark</code></pre>
 <p>Results are stored as JSON in <code>benchmarks/cross-language/visualize/results_*.json</code> with full metadata (hardware, runs, warmup, methodology).</p>
 <h2 id="active-optimizations">Active Optimizations</h2>
 <p>These Aether runtime optimizations affect benchmark performance:</p>
-<div class="tw"><table><thead><tr><th>Optimization</th><th>Effect</th><th>File</th></tr></thead><tbody><tr><td>Main Thread Actor Mode</td><td>Single-actor programs bypass scheduler entirely</td><td><code>runtime/actors/aether_send_message.c</code></td></tr><tr><td>Inline message path</td><td>Single-field messages (int, int64, uint64, duration, ptr) skip heap allocation, value stored in <code>Message.payload_int</code></td><td><code>compiler/codegen/codegen.c</code></td></tr><tr><td>Batch send</td><td>Main-thread fan-out groups messages by target core, reducing atomics from N to num_cores</td><td><code>runtime/scheduler/multicore_scheduler.c</code></td></tr><tr><td>Partial batch enqueue</td><td><code>queue_enqueue_batch</code> returns how many fit instead of all-or-nothing</td><td><code>runtime/scheduler/lockfree_queue.h</code></td></tr><tr><td>Work inlining</td><td>Same-core sends invoke <code>actor-&gt;step()</code> immediately, skipping the scheduler drain loop</td><td><code>runtime/scheduler/multicore_scheduler.c</code></td></tr><tr><td>Computed goto dispatch</td><td>Message handlers use GCC computed-goto dispatch tables</td><td><code>compiler/codegen/codegen_actor.c</code></td></tr><tr><td>TLS caching</td><td><code>current_core_id</code> cached in local variables, avoiding repeated <code>tlv_get_addr</code> on macOS</td><td><code>runtime/scheduler/multicore_scheduler.c</code></td></tr><tr><td>SPSC queues</td><td>Lock-free single-producer single-consumer ring buffers for cross-core messaging</td><td><code>runtime/scheduler/lockfree_queue.h</code></td></tr><tr><td>Adaptive batching</td><td>Batch size adjusts dynamically (64–1024) based on queue utilization</td><td><code>runtime/actors/aether_adaptive_batch.h</code></td></tr></tbody></table></div>
+<div class="tw"><table><thead><tr><th>Optimization</th><th>Effect</th><th>File</th></tr></thead><tbody><tr><td>Main Thread Actor Mode</td><td>Single-actor programs bypass scheduler entirely</td><td><code>runtime/actors/aether_send_message.c</code></td></tr><tr><td>Inline message path</td><td>Single-field messages (int, int64, uint64, duration, ptr) skip heap allocation, value stored in <code>Message.payload_int</code></td><td><code>compiler/codegen/codegen.c</code></td></tr><tr><td>Batch send</td><td>Main-thread fan-out groups messages by target core, reducing atomics from N to num_cores</td><td><code>runtime/scheduler/multicore_scheduler.c</code></td></tr><tr><td>Partial batch enqueue</td><td><code>queue_enqueue_batch</code> returns how many fit instead of all-or-nothing</td><td><code>runtime/scheduler/lockfree_queue.h</code></td></tr><tr><td>Work inlining</td><td>Same-core sends invoke <code>actor-&gt;step()</code> immediately, skipping the scheduler drain loop</td><td><code>runtime/scheduler/multicore_scheduler.c</code></td></tr><tr><td>Computed goto dispatch</td><td>Message handlers use GCC computed-goto dispatch tables</td><td><code>compiler/codegen/codegen_actor.c</code></td></tr><tr><td>TLS caching</td><td><code>current_core_id</code> cached in local variables, avoiding repeated <code>tlv_get_addr</code> on macOS</td><td><code>runtime/scheduler/multicore_scheduler.c</code></td></tr><tr><td>SPSC queues</td><td>Lock-free single-producer single-consumer ring buffers for cross-core messaging</td><td><code>runtime/scheduler/lockfree_queue.h</code></td></tr><tr><td>Adaptive batching</td><td>Batch size adjusts dynamically (64-1024) based on queue utilization</td><td><code>runtime/actors/aether_adaptive_batch.h</code></td></tr></tbody></table></div>
 <h2 id="references">References</h2>
 <ul><li><a href="https://dl.acm.org/doi/10.1145/2687357.2687368">Savina, An Actor Benchmark Suite</a> (Imam &amp; Sarkar, 2014)</li><li><a href="https://github.com/aether-lang-dev/aether/tree/main/benchmarks/cross-language/">Cross-Language Benchmark Source</a></li><li><a href="/Docs/runtime-optimizations.html">Runtime Optimizations</a></li><li><a href="/Docs/scheduler-quick-reference.html">Scheduler Architecture</a></li></ul>
 <nav class="doc-prevnext" aria-label="Previous and next page"><a class="pn-prev" href="/Docs/differential-testing.html"><span class="pn-k">Previous</span><span class="pn-t">Differential testing across lowering paths</span></a><a class="pn-next" href="/Docs/profiling-guide.html"><span class="pn-k">Next</span><span class="pn-t">Aether Runtime Profiling Guide</span></a></nav>
@@ -741,7 +741,7 @@ BENCH_WARMUP=<span class="num">3</span> make benchmark</code></pre>
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.831 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.832 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

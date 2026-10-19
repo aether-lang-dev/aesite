@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.831</span>
+      <span class="vtag">v0.832</span>
     </nav>
   </div>
 </header>
@@ -598,7 +598,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/architecture.html">Aether Architecture</a>
 <a href="/Docs/actor-concurrency.html">Aether Runtime Guide</a>
 <a href="/Docs/scheduler-quick-reference.html">Aether Scheduler - Quick Reference</a>
-<a href="/Docs/memory-management.html">Aether Memory Management</a>
+<a href="/Docs/memory-management.html">Memory Management</a>
 <a href="/Docs/runtime-optimizations.html">Runtime Optimizations</a>
 <a href="/Docs/numa-support.html">NUMA Support in Aether</a>
 <a href="/Docs/message-tracing.html">Message tracing</a>
@@ -629,7 +629,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/cross-ios.html">Cross-compiling for iOS (arm64)</a>
 <div class="grp">Testing</div>
 <a href="/Docs/testing.html">Testing with std.spec and ae test</a>
-<a href="/Docs/mutation-testing.html">Mutation testing, std.mutation</a>
+<a href="/Docs/mutation-testing.html">Mutation testing: std.mutation</a>
 <a href="/Docs/differential-testing.html">Differential testing across lowering paths</a>
 <div class="grp">Performance</div>
 <a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
@@ -646,8 +646,8 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
 <a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn't need macro_rules!</a>
 <a href="/Docs/lib-caller-info.html">--emit=lib caller-info channel</a>
-<a href="/Docs/liveview-lite-roadmap.html">LiveView-lite, a roadmap (Phoenix LiveView, on actors, without the framework)</a>
-<a href="/Docs/schema-projection-roadmap.html">std.schema, a projection-first roadmap (Ash, without the framework)</a>
+<a href="/Docs/liveview-lite-roadmap.html">LiveView-lite: a roadmap (Phoenix LiveView, on actors, without the framework)</a>
+<a href="/Docs/schema-projection-roadmap.html">std.schema: a projection-first roadmap (Ash, without the framework)</a>
 <a href="/Docs/locale-independent-float-text.html">Plan: locale-independent float text conversion (LC_NUMERIC correctness)</a>
 <div class="grp">Contributing</div>
 <a href="/Docs/stdlib-module-pattern.html">Aether Stdlib Module Pattern</a>
@@ -721,7 +721,7 @@ main() {
     // geometry._sqrt_approx(25)         // Error: not in exports list
 }</code></pre>
 <p><strong>Rules:</strong></p>
-<ul><li><code>exports (…)</code> accepts any combination of function names, const names, and struct/actor names. The list is the contract.</li><li>A module that declares an <code>exports (…)</code> list exposes <strong>only</strong> the listed names. Anything else is private.</li><li>A module with no <code>exports (…)</code> list keeps the legacy default-public behavior, every top-level name is callable from outside. v1 is additive; v2 will flip this default to private once every stdlib + contrib module has been migrated.</li><li>Private names can still be referenced from inside the module's own functions, they're merged into the program, just blocked at the external call boundary.</li><li>The boundary is every way a name can be reached from outside: the qualified form (<code>geometry.helper()</code>, <code>geometry.CONST</code>) and a selective import (<code>import geometry (helper)</code>) both fail with <code>E0303 'helper' is not exported from module 'geometry'</code>, the selective form at the import line. The same holds for standard-library modules, reached by their last segment (<code>language.name</code> for <code>std.language</code>).</li><li>A module may list a name in its prefixed form, <code>&lt;module&gt;_&lt;name&gt;</code>: std.math exports <code>math_sqrt</code>, and that is what <code>math.sqrt(x)</code> and <code>import std.math (sqrt)</code> reach.</li></ul>
+<ul><li><code>exports (…)</code> accepts any combination of function names, const names, and struct/actor names. The list is the contract.</li><li>A module that declares an <code>exports (…)</code> list exposes <strong>only</strong> the listed names. Anything else is private.</li><li>A module with no <code>exports (…)</code> list keeps the legacy default-public behavior, every top-level name is callable from outside. v1 is additive; v2 will flip this default to private once every stdlib + contrib module has been migrated.</li><li>Private names can still be referenced from inside the module's own functions, they're merged into the program, just blocked at the external call boundary.</li><li>The boundary is every way a name can be reached from outside: the qualified form (<code>geometry.helper()</code>, <code>geometry.CONST</code>) and a selective import (<code>import geometry (helper)</code>) both fail with <code>E0303 'helper' is not exported from module 'geometry'</code>, the selective form at the import line. The same holds for standard-library modules, reached by their last segment (<code>language.name</code> for <code>std.language</code>).</li><li>A module may list a name in its prefixed form, <code>&lt;module&gt;_&lt;name&gt;</code>: std.math exports <code>math_sqrt</code>, and that is what <code>math.sqrt(x)</code> and <code>import std.math (sqrt)</code> reach.</li><li><code>m.x</code> is resolved by the names the module declares, not by building a C name: the module's function, builder or <code>@extern</code> named <code>x</code> first, else the declaration named in the prefixed form <code>m_x</code>, of any kind. An Aether function so named is reached like an extern: std.md5's <code>md5_hex</code> is <code>md5.hex</code> (and still <code>md5.md5_hex</code>), a module's <code>rexxae_create</code> is <code>rexxae.create</code>. A module function whose C name would be one of the module's own externs is merged under a name of its own and <code>m.x</code> reaches it (#2978).</li></ul>
 <h3 id="legacy-export-fn-form-deprecated">Legacy <code>export &lt;fn&gt;</code> form (deprecated)</h3>
 <p>Earlier versions of Aether used a per-function <code>export</code> keyword:</p>
 <pre><code>// DEPRECATED, emits a warning at compile time.
@@ -933,7 +933,7 @@ lib</code></pre>
 name = <span class="str">"selaenium"</span>
 modules = <span class="str">"aether, selenium_core, selenium_core/drivermgr"</span></code></pre>
 <p>Each entry names an <strong>importable module</strong>, and what joins the search path is that module's parent directory, because <code>--lib D</code> means "D contains modules" (<code>D/&lt;name&gt;.ae</code> or <code>D/&lt;name&gt;/module.ae</code>). So <code>selenium_core/drivermgr</code> puts <code>&lt;package&gt;/selenium_core</code> on the path and <code>import drivermgr</code> resolves. Either module form counts: <code>aether/webdriver</code> names a single-file <code>aether/webdriver.ae</code> just as readily as a directory holding <code>module.ae</code>.</p>
-<p>This is why the declaration lives with the publisher rather than the consumer: a package can move its directories in a patch release without any consumer changing a path. A consumer names the dependency and nothing else. A package with no <code>aether.toml</code>, or none with a <code>modules</code> key, exports nothing and says so, the package root is never joined speculatively, since a real package is a whole repository whose root holds docs, scripts and tests as well as modules.</p>
+<p>This is why the declaration lives with the publisher rather than the consumer: a package can move its directories in a patch release without any consumer changing a path. A consumer names the dependency and nothing else. A package with no <code>aether.toml</code>, or none with a <code>modules</code> key, exports nothing and says so: the package root is never joined speculatively, since a real package is a whole repository whose root holds docs, scripts and tests as well as modules.</p>
 <h3 id="exporting-the-package-root-modules--">Exporting the package root: <code>modules = "."</code></h3>
 <p>The parent-of-each-module rule leaves one shape undeclarable: a package whose modules live in a subdirectory and import <strong>each other with a dotted package prefix</strong>. For example, a package laid out as <code>core/*.ae</code> whose modules do <code>import core.metadata</code>, <code>import core.phonenumber</code>:</p>
 <pre><code>phonelib/
@@ -946,15 +946,15 @@ modules = <span class="str">"aether, selenium_core, selenium_core/drivermgr"</sp
 <pre><code>[package]
 name = <span class="str">"phonelib"</span>
 modules = <span class="str">"."</span></code></pre>
-<p>With it, a consumer does <code>import core.phonenumber</code> through a normal <code>ae add</code> dependency, no <code>--lib</code>, no path knowledge, and the package keeps its dotted namespacing. This is a deliberate, publisher-chosen export, so the "root is never joined <strong>speculatively</strong>" principle holds: the root joins only because the author wrote <code>.</code>, never as a guess by the toolchain. Combine it with named entries when a package exports both a rooted dotted package and other modules (<code>modules = ".", widgets</code>).</p>
+<p>With it, a consumer does <code>import core.phonenumber</code> through a normal <code>ae add</code> dependency (no <code>--lib</code>, no path knowledge), and the package keeps its dotted namespacing. This is a deliberate, publisher-chosen export, so the "root is never joined <strong>speculatively</strong>" principle holds: the root joins only because the author wrote <code>.</code>, never as a guess by the toolchain. Combine it with named entries when a package exports both a rooted dotted package and other modules (<code>modules = ".", widgets</code>).</p>
 <p>A dependency that is declared but not installed fails by name:</p>
 <pre><code>Error: dependency 'github.com/aether-lang-dev/selaenium' is not installed. Run:
     ae add github.com/aether-lang-dev/selaenium</code></pre>
 <p>rather than as an unresolved-import error naming a module the user never typed.</p>
 <h4 id="overriding-a-dependency">Overriding a dependency</h4>
-<p>Two forms, both of which <strong>announce themselves</strong>, an override that applied silently would mean a green local build against a working copy that CI does not have:</p>
+<p>Two forms, both of which <strong>announce themselves</strong>: an override that applied silently would mean a green local build against a working copy that CI does not have:</p>
 <pre><code>ae run x.ae --override github.com/aether-lang-dev/selaenium=../selaenium</code></pre>
-<p>per-invocation, leaving no trace in the manifest, right for "just this once" and for CI proving a change against an unpublished branch. And in the manifest, a separate stanza so an override cannot be shipped by accident inside a <code>[dependencies]</code> line:</p>
+<p>per-invocation, leaving no trace in the manifest, right for a one-off and for CI proving a change against an unpublished branch. And in the manifest, a separate stanza so an override cannot be shipped by accident inside a <code>[dependencies]</code> line:</p>
 <pre><code>[patch]
 <span class="str">"github.com/aether-lang-dev/selaenium"</span> = <span class="str">"../selaenium"</span>
 <span class="com"># or Cargo's table form, which means the same thing:</span>
@@ -1008,7 +1008,7 @@ main() {
 <p><strong>Native link dependencies (<code>@link</code>).</strong> A module that wraps a native library declares its own link flags at the top of <code>module.ae</code>:</p>
 <pre><code>@link("-laether_sqlite -lsqlite3 -lm")</code></pre>
 <p>When the module is in a program's resolved import closure, codegen unions every declared flag (first-seen order, deduplicated) into the <code>// aether-link:</code> comment on the first line of the generated C, which downstream C builds read to link without undefined-reference archaeology. Declaring is enough; there is no central registry to edit. Token order within one <code>@link</code> is preserved, which matters for single-pass linkers (veneer archive before the library it references).</p>
-<p><code>ae build</code> reads that comment back and puts the tokens on its own link command (#1549), so a consumer does not restate them in <code>aether.toml</code>. They are placed <em>before</em> <code>link_flags</code>, which therefore still wins. <code>-L</code> search paths remain the consumer's job, those are site-specific in a way a module cannot know, except for <code>&lt;lib_dir&gt;/contrib</code>, which is added automatically so the veneer archives <code>make contrib</code> builds resolve without configuration.</p>
+<p><code>ae build</code> reads that comment back and puts the tokens on its own link command (#1549), so a consumer does not restate them in <code>aether.toml</code>. They are placed <em>before</em> <code>link_flags</code>, which therefore still wins. <code>-L</code> search paths remain the consumer's job (those are site-specific in a way a module cannot know), except for <code>&lt;lib_dir&gt;/contrib</code>, which is added automatically so the veneer archives <code>make contrib</code> builds resolve without configuration.</p>
 <p><strong>A header a module needs in the TU (<code>@c_include</code>, #1986).</strong> A module whose externs resolve to <code>static inline</code> helpers declares the header that carries them: <code>@c_include("api.h")</code> makes codegen emit <code>#include "api.h"</code> before anything it declares itself, deduplicated across the closure, so the calls resolve to the definitions rather than to an out-of-line symbol. Pairs with <code>@c_import</code> on the externs, which suppresses Aether's own prototype.</p>
 <p><strong>C sources a module ships (<code>@source</code>, #2125).</strong> The same mechanism carries a module's own C: <code>@source("lanes.c")</code> at the top of <code>module.ae</code> names a file relative to the module's directory. Orchestration resolves it, reports a missing file at the directive, and records it as a <code>read</code> dependency in the manifest (#1882) so the warm cache key changes with the C; codegen lists every resolved path, deduplicated, one per <code>// aether-source:</code> line after the link header, and <code>ae</code> compiles them into the program after <code>--extra</code> / <code>extra_sources</code>. One path per line because a module directory may contain a space. A directive in the entry file resolves beside it.</p>
 <p><strong>The link line is derived from the AST, which makes it transitive and <code>-D</code>-sensitive.</strong> Both properties matter and neither is obvious:</p>
@@ -1035,7 +1035,7 @@ main() {
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.831 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.832 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

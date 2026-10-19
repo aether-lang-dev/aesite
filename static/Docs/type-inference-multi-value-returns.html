@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.831</span>
+      <span class="vtag">v0.832</span>
     </nav>
   </div>
 </header>
@@ -598,7 +598,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/architecture.html">Aether Architecture</a>
 <a href="/Docs/actor-concurrency.html">Aether Runtime Guide</a>
 <a href="/Docs/scheduler-quick-reference.html">Aether Scheduler - Quick Reference</a>
-<a href="/Docs/memory-management.html">Aether Memory Management</a>
+<a href="/Docs/memory-management.html">Memory Management</a>
 <a href="/Docs/runtime-optimizations.html">Runtime Optimizations</a>
 <a href="/Docs/numa-support.html">NUMA Support in Aether</a>
 <a href="/Docs/message-tracing.html">Message tracing</a>
@@ -629,7 +629,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/cross-ios.html">Cross-compiling for iOS (arm64)</a>
 <div class="grp">Testing</div>
 <a href="/Docs/testing.html">Testing with std.spec and ae test</a>
-<a href="/Docs/mutation-testing.html">Mutation testing, std.mutation</a>
+<a href="/Docs/mutation-testing.html">Mutation testing: std.mutation</a>
 <a href="/Docs/differential-testing.html">Differential testing across lowering paths</a>
 <div class="grp">Performance</div>
 <a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
@@ -646,8 +646,8 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
 <a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn't need macro_rules!</a>
 <a href="/Docs/lib-caller-info.html">--emit=lib caller-info channel</a>
-<a href="/Docs/liveview-lite-roadmap.html">LiveView-lite, a roadmap (Phoenix LiveView, on actors, without the framework)</a>
-<a href="/Docs/schema-projection-roadmap.html">std.schema, a projection-first roadmap (Ash, without the framework)</a>
+<a href="/Docs/liveview-lite-roadmap.html">LiveView-lite: a roadmap (Phoenix LiveView, on actors, without the framework)</a>
+<a href="/Docs/schema-projection-roadmap.html">std.schema: a projection-first roadmap (Ash, without the framework)</a>
 <a href="/Docs/locale-independent-float-text.html">Plan: locale-independent float text conversion (LC_NUMERIC correctness)</a>
 <div class="grp">Contributing</div>
 <a href="/Docs/stdlib-module-pattern.html">Aether Stdlib Module Pattern</a>
@@ -720,7 +720,7 @@ hash_file(p: string) {
 <p>The five bugs have a shared shape: the inference pipeline runs in phases (constraint collection, propagation, return-type inference, constraint solving) and converges by iteration. Any phase that writes an UNKNOWN slot or a VOID type must be re-runnable when more information becomes available; any phase that <em>needs</em> type info must look it up through every avenue available (AST node_type, symbol table, sibling-aware <code>resolve_local_var_type</code>, function symbol's declared type) before defaulting to UNKNOWN.</p>
 <p>When in doubt, the litmus test for whether the inference pipeline is self-consistent is to compile the body of a function whose return mixes a destructured local with a literal, inside a nested if-body. If codegen prints <code>unresolved type in codegen, defaulting to int</code>, one of the five pieces above is misbehaving.</p>
 <h2 id="working-tests">Working tests</h2>
-<div class="tw"><table><thead><tr><th>Test</th><th>What it proves</th></tr></thead><tbody><tr><td><code>tests/integration/tuple_destructure_cross_module/</code></td><td>Bug 1: two modules with same-named locals don't collide.</td></tr><tr><td><code>tests/integration/multi_return_destructure_chain/</code></td><td>Bugs 2–4 in combination: empty-string literal in tuple slot, nested return in if-body, destructured local across the boundary.</td></tr><tr><td><code>tests/integration/tuple_return_params/</code></td><td>Bug 5: parameters of three types in later tuple slots, directly and through an import, plus a <code>std.cryptography.des3</code> program, all with no int fallback.</td></tr></tbody></table></div>
+<div class="tw"><table><thead><tr><th>Test</th><th>What it proves</th></tr></thead><tbody><tr><td><code>tests/integration/tuple_destructure_cross_module/</code></td><td>Bug 1: two modules with same-named locals don't collide.</td></tr><tr><td><code>tests/integration/multi_return_destructure_chain/</code></td><td>Bugs 2-4 in combination: empty-string literal in tuple slot, nested return in if-body, destructured local across the boundary.</td></tr><tr><td><code>tests/integration/tuple_return_params/</code></td><td>Bug 5: parameters of three types in later tuple slots, directly and through an import, plus a <code>std.cryptography.des3</code> program, all with no int fallback.</td></tr></tbody></table></div>
 <p>Run individually:</p>
 <pre><code>tests/integration/multi_return_destructure_chain/test_multi_return_destructure_chain.sh</code></pre>
 <p>Or via <code>make test-ae</code> for the full suite.</p>
@@ -738,7 +738,7 @@ hash_file(p: string) {
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.831 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.832 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.831</span>
+      <span class="vtag">v0.832</span>
     </nav>
   </div>
 </header>
@@ -598,7 +598,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/architecture.html">Aether Architecture</a>
 <a href="/Docs/actor-concurrency.html">Aether Runtime Guide</a>
 <a href="/Docs/scheduler-quick-reference.html">Aether Scheduler - Quick Reference</a>
-<a href="/Docs/memory-management.html">Aether Memory Management</a>
+<a href="/Docs/memory-management.html">Memory Management</a>
 <a href="/Docs/runtime-optimizations.html">Runtime Optimizations</a>
 <a href="/Docs/numa-support.html">NUMA Support in Aether</a>
 <a href="/Docs/message-tracing.html">Message tracing</a>
@@ -629,7 +629,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/cross-ios.html" class="on">Cross-compiling for iOS (arm64)</a>
 <div class="grp">Testing</div>
 <a href="/Docs/testing.html">Testing with std.spec and ae test</a>
-<a href="/Docs/mutation-testing.html">Mutation testing, std.mutation</a>
+<a href="/Docs/mutation-testing.html">Mutation testing: std.mutation</a>
 <a href="/Docs/differential-testing.html">Differential testing across lowering paths</a>
 <div class="grp">Performance</div>
 <a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
@@ -646,8 +646,8 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
 <a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn't need macro_rules!</a>
 <a href="/Docs/lib-caller-info.html">--emit=lib caller-info channel</a>
-<a href="/Docs/liveview-lite-roadmap.html">LiveView-lite, a roadmap (Phoenix LiveView, on actors, without the framework)</a>
-<a href="/Docs/schema-projection-roadmap.html">std.schema, a projection-first roadmap (Ash, without the framework)</a>
+<a href="/Docs/liveview-lite-roadmap.html">LiveView-lite: a roadmap (Phoenix LiveView, on actors, without the framework)</a>
+<a href="/Docs/schema-projection-roadmap.html">std.schema: a projection-first roadmap (Ash, without the framework)</a>
 <a href="/Docs/locale-independent-float-text.html">Plan: locale-independent float text conversion (LC_NUMERIC correctness)</a>
 <div class="grp">Contributing</div>
 <a href="/Docs/stdlib-module-pattern.html">Aether Stdlib Module Pattern</a>
@@ -691,19 +691,19 @@ ae build --target=aarch64-ios --emit=obj mylib.ae -o mylib.o
 ae build --target=aarch64-ios --emit=csrc mylib.ae -o mylib</code></pre>
 <p><code>--emit=staticlib</code> is the primary case on iOS. Apple does not allow third-party dynamic libraries inside an App Store binary, so a dylib is a development convenience rather than a shipping artifact; <code>--emit=staticlib</code> produces a single <code>.a</code> containing the program objects together with the Aether runtime and stdlib compiled for that triple.</p>
 <p><code>--emit=lib</code> is also <strong>supported on iOS</strong>, whereas the zig cross targets still reject it. The dylib is linked with <code>-install_name @rpath/&lt;leaf&gt;</code>, which is what an Xcode <em>Embed Frameworks</em> phase expects; without it the load command would record the build-machine path and the library would fail to load from inside the bundle.</p>
-<p>For a step-by-step walkthrough of wiring one of these into an actual app, bridging header, calling from SwiftUI, bundling, and the mistakes that cost the most time, see <strong><a href="/Docs/swiftui-ios-app.html">swiftui-ios-app.md</a></strong>.</p>
-<p>The exported symbols are the ordinary <code>aether_&lt;name&gt;()</code> C ABI (see <a href="/Docs/emit-lib.html">emit-lib.md</a>), so Swift and Objective-C call them through a bridging header with no glue. Note that <code>--emit=lib</code> writes only the library, the <strong>header comes from <code>--emit=csrc</code></strong> (same catalog codegen, so the two cannot drift) or from <code>aetherc --emit-header</code>:</p>
+<p>For a step-by-step walkthrough of wiring one of these into an actual app (bridging header, calling from SwiftUI, bundling, and the mistakes that cost the most time) see <strong><a href="/Docs/swiftui-ios-app.html">swiftui-ios-app.md</a></strong>.</p>
+<p>The exported symbols are the ordinary <code>aether_&lt;name&gt;()</code> C ABI (see <a href="/Docs/emit-lib.html">emit-lib.md</a>), so Swift and Objective-C call them through a bridging header with no glue. Note that <code>--emit=lib</code> writes only the library: the <strong>header comes from <code>--emit=csrc</code></strong> (same catalog codegen, so the two cannot drift) or from <code>aetherc --emit-header</code>:</p>
 <pre><code>ae build --target=aarch64-ios --emit=csrc mylib.ae -o mylib   <span class="com"># -&gt; mylib.h</span></code></pre>
 <pre><code>// bridging header: #include "mylib.h"
 let sum = aether_add(2, 3)</code></pre>
 <p>A <code>-&gt; string</code> export returns a string Swift owns, as an opaque handle: read it with <code>aether_string_data()</code> / <code>aether_string_length()</code>, copy it, and give it back through the library's <code>aether_&lt;lib&gt;_string_release()</code>, which the generated header declares. The example is in <a href="/Docs/swiftui-ios-app.html#types-across-the-boundary">swiftui-ios-app.md</a>, and the rule in <a href="/Docs/emit-lib.html#strings-an-export-returns">emit-lib.md</a>.</p>
 <h2 id="deployment-target">Deployment target</h2>
-<p>The deployment target is part of the clang triple, so it is fixed at build time. The default is <strong>iOS 15.0</strong> for the device and simulator targets. Catalyst has its own floor, and it differs by architecture: <strong>13.1</strong> on x86_64 (the <code>macabi</code> ABI does not exist before it) and <strong>14.0</strong> on arm64, since arm64 Catalyst did not exist until Apple Silicon, clang silently raises anything lower to 14.0, so asking for less produces a triple that does not describe its own output. Override any of them with <code>AETHER_IOS_MIN</code>:</p>
+<p>The deployment target is part of the clang triple, so it is fixed at build time. The default is <strong>iOS 15.0</strong> for the device and simulator targets. Catalyst has its own floor, and it differs by architecture: <strong>13.1</strong> on x86_64 (the <code>macabi</code> ABI does not exist before it) and <strong>14.0</strong> on arm64, since arm64 Catalyst did not exist until Apple Silicon: clang silently raises anything lower to 14.0, so asking for less produces a triple that does not describe its own output. Override any of them with <code>AETHER_IOS_MIN</code>:</p>
 <pre><code>AETHER_IOS_MIN=<span class="num">17.0</span> ae build --target=aarch64-ios --emit=lib mylib.ae -o libmylib.dylib</code></pre>
 <p>It lands in <code>LC_BUILD_VERSION</code>, which you can check with <code>vtool -show-build &lt;file&gt;</code>.</p>
 <h2 id="what-does-not-work-on-ios">What does not work on iOS</h2>
 <p>iOS is a sandboxed platform, and some of the standard library assumes a general-purpose OS underneath. None of this fails the build; it is behaviour to plan around.</p>
-<div class="tw"><table><thead><tr><th>Surface</th><th>Status on iOS</th></tr></thead><tbody><tr><td><code>os.system</code> (shell-out)</td><td>Always returns <code>-1</code>. iOS marks <code>system(3)</code> unavailable, so there is no shell to exec into. See <code>AETHER_HAS_SHELL</code>.</td></tr><tr><td><code>os.run</code> / <code>os.run_capture</code></td><td>Compile and link, but iOS forbids spawning child processes in an app sandbox.</td></tr><tr><td><code>std.dl</code></td><td><code>dlopen</code> is restricted to libraries already inside the app bundle.</td></tr><tr><td><code>std.audio</code></td><td>Reports unavailable. miniaudio's iOS backend is AVAudioSession (Objective-C), which is not valid C, so the null backend is selected via <code>-DMA_NO_COREAUDIO</code>, the same treatment the macOS cross target gets.</td></tr><tr><td><code>libaether_sandbox.so</code></td><td>Not available. It is an <code>LD_PRELOAD</code> mechanism, which iOS has no equivalent of. Use <code>--emit=lib</code> capability gating and <code>hide</code> / <code>seal except</code> instead, both of which are compile-time and work everywhere.</td></tr><tr><td><code>std.fs</code> paths</td><td>Confined to the app's container by the OS sandbox.</td></tr><tr><td>OpenSSL / zlib / nghttp2</td><td>Not linked, so HTTPS/TLS, hashing, base64 and compression report errors at runtime, the same warn-and-degrade as every other cross target without a <code>CROSSBUILD_SYSROOT</code>. <code>std.regex</code> is the exception and always works (vendored PCRE2).</td></tr></tbody></table></div>
+<div class="tw"><table><thead><tr><th>Surface</th><th>Status on iOS</th></tr></thead><tbody><tr><td><code>os.system</code> (shell-out)</td><td>Always returns <code>-1</code>. iOS marks <code>system(3)</code> unavailable, so there is no shell to exec into. See <code>AETHER_HAS_SHELL</code>.</td></tr><tr><td><code>os.run</code> / <code>os.run_capture</code></td><td>Compile and link, but iOS forbids spawning child processes in an app sandbox.</td></tr><tr><td><code>std.dl</code></td><td><code>dlopen</code> is restricted to libraries already inside the app bundle.</td></tr><tr><td><code>std.audio</code></td><td>Reports unavailable. miniaudio's iOS backend is AVAudioSession (Objective-C), which is not valid C, so the null backend is selected via <code>-DMA_NO_COREAUDIO</code>: the same treatment the macOS cross target gets.</td></tr><tr><td><code>libaether_sandbox.so</code></td><td>Not available. It is an <code>LD_PRELOAD</code> mechanism, which iOS has no equivalent of. Use <code>--emit=lib</code> capability gating and <code>hide</code> / <code>seal except</code> instead, both of which are compile-time and work everywhere.</td></tr><tr><td><code>std.fs</code> paths</td><td>Confined to the app's container by the OS sandbox.</td></tr><tr><td>OpenSSL / zlib / nghttp2</td><td>Not linked, so HTTPS/TLS, hashing, base64 and compression report errors at runtime: the same warn-and-degrade as every other cross target without a <code>CROSSBUILD_SYSROOT</code>. <code>std.regex</code> is the exception and always works (vendored PCRE2).</td></tr></tbody></table></div>
 <p><code>AETHER_HAS_SHELL</code> is a Tier-0 platform capability alongside <code>AETHER_HAS_FILESYSTEM</code> and friends (<code>runtime/config/aether_optimization_config.h</code>). It is 0 on iOS/tvOS/watchOS and can be forced off anywhere with <code>-DAETHER_NO_SHELL</code>.</p>
 <h2 id="building-a-fat--xcframework-artifact">Building a fat / XCFramework artifact</h2>
 <p><code>ae</code> emits one slice per invocation. Combine them with Apple's own tools:</p>
@@ -712,7 +712,7 @@ ae build --target=aarch64-ios-simulator --emit=staticlib mylib.ae -o sim/libmyli
 ae build --target=aarch64-ios-macabi    --emit=staticlib mylib.ae -o catalyst/libmylib.a
 
 <span class="com"># Device and simulator slices cannot go in one fat binary (same arch, different</span>
-<span class="com"># platform), that is exactly what an XCFramework is for.</span>
+<span class="com"># platform); that is exactly what an XCFramework is for.</span>
 xcodebuild -create-xcframework \
     -library device/libmylib.a \
     -library sim/libmylib.a \
@@ -733,7 +733,7 @@ xcodebuild -create-xcframework \
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.831 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.832 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.831</span>
+      <span class="vtag">v0.832</span>
     </nav>
   </div>
 </header>
@@ -598,7 +598,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/architecture.html">Aether Architecture</a>
 <a href="/Docs/actor-concurrency.html" class="on">Aether Runtime Guide</a>
 <a href="/Docs/scheduler-quick-reference.html">Aether Scheduler - Quick Reference</a>
-<a href="/Docs/memory-management.html">Aether Memory Management</a>
+<a href="/Docs/memory-management.html">Memory Management</a>
 <a href="/Docs/runtime-optimizations.html">Runtime Optimizations</a>
 <a href="/Docs/numa-support.html">NUMA Support in Aether</a>
 <a href="/Docs/message-tracing.html">Message tracing</a>
@@ -629,7 +629,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/cross-ios.html">Cross-compiling for iOS (arm64)</a>
 <div class="grp">Testing</div>
 <a href="/Docs/testing.html">Testing with std.spec and ae test</a>
-<a href="/Docs/mutation-testing.html">Mutation testing, std.mutation</a>
+<a href="/Docs/mutation-testing.html">Mutation testing: std.mutation</a>
 <a href="/Docs/differential-testing.html">Differential testing across lowering paths</a>
 <div class="grp">Performance</div>
 <a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
@@ -646,8 +646,8 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
 <a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn't need macro_rules!</a>
 <a href="/Docs/lib-caller-info.html">--emit=lib caller-info channel</a>
-<a href="/Docs/liveview-lite-roadmap.html">LiveView-lite, a roadmap (Phoenix LiveView, on actors, without the framework)</a>
-<a href="/Docs/schema-projection-roadmap.html">std.schema, a projection-first roadmap (Ash, without the framework)</a>
+<a href="/Docs/liveview-lite-roadmap.html">LiveView-lite: a roadmap (Phoenix LiveView, on actors, without the framework)</a>
+<a href="/Docs/schema-projection-roadmap.html">std.schema: a projection-first roadmap (Ash, without the framework)</a>
 <a href="/Docs/locale-independent-float-text.html">Plan: locale-independent float text conversion (LC_NUMERIC correctness)</a>
 <div class="grp">Contributing</div>
 <a href="/Docs/stdlib-module-pattern.html">Aether Stdlib Module Pattern</a>
@@ -782,7 +782,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 }</code></pre>
 <p>Identifiers in the timeout <strong>expression</strong> resolve against actor state fields only. <code>self</code> is <strong>not</strong> in scope there: the timeout expression is generated at spawn time (in <code>spawn_&lt;Actor&gt;</code>, before <code>self</code> exists), so a state-field reference such as <code>after interval_ms</code> resolves against the freshly-allocated actor handle. The timeout <strong>body</strong> (above) runs later inside the step function, where <code>self</code> <em>is</em> in scope, <code>self ! Tick {}</code> is fine.</p>
 <h2 id="panic-and-stack-traces">Panic and Stack Traces</h2>
-<p><code>panic("reason")</code> unwinds via <code>aether_panic</code>. If a <code>try { ... } catch e { ... }</code> block (or the scheduler's per-step barrier for actor handlers) is on the stack, the panic is caught and <code>e</code> binds to the reason. A reason built at run time (<code>panic("bad value ${n}")</code>, a concatenation, a string local) belongs to the catcher: <code>e</code> is freed when the handler ends unless the handler keeps it (<code>kept = e</code>), returns it, stores it or panics with it again, so catching in a loop does not accumulate messages. An actor killed by such a panic releases the reason after its death hook runs. If no frame catches, the runtime prints the reason to stderr along with a filtered stack trace, then aborts:</p>
+<p><code>panic("reason")</code> unwinds via <code>aether_panic</code>. If a <code>try { ... } catch e { ... }</code> block (or the scheduler's per-step barrier for actor handlers) is on the stack, the panic is caught and <code>e</code> binds to the reason. A reason built at run time (<code>panic("bad value ${n}")</code>, a concatenation, a string local) belongs to the catcher: the handler's scope releases it when the handler ends, and whatever keeps it (<code>kept = e</code>, a return, a store, a second <code>panic</code>) takes a reference of its own, so catching in a loop does not accumulate messages. An actor killed by such a panic releases the reason after its death hook runs. If no frame catches, the runtime prints the reason to stderr along with a filtered stack trace, then aborts:</p>
 <pre><code>aether: panic outside any try/catch or actor: divide by zero
 
 Stack trace (most recent call first):
@@ -794,9 +794,9 @@ Stack trace (most recent call first):
 <p>To suppress the trace block entirely (useful for tests that diff stderr line-for-line), set <code>AETHER_STACK_TRACE=0</code> in the environment. The reason line still prints.</p>
 <p>Available on glibc-Linux and macOS today (uses <code>&lt;execinfo.h&gt;</code> <code>backtrace()</code> from libc proper, no extra link dependency). On musl, Windows, Emscripten, and freestanding targets the trace block is skipped, <code>panic</code>/<code>try</code>/<code>catch</code> themselves still work.</p>
 <h3 id="heap-cleanup-on-unwind">Heap cleanup on unwind</h3>
-<p>A caught panic does not leak the allocations made since the <code>try</code>. While any panic frame is live (a <code>try</code>/<code>catch</code> block, or the scheduler's per-step barrier), generated code journals every heap allocation whose deferred scope-exit free is armed; <code>aether_panic()</code> drains the innermost frame's still-live entries before the jump, freeing exactly the deferred frees the <code>longjmp</code> would have skipped. The journal mirrors the deferred frees one-for-one:</p>
-<ul><li>A value freed normally (explicit <code>string.release</code>, reassignment, scope exit) leaves the journal at the same moment, so the drain never double-frees.</li><li>A value that escaped the guarded block (returned, stored in a map, list, actor state, or message) is never journaled or is forgotten at the handoff, so the drain never frees something another owner holds.</li><li>Nested <code>try</code> drains only the inner frame's entries; the outer frame's allocations survive to their normal frees.</li><li>A value stored inside a <code>try</code> into a local declared outside it is journaled for the frame the local is declared in (#2690): its free runs where the local's scope ends, which a panic the <code>try</code> catches does not skip, so the drain leaves it to the local.</li></ul>
-<p>For actor handlers this means a panicking actor's step-scoped allocations are reclaimed before the actor is marked dead. The journal is scoped to guarded regions: outside any frame the hooks are a TLS-load-and-return, and the no-panic hot path shows no measurable cost on the ping-pong messaging benchmark. Regression coverage: <code>tests/regression/test_panic_unwind_cleanup.ae</code> (the full matrix), <code>tests/integration/panic_unwind_no_leak/</code> (50000 caught panics, RSS flat), <code>tests/integration/panic_actor_step_drain/</code> (scheduler barrier).</p>
+<p>A caught panic releases what the scopes it leaves hold, as their exits would have. While a panic frame is live (a <code>try</code>/<code>catch</code> block, or the scheduler's per-step barrier for an actor handler), every place that owns a value (a string local or temporary, a struct local, an argument the call must release) is recorded in an unwind journal by its address where it is declared or first set, and so is every plain <code>defer</code> of those scopes. <code>aether_panic()</code> drains the innermost frame's entries before it jumps, newest first: each place releases what it holds at that moment and is left empty, and each <code>defer</code> runs. <code>defer try</code> and <code>defer catch</code> do not run on a panic.</p>
+<ul><li>Stores, moves and releases never touch the journal: the place is recorded once, and the drain releases whatever it holds when the panic comes, so a value moved elsewhere (returned, stored in a container, actor state or a message) is released by its new holder, never by the drain.</li><li>A scope that ends normally forgets its places and runs its <code>defer</code>s in place.</li><li>A nested <code>try</code> drains only the inner frame's entries; the outer frame's places are released at their normal exits.</li><li>A place declared outside a <code>try</code> and stored inside it is journaled for the frame it is declared in (#2690), so a panic the <code>try</code> catches leaves it to the scope that declared it.</li></ul>
+<p>For actor handlers this means a panicking actor's step-scoped values are released before the actor is marked dead. Outside any frame the journal calls are a thread-local load and a return, and the no-panic hot path shows no measurable cost on the ping-pong messaging benchmark. Regression coverage: <code>tests/regression/test_panic_unwind_cleanup.ae</code> (the full matrix), <code>tests/integration/panic_unwind_no_leak/</code> (50000 caught panics, RSS flat), <code>tests/integration/panic_actor_step_drain/</code> (scheduler barrier).</p>
 <p>Main-thread inline mode (single-actor programs) has no step barrier by design, so a handler panic there still reaches the no-frame fallback (reason + trace + abort), unchanged.</p>
 <h2 id="cooperative-preemption">Cooperative Preemption</h2>
 <p>By default, message handlers run to completion. A tight compute loop inside a handler will block that core's scheduler thread. For programs where this is a concern, cooperative preemption can be enabled:</p>
@@ -837,7 +837,7 @@ Stack trace (most recent call first):
     scheduler_shutdown();  <span class="com">// Waits for quiescence, stops threads, joins them</span>
 }</code></pre>
 <p><strong>Scheduler lifecycle functions:</strong></p>
-<ul><li><code>scheduler_wait()</code> -- waits for quiescence (all pending messages processed). Non-destructive: scheduler threads keep running. Safe to call multiple times.</li><li><code>scheduler_shutdown()</code> -- waits for quiescence, then stops scheduler threads and joins them. Called once at program exit.</li><li><strong>Senders the scheduler does not own</strong> (a <code>std.worker</code> job, an http pool worker, a C host's thread) must be stopped before <code>scheduler_shutdown()</code>: its quiescence wait does not end while one keeps sending. A send from such a thread while the scheduler is not running (shut down, starting again, cleaned up) is refused before it touches a core: the message is dropped, its payload released, the drop counted by <code>scheduler_stopped_sends()</code> and reported once on stderr (#2912).</li></ul>
+<ul><li><code>scheduler_wait()</code>: waits for quiescence (all pending messages processed). Non-destructive: scheduler threads keep running. Safe to call multiple times.</li><li><code>scheduler_shutdown()</code>: waits for quiescence, then stops scheduler threads and joins them. Called once at program exit.</li><li><strong>Senders the scheduler does not own</strong> (a <code>std.worker</code> job, an http pool worker, a C host's thread) must be stopped before <code>scheduler_shutdown()</code>: its quiescence wait does not end while one keeps sending. A send from such a thread while the scheduler is not running (shut down, starting again, cleaned up) is refused before it touches a core: the message is dropped, its payload released, the drop counted by <code>scheduler_stopped_sends()</code> and reported once on stderr (#2912).</li></ul>
 <h3 id="core-assignment-and-migration">Core Assignment and Migration</h3>
 <p>Actors are placed on the caller's core at spawn time. Actors spawned from the main thread default to core 0, keeping top-level actor groups co-located. Actors spawned from within actor handlers inherit the parent's core.</p>
 <p>During operation, cross-core message senders set a <code>migrate_to</code> hint on the target actor, requesting migration to the sender's core. The owning scheduler thread checks these hints after processing messages in the coalesce buffer and migrates the actor accordingly. This co-locates communicating actors regardless of their initial placement. Migration is non-blocking: if the destination lock cannot be acquired, migration is deferred to the next iteration.</p>
@@ -851,7 +851,7 @@ Stack trace (most recent call first):
 <ul><li><strong>Actor memory</strong>: one NUMA-aware, 64-byte-aligned allocation per actor at spawn time (<code>aether_numa_alloc_aligned</code>), or the kept block of a released actor of the same size. <code>scheduler_release_actor</code> takes the actor out of its core's table and retires it; it is reclaimed once every core's scheduler thread and every per-actor thread has passed the top of its loop since, and no other thread is walking the tables. The scheduler threads, per-actor threads and <code>aether_scheduler_poll</code> read the tables without a lock, so the reclaim has to wait for them; a core blocked in a long step delays it. A reclaimed block is not returned to the allocator while the scheduler runs: it stays marked released, so a send to it is dropped rather than reading freed memory, and the next spawn of that size takes it. The blocks go back with the scheduler's tables. The mailbox is an inline struct member, not a separate allocation.</li><li><strong>Message payloads</strong>: thread-local pools with automatic return</li><li><strong>Arenas</strong>: a general-purpose arena allocator provides bulk deallocation without per-object tracking for opt-in uses (<code>std.arena</code>, JSON parsing). The actor path does not use arenas.</li></ul>
 <p>See <a href="/Docs/memory-management.html">Memory Management</a> for details on arenas, pools, and allocation strategies.</p>
 <h2 id="patterns">Patterns</h2>
-<ul><li><strong>Per-process configuration</strong>, Aether rejects mutable assignment to module-level identifiers, so the C <code>static char *g_config</code> shape doesn't transcribe. The canonical replacement is the actor-singleton pattern: spawn one config actor at startup, drive writes via <code>Set*</code> messages, drive reads via <code>Get*</code> messages that carry an <code>actor_ref</code> reply target. See <a href="/Docs/per-process-config.html">per-process-config.md</a> for the worked example, the trade-offs (when message round-trip is acceptable vs. when to plumb the value as a parameter or worker-actor cache), and a port of a real C global-state shim.</li></ul>
+<ul><li><strong>Per-process configuration</strong>: a module-level <code>var</code> holds a scalar set once at startup, but it is module-private and not atomic. State shared across actors uses the actor-singleton pattern: spawn one config actor at startup, drive writes via <code>Set*</code> messages, drive reads via <code>Get*</code> messages that carry an <code>actor_ref</code> reply target. See <a href="/Docs/per-process-config.html">per-process-config.md</a> for the worked example, the trade-offs (when message round-trip is acceptable vs. when to plumb the value as a parameter or worker-actor cache), and a port of a real C global-state shim.</li></ul>
 <nav class="doc-prevnext" aria-label="Previous and next page"><a class="pn-prev" href="/Docs/architecture.html"><span class="pn-k">Previous</span><span class="pn-t">Aether Architecture</span></a><a class="pn-next" href="/Docs/scheduler-quick-reference.html"><span class="pn-k">Next</span><span class="pn-t">Aether Scheduler - Quick Reference</span></a></nav>
       </article>
     </main>
@@ -864,7 +864,7 @@ Stack trace (most recent call first):
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.831 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.832 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

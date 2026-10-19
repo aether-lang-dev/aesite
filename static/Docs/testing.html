@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.831</span>
+      <span class="vtag">v0.832</span>
     </nav>
   </div>
 </header>
@@ -598,7 +598,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/architecture.html">Aether Architecture</a>
 <a href="/Docs/actor-concurrency.html">Aether Runtime Guide</a>
 <a href="/Docs/scheduler-quick-reference.html">Aether Scheduler - Quick Reference</a>
-<a href="/Docs/memory-management.html">Aether Memory Management</a>
+<a href="/Docs/memory-management.html">Memory Management</a>
 <a href="/Docs/runtime-optimizations.html">Runtime Optimizations</a>
 <a href="/Docs/numa-support.html">NUMA Support in Aether</a>
 <a href="/Docs/message-tracing.html">Message tracing</a>
@@ -629,7 +629,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/cross-ios.html">Cross-compiling for iOS (arm64)</a>
 <div class="grp">Testing</div>
 <a href="/Docs/testing.html" class="on">Testing with std.spec and ae test</a>
-<a href="/Docs/mutation-testing.html">Mutation testing, std.mutation</a>
+<a href="/Docs/mutation-testing.html">Mutation testing: std.mutation</a>
 <a href="/Docs/differential-testing.html">Differential testing across lowering paths</a>
 <div class="grp">Performance</div>
 <a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
@@ -646,8 +646,8 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
 <a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn't need macro_rules!</a>
 <a href="/Docs/lib-caller-info.html">--emit=lib caller-info channel</a>
-<a href="/Docs/liveview-lite-roadmap.html">LiveView-lite, a roadmap (Phoenix LiveView, on actors, without the framework)</a>
-<a href="/Docs/schema-projection-roadmap.html">std.schema, a projection-first roadmap (Ash, without the framework)</a>
+<a href="/Docs/liveview-lite-roadmap.html">LiveView-lite: a roadmap (Phoenix LiveView, on actors, without the framework)</a>
+<a href="/Docs/schema-projection-roadmap.html">std.schema: a projection-first roadmap (Ash, without the framework)</a>
 <a href="/Docs/locale-independent-float-text.html">Plan: locale-independent float text conversion (LC_NUMERIC correctness)</a>
 <div class="grp">Contributing</div>
 <a href="/Docs/stdlib-module-pattern.html">Aether Stdlib Module Pattern</a>
@@ -668,22 +668,23 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <p>Aether ships a BDD-style test framework in the standard library (<code>std.spec</code>) and a discovery runner in the toolchain (<code>ae test</code>). Together they cover the common shape: describe a suite, write <code>it</code> cases, assert with a flat or fluent API, and run every <code>test_*.ae</code> / <code>*_test.ae</code> file with one command.</p>
 <p><code>std.spec</code> is the pure, dependency-light core of the standalone <a href="https://github.com/aether-lang-dev/aeocha">aeocha</a> framework, folded into the stdlib. The process- and HTTP-shaped integration matchers and the mutation-testing facility remain in aeocha; <code>std.spec</code> is <code>describe</code>/<code>it</code>/hooks, the assertion families, and structured reporting.</p>
 <h2 id="a-first-test">A first test</h2>
-<p><code>std.spec</code> is a normal stdlib module, no install step, no <code>--lib</code>:</p>
-<pre><code>import std.spec
+<p><code>std.spec</code> is a normal stdlib module, with no install step and no <code>--lib</code>:</p>
+<pre><code><span class="kw">import</span> std.spec
+<span class="kw">import</span> std.math
 
 main() {
     fw = spec.init()
 
-    spec.describe(fw, "calculator") {
-        spec.it("adds two numbers") callback {
-            spec.assert_eq(2 + 3, 5, "2 + 3")
+    spec.describe(fw, <span class="str">"calculator"</span>) {
+        spec.it(<span class="str">"adds two numbers"</span>) <span class="kw">callback</span> {
+            spec.assert_eq(<span class="num">2</span> + <span class="num">3</span>, <span class="num">5</span>, <span class="str">"2 + 3"</span>)
         }
-        spec.it("prefers the fluent style") callback {
-            spec.expect_int(abs(-7)).to_equal(7)
+        spec.it(<span class="str">"prefers the fluent style"</span>) <span class="kw">callback</span> {
+            spec.expect_int(math.abs_int(-<span class="num">7</span>)).to_equal(<span class="num">7</span>)
         }
     }
 
-    return spec.run_summary(fw)
+    <span class="kw">return</span> spec.run_summary(fw)
 }</code></pre>
 <p>Run it directly:</p>
 <pre><code>ae run calc_test.ae</code></pre>
@@ -699,13 +700,13 @@ ae test --list       <span class="com"># print what would run, run nothing</span
 <h2 id="suites-context-and-hooks">Suites, context, and hooks</h2>
 <p><code>init()</code> returns a framework context and makes it the process's <em>ambient</em> framework. The top-level <code>describe</code> and <code>run_summary</code> take that <code>fw</code>; everything nested inside a suite omits it, because Aether injects the suite context (<code>_ctx</code>) into the trailing block.</p>
 <pre><code>spec.describe(fw, "outer") {
-    spec.describe("inner") {           // no fw, injected
+    spec.describe("inner") {           // no fw: it is injected
         spec.before_each() callback { reset() }
         spec.after_each() callback { close_resources() }
         spec.it("does something") callback { /* ... */ }
     }
 }</code></pre>
-<p><code>before_each</code> runs outermost-to-innermost, <code>after_each</code> innermost-to-outermost, and both are inherited by descendant suites. One framework is supported per process, a second <code>init()</code> rebinds the ambient context.</p>
+<p><code>before_each</code> runs outermost-to-innermost, <code>after_each</code> innermost-to-outermost, and both are inherited by descendant suites. One framework is supported per process: a second <code>init()</code> rebinds the ambient context.</p>
 <p>Because a passing run <em>returns</em> (rather than exiting), a test that starts a long-running actor or server should stop it or end <code>main()</code> with an explicit <code>exit(0)</code>.</p>
 <h2 id="assertions">Assertions</h2>
 <p>Failures are <strong>soft</strong>: a failed assertion records the failure, prints it, and returns, so several checks in one <code>it</code> all report. Any recorded failure makes that <code>it</code> red.</p>
@@ -721,9 +722,9 @@ spec.assert_str_eq_diff(got, want, "payload")  // caret under first diff
 spec.assert_contains(body, "world", "greeting")
 spec.assert_null(ptr, "was freed")
 spec.assert_not_null(user, "was loaded")</code></pre>
-<p><code>assert_eq</code> takes <code>int</code>. Passing a value wider than 32 bits, a <code>mem.get_long</code>, a u64 accessor, an IEEE 754 bit pattern, narrows it at the call boundary, and the consequence is worse than a wrong comparison: it has aborted the process outright on Windows while passing on Linux, where both truncated halves happened to agree. Reach for <code>assert_eq_long</code> whenever the value can exceed 32 bits.</p>
+<p><code>assert_eq</code> takes <code>int</code>. Passing a value wider than 32 bits (a <code>mem.get_long</code>, a u64 accessor, an IEEE 754 bit pattern) narrows it at the call boundary, and the consequence is worse than a wrong comparison: it has aborted the process outright on Windows while passing on Linux, where both truncated halves happened to agree. Reach for <code>assert_eq_long</code> whenever the value can exceed 32 bits.</p>
 <h3 id="asserting-on-the-failure-path">Asserting on the failure path</h3>
-<p><code>std</code> returns <code>(value, err)</code> throughout, <code>err</code> is <code>""</code> on success and a message on failure. Three matchers state that outcome directly:</p>
+<p><code>std</code> returns <code>(value, err)</code> throughout: <code>err</code> is <code>""</code> on success and a message on failure. Three matchers state that outcome directly:</p>
 <pre><code>v, err = thing.parse(input)
 spec.assert_ok(err, "parse should accept good input")
 
@@ -732,8 +733,8 @@ spec.assert_err(err, "parse should reject bad input")
 spec.assert_err_contains(err, "unexpected token", "and should say why")</code></pre>
 <p>Prefer these over <code>assert_true(err != "", ...)</code>. That form reports only "expected true" and <strong>discards the error string</strong>, so a failing test tells you nothing about what went wrong; <code>assert_ok</code> prints the error it got. It also reads as a mechanism rather than an outcome.</p>
 <p><code>assert_err_contains</code> matches a substring on purpose: a test pins the <em>reason</em> without pinning the exact wording, so rephrasing a message does not break every spec that asserts on it.</p>
-<p><code>assert_ok</code> is worth reaching for even when the call "obviously" succeeds, it is the one people omit, and a suite with only error-path assertions stays green while the success path rots.</p>
-<p><code>assert_str_eq_diff</code> aligns the two values and points a caret at the first differing byte, reach for it when a plain "expected X got Y" would bury the difference in a long string.</p>
+<p><code>assert_ok</code> is worth reaching for even when the call "obviously" succeeds: it is the one people omit, and a suite with only error-path assertions stays green while the success path rots.</p>
+<p><code>assert_str_eq_diff</code> aligns the two values and points a caret at the first differing byte; reach for it when a plain "expected X got Y" would bury the difference in a long string.</p>
 <h3 id="fluent-assertions">Fluent assertions</h3>
 <p>A subject-first, chainable facade over the same soft-failure machinery:</p>
 <pre><code>spec.expect_int(count).to_be_gt(0).to_equal(4)
@@ -746,23 +747,23 @@ spec.expect_str(name).to_start_with("ae").to_contain("the")</code></pre>
 <pre><code>spec.expect_str(egress_fqdn_csv("python_vm"))
     .to_equal_str(want, "a node's egress set is exactly its declared whitelist")
 spec.expect_int(n).to_be_gt(0, "a derived attempt budget is never zero")</code></pre>
-<pre><code>FAIL: a node's egress set is exactly its declared whitelist, strings differ at index 14
+<pre><code>FAIL: a node's egress set is exactly its declared whitelist: strings differ at index 14
         expected: "api.github.com, api.anthropic.com"
         actual:   "api.github.com"
                                  ^</code></pre>
 <p>The message is optional, so existing chains are unaffected and a single chain can annotate only the links that need it (<code>.to_be_gt(0).to_equal(7, "why")</code>). Omit it and the wording is exactly what it always was.</p>
-<p><code>to_equal_str</code> switches to the caret-aligned diff (the same form <code>assert_str_eq_diff</code> uses) once either string is long enough that eyeballing a quoted pair stops working, on a long whitelist the index and caret are what actually locate the differing byte. Short strings keep the compact <code>expected 'x', got 'y'</code> form.</p>
+<p><code>to_equal_str</code> switches to the caret-aligned diff (the same form <code>assert_str_eq_diff</code> uses) once either string is long enough that eyeballing a quoted pair stops working: on a long whitelist the index and caret are what actually locate the differing byte. Short strings keep the compact <code>expected 'x', got 'y'</code> form.</p>
 <h3 id="extending-the-fluent-chain">Extending the fluent chain</h3>
-<p><code>IntSubject</code> and <code>StrSubject</code> are exported. A free function whose first parameter is one of those types participates in Aether's UFCS method syntax, no base class, no registration:</p>
+<p><code>IntSubject</code> and <code>StrSubject</code> are exported. A free function whose first parameter is one of those types participates in Aether's UFCS method syntax, with no base class and no registration:</p>
 <pre><code>to_be_even(s: spec.IntSubject, msg: string) -&gt; spec.IntSubject {
-    if s.value % 2 != 0 { spec.fail("${msg}, ${s.value} is not even") }
+    if s.value % 2 != 0 { spec.fail("${msg}: ${s.value} is not even") }
     return s
 }
 
 spec.expect_int(count).to_be_gt(0).to_be_even("even count")</code></pre>
-<p>Return the subject so callers can keep chaining. A flat custom matcher is even simpler, any function that calls <code>spec.fail(msg)</code>:</p>
+<p>Return the subject so callers can keep chaining. A flat custom matcher is any function that calls <code>spec.fail(msg)</code>:</p>
 <pre><code>expect_prime(n: int, msg: string) {
-    if !is_prime(n) { spec.fail("${msg}, ${n} is not prime") }
+    if !is_prime(n) { spec.fail("${msg}: ${n} is not prime") }
 }</code></pre>
 <h3 id="collection-matchers">Collection matchers</h3>
 <p>Operate on a <code>std.list</code> of strings, the common shape for captured lines, names, or ids:</p>
@@ -780,15 +781,15 @@ spec.expect_list_every(xs, is_nonempty, "no blanks")       // empty passes</code
 <pre><code>t0 = os.now_monotonic_ns()
 do_work()
 spec.expect_elapsed_under(os.now_monotonic_ns() - t0, 50ms, "fast path")</code></pre>
-<p>Use monotonic-clock deltas (not wall-clock), only the delta is meaningful and a wall jump would corrupt it.</p>
+<p>Use monotonic-clock deltas (not wall-clock): only the delta is meaningful and a wall jump would corrupt it.</p>
 <h3 id="skipping-a-test-whose-dependency-may-be-absent">Skipping a test whose dependency may be absent</h3>
-<p>A spec whose subject may not exist on the host, a host-language bridge, a driver, a daemon, a system library, needs a third outcome besides pass and fail. Failing presents a <em>provisioning</em> gap as a code defect (and gets the test deleted from the sweep); passing silently is worse, because a box that skips everything then looks exactly like a box that passes everything.</p>
+<p>A spec whose subject may not exist on the host (a host-language bridge, a driver, a daemon, a system library) needs a third outcome besides pass and fail. Failing presents a <em>provisioning</em> gap as a code defect (and gets the test deleted from the sweep); passing silently is worse, because a box that skips everything then looks exactly like a box that passes everything.</p>
 <pre><code>have_ruby = 0
-if ruby.ruby_init_host() == 0 { have_ruby = 1 }
+if ruby.init_host() == 0 { have_ruby = 1 }
 
 spec.describe(fw, "contrib.host.ruby") {
     spec.it_when(have_ruby, "evaluates a script", "libruby not loadable") callback {
-        spec.assert_eq(ruby.ruby_run("$x = 1"), 0, "eval")
+        spec.assert_eq(ruby.run("$x = 1"), 0, "eval")
     }
 }</code></pre>
 <pre><code>contrib.host.ruby
@@ -796,7 +797,7 @@ spec.describe(fw, "contrib.host.ruby") {
 
   0 passing
   5 skipped</code></pre>
-<p>Exit status is 0, a skip is not a failure, but the count is on stdout and <code>skipped=N</code> is in the structured report, so a degraded box is visible rather than quietly green.</p>
+<p>Exit status is 0 (a skip is not a failure), but the count is on stdout and <code>skipped=N</code> is in the structured report, so a degraded box is visible rather than quietly green.</p>
 <div class="tw"><table><thead><tr><th>verb</th><th>use for</th></tr></thead><tbody><tr><td><code>it_when(cond, desc, reason)</code></td><td>dependency gating, the common case. <code>cond</code> is a plain int the caller computes, keeping the probe visible at the call site.</td></tr><tr><td><code>skip_it(desc, reason)</code></td><td>a <strong>permanent</strong> exclusion (known-broken path, unsupported platform) where the body is kept for the day it is re-enabled.</td></tr><tr><td><code>skip_all_if(fw, cond, reason)</code></td><td>file-level bail-out; returns 1 when the caller should <code>return</code>. The condition is evaluated eagerly, so guard an expensive probe yourself.</td></tr></tbody></table></div>
 <p>Prefer <code>it_when</code> for anything that is really a missing dependency: an unconditional <code>skip_it</code> hides <em>why</em> it is skipped, which is the information a provisioning fix needs.</p>
 <h2 id="structured-reporting">Structured reporting</h2>
@@ -816,21 +817,21 @@ not ok 3 - handles overflow
 1..3</code></pre>
 <p>A test file that emits no structured report (a hand-rolled test that doesn't use <code>std.spec</code>, or one that crashes before <code>run_summary</code>) contributes a single point derived from its exit code.</p>
 <h3 id="aeocha-v1">aeocha v1</h3>
-<p><code>--format=aeocha-v1</code> emits the aeocha v1 report format, a <code>version=1</code> key/value header, a <code>---</code> separator, then tab-packed <code>PASS</code>/<code>FAIL</code> rows (status, index, quoted name, per-row nanosecond duration, and the failure message for a FAIL). <code>ae test</code> emits one block per file, each preceded by a <code># &lt;path&gt;</code> comment line, so multiple blocks are separable (split on <code>version=1</code>).</p>
+<p><code>--format=aeocha-v1</code> emits the aeocha v1 report format: a <code>version=1</code> key/value header, a <code>---</code> separator, then tab-packed <code>PASS</code>/<code>FAIL</code> rows (status, index, quoted name, per-row nanosecond duration, and the failure message for a FAIL). <code>ae test</code> emits one block per file, each preceded by a <code># &lt;path&gt;</code> comment line, so multiple blocks are separable (split on <code>version=1</code>).</p>
 <h3 id="how-it-works-and-running-it-yourself">How it works (and running it yourself)</h3>
 <p>Under a <code>--format</code> flag, <code>ae test</code> hands each child two environment variables, <code>AE_SPEC_FORMAT</code> (the format name) and <code>AE_SPEC_REPORT</code> (a path), and <code>spec.run_summary</code> writes the report there. You can drive that directly without the runner:</p>
 <pre><code>AE_SPEC_FORMAT=tap AE_SPEC_REPORT=/tmp/out.tap ae run calc_test.ae
 cat /tmp/out.tap</code></pre>
 <p>With neither variable set, <code>run_summary</code> writes no report and the human <code>✓</code>/<code>✗</code> output is the only output, the default.</p>
 <h2 id="conventions">Conventions</h2>
-<ul><li>Name test files <code>test_*.ae</code> or <code>*_test.ae</code> so <code>ae test</code> discovers them (pytest / Go convention).</li><li>A stdlib module's unit tests live beside it, <code>std/&lt;mod&gt;/test_*.ae</code>; <code>make test-ae</code> sweeps them and every install strips them. See "Where a std module's tests live" in CONTRIBUTING.md.</li><li>Keep test source canonically formatted; CI enforces it (<code>ae fmt tests</code>).</li><li>Assertions are soft, prefer several small <code>expect_</code>/<code>assert_</code> checks over one compound condition, so a failure names exactly what broke.</li></ul>
+<ul><li>Name test files <code>test_*.ae</code> or <code>*_test.ae</code> so <code>ae test</code> discovers them (pytest / Go convention).</li><li>A stdlib module's unit tests live beside it, <code>std/&lt;mod&gt;/test_*.ae</code>; <code>make test-ae</code> sweeps them and every install strips them. See "Where a std module's tests live" in CONTRIBUTING.md.</li><li>Keep test source canonically formatted; CI enforces it (<code>ae fmt tests</code>).</li><li>Assertions are soft: prefer several small <code>expect_</code>/<code>assert_</code> checks over one compound condition, so a failure names exactly what broke.</li></ul>
 <h2 id="see-also">See also</h2>
-<ul><li><a href="/Docs/stdlib-reference.html">Standard Library Reference</a>, the full stdlib surface.</li><li><a href="/Docs/closures-and-builder-dsl.html">Closures and Builder DSL</a>, the trailing-block / <code>_ctx</code> injection mechanism <code>describe</code>/<code>it</code> are built on.</li><li><a href="https://github.com/aether-lang-dev/aeocha">aeocha</a>, the upstream framework, including the process/HTTP integration matchers and mutation testing that live outside the stdlib.</li></ul>
+<ul><li><a href="/Docs/stdlib-reference.html">Standard Library Reference</a>: the full stdlib surface.</li><li><a href="/Docs/closures-and-builder-dsl.html">Closures and Builder DSL</a>: the trailing-block / <code>_ctx</code> injection mechanism <code>describe</code>/<code>it</code> are built on.</li><li><a href="https://github.com/aether-lang-dev/aeocha">aeocha</a>: the upstream framework, including the process/HTTP integration matchers and mutation testing that live outside the stdlib.</li></ul>
 <h2 id="domain-matcher-arms-stdostesting-and-stdhttpclienthttptest">Domain matcher arms: <code>std.os.testing</code> and <code>std.http.client.httptest</code></h2>
 <p>The framework core (<code>std.spec</code>) is deliberately dependency-light. Two sibling modules carry the integration-shape matchers that consume other std surfaces, reporting through the same ambient framework cell, so they compose with <code>describe</code>/<code>it</code> and count into the same summary:</p>
-<ul><li><strong><code>import std.os.testing</code></strong>, process matchers over the <code>(stdout, exit, stderr)</code> triple from <code>os.run_capture</code>: <code>testing.expect_exit</code>, <code>testing.expect_no_spawn_error</code>, <code>testing.expect_stdout_contains</code> / <code>_line_count</code> / <code>_line_field</code> / <code>_line_after</code> / <code>_matches</code> / <code>_matches_regex</code>, and the stderr pair <code>testing.expect_stderr_contains</code> / <code>_empty</code>. They absorb the bash-shaped "spawn / capture / awk-and-compare" idiom into one call.</li><li><strong><code>import std.http.client.httptest</code></strong> (named per Go's <code>net/http/httptest</code>; the namespace tail must differ from <code>std.os.testing</code>'s), response-handle matchers (<code>httptest.expect_http_status</code> / <code>_no_error</code> / <code>_body_eq</code> / <code>_body_contains</code> / <code>_header</code> / <code>_body_json_field</code>), one-call GET/POST conveniences (<code>httptest.expect_http_get_status</code>, …), and the FluentSelenium-style one-shot retry budgets <code>httptest.within(2s)</code> / <code>httptest.without(2s)</code> that the convenience family honours.</li></ul>
+<ul><li><strong><code>import std.os.testing</code></strong>: process matchers over the <code>(stdout, exit, stderr)</code> triple from <code>os.run_capture</code>: <code>testing.expect_exit</code>, <code>testing.expect_no_spawn_error</code>, <code>testing.expect_stdout_contains</code> / <code>_line_count</code> / <code>_line_field</code> / <code>_line_after</code> / <code>_matches</code> / <code>_matches_regex</code>, and the stderr pair <code>testing.expect_stderr_contains</code> / <code>_empty</code>. They absorb the bash-shaped "spawn / capture / awk-and-compare" idiom into one call.</li><li><strong><code>import std.http.client.httptest</code></strong> (named per Go's <code>net/http/httptest</code>; the namespace tail must differ from <code>std.os.testing</code>'s): response-handle matchers (<code>httptest.expect_http_status</code> / <code>_no_error</code> / <code>_body_eq</code> / <code>_body_contains</code> / <code>_header</code> / <code>_body_json_field</code>), one-call GET/POST conveniences (<code>httptest.expect_http_get_status</code>, …), and the FluentSelenium-style one-shot retry budgets <code>httptest.within(2s)</code> / <code>httptest.without(2s)</code> that the convenience family honours.</li></ul>
 <p>Both are ported verbatim from the standalone aeocha framework, which retains its own copies (and the mutation-testing facility) for standalone use. See <code>tests/integration/std_testing_arms/probe.ae</code> for an end-to-end example driving both arms against real subprocesses and an in-process fixture server.</p>
-<h2 id="test-report-format-aeocha-v1--a-stable-versioned-contract">Test report format (aeocha-v1), a stable, versioned contract</h2>
+<h2 id="test-report-format-aeocha-v1-a-stable-versioned-contract">Test report format (aeocha-v1), a stable, versioned contract</h2>
 <p><code>std.spec</code>'s <code>run_summary</code> writes a machine-readable report to the path in <code>AE_SPEC_REPORT</code> when <code>AE_SPEC_FORMAT=aeocha</code> (or <code>aeocha-v1</code>) is set; <code>ae test --format=aeocha-v1</code> arranges both per child. Downstream tools (aeb's <code>aether.driver_test</code> reporting among them) parse this file, so its shape is a <strong>contract, not an implementation detail</strong>:</p>
 <pre><code>version=1
 total=&lt;N&gt;
@@ -843,16 +844,16 @@ duration_ns=&lt;N&gt;
 ---
 &lt;STATUS&gt;\t&lt;index&gt;\t"&lt;name&gt;"\t&lt;duration_ns&gt;[\t&lt;message&gt;]
 ...</code></pre>
-<p><code>skipped=</code> was <strong>added</strong> under <code>version=1</code> (#1610), which the additive rule below permits, no version bump, and a consumer that does not know the key ignores it. Note <code>total</code> deliberately remains <code>passed + failed</code>: folding skips into it would <em>repurpose</em> an existing key, which the rules forbid. Rows for skipped tests carry <code>SKIP</code> as their <code>&lt;STATUS&gt;</code> and a duration of <code>0</code>, with the skip reason in the optional <code>&lt;message&gt;</code> field.</p>
+<p><code>skipped=</code> was <strong>added</strong> under <code>version=1</code> (#1610), which the additive rule below permits: no version bump, and a consumer that does not know the key ignores it. Note <code>total</code> deliberately remains <code>passed + failed</code>: folding skips into it would <em>repurpose</em> an existing key, which the rules forbid. Rows for skipped tests carry <code>SKIP</code> as their <code>&lt;STATUS&gt;</code> and a duration of <code>0</code>, with the skip reason in the optional <code>&lt;message&gt;</code> field.</p>
 <p>The rules a consumer may rely on, and an editor must preserve:</p>
-<ol><li>The header is <code>key=value</code> lines, one per line, starting with <code>version=</code>. Within <code>version=1</code> the keys above keep their names and meanings. <strong>New keys may be added</strong> (consumers must ignore unknown keys); existing keys are never renamed, repurposed, or removed.</li><li>The header ends at the first <code>---</code> line (<code>\n---\n</code>); rows follow.</li><li>Each row is tab-separated: STATUS (<code>PASS</code>/<code>FAIL</code>), a 1-based index, the double-quoted test name, a duration (nanoseconds today, treat the unit as unspecified within v1 and do not compute from it), and, only when present, a trailing message field.</li><li><strong>Any change that breaks rules 1–3 bumps the leading <code>version=</code></strong> so a pinned consumer detects v2 instead of misparsing v1.</li></ol>
+<ol><li>The header is <code>key=value</code> lines, one per line, starting with <code>version=</code>. Within <code>version=1</code> the keys above keep their names and meanings. <strong>New keys may be added</strong> (consumers must ignore unknown keys); existing keys are never renamed, repurposed, or removed.</li><li>The header ends at the first <code>---</code> line (<code>\n---\n</code>); rows follow.</li><li>Each row is tab-separated: STATUS (<code>PASS</code>/<code>FAIL</code>), a 1-based index, the double-quoted test name, a duration (nanoseconds today; treat the unit as unspecified within v1 and do not compute from it), and, only when present, a trailing message field.</li><li><strong>Any change that breaks rules 1 to 3 bumps the leading <code>version=</code></strong> so a pinned consumer detects v2 instead of misparsing v1.</li></ol>
 <p><code>_format_aeocha_v1</code> in <code>std/spec/module.ae</code> is the single producer; it carries a pointer back to this section.</p>
 <h2 id="contribaeocha-is-retired"><code>contrib.aeocha</code> is retired</h2>
-<p>The aeocha framework was absorbed into the stdlib: <code>import std.spec</code> (core + fluent + collections + timing), <code>import std.os.testing</code> (process matchers), <code>import std.http.client.httptest</code> (HTTP matchers, <code>within</code>/<code>without</code>/<code>eventually</code>). No std or contrib module references <code>contrib.aeocha</code>, and nothing in a test's closure requires the aeocha repo or its old IPC-pipe report convention, the env-file transport above replaces it. Downstreams still importing <code>contrib.aeocha</code> from pre-spinout snapshots should migrate to the modules above; the standalone aeocha repo remains only as a thin compatibility facade plus its aeb IPC reporter and mutation-testing tool.</p>
-<nav class="doc-prevnext" aria-label="Previous and next page"><a class="pn-prev" href="/Docs/cross-ios.html"><span class="pn-k">Previous</span><span class="pn-t">Cross-compiling for iOS (arm64)</span></a><a class="pn-next" href="/Docs/mutation-testing.html"><span class="pn-k">Next</span><span class="pn-t">Mutation testing, std.mutation</span></a></nav>
+<p>The aeocha framework was absorbed into the stdlib: <code>import std.spec</code> (core + fluent + collections + timing), <code>import std.os.testing</code> (process matchers), <code>import std.http.client.httptest</code> (HTTP matchers, <code>within</code>/<code>without</code>/<code>eventually</code>). No std or contrib module references <code>contrib.aeocha</code>, and nothing in a test's closure requires the aeocha repo or its old IPC-pipe report convention: the env-file transport above replaces it. Downstreams still importing <code>contrib.aeocha</code> from pre-spinout snapshots should migrate to the modules above; the standalone aeocha repo remains only as a thin compatibility facade plus its aeb IPC reporter and mutation-testing tool.</p>
+<nav class="doc-prevnext" aria-label="Previous and next page"><a class="pn-prev" href="/Docs/cross-ios.html"><span class="pn-k">Previous</span><span class="pn-t">Cross-compiling for iOS (arm64)</span></a><a class="pn-next" href="/Docs/mutation-testing.html"><span class="pn-k">Next</span><span class="pn-t">Mutation testing: std.mutation</span></a></nav>
       </article>
     </main>
-    <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#a-first-test" class="l2" data-id="a-first-test">A first test</a><a href="#suites-context-and-hooks" class="l2" data-id="suites-context-and-hooks">Suites, context, and hooks</a><a href="#assertions" class="l2" data-id="assertions">Assertions</a><a href="#flat-assertions" class="l3" data-id="flat-assertions">Flat assertions</a><a href="#asserting-on-the-failure-path" class="l3" data-id="asserting-on-the-failure-path">Asserting on the failure path</a><a href="#fluent-assertions" class="l3" data-id="fluent-assertions">Fluent assertions</a><a href="#extending-the-fluent-chain" class="l3" data-id="extending-the-fluent-chain">Extending the fluent chain</a><a href="#collection-matchers" class="l3" data-id="collection-matchers">Collection matchers</a><a href="#timing-budgets" class="l3" data-id="timing-budgets">Timing budgets</a><a href="#skipping-a-test-whose-dependency-may-be-absent" class="l3" data-id="skipping-a-test-whose-dependency-may-be-absent">Skipping a test whose dependency may be absent</a><a href="#structured-reporting" class="l2" data-id="structured-reporting">Structured reporting</a><a href="#tap" class="l3" data-id="tap">TAP</a><a href="#aeocha-v1" class="l3" data-id="aeocha-v1">aeocha v1</a><a href="#how-it-works-and-running-it-yourself" class="l3" data-id="how-it-works-and-running-it-yourself">How it works (and running it yourself)</a><a href="#conventions" class="l2" data-id="conventions">Conventions</a><a href="#see-also" class="l2" data-id="see-also">See also</a><a href="#domain-matcher-arms-stdostesting-and-stdhttpclienthttptest" class="l2" data-id="domain-matcher-arms-stdostesting-and-stdhttpclienthttptest">Domain matcher arms: std.os.testing and std.http.client.httptest</a><a href="#test-report-format-aeocha-v1--a-stable-versioned-contract" class="l2" data-id="test-report-format-aeocha-v1--a-stable-versioned-contract">Test report format (aeocha-v1), a stable, versioned contract</a><a href="#contribaeocha-is-retired" class="l2" data-id="contribaeocha-is-retired">contrib.aeocha is retired</a></nav>
+    <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#a-first-test" class="l2" data-id="a-first-test">A first test</a><a href="#suites-context-and-hooks" class="l2" data-id="suites-context-and-hooks">Suites, context, and hooks</a><a href="#assertions" class="l2" data-id="assertions">Assertions</a><a href="#flat-assertions" class="l3" data-id="flat-assertions">Flat assertions</a><a href="#asserting-on-the-failure-path" class="l3" data-id="asserting-on-the-failure-path">Asserting on the failure path</a><a href="#fluent-assertions" class="l3" data-id="fluent-assertions">Fluent assertions</a><a href="#extending-the-fluent-chain" class="l3" data-id="extending-the-fluent-chain">Extending the fluent chain</a><a href="#collection-matchers" class="l3" data-id="collection-matchers">Collection matchers</a><a href="#timing-budgets" class="l3" data-id="timing-budgets">Timing budgets</a><a href="#skipping-a-test-whose-dependency-may-be-absent" class="l3" data-id="skipping-a-test-whose-dependency-may-be-absent">Skipping a test whose dependency may be absent</a><a href="#structured-reporting" class="l2" data-id="structured-reporting">Structured reporting</a><a href="#tap" class="l3" data-id="tap">TAP</a><a href="#aeocha-v1" class="l3" data-id="aeocha-v1">aeocha v1</a><a href="#how-it-works-and-running-it-yourself" class="l3" data-id="how-it-works-and-running-it-yourself">How it works (and running it yourself)</a><a href="#conventions" class="l2" data-id="conventions">Conventions</a><a href="#see-also" class="l2" data-id="see-also">See also</a><a href="#domain-matcher-arms-stdostesting-and-stdhttpclienthttptest" class="l2" data-id="domain-matcher-arms-stdostesting-and-stdhttpclienthttptest">Domain matcher arms: std.os.testing and std.http.client.httptest</a><a href="#test-report-format-aeocha-v1-a-stable-versioned-contract" class="l2" data-id="test-report-format-aeocha-v1-a-stable-versioned-contract">Test report format (aeocha-v1), a stable, versioned contract</a><a href="#contribaeocha-is-retired" class="l2" data-id="contribaeocha-is-retired">contrib.aeocha is retired</a></nav>
   </div>
 </div>
 <script src="/docs.js" defer></script>
@@ -861,7 +862,7 @@ duration_ns=&lt;N&gt;
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.831 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.832 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

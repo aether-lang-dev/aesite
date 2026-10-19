@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.831</span>
+      <span class="vtag">v0.832</span>
     </nav>
   </div>
 </header>
@@ -598,7 +598,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/architecture.html" class="on">Aether Architecture</a>
 <a href="/Docs/actor-concurrency.html">Aether Runtime Guide</a>
 <a href="/Docs/scheduler-quick-reference.html">Aether Scheduler - Quick Reference</a>
-<a href="/Docs/memory-management.html">Aether Memory Management</a>
+<a href="/Docs/memory-management.html">Memory Management</a>
 <a href="/Docs/runtime-optimizations.html">Runtime Optimizations</a>
 <a href="/Docs/numa-support.html">NUMA Support in Aether</a>
 <a href="/Docs/message-tracing.html">Message tracing</a>
@@ -629,7 +629,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/cross-ios.html">Cross-compiling for iOS (arm64)</a>
 <div class="grp">Testing</div>
 <a href="/Docs/testing.html">Testing with std.spec and ae test</a>
-<a href="/Docs/mutation-testing.html">Mutation testing, std.mutation</a>
+<a href="/Docs/mutation-testing.html">Mutation testing: std.mutation</a>
 <a href="/Docs/differential-testing.html">Differential testing across lowering paths</a>
 <div class="grp">Performance</div>
 <a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
@@ -646,8 +646,8 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
 <a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn't need macro_rules!</a>
 <a href="/Docs/lib-caller-info.html">--emit=lib caller-info channel</a>
-<a href="/Docs/liveview-lite-roadmap.html">LiveView-lite, a roadmap (Phoenix LiveView, on actors, without the framework)</a>
-<a href="/Docs/schema-projection-roadmap.html">std.schema, a projection-first roadmap (Ash, without the framework)</a>
+<a href="/Docs/liveview-lite-roadmap.html">LiveView-lite: a roadmap (Phoenix LiveView, on actors, without the framework)</a>
+<a href="/Docs/schema-projection-roadmap.html">std.schema: a projection-first roadmap (Ash, without the framework)</a>
 <a href="/Docs/locale-independent-float-text.html">Plan: locale-independent float text conversion (LC_NUMERIC correctness)</a>
 <div class="grp">Contributing</div>
 <a href="/Docs/stdlib-module-pattern.html">Aether Stdlib Module Pattern</a>
@@ -815,8 +815,8 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <ul><li>Thread-local pool of 256 pre-allocated buffers (256 bytes each)</li><li>Pool acquisition and release use plain loads/stores (no atomics for TLS)</li><li>Falls back to malloc for oversized messages or pool exhaustion</li><li><code>aether_free_message</code> returns buffers to the pool or calls <code>free</code></li></ul>
 <p><strong>Actor Allocation:</strong></p>
 <ul><li><code>scheduler_spawn_actor</code> allocates via <code>aether_numa_alloc_aligned</code> with the full derived-struct size, on a 64-byte boundary (generated actor structs are declared <code>aligned(64)</code>)</li><li>NUMA-aware placement on the local node of the assigned core</li><li>Falls back to standard allocation on non-NUMA systems</li></ul>
-<p><strong>String Ownership (heap-string tracker):</strong></p>
-<ul><li>Every string variable carries a compiler-emitted <code>_heap_&lt;name&gt;</code> companion that flips between 0 (literal) and 1 (heap-allocated) on each reassignment</li><li>Trackers are emitted at function-entry scope by a dedicated codegen pre-pass (<code>hoist_heap_string_trackers</code> in <code>compiler/codegen/codegen_stmt.c</code>), making cross-block reassignment safe</li><li>Reassignment goes through a unified wrapper handling all four heap/literal transitions: <code>{ const char* _tmp_old = s; s = &lt;rhs&gt;; if (_heap_s) free(_tmp_old); _heap_s = &lt;rhs_is_heap&gt;; }</code></li><li>Recognised heap sources: hardcoded stdlib <code>string.{concat,substring,to_upper,to_lower,trim}</code>, string interpolation <code>"foo ${x}"</code>, and user-defined <code>-&gt; string</code> functions whose body provably returns heap (recursive structural escape analysis with cycle detection, memoised on the function-definition AST node's annotation slot)</li><li>Runtime cost: zero, just <code>if (...) free(...)</code> per assignment. Codegen-time cost: O(K) per call site for fn-def lookup where K is the number of top-level fn definitions; total well under a millisecond for typical programs</li></ul>
+<p><strong>Ownership of strings, closures and composites</strong> (the rules are in <a href="/Docs/memory-management.html#values-the-program-owns">memory-management.md</a>, the design and its record in <a href="https://github.com/aether-lang-dev/aether/blob/main/docs/design/ownership-model.md">design/ownership-model.md</a>):</p>
+<ul><li>Every string is an <code>AetherString</code> with a header (<code>std/string/aether_string_abi.h</code>): a magic, a <code>ref_count</code>, the length and the capacity. A literal is emitted as a static one whose count is <code>AETHER_STRING_PINNED_REFS</code>, so it is never counted or freed.</li><li>Every place owns one reference. A take (a store, a return) moves a fresh value, retains a counted string and copies a plain C string (<code>aether_uniform_heap_str</code> in the generated C); a store releases the value it replaces, and a scope exit releases what its locals hold. Counting a string no other thread can reach is inline in the generated code; a string stored where other threads read it is published (<code>AETHER_STRING_SHARED_BIT</code>) and counted atomically from then on.</li><li>Closure environments carry an atomic count. Structs, tuples, optionals and fixed-size arrays that own strings or closures get one generated retain and one drop per type (<code>compiler/codegen/codegen_own.c</code>), which every place uses.</li><li>No analysis reads another function's body: what a call does with its arguments and what it hands back is decided by the callee's signature, and C boundaries by the extern's annotations (<code>@heap</code>, <code>@retain</code>, <code>@aether</code>).</li><li>A caught panic releases what the scopes it leaves hold through the unwind journal (<code>runtime/actors/aether_unwind.h</code>), which records places, not values.</li></ul>
 <h3 id="performance-optimizations">Performance Optimizations</h3>
 <p>The runtime implements these optimization strategies in the active code paths:</p>
 <ol><li><strong>Main Thread Actor Mode</strong> - Single-actor programs bypass scheduler entirely</li><li><strong>Thread-Local Message Pools</strong> - Eliminate malloc/free overhead</li><li><strong>Batch Dequeue</strong> - Reduce atomic operations from N to 1 per batch</li><li><strong>Adaptive Batching</strong> - Scale batch size with load (64 to 1024)</li><li><strong>Direct Mailbox Delivery</strong> - Same-core messages bypass the queue</li><li><strong>Computed Goto Dispatch</strong> - Direct label jumps for message handlers</li><li><strong>Inline Single-Int Messages</strong> - Bypass pool allocation for common messages</li><li><strong>Message-Driven Migration</strong> - Co-locate communicating actors</li><li><strong>Optimized Spinlock</strong> - PAUSE/YIELD hints during spin-wait</li><li><strong>Cache Line Alignment</strong> - Prevent false sharing on shared structures</li><li><strong>Relaxed Atomic Ordering</strong> - Avoid barriers on non-critical counters</li></ol>
@@ -847,7 +847,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <h3 id="compilation-speed-vs-runtime-performance">Compilation Speed vs Runtime Performance</h3>
 <ul><li><strong>Choice:</strong> Favor runtime performance</li><li><strong>Implication:</strong> Two-stage compilation with aggressive optimization flags</li><li><strong>Mitigation:</strong> Incremental builds, parallel compilation</li></ul>
 <h3 id="memory-safety-vs-performance">Memory Safety vs Performance</h3>
-<ul><li><strong>Choice:</strong> Arena-based memory management (bulk deallocation, no tracing GC)</li><li><strong>Implication:</strong> Deterministic cleanup, no GC pauses</li><li><strong>Mitigation:</strong> Valgrind, AddressSanitizer for leak detection during development</li></ul>
+<ul><li><strong>Choice:</strong> Compiler-managed reference counting for the values a program owns, explicit frees (with <code>defer</code>) for handles, arenas where many allocations share a lifetime; no tracing GC</li><li><strong>Implication:</strong> Deterministic cleanup, no GC pauses; a reference cycle is not reclaimed</li><li><strong>Mitigation:</strong> The ownership grid (<code>tests/ownership_grid/</code>) in CI on every pull request, and Valgrind and AddressSanitizer during development</li></ul>
 <h3 id="portability-vs-optimization">Portability vs Optimization</h3>
 <ul><li><strong>Choice:</strong> Portable C11 code with platform-specific branches</li><li><strong>Implication:</strong> Platform-specific intrinsics guarded by <code>#if</code> directives</li><li><strong>Mitigation:</strong> Fallback paths for all platform-specific code</li></ul>
 <h2 id="references">References</h2>
@@ -864,7 +864,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.831 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.832 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

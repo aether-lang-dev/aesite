@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>std.schema, a projection-first roadmap (Ash, without the framework) · Aether</title>
+<title>std.schema: a projection-first roadmap (Ash, without the framework) · Aether</title>
 <meta name="description" content="std.schema borrowed its declarative record { field { validation } } shape from Ash (alongside Zod/Pydantic/io-ts for the parse-contract and coercion).">
 <link rel="canonical" href="https://aether-lang.dev/Docs/schema-projection-roadmap.html">
 <meta property="og:type" content="article">
-<meta property="og:title" content="std.schema, a projection-first roadmap (Ash, without the framework) · Aether">
+<meta property="og:title" content="std.schema: a projection-first roadmap (Ash, without the framework) · Aether">
 <meta property="og:description" content="std.schema borrowed its declarative record { field { validation } } shape from Ash (alongside Zod/Pydantic/io-ts for the parse-contract and coercion).">
 <meta property="og:url" content="https://aether-lang.dev/Docs/schema-projection-roadmap.html">
 <meta property="og:image" content="https://aether-lang.dev/og.png">
@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.831</span>
+      <span class="vtag">v0.832</span>
     </nav>
   </div>
 </header>
@@ -598,7 +598,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/architecture.html">Aether Architecture</a>
 <a href="/Docs/actor-concurrency.html">Aether Runtime Guide</a>
 <a href="/Docs/scheduler-quick-reference.html">Aether Scheduler - Quick Reference</a>
-<a href="/Docs/memory-management.html">Aether Memory Management</a>
+<a href="/Docs/memory-management.html">Memory Management</a>
 <a href="/Docs/runtime-optimizations.html">Runtime Optimizations</a>
 <a href="/Docs/numa-support.html">NUMA Support in Aether</a>
 <a href="/Docs/message-tracing.html">Message tracing</a>
@@ -629,7 +629,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/cross-ios.html">Cross-compiling for iOS (arm64)</a>
 <div class="grp">Testing</div>
 <a href="/Docs/testing.html">Testing with std.spec and ae test</a>
-<a href="/Docs/mutation-testing.html">Mutation testing, std.mutation</a>
+<a href="/Docs/mutation-testing.html">Mutation testing: std.mutation</a>
 <a href="/Docs/differential-testing.html">Differential testing across lowering paths</a>
 <div class="grp">Performance</div>
 <a href="/Docs/performance-benchmarks.html">Aether Performance Benchmarks</a>
@@ -646,8 +646,8 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/compile-time-eval.html">Compile-time constant evaluation (phase-1)</a>
 <a href="/Docs/dsl-without-macros.html">DSL without macros, why Aether doesn't need macro_rules!</a>
 <a href="/Docs/lib-caller-info.html">--emit=lib caller-info channel</a>
-<a href="/Docs/liveview-lite-roadmap.html">LiveView-lite, a roadmap (Phoenix LiveView, on actors, without the framework)</a>
-<a href="/Docs/schema-projection-roadmap.html" class="on">std.schema, a projection-first roadmap (Ash, without the framework)</a>
+<a href="/Docs/liveview-lite-roadmap.html">LiveView-lite: a roadmap (Phoenix LiveView, on actors, without the framework)</a>
+<a href="/Docs/schema-projection-roadmap.html" class="on">std.schema: a projection-first roadmap (Ash, without the framework)</a>
 <a href="/Docs/locale-independent-float-text.html">Plan: locale-independent float text conversion (LC_NUMERIC correctness)</a>
 <div class="grp">Contributing</div>
 <a href="/Docs/stdlib-module-pattern.html">Aether Stdlib Module Pattern</a>
@@ -664,35 +664,35 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
     <main class="doc-main">
       <article class="doc-body" id="doc">
         <div class="bc"><span class="prompt">$</span>docs / design &amp; rfcs</div>
-<h1 id="stdschema--a-projection-first-roadmap-ash-without-the-framework">std.schema, a projection-first roadmap (Ash, without the framework)</h1>
+<h1 id="stdschema-a-projection-first-roadmap-ash-without-the-framework">std.schema: a projection-first roadmap (Ash, without the framework)</h1>
 <h2 id="where-this-comes-from">Where this comes from</h2>
 <p><code>std.schema</code> borrowed its declarative <code>record { field { validation } }</code> shape from Ash (alongside Zod/Pydantic/io-ts for the parse-contract and coercion). But that shape is Ash's <em>thinnest outer ring</em>. Ash is a declarative resource/domain framework whose real substance is everything behind the resource: relationships, actions, lifecycle hooks, calculations/aggregates, a pluggable data layer with a query DSL and SAT-solver-backed authorization policies, and, crucially, <strong>projections</strong>: one resource declaration generates JSON:API, GraphQL, OpenAPI, admin UIs, and typed code interfaces.</p>
 <p>The question this doc answers: <em>how much of Ash should Aether pursue, and where is the line?</em></p>
 <h2 id="the-thesis-worth-stealing">The thesis worth stealing</h2>
 <p>Ash's superpower is: <strong>a resource is a single declarative source of truth that you project into many surfaces.</strong> Validation, persistence, JSON:API, GraphQL, OpenAPI, admin, and authorization all <em>derive</em> from one declaration.</p>
 <p>Aether has already started down exactly this path, perhaps without naming it:</p>
-<div class="tw"><table><thead><tr><th>Ash concept</th><th>Aether today</th></tr></thead><tbody><tr><td>resource declaration</td><td><code>std.schema</code> <code>record { field { rules } }</code></td></tr><tr><td>a projection</td><td><code>std.schema.to_json_schema()</code> (draft-07)</td></tr><tr><td>the web projection</td><td><code>contrib/tinyweb/schema_api</code>, validation + <code>openapi_route</code> (OpenAPI 3.0)</td></tr></tbody></table></div>
+<div class="tw"><table><thead><tr><th>Ash concept</th><th>Aether today</th></tr></thead><tbody><tr><td>resource declaration</td><td><code>std.schema</code> <code>record { field { rules } }</code></td></tr><tr><td>a projection</td><td><code>std.schema.to_json_schema()</code> (draft-07)</td></tr><tr><td>the web projection</td><td><code>contrib/tinyweb/schema_api</code>: validation + <code>openapi_route</code> (OpenAPI 3.0)</td></tr></tbody></table></div>
 <h2 id="the-strategic-line">The strategic line</h2>
 <p>Ash's depth is also its weight. Aether is a systems language that compiles to readable C with <strong>no GC and a manual-memory model</strong>, not an Elixir/OTP application framework. So the line is:</p>
-<ul><li><strong>Lean hard into projection</strong> (pure, compile-time, "one declaration → many artifacts"). This is Ash's most distinctive idea AND the one that fits Aether best: projections are just codegen over a schema value, no runtime, no persistence, no GC pressure. It's the same muscle the compiler already has.</li><li><strong>Add modeling depth only where it feeds projection</strong> (relationships make richer JSON Schema / OpenAPI / GraphQL; that's the justification).</li><li><strong>Stay out of the framework/runtime tiers.</strong> Data-layer-as-framework, a policy/SAT-solver, sagas, PubSub, multitenancy, that's Elixir-ecosystem weight that doesn't map to a systems language. <code>contrib/*</code> bridges (e.g. <code>sqlite</code>) remain the honest place for persistence, consumed explicitly.</li></ul>
+<ul><li><strong>Lean hard into projection</strong> (pure, compile-time, "one declaration → many artifacts"). This is Ash's most distinctive idea AND the one that fits Aether best: projections are just codegen over a schema value, no runtime, no persistence, no GC pressure. It's the same muscle the compiler already has.</li><li><strong>Add modeling depth only where it feeds projection</strong> (relationships make richer JSON Schema / OpenAPI / GraphQL; that's the justification).</li><li><strong>Stay out of the framework/runtime tiers.</strong> Data-layer-as-framework, a policy/SAT-solver, sagas, PubSub, multitenancy: that's Elixir-ecosystem weight that doesn't map to a systems language. <code>contrib/*</code> bridges (e.g. <code>sqlite</code>) remain the honest place for persistence, consumed explicitly.</li></ul>
 <h2 id="tiers">Tiers</h2>
-<h3 id="tier-a--projection-first-the-plan">Tier A, projection-first (the plan)</h3>
+<h3 id="tier-a-projection-first-the-plan">Tier A: projection-first (the plan)</h3>
 <p>Each is a pure function <code>schema -&gt; string</code>, no runtime, mirroring <code>to_json_schema()</code>. Build order roughly by value/effort:</p>
-<ol><li><strong><code>to_openapi()</code></strong>, promote the FastAPI-style aggregate currently living in <code>tinyweb/schema_api</code> into a first-class <code>std.schema</code> projection (paths + <code>components.schemas</code>). The web layer becomes a thin caller.</li><li><strong><code>to_typescript()</code></strong>, emit a TypeScript <code>interface</code>/<code>type</code> for a resource. Instant client-side type-safety for anyone consuming an Aether JSON API; very high "wow", trivial to keep pure.</li><li><strong>Relationships</strong> (<code>belongs_to</code>/<code>has_many</code>), the one modeling addition that pays for itself: it turns a schema into a <em>domain model</em> and makes every projection richer (<code>$ref</code> links in JSON Schema/OpenAPI, nested TS types). Depends on nested records (issue #1446). This is the gateway to A4/A5.</li><li><strong><code>to_graphql_sdl()</code></strong>, emit GraphQL SDL types from a resource (+ its relationships). Aether's answer to AshGraphql, as pure codegen.</li><li><strong>Form/scaffold projection</strong>, emit an HTML form (or a tinyweb form handler) from a schema. The "admin UI from a declaration" idea, kept to static output. The dynamic counterpart, a <em>live</em>, validating form that pushes per-field errors over a WebSocket, is Tier B of the sibling <code>docs/liveview-lite-roadmap.md</code>: the same <code>record</code>, projected onto the LiveView surface instead of a static page.</li></ol>
+<ol><li><strong><code>to_openapi()</code></strong>: promote the FastAPI-style aggregate currently living in <code>tinyweb/schema_api</code> into a first-class <code>std.schema</code> projection (paths + <code>components.schemas</code>). The web layer becomes a thin caller.</li><li><strong><code>to_typescript()</code></strong>: emit a TypeScript <code>interface</code>/<code>type</code> for a resource. Instant client-side type-safety for anyone consuming an Aether JSON API; very high "wow", trivial to keep pure.</li><li><strong>Relationships</strong> (<code>belongs_to</code>/<code>has_many</code>): the one modeling addition that pays for itself: it turns a schema into a <em>domain model</em> and makes every projection richer (<code>$ref</code> links in JSON Schema/OpenAPI, nested TS types). Depends on nested records (issue #1446). This is the gateway to A4/A5.</li><li><strong><code>to_graphql_sdl()</code></strong>: emit GraphQL SDL types from a resource (+ its relationships). Aether's answer to AshGraphql, as pure codegen.</li><li><strong>Form/scaffold projection</strong>: emit an HTML form (or a tinyweb form handler) from a schema. The "admin UI from a declaration" idea, kept to static output. The dynamic counterpart (a <em>live</em>, validating form that pushes per-field errors over a WebSocket) is Tier B of the sibling <code>docs/liveview-lite-roadmap.md</code>: the same <code>record</code>, projected onto the LiveView surface instead of a static page.</li></ol>
 <p>A shared spine: a small internal schema-introspection surface (iterate fields, their types, rules, relationships) that every <code>to_*</code> projection walks, so adding a projection is writing one walker, not re-reading internals.</p>
-<h3 id="tier-b--modeling-depth-only-with-a-concrete-consumer">Tier B, modeling depth (only with a concrete consumer)</h3>
-<ul><li><strong>Actions</strong>, named typed operations (beyond raw CRUD); <code>schema_api</code> already half-expresses this with <code>create/show/index</code>. Light, but only worth it when a real API needs custom action arguments distinct from stored fields.</li><li><strong>Lifecycle hooks</strong> (<code>before/after</code>), declarative interception. Maps onto closures + the tinyweb filter chain. Useful, modest.</li><li><strong>Calculations</strong> (derived fields), <code>full_name = first &lt;&gt; last</code>. Pure and demoable; feeds projections (a computed field in the schema output).</li></ul>
-<h3 id="tier-c--explicitly-out-of-scope">Tier C, explicitly out of scope</h3>
+<h3 id="tier-b-modeling-depth-only-with-a-concrete-consumer">Tier B: modeling depth (only with a concrete consumer)</h3>
+<ul><li><strong>Actions</strong>: named typed operations (beyond raw CRUD); <code>schema_api</code> already half-expresses this with <code>create/show/index</code>. Light, but only worth it when a real API needs custom action arguments distinct from stored fields.</li><li><strong>Lifecycle hooks</strong> (<code>before/after</code>): declarative interception. Maps onto closures + the tinyweb filter chain. Useful, modest.</li><li><strong>Calculations</strong> (derived fields): <code>full_name = first &lt;&gt; last</code>. Pure and demoable; feeds projections (a computed field in the schema output).</li></ul>
+<h3 id="tier-c-explicitly-out-of-scope">Tier C: explicitly out of scope</h3>
 <p>Data-layer-as-framework + <code>Ash.Query</code> DSL + SAT-solver authorization policies + Reactor/sagas + notifiers/PubSub + multitenancy + code-generators/Igniter. This is where Ash becomes "huge"; it's OTP/Elixir-ecosystem weight and a persistence runtime Aether deliberately doesn't have. Persistence stays in <code>contrib/</code> bridges, consumed explicitly, not welded into <code>std.schema</code>.</p>
 <h2 id="why-projection-first-is-the-right-first-bet-for-aether">Why projection-first is the right first bet for Aether</h2>
-<ul><li><strong>It's pure.</strong> No GC, no persistence, no runtime, just codegen over a schema value. Exactly Aether's wheelhouse and leak-free by construction (build the string with <code>strbuilder</code>; see the <code>to_json_schema</code> precedent, and note the <code>std.json</code> builder-nesting leak #1447 that motivated string-building over a DOM).</li><li><strong>It's HTTP-agnostic.</strong> <code>std.schema</code> stays a pure stdlib module; the web projection lives in <code>contrib/tinyweb</code>. An SMTP/IMAP/CLI/config consumer reuses the same declaration and the same projections.</li><li><strong>It compounds.</strong> Every projection added multiplies the value of every schema already written, the Ash flywheel, without adopting the framework.</li></ul>
+<ul><li><strong>It's pure.</strong> No GC, no persistence, no runtime: just codegen over a schema value. Exactly Aether's wheelhouse and leak-free by construction (build the string with <code>strbuilder</code>; see the <code>to_json_schema</code> precedent, and note the <code>std.json</code> builder-nesting leak #1447 that motivated string-building over a DOM).</li><li><strong>It's HTTP-agnostic.</strong> <code>std.schema</code> stays a pure stdlib module; the web projection lives in <code>contrib/tinyweb</code>. An SMTP/IMAP/CLI/config consumer reuses the same declaration and the same projections.</li><li><strong>It compounds.</strong> Every projection added multiplies the value of every schema already written: the Ash flywheel, without adopting the framework.</li></ul>
 <h2 id="concrete-next-steps-if-pursued">Concrete next steps (if pursued)</h2>
-<ol><li>Land the nested-records/relationships work (#1446), the modeling prerequisite.</li><li>Extract a <code>std.schema</code> introspection spine + move <code>to_openapi</code> into <code>std</code>.</li><li>Add <code>to_typescript()</code> (cheap, high-value) and <code>to_graphql_sdl()</code>.</li><li>Revisit Tier B (actions/hooks/calculations) only when a <code>schema_api</code> consumer asks for it.</li></ol>
+<ol><li>Land the nested-records/relationships work (#1446): the modeling prerequisite.</li><li>Extract a <code>std.schema</code> introspection spine + move <code>to_openapi</code> into <code>std</code>.</li><li>Add <code>to_typescript()</code> (cheap, high-value) and <code>to_graphql_sdl()</code>.</li><li>Revisit Tier B (actions/hooks/calculations) only when a <code>schema_api</code> consumer asks for it.</li></ol>
 <p>Credits: the resource-and-projection framing is Ash's (MIT, © 2019 ash contributors). Aether deliberately takes the <em>idea</em> (one declaration, many pure projections) and not the framework/runtime.</p>
-<nav class="doc-prevnext" aria-label="Previous and next page"><a class="pn-prev" href="/Docs/liveview-lite-roadmap.html"><span class="pn-k">Previous</span><span class="pn-t">LiveView-lite, a roadmap (Phoenix LiveView, on actors, without the framework)</span></a><a class="pn-next" href="/Docs/locale-independent-float-text.html"><span class="pn-k">Next</span><span class="pn-t">Plan: locale-independent float text conversion (LC_NUMERIC correctness)</span></a></nav>
+<nav class="doc-prevnext" aria-label="Previous and next page"><a class="pn-prev" href="/Docs/liveview-lite-roadmap.html"><span class="pn-k">Previous</span><span class="pn-t">LiveView-lite: a roadmap (Phoenix LiveView, on actors, without the framework)</span></a><a class="pn-next" href="/Docs/locale-independent-float-text.html"><span class="pn-k">Next</span><span class="pn-t">Plan: locale-independent float text conversion (LC_NUMERIC correctness)</span></a></nav>
       </article>
     </main>
-    <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#where-this-comes-from" class="l2" data-id="where-this-comes-from">Where this comes from</a><a href="#the-thesis-worth-stealing" class="l2" data-id="the-thesis-worth-stealing">The thesis worth stealing</a><a href="#the-strategic-line" class="l2" data-id="the-strategic-line">The strategic line</a><a href="#tiers" class="l2" data-id="tiers">Tiers</a><a href="#tier-a--projection-first-the-plan" class="l3" data-id="tier-a--projection-first-the-plan">Tier A, projection-first (the plan)</a><a href="#tier-b--modeling-depth-only-with-a-concrete-consumer" class="l3" data-id="tier-b--modeling-depth-only-with-a-concrete-consumer">Tier B, modeling depth (only with a concrete consumer)</a><a href="#tier-c--explicitly-out-of-scope" class="l3" data-id="tier-c--explicitly-out-of-scope">Tier C, explicitly out of scope</a><a href="#why-projection-first-is-the-right-first-bet-for-aether" class="l2" data-id="why-projection-first-is-the-right-first-bet-for-aether">Why projection-first is the right first bet for Aether</a><a href="#concrete-next-steps-if-pursued" class="l2" data-id="concrete-next-steps-if-pursued">Concrete next steps (if pursued)</a></nav>
+    <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#where-this-comes-from" class="l2" data-id="where-this-comes-from">Where this comes from</a><a href="#the-thesis-worth-stealing" class="l2" data-id="the-thesis-worth-stealing">The thesis worth stealing</a><a href="#the-strategic-line" class="l2" data-id="the-strategic-line">The strategic line</a><a href="#tiers" class="l2" data-id="tiers">Tiers</a><a href="#tier-a-projection-first-the-plan" class="l3" data-id="tier-a-projection-first-the-plan">Tier A: projection-first (the plan)</a><a href="#tier-b-modeling-depth-only-with-a-concrete-consumer" class="l3" data-id="tier-b-modeling-depth-only-with-a-concrete-consumer">Tier B: modeling depth (only with a concrete consumer)</a><a href="#tier-c-explicitly-out-of-scope" class="l3" data-id="tier-c-explicitly-out-of-scope">Tier C: explicitly out of scope</a><a href="#why-projection-first-is-the-right-first-bet-for-aether" class="l2" data-id="why-projection-first-is-the-right-first-bet-for-aether">Why projection-first is the right first bet for Aether</a><a href="#concrete-next-steps-if-pursued" class="l2" data-id="concrete-next-steps-if-pursued">Concrete next steps (if pursued)</a></nav>
   </div>
 </div>
 <script src="/docs.js" defer></script>
@@ -701,7 +701,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.831 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.832 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>
