@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.834</span>
+      <span class="vtag">v0.835</span>
     </nav>
   </div>
 </header>
@@ -682,7 +682,7 @@ ae fmt --check src        <span class="com"># do not write; list files that woul
 <ul><li><strong>Your line breaks.</strong> The formatter re-indents and re-spaces but does not reflow expressions onto different lines. Where you break a long call or list is left to you.</li><li><strong>Comments</strong>, including inline <code>//</code> and multi-line <code>/* ... */</code>.</li><li><strong>String literals</strong> and their <code>${...}</code> interpolation, <strong>heredocs</strong> (<code>&lt;&lt;MARKER ... MARKER</code>, whose body indentation is significant), and <strong>backtick raw identifiers</strong> (`<code> </code>reply<code> </code>`).</li></ul>
 <h2 id="short-names---short-names">Short names: <code>--short-names</code></h2>
 <pre><code>ae fmt --short-names src tests   <span class="com"># json.json_free(v) -&gt; json.free(v), where both are one function</span></code></pre>
-<p>A call that names its module twice, <code>json.json_free(v)</code>, reaches the same function as <code>json.free(v)</code>. With <code>--short-names</code>, <code>ae fmt</code> rewrites such calls to the short form, and changes nothing else: not the layout, and not a call whose short form is another declaration. Which calls qualify is the compiler's answer, not a pattern: <code>aetherc --emit=short-names</code> checks the file and lists each call written <code>ns.ns_x(...)</code> whose <code>ns.x</code> resolves to the same declaration. So std.string's <code>string.string_join</code>, an extern beside the different <code>string.join</code>, is left as written, and so is a name whose short form would start with a digit (<code>sha3.sha3_256_hex</code>). A file that does not compile is reported and left as it is. With <code>--check</code>, it lists the files it would rewrite and exits 1 if there are any.</p>
+<p>A call that names its module twice, <code>json.json_free(v)</code>, reaches the same function as <code>json.free(v)</code>. With <code>--short-names</code>, <code>ae fmt</code> rewrites such calls to the short form, and changes nothing else: not the layout, and not a call whose short form is another declaration. Which calls qualify is the compiler's answer, not a pattern: <code>aetherc --emit=short-names</code> checks the file and lists each call written <code>ns.ns_x(...)</code> whose <code>ns.x</code> resolves to the same declaration. A module may not export two names that answer to one short name (E0305, <a href="/Docs/module-system-design.html">module-system-design.md</a>), so a module's long name and its short form are one declaration; a name whose short form would start with a digit (<code>sha3.sha3_256_hex</code>) is left as written. A file that does not compile is reported and left as it is. <code>ae check</code> warns on each call this would rewrite (W1006), naming this command, so the long form does not come back. With <code>--check</code>, it lists the files it would rewrite and exits 1 if there are any.</p>
 <p>The rewrite does not change what a program compiles to: the C it generates is byte-identical before and after (modulo <code>#line</code> directives), which is how the tree's own calls were rewritten (#2976).</p>
 <h2 id="safety-guarantee">Safety guarantee</h2>
 <p><code>ae fmt</code> cannot change what your program does. It works on the token stream: the sequence of significant tokens is never reordered, dropped, or fused, and string and comment bytes are copied verbatim. Because the lexer already tokenizes <code>a-b</code> and <code>a - b</code> identically, re-spacing between separated tokens cannot change how the source parses; the one hazard, gluing two tokens that would re-lex as one (<code>a b</code> becoming <code>ab</code>, or <code>&lt;</code> <code>&lt;</code> becoming <code>&lt;&lt;</code>), is explicitly prevented.</p>
@@ -702,7 +702,7 @@ ae fmt --check src        <span class="com"># do not write; list files that woul
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.834 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.835 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>
