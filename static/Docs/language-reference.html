@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.832</span>
+      <span class="vtag">v0.833</span>
     </nav>
   </div>
 </header>
@@ -1299,7 +1299,9 @@ println(if x &gt; 0 { x } else { 0 - x })
 
 // Nested if-expressions
 grade = if score &gt;= 90 { 4 } else { if score &gt;= 80 { 3 } else { 2 } }</code></pre>
-<p>The <code>else</code> branch is required, and the expression has the type its branches have in common. Two numeric branches have their common type, as C's <code>?:</code> computes it: <code>if c { 1 } else { big }</code> with a <code>long big</code> is a <code>long</code>, and an <code>int</code> beside a <code>float</code> is a <code>float</code>, so neither branch is narrowed into the other's type. A float literal beside an <code>f32</code> branch takes the <code>f32</code>, as it does beside an <code>f32</code> operand. A value <code>match</code> types its arms the same way. A branch whose type the other branch's takes (a variant beside its sum, a <code>T</code> beside a <code>T?</code>) is converted into it, and the expression has the wider type. Two branches neither of which takes the other (an <code>int</code> and a <code>string</code>, two variants of a sum) are a compile error naming both types.</p>
+<p>The <code>else</code> branch is required, and the expression has the type its branches have in common. A value <code>match</code> types its arms the same way, one rule for every kind of value:</p>
+<ul><li>Two numeric branches have their common type, as C's <code>?:</code> computes it: <code>if c { 1 } else { big }</code> with a <code>long big</code> is a <code>long</code>, and an <code>int</code> beside a <code>float</code> is a <code>float</code>, so neither branch is narrowed into the other's type. A float literal beside an <code>f32</code> branch takes the <code>f32</code>, as it does beside an <code>f32</code> operand.</li><li>A <code>T</code> beside a <code>T?</code>, or beside <code>none</code>, is a <code>T?</code>.</li><li>A variant beside its sum, and two variants of one sum, are the sum: <code>if c { Circle { r: 1 } } else { Square { side: 2 } }</code> is a <code>Shape</code>, each branch wrapped into it. Where the two variants belong to more than one sum, the local's annotation or the function's result type says which (<code>let s: Shape = ...</code>).</li><li>Fixed-size arrays of one element type and length are that type (<code>int[3]</code>).</li><li>Tuples of one length have each position's common type: <code>(1, "a")</code> beside <code>(2, "b")</code> is an <code>(int, string)</code>. A tuple literal is the tuple of its elements' types wherever it stands, so <code>t = (5, "z")</code> binds a tuple a later <code>n, s = t</code> destructures.</li></ul>
+<p>A branch whose type the other branch's takes as a binding would (<code>null</code> beside a pointer) is converted into it, and the expression has the wider type. Two branches of no one type (an <code>int</code> and a <code>string</code>, arrays of another length or element type, tuples of another length) are a compile error naming both types.</p>
 <h3 id="while-loops">While Loops</h3>
 <pre><code>i = 0;
 while (i &lt; 10) {
@@ -1422,7 +1424,7 @@ for (i = 0; i &lt; 10; i = i + 1) {
 }</code></pre>
 <p>A ranged arm lowers to a plain comparison (<code>x &gt;= lo &amp;&amp; x &lt;= hi</code>) in the branch chain, with no runtime support and no allocation. Existing single-literal arms are unaffected.</p>
 <h3 id="list-pattern-matching">List Pattern Matching</h3>
-<p>Arrays, slices and <code>*StringSeq</code> values can be matched with list patterns. A fixed-size array (<code>T[N]</code>) is matched by its length <code>N</code>, known when it is compiled, and a slice by the length it carries. A cons pattern's tail (<code>t</code> in <code>[h|t]</code>) is a slice of the rest, its length <code>t.len</code>:</p>
+<p>Arrays, slices and <code>*StringSeq</code> values can be matched with list patterns. A fixed-size array (<code>T[N]</code>) is matched by its length <code>N</code>, known when it is compiled, and a slice by the length it carries. Each name a list pattern binds has the element type of the value matched: a <code>float</code> over a <code>float[]</code>, a <code>string</code> over a <code>string[]</code>, a struct over a struct array. A cons pattern's tail (<code>t</code> in <code>[h|t]</code>) is a slice of the rest, its length <code>t.len</code>:</p>
 <pre><code>main() {
     nums = [1, 2, 3]
     match nums {
@@ -3116,7 +3118,7 @@ process_file(path) {
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.832 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.833 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>
