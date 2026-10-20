@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.835</span>
+      <span class="vtag">v0.836</span>
     </nav>
   </div>
 </header>
@@ -706,6 +706,7 @@ op(args) -&gt; {
 @extern("aether_set_add") add_raw(set: ptr, item: string) -&gt; int
 add(set: ptr, item: string) -&gt; bool { return add_raw(set, item) == 1 }</code></pre>
 <p>std dropped 336 such duplicate exports from its lists (#2976); the changelog names each one.</p>
+<p>The rule is one name per operation, which E0305 checks only where the two names share a short name. An alias under another name is the same duplicate: <code>json.from_int</code> beside the extern <code>json.create_int</code>, or <code>xml.writer</code> beside <code>xml.builder_new</code>. Export the Aether-side name, the short one a caller reads, unless the other spelling says more (std.cbor's <code>map_push</code> appends a pair where <code>map_set</code> would suggest a replace), and keep the extern for the wrapper to call. std dropped 79 such aliases (#3014).</p>
 <h3 id="return-shapes">Return shapes</h3>
 <div class="tw"><table><thead><tr><th>Operation</th><th>Success return</th><th>Failure return</th></tr></thead><tbody><tr><td>Produces a value</td><td><code>(value, "")</code></td><td><code>(zero-value, "reason")</code></td></tr><tr><td>Produces nothing (setter, writer)</td><td><code>""</code></td><td><code>"reason"</code></td></tr><tr><td>Lookup that can be absent</td><td><code>(value, "")</code> / <code>(null, "")</code> for absent</td><td><code>(null, "reason")</code> for error</td></tr></tbody></table></div>
 <p>For the lookup row: distinguish <strong>absent</strong> from <strong>error</strong>. An absent key is not an error, the caller asked if X exists. Only return a non-empty error string when something actually went wrong (null receiver, wrong type, allocation failure).</p>
@@ -748,7 +749,7 @@ open(path: string, mode: string) -&gt; {
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.835 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.836 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

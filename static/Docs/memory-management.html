@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.835</span>
+      <span class="vtag">v0.836</span>
     </nav>
   </div>
 </header>
@@ -718,12 +718,13 @@ true [not a string]</code></pre>
 <p><code>list.add</code>, <code>list.set</code> and <code>map.put</code> take a reference to a string or a closure, released when the element leaves (<code>list.remove</code>, <code>list.clear</code>, a store over it, <code>map.remove</code>, <code>free</code>); a <code>list.set</code> that fails gives back what it was handed. A module <code>var</code> and an actor's state field take what is stored and release what they replace; the actor's state is released when the actor is destroyed. A message owns its fields: the send takes them, a receive arm reads them in place, and the message is released after the arm. What the arm keeps (in state, in a container) it takes.</p>
 <h3 id="c-boundaries-r4">C boundaries (R4)</h3>
 <p>C sees a string as its characters. An extern borrows what it is given for the call. An extern that keeps a value declares the parameter <code>@retain</code>: the call then hands it a reference of its own (a fresh value as it is, a place's retained), for a <code>string</code> and for a closure. <code>@aether</code> passes the counted string itself, for C written against Aether's runtime. <code>@noescape</code> states what a parameter that is not <code>@retain</code> already is.</p>
-<p>An extern returning a fresh string declares it <code>@heap</code> (<code>-&gt; string @heap</code>; <code>-&gt; ptr @heap</code> for a counted string returned untyped, as <code>string.from_int</code> does; per position of a tuple result, <code>-&gt; (string @heap, int, string)</code>); the string is adopted at the call, and the caller owns it. Any other string an extern returns is C's and is copied when a place takes it.</p>
+<p>An extern returning a fresh string declares it <code>@heap</code> (<code>-&gt; string @heap</code>, as <code>string.from_int</code> does; <code>-&gt; ptr @heap</code> for a counted string returned untyped; per position of a tuple result, <code>-&gt; (string @heap, int, string)</code>); the string is adopted at the call, and the caller owns it. Any other string an extern returns is C's and is copied when a place takes it.</p>
 <p>A string stored into a header-defined struct's field (<code>extern struct ... @c_import</code>) is given a reference of its own, which nothing in the program releases: it is C's from then on. One stored into C memory viewed as <code>string[]</code> is given no reference (see <code>ptr</code> slots, below).</p>
 <h3 id="ptr-slots"><code>ptr</code> slots</h3>
 <p>A <code>ptr</code> slot owns nothing. A string goes into one only through <code>string.keep(s)</code>, which hands over a reference the program gives back with <code>string.release_kept(p)</code>. C memory viewed as <code>string[]</code> owns nothing either: <code>(names as string[])[i] = s</code> gives C the characters and no reference, so the string must outlive every read. A local does only while the memory ends with the function (an argv array built, handed to C and freed in one function). Memory that outlives it (reached through a parameter, a module-level <code>var</code>, a field or a heap box, or whose pointer is returned or stored) takes <code>(names as ptr[])[i] = string.keep(s)</code>, given back with <code>string.release_kept</code> where the memory is freed; any other string stored there is refused (E0902), as is a string built in the statement. A literal is pinned and goes into either as it is.</p>
 <p>A closure goes into a <code>ptr</code> slot boxed (<code>box_closure(f)</code>, or the coercion a store into a <code>ptr</code> makes), the box holding a reference of its own, which <code>release_closure(p)</code> gives back.</p>
-<p>A function that keeps a <code>ptr</code> parameter (stores it where it outlives the call, returns it, or passes it to another keeping parameter) declares it <code>@keep</code>; keeping one that is not declared so is E0902. A struct local to the function, or a closure that runs and is dropped inside the call, does not outlive it: putting the parameter in one keeps nothing unless the struct or the closure escapes itself. A <code>ptr</code> parameter that only borrows is given a closure in a box on the caller's stack, so nothing is allocated. The full rule, with what counts as escaping, is in the language reference's <a href="/Docs/language-reference.html#string-ownership">String ownership</a>.</p>
+<p>A function that keeps a <code>ptr</code> parameter (stores it where it outlives the call, returns it, or passes it to another keeping parameter) declares it <code>@keep</code>; keeping one that is not declared so is E0902. A struct local to the function, or a closure that runs and is dropped inside the call, does not outlive it: putting the parameter in one keeps nothing unless the struct or the closure escapes itself. A <code>ptr</code> parameter that only borrows is given a closure in a box on the caller's stack, so nothing is allocated.</p>
+<p>A function that only hands a <code>ptr</code> parameter to its result (a constructor that builds a recorder, an iterator or a view around it) declares it <code>@into</code> instead: it may return it, alone or in a struct, a tuple, an optional or a closure, and nothing else. The caller holds the result as it holds a struct local that holds its argument: in a local, read, lent to borrowing parameters, and E0902 only where the result escapes with a borrowed parameter of the caller. So <code>@into</code> does not spread up the call chain as <code>@keep</code> does; a function that returns such a result made from its own parameter declares that one <code>@into</code> too. A string goes to an <code>@into ptr</code> through <code>string.keep(s)</code>, and a closure goes in a heap box with its own reference. The full rule, with what counts as escaping, is in the language reference's <a href="/Docs/language-reference.html#string-ownership">String ownership</a>.</p>
 <h3 id="panics">Panics</h3>
 <p>A panic caught by a <code>try</code> releases what the scopes it leaves hold, as their exits would have: every owning local, temporary and argument is recorded in an unwind journal while it is live, and every plain <code>defer</code> of those scopes runs, newest first. <code>defer try</code> and <code>defer catch</code> do not run on a panic.</p>
 <h3 id="cycles">Cycles</h3>
@@ -840,7 +841,7 @@ main() {
     println(total(1))
 }</code></pre>
 <pre><code>7</code></pre>
-<p>The type checker refuses every way the binding's value itself could outlive the block: returning it, assigning or aliasing it into another binding or a struct field, placing it in an array, struct or message literal, capturing it in a closure or a quote (either can outlive the block), and inserting it into a container (<code>list.add</code>, <code>list.set</code>, <code>map.put</code>, <code>set.add</code>):</p>
+<p>The type checker refuses every way the binding's value itself could outlive the block: returning it, assigning or aliasing it into another binding or a struct field, placing it in an array, struct or message literal, capturing it in a closure or a quote (either can outlive the block), and inserting it into a container (<code>list.add</code>, <code>list.set</code>, <code>map.put</code>, <code>set.add</code>, <code>string.seq_cons</code>, and their raw and owning forms):</p>
 <pre><code>import std.string
 
 leak() -&gt; string {
@@ -851,7 +852,7 @@ leak() -&gt; string {
 main() {
     println(leak())
 }</code></pre>
-<p>Only a value derived from the binding through a call (<code>string.length(buf)</code>) may leave. A function the value is passed to is governed by its own signature; <code>@scoped</code> checks the escapes written in the binding's own scope.</p>
+<p>Only a value derived from the binding (<code>string.length(buf)</code>, <code>list.size(l)</code>, a slice's <code>v.len</code>) may leave, and the error's help names the one for the binding's type. A function the value is passed to is governed by its own signature; <code>@scoped</code> checks the escapes written in the binding's own scope.</p>
 <h2 id="how-the-rules-are-tested">How the rules are tested</h2>
 <p>The ownership grid (<code>tests/ownership_grid/</code>) generates one program per meaningful combination of a value kind (a fresh string, a <code>string?</code>, a closure that captures a string, an <code>fn[2]</code>, a struct owning a string, a tuple, a string array, ...), a place (a local, a struct field, an array element, a tuple slot, an optional, a module <code>var</code>, a capture or cell, a list or map, actor state, a message field, a <code>ptr</code> slot, ...) and a transfer (an overwrite, a <code>break</code>, an early <code>return</code>, a caught panic, a keeper, a return, an alias, ...). Each program checks every value it reads against the one it stored, measures heap growth over rounds of 100 calls, and runs a second time under an allocator that poisons freed memory and stops on a double free.</p>
 <p>Every cell is at its target. The baseline (<code>tests/ownership_grid/baseline.txt</code>) records 1909 cells that run clean, and 30 in which a function frees a parameter it borrows, which the compiler refuses (E0901). The Windows CI workflow runs the grid on every pull request, where the heap count is exact, and fails when any cell is worse than its baseline: a leak, a wrong value, a use after free, or a program that stopped compiling. See <a href="https://github.com/aether-lang-dev/aether/blob/main/tests/ownership_grid/README.md">tests/ownership_grid/README.md</a>.</p>
@@ -871,7 +872,7 @@ main() {
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.835 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.836 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

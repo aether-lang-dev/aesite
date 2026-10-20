@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.835</span>
+      <span class="vtag">v0.836</span>
     </nav>
   </div>
 </header>
@@ -1301,7 +1301,7 @@ n = hdr.len</code></pre>
 <blockquote><strong>Historical note:</strong> <code>string_concat</code> originally returned a plain <code>char*</code>, so downstream <code>string.length(string.concat(a, b))</code> patterns truncated binary content at the first NUL. <code>string_concat</code> now returns an <code>AetherString*</code> (via <code>string_adopt_caps_buffer</code>), and <code>string_concat_wrapped</code> is kept as an alias for the same contract. Existing call sites don't need to change.</blockquote>
 <h3 id="string-ownership-across-the-ffi-boundary">String ownership across the FFI boundary</h3>
 <p>What a call does with a string is decided by the extern's declaration, never by reading C (R4 of the <a href="/Docs/memory-management.html#c-boundaries-r4">ownership rules</a>):</p>
-<ul><li><strong>An extern <code>-&gt; string</code></strong> returns C's characters, borrowed: <code>getenv(3)</code>, <code>dlerror(3)</code> and most POSIX functions return memory the caller must not free. A place that takes the result copies the characters into a counted string it owns, so the value stays valid when C reuses its buffer.</li><li><strong>An extern <code>-&gt; string @heap</code></strong> returns a string the caller owns: a <code>malloc</code>'d <code>char*</code> is adopted into a counted string at the call, with no copy, and released by the place that holds it, as any string is. <code>-&gt; ptr @heap</code> says the same of a counted string returned untyped, as <code>string.from_int</code> does, and a tuple position can carry it too (<code>-&gt; (string @heap, int)</code>).</li><li><strong>A <code>string</code> parameter</strong> is borrowed for the call: C must not free it or keep it. One that C keeps is declared <code>@retain</code>, and the call hands it a reference of its own.</li></ul>
+<ul><li><strong>An extern <code>-&gt; string</code></strong> returns C's characters, borrowed: <code>getenv(3)</code>, <code>dlerror(3)</code> and most POSIX functions return memory the caller must not free. A place that takes the result copies the characters into a counted string it owns, so the value stays valid when C reuses its buffer.</li><li><strong>An extern <code>-&gt; string @heap</code></strong> returns a string the caller owns: a <code>malloc</code>'d <code>char*</code> is adopted into a counted string at the call, with no copy, and released by the place that holds it, as any string is. <code>-&gt; ptr @heap</code> says the same of a counted string returned untyped (std types every string it returns <code>string</code>), and a tuple position can carry it too (<code>-&gt; (string @heap, int)</code>).</li><li><strong>A <code>string</code> parameter</strong> is borrowed for the call: C must not free it or keep it. One that C keeps is declared <code>@retain</code>, and the call hands it a reference of its own.</li><li><strong>A <code>ptr</code> parameter whose memory the result points into</strong> (<code>strchr</code>, <code>memchr</code>, a lookup that returns an element of the buffer it was given) is declared <code>@into</code>: the C function hands the argument to its result and keeps it nowhere else. The call is checked as one to an Aether function's <code>@into</code> parameter: the caller may hold the result in a local, a borrowed <code>ptr</code> parameter of the caller is E0902 where the result escapes the function, and a string goes there only through <code>string.keep(s)</code>. It is trusted, as <code>@retain</code> is, since the compiler does not read C.</li></ul>
 <pre><code>extern my_strdup(s: string) -&gt; string @heap   // malloc'd: the caller owns it
 
 main() {
@@ -1344,7 +1344,7 @@ server_get(raw, "/health", _h_health, 0)   // references ae_h_health</code></pre
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.835 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.836 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

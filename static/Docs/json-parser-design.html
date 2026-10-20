@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.835</span>
+      <span class="vtag">v0.836</span>
     </nav>
   </div>
 </header>
@@ -768,7 +768,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <p>The fastest contemporary JSON parsers store parsed values in a flat slot array ("tape") with parent/child relationships encoded as sibling offsets. That layout is maximally cache-dense for traversal but assumes the whole tree is written once and never mutated, "insert a child" would invalidate every downstream sibling offset.</p>
 <p>Our <code>json_object_set</code> / <code>json_array_add</code> mutation APIs let callers add arbitrary children to parsed trees, including heap-created values from <code>json_create_*</code>. A pure tape can't absorb those without a full rebuild.</p>
 <p>The path forward is <strong>dual representation with copy-on-mutate</strong>:</p>
-<ul><li><code>json.parse</code> produces a flat tape for the parsed document.</li><li><code>json.array_add</code> / <code>json.object_set</code> on a tape-backed value promotes the affected subtree to the existing tree representation once (one deep-copy), flips a flag on the root, then mutates as today.</li><li>Subsequent calls on the promoted root skip the conversion.</li><li>Accessors (<code>object_get</code>, <code>array_get</code>, <code>get_*</code>, …) branch on the tape/tree flag once to pick the right code path.</li></ul>
+<ul><li><code>json.parse</code> produces a flat tape for the parsed document.</li><li><code>json.push</code> / <code>json.set</code> on a tape-backed value promotes the affected subtree to the existing tree representation once (one deep-copy), flips a flag on the root, then mutates as today.</li><li>Subsequent calls on the promoted root skip the conversion.</li><li>Accessors (<code>object_get</code>, <code>array_get</code>, <code>get_*</code>, …) branch on the tape/tree flag once to pick the right code path.</li></ul>
 <p>What's deferred about this is the breadth of the change, not the design. Every accessor gains a dispatch branch; the mutation path gets a new OOM mode (copy allocation can fail mid-tree); every test needs two flavours. That's worth doing, but it's a standalone review cycle, not a rider on an incremental perf pass. The change-point names the files in "When to change what" below.</p>
 <h3 id="full-simd-parsing-not-on-the-roadmap">Full SIMD parsing (not on the roadmap)</h3>
 <p>Vectorised parsers classify every byte into "structural / whitespace / string-char / escape" with a single wide compare, producing a bitmap the parser walks. The bitmap is only useful if the parser writes tape slots; producing a tree of <code>JsonValue*</code> from the bitmap adds back all the branches the SIMD was meant to save.</p>
@@ -792,7 +792,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.835 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.836 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

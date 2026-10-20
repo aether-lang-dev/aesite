@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.835</span>
+      <span class="vtag">v0.836</span>
     </nav>
   </div>
 </header>
@@ -748,10 +748,15 @@ flags = select(linux: "-lpthread", windows: "-lws2_32", macos: "-framework Secur
 <pre><code>// Only need to specify the exception
 separator = select(windows: "\\", other: "/")</code></pre>
 <h3 id="missing-platform-is-a-compile-error">Missing platform is a compile error</h3>
-<p>If a platform is missing and there is no <code>other:</code> fallback, the Aether compiler reports an error and the C compiler stops at an <code>#error</code>:</p>
-<pre><code>// ERROR: no value for windows or macos, no other: fallback
-port = select(linux: 8080)</code></pre>
-<p>This prevents silent bugs where a platform gets <code>0</code> or empty string. Either list all platforms or provide <code>other:</code>.</p>
+<p>If a platform is missing and there is no <code>other:</code> fallback, the Aether compiler refuses the program with E0701, whatever platform it builds for: the generated C is the same for every platform, so a value missing for one of them is missing for the program.</p>
+<pre><code>main() {
+    port = select(linux: 8080)
+    println(port)
+}
+// error[E0701]: select() has no value for windows and macos and no `other:`
+// fallback; its branches are `linux:`
+// help: add `windows:` and `macos:`, or `other:` for every platform it does not name</code></pre>
+<p>This prevents silent bugs where a platform gets <code>0</code> or empty string. Either list all platforms or provide <code>other:</code>. A key that is not a platform is a build symbol: when the build defines it, its value is the select's and the platforms are not consulted.</p>
 <h3 id="use-cases">Use cases</h3>
 <p><strong>Build system flags:</strong></p>
 <pre><code>linker_flags = select(
@@ -790,7 +795,7 @@ main() {
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.835 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.836 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>
