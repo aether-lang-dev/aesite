@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.838</span>
+      <span class="vtag">v0.839</span>
     </nav>
   </div>
 </header>
@@ -862,8 +862,8 @@ atomic_store_explicit(&amp;sched-&gt;idle_cycles, <span class="num">0</span>, me
 <p>On Apple Silicon (M1/M2/M3), the runtime detects and uses only Performance cores (P-cores) to ensure consistent throughput. Efficiency cores (E-cores) are excluded because they run at lower clock speeds and can cause variance in benchmarks.</p>
 <p>Detection uses <code>sysctlbyname("hw.perflevel0.physicalcpu")</code> to query the P-core count. Combined with <code>QOS_CLASS_USER_INTERACTIVE</code> thread priority, this encourages macOS to schedule actor threads on P-cores.</p>
 <p><strong>Platform-specific thread affinity:</strong></p>
-<div class="tw"><table><thead><tr><th>Platform</th><th>Mechanism</th><th>Binding</th></tr></thead><tbody><tr><td>Linux</td><td><code>pthread_setaffinity_np</code></td><td>Hard binding</td></tr><tr><td>macOS</td><td><code>thread_policy_set</code> + QoS</td><td>Hint only</td></tr><tr><td>Windows</td><td><code>SetThreadAffinityMask</code></td><td>Hard binding</td></tr></tbody></table></div>
-<p>Note: macOS does not support hard core pinning by design. Thread placement is advisory, which may cause occasional variance in microbenchmarks.</p>
+<div class="tw"><table><thead><tr><th>Platform</th><th>Mechanism</th><th>Binding</th></tr></thead><tbody><tr><td>Linux</td><td><code>pthread_setaffinity_np</code></td><td>Hard binding</td></tr><tr><td>macOS</td><td><code>thread_policy_set</code> + QoS</td><td>Hint only</td></tr><tr><td>Windows</td><td><code>SetThreadIdealProcessor</code></td><td>Hint only</td></tr></tbody></table></div>
+<p>Note: macOS does not support hard core pinning by design, and Windows uses a hint by choice: bound to one logical CPU, a scheduler thread could not leave it when another program ran there, and shared it a time slice at a time (#3087). The OS keeps a thread on its CPU and moves it when that CPU is busy.</p>
 <h3 id="per-core-message-counters">Per-Core Message Counters</h3>
 <p><strong>Implementation:</strong> <code>runtime/scheduler/multicore_scheduler.c</code>, <code>runtime/scheduler/multicore_scheduler.h</code></p>
 <p>Idle detection uses per-core counters instead of a global atomic counter. This eliminates cache line contention on the message-passing hot path.</p>
@@ -1003,7 +1003,7 @@ while j &lt; N {
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.838 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.839 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

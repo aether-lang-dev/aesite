@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.838</span>
+      <span class="vtag">v0.839</span>
     </nav>
   </div>
 </header>
@@ -947,7 +947,7 @@ aether_http_request_duration_seconds_bucket{method="GET",path="/api/users",le="0
 aether_http_request_duration_seconds_sum{method="GET",path="/api/users"} 47.392011
 aether_http_request_duration_seconds_count{method="GET",path="/api/users"} 4239</code></pre>
 <p>Histogram buckets: 5ms / 25ms / 100ms / 500ms / 2s / 10s / +Inf. Counters are atomic; insertion-time mutex only.</p>
-<p>Custom hooks: <code>http_server_use_request_hook(server, hook, ud)</code> is a C-level extension point (declared in <code>std/net/aether_http_server.c</code>, not exported from <code>std.http</code>) used internally by the access-log and metrics hooks. Multiple hooks may register; they fire in registration order after the response transformer chain. It is not currently callable from Aether code.</p>
+<p>Custom hooks: <code>http_server_use_request_hook(server, hook, ud)</code> is a C-level extension point (declared in <code>std/net/aether_http_server.c</code>, not exported from <code>std.http</code>) used internally by the access-log and metrics hooks. Multiple hooks may register; they fire in registration order after the response transformer chain. A hook is <code>void hook(HttpRequest* req, HttpServerResponse* res, int64_t duration_us, void* user_data)</code>; the duration was a <code>long</code> before, 32 bits on Windows. It is not currently callable from Aether code.</p>
 <hr>
 <h2 id="graceful-shutdown">Graceful shutdown</h2>
 <pre><code>err = http.server_shutdown_graceful(server, 5000ms)  // 5-second deadline
@@ -996,7 +996,7 @@ http.server_set_health_probes(server, "/healthz", "/readyz", ready_check, null)<
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.838 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.839 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

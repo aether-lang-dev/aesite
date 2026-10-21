@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.838</span>
+      <span class="vtag">v0.839</span>
     </nav>
   </div>
 </header>
@@ -806,7 +806,7 @@ Stack trace (most recent call first):
 <p>In single-core mode, actors run cooperatively. The scheduler processes actors in a loop, calling each actor's step function when its mailbox contains messages.</p>
 <h2 id="multi-core-runtime">Multi-Core Runtime</h2>
 <p>The multi-core scheduler uses core partitioning with locality-aware placement:</p>
-<ul><li>N cores = N independent scheduler threads</li><li>Each scheduler runs in a pthread pinned to a core</li><li>Actors placed on the caller's core at spawn time (main thread defaults to core 0; scheduler threads use their own core). This keeps parent-child actor groups co-located for efficient local messaging.</li><li>Cross-core messages use lock-free queues with batch dequeue/enqueue</li><li>Message-driven migration converges communicating actors onto the same core</li></ul>
+<ul><li>N cores = N independent scheduler threads</li><li>Each scheduler runs in a thread kept on its core: bound to it on Linux, a hint on macOS and Windows</li><li>Actors placed on the caller's core at spawn time (main thread defaults to core 0; scheduler threads use their own core). This keeps parent-child actor groups co-located for efficient local messaging.</li><li>Cross-core messages use lock-free queues with batch dequeue/enqueue</li><li>Message-driven migration converges communicating actors onto the same core</li></ul>
 <h3 id="synchronization">Synchronization</h3>
 <p>The <code>wait_for_idle()</code> function blocks until all actors have finished processing their messages (quiescence). It is <strong>non-destructive</strong>: it does not stop or join scheduler threads, so it can be called multiple times in a program. This is the recommended way to synchronize the main thread with actor completion:</p>
 <pre><code>main() {
@@ -864,7 +864,7 @@ Stack trace (most recent call first):
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.838 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.839 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>
