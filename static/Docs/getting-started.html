@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.837</span>
+      <span class="vtag">v0.838</span>
     </nav>
   </div>
 </header>
@@ -745,6 +745,13 @@ ae add github.com/user/repo@v1.<span class="num">0.0</span> --source   <span cla
 <pre><code>https://&lt;package&gt;/releases/download/&lt;tag&gt;/&lt;repo&gt;-&lt;tag&gt;-&lt;os&gt;-&lt;arch&gt;.tar.gz</code></pre>
 <p>(<code>.zip</code> is tried too; <code>&lt;os&gt;-&lt;arch&gt;</code> is <code>linux-x86_64</code>, <code>macos-arm64</code>, and so on.) A sibling <code>&lt;asset&gt;.sha256</code> is verified when present: a <strong>mismatch is fatal and installs nothing</strong>, and there is no silent fall-back to git, which would defeat the check. An artifact with no published checksum installs with a warning.</p>
 <p>Prebuilt <code>--emit=lib</code> artifacts are directly importable: the binary-import prepass reads the artifact's catalog and synthesizes the interface, so a released library needs no toolchain to consume. Set <code>AE_RELEASE_BASE_URL</code> to point at an internal mirror serving the same layout.</p>
+<p>For a <strong>binary package</strong>, publish <code>aether.toml</code> with a <code>[package]</code> section containing <code>binary = "&lt;stem&gt;"</code> and <code>modules = "."</code>, plus <code>&lt;stem&gt;-&lt;tag&gt;-&lt;triple&gt;.&lt;ext&gt;</code> and its <code>.sha256</code> sidecar. Unlike the archive path, a binary package requires the checksum: a missing or mismatched checksum is fatal. If the declared binary is missing for the selected target, <code>ae add</code> fails without trying another libc, a source archive, or a git clone.</p>
+<p>Publish Linux binary packages under distinct glibc and musl identities:</p>
+<div class="tw"><table><thead><tr><th>Build target</th><th>Release triple</th></tr></thead><tbody><tr><td><code>x86_64-linux</code> (glibc)</td><td><code>linux-x86_64</code></td></tr><tr><td><code>aarch64-linux</code> (glibc)</td><td><code>linux-arm64</code></td></tr><tr><td><code>x86_64-linux-musl</code></td><td><code>linux-x86_64-musl</code></td></tr><tr><td><code>aarch64-linux-musl</code></td><td><code>linux-arm64-musl</code></td></tr></tbody></table></div>
+<p>Automatic selection uses the CPU and libc that <code>ae</code> was built for, retaining the existing unsuffixed glibc names. To fetch a foreign binary, give its <strong>release triple</strong> explicitly (rather than the compiler's build-target spelling):</p>
+<pre><code>ae add github.com/user/repo@v1.<span class="num">0.0</span> --target linux-arm64-musl</code></pre>
+<p>The explicit target is preserved in the asset name; it does not fall back to the host's libc. The package cache holds one target per package. Use a separate <code>HOME</code> per target when assembling a multi-target release. <code>ae add</code> refuses to reuse an installed binary for a different target and preserves its bytes. Older binary caches without a target record must be removed and fetched again so the selected asset and its checksum are verified.</p>
+<p>For example, a stem of <code>libfoo</code> yields <code>libfoo-v1.0.0-linux-arm64-musl.so</code> and <code>libfoo-v1.0.0-linux-arm64-musl.so.sha256</code>.</p>
 <h2 id="error-handling">Error Handling</h2>
 <p>Functions that can fail return <code>(value, error)</code> tuples. Check the error first, handle it, then continue, no <code>else</code> needed:</p>
 <pre><code>safe_divide(a: <span class="fn">int</span>, b: <span class="fn">int</span>) -&gt; {
@@ -1088,7 +1095,7 @@ make docker-ci-embedded    <span class="com"># ARM Cortex-M4 syntax-check</span>
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.837 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.838 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>
