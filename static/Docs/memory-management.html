@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.839</span>
+      <span class="vtag">v0.840</span>
     </nav>
   </div>
 </header>
@@ -841,7 +841,7 @@ main() {
     println(total(1))
 }</code></pre>
 <pre><code>7</code></pre>
-<p>The type checker refuses every way the binding's value itself could outlive the block: returning it, assigning or aliasing it into another binding or a struct field, placing it in an array, struct or message literal, capturing it in a closure or a quote (either can outlive the block), and inserting it into a container (<code>list.add</code>, <code>list.set</code>, <code>map.put</code>, <code>set.add</code>, <code>string.seq_cons</code>, and their raw and owning forms):</p>
+<p>The type checker refuses every way the binding's value itself could outlive the block: returning it, assigning or aliasing it into another binding or a struct field, placing it in an array, struct or message literal, capturing it in a closure or a quote (either can outlive the block), and giving it to a parameter that keeps it, as the callee declares (an Aether function's <code>@keep</code> one, an extern's <code>@retain</code> one): the item of a list or map store (<code>list.add</code>, <code>list.set</code>, <code>map.put</code> and their raw forms), the head or the tail of <code>string.seq_cons</code>. A parameter that copies what it is given keeps nothing: <code>set.add</code> copies its item, and a map copies its key.</p>
 <pre><code>import std.string
 
 leak() -&gt; string {
@@ -872,7 +872,7 @@ main() {
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.839 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.840 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

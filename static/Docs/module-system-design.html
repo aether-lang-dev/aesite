@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.839</span>
+      <span class="vtag">v0.840</span>
     </nav>
   </div>
 </header>
@@ -898,7 +898,8 @@ main() {
 }</code></pre>
 <h3 id="module-resolution">Module Resolution</h3>
 <p>The compiler searches for local modules in this order:</p>
-<ol><li><code>&lt;lib-path-entry&gt;/&lt;module&gt;/module.ae</code> - Library directory with module file</li><li><code>&lt;lib-path-entry&gt;/&lt;module&gt;.ae</code> - Single-file module in lib</li><li><code>src/&lt;module&gt;/module.ae</code> - Source directory with module file</li><li><code>src/&lt;module&gt;.ae</code> - Single-file module in src</li><li><code>&lt;module&gt;/module.ae</code> - Project root</li><li><code>&lt;module&gt;.ae</code> - Single file in project root</li></ol>
+<ol><li><code>&lt;lib-path-entry&gt;/&lt;module&gt;/module.ae</code> - Library directory with module file</li><li><code>&lt;lib-path-entry&gt;/&lt;module&gt;.ae</code> - Single-file module in lib</li><li><code>src/&lt;module&gt;/module.ae</code> - Source directory with module file</li><li><code>src/&lt;module&gt;.ae</code> - Single-file module in src</li><li><code>&lt;module&gt;/module.ae</code> - Project root</li><li><code>&lt;module&gt;.ae</code> - Single file in project root</li><li>Steps 1 to 6 under the directory of the importing file, so a program built from another directory still finds the modules beside it</li></ol>
+<p>A module's own imports search its directory first (step 7, then steps 1 to 6): <code>std.jsonpath</code>'s <code>import parser</code> names <code>std/jsonpath/parser.ae</code> wherever the compiler runs, even in a directory that has a <code>parser.ae</code> of its own (#3103). The entry program's imports keep the project root first.</p>
 <p>For nested modules like <code>import mypackage.utils</code>:</p>
 <ul><li>Dots are converted to slashes: <code>mypackage/utils/module.ae</code></li><li>Same search paths are used with the converted path</li><li><code>~/.aether/packages/&lt;name&gt;/src/module.ae</code> - Installed package (via <code>ae add</code>)</li><li><code>~/.aether/packages/&lt;name&gt;/module.ae</code> - Installed package (flat layout)</li></ul>
 <p>Packages installed with <code>ae add</code> are searched after local paths. The package name is the first component of the import path.</p>
@@ -1035,7 +1036,7 @@ main() {
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.839 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.840 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.839</span>
+      <span class="vtag">v0.840</span>
     </nav>
   </div>
 </header>
@@ -693,7 +693,8 @@ main() {
 <pre><code>extern function_name(param1: type1, param2: type2) -&gt; return_type
 extern void_function(param: type)  // No return type = void</code></pre>
 <h3 id="type-mapping">Type Mapping</h3>
-<div class="tw"><table><thead><tr><th>Aether Type</th><th>C Type</th></tr></thead><tbody><tr><td><code>int</code></td><td><code>int</code></td></tr><tr><td><code>float</code></td><td><code>double</code></td></tr><tr><td><code>string</code></td><td><code>const char*</code></td></tr><tr><td><code>bool</code></td><td><code>int</code></td></tr><tr><td><code>byte</code></td><td><code>unsigned char</code></td></tr><tr><td><code>ptr</code></td><td><code>void*</code></td></tr></tbody></table></div>
+<div class="tw"><table><thead><tr><th>Aether Type</th><th>C Type</th></tr></thead><tbody><tr><td><code>int</code></td><td><code>int</code></td></tr><tr><td><code>long</code></td><td><code>int64_t</code></td></tr><tr><td><code>float</code></td><td><code>double</code></td></tr><tr><td><code>string</code></td><td><code>const char*</code></td></tr><tr><td><code>bool</code></td><td><code>int</code></td></tr><tr><td><code>byte</code></td><td><code>unsigned char</code></td></tr><tr><td><code>ptr</code></td><td><code>void*</code></td></tr></tbody></table></div>
+<blockquote><strong>Widths must agree.</strong> The compiler writes an extern's C prototype from these types, and no C compiler sees it beside the C function's own definition, so a mismatch is not an error: the call is made with the wrong width. A C <code>size_t</code>, <code>int64_t</code> or <code>uint64_t</code> is a <code>long</code> here, not an <code>int</code> (the upper half of a 32-bit argument is unspecified). Do not declare a bound C function with a plain C <code>long</code>: it is 32 bits on Windows and 64 elsewhere, so no Aether type matches it everywhere; use <code>int64_t</code> or <code>int</code>. <code>make check-extern-widths</code> checks every extern in this repository against the C that defines it (#3097). An extern marked <code>@c_import</code> is checked by the C compiler against the header instead.</blockquote>
 <blockquote><strong><code>byte</code> mapping note.</strong> <code>byte</code> lowers to <code>unsigned char</code>, not <code>uint8_t</code>. The two are typedef-compatible on every platform Aether targets, but C's strict-aliasing rules give <code>unsigned char *</code> an exemption (it can legally alias any type's bytes for read/write); <code>uint8_t *</code> does not. Since <code>byte</code> is exactly the type used in C extern signatures that scrape bytes from other types' storage (packed binary protocol parsers, NaN-boxing tag readers, on-disk file headers), <code>unsigned char</code> is the right choice.</blockquote>
 <blockquote><strong>Binding a C <code>bool</code> return: use <code>byte</code>, not <code>bool</code>.</strong> Aether's <code>bool</code> maps to C <code>int</code> (above), so declaring a C function that returns C's one-byte <code>_Bool</code> as <code>-&gt; bool</code> reads a full <code>int</code> and picks up three bytes of stack garbage past the result, a success can read back as something like <code>-255</code>. Bind a <code>bool</code>-returning C function with <code>-&gt; byte</code> instead: it reads exactly the one byte the ABI wrote, and <code>0</code> vs non-zero tests the same way.</blockquote>
 <h3 id="example-custom-c-functions">Example: Custom C Functions</h3>
@@ -1344,7 +1345,7 @@ server_get(raw, "/health", _h_health, 0)   // references ae_h_health</code></pre
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.839 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.840 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

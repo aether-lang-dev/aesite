@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.839</span>
+      <span class="vtag">v0.840</span>
     </nav>
   </div>
 </header>
@@ -892,7 +892,7 @@ AetherActorRef scheduler_actor_ref(ActorBase* actor);   <span class="com">// the
     <span class="kw">char</span>* my_string;
 } MyActor;</code></pre>
 <p>The <code>ActorBase</code> contains:</p>
-<ul><li><code>active</code>: Processing flag (<code>atomic_int</code>)</li><li><code>id</code>: Unique actor ID</li><li><code>mailbox</code>: Message queue (ring buffer)</li><li><code>step</code>: Your message handler</li><li><code>assigned_core</code>: Current core assignment (<code>atomic_int</code>, safe for cross-core reads)</li><li><code>migrate_to</code>: Affinity hint for message-driven migration (<code>atomic_int</code>)</li><li><code>main_thread_only</code>: If set, scheduler threads skip this actor (<code>atomic_int</code>)</li><li><code>spsc_queue</code>: Lock-free same-core messaging (pointer, lazily allocated)</li><li><code>reply_slot</code>: Non-NULL during ask/reply (<code>_Atomic</code> pointer)</li><li><code>step_lock</code>: Prevents concurrent <code>step()</code> during work-steal handoff (<code>atomic_flag</code>)</li><li><code>timeout_ns</code>, <code>last_activity_ns</code>: Receive timeout and when idling began</li><li><code>dead</code>: Set once the actor panicked or was released; it is skipped after</li><li><code>alloc_size</code>, <code>destroy_state</code>, <code>scheduler_owned</code>: How the scheduler frees it</li><li><code>inbox</code>, <code>thread_parked</code>: For an actor with its own thread (<code>auto_process</code>), where every sender puts its messages and whether the thread sleeps idle</li></ul>
+<ul><li><code>active</code>: Processing flag (<code>atomic_int</code>)</li><li><code>id</code>: Unique actor ID</li><li><code>mailbox</code>: Message queue (ring buffer)</li><li><code>step</code>: Your message handler</li><li><code>assigned_core</code>: Current core assignment (<code>atomic_int</code>, safe for cross-core reads)</li><li><code>migrate_to</code>: Affinity hint for message-driven migration (<code>atomic_int</code>)</li><li><code>spsc_queue</code>: Lock-free same-core messaging (pointer, lazily allocated)</li><li><code>reply_slot</code>: Non-NULL during ask/reply (<code>_Atomic</code> pointer)</li><li><code>step_lock</code>: Prevents concurrent <code>step()</code> during work-steal handoff (<code>atomic_flag</code>)</li><li><code>timeout_ns</code>, <code>last_activity_ns</code>: Receive timeout and when idling began</li><li><code>dead</code>: Set once the actor panicked or was released; it is skipped after</li><li><code>alloc_size</code>, <code>destroy_state</code>, <code>scheduler_owned</code>: How the scheduler frees it</li><li><code>inbox</code>, <code>thread_parked</code>: For an actor with its own thread (<code>auto_process</code>), where every sender puts its messages and whether the thread sleeps idle</li><li><code>inflight</code>: Messages for the actor on their way through a core's queues; it moves to another core only while this is 0</li></ul>
 <p>Embedding <code>ActorBase</code> as the first member, as above, keeps the layout right whatever fields it gains. The full list, in order, with a comment for each, is the <code>AETHER_ACTOR_BASE_FIELDS</code> macro in <code>runtime/scheduler/multicore_scheduler.h</code>.</p>
 <h2 id="message-handler-pattern">Message Handler Pattern</h2>
 <p>A step takes <strong>one</strong> message per call, as a generated step does: the scheduler calls it once for each message it delivers and counts each call as one message processed. A step that drained its whole mailbox would leave <code>scheduler_wait()</code>, and so <code>scheduler_shutdown()</code>, waiting for messages it counts as never processed.</p>
@@ -979,8 +979,7 @@ Counter* spawn_Counter(<span class="kw">void</span>);
 <p>Include the header in your C host application and send through the helpers, or build a struct by field name and pass it to <code>aether_send_message(actor, &amp;msg, sizeof msg)</code>. A <code>string</code> field takes a <code>const char*</code> the host keeps alive until the message has been handled; the actor does not free it.</p>
 <hr>
 <h2 id="polling-from-a-c-event-loop">Polling from a C Event Loop</h2>
-<p>When a C event loop (raylib, SDL, game loop, etc.) holds the main thread, Aether actors in main-thread mode cannot process messages, the scheduler has no opportunity to run.</p>
-<p>Use <code>aether_scheduler_poll()</code> to drain pending messages from C code between frames:</p>
+<p>With threads, actors run on the scheduler's threads from the first spawn on, so a C event loop (raylib, SDL, a game loop) that holds the main thread does not hold them up, and has nothing to poll: <code>aether_scheduler_poll</code> returns 0 there (#3112). In the cooperative (no-threads) runtime the actors run only when the host lets them, so a C loop calls <code>aether_scheduler_poll()</code> between frames:</p>
 <pre><code>#include <span class="str">"runtime/scheduler/multicore_scheduler.h"</span>
 
 <span class="com">// In your render/game loop:</span>
@@ -997,7 +996,7 @@ Counter* spawn_Counter(<span class="kw">void</span>);
 <span class="com">//   max_per_actor: max messages to process per actor per call (0 = unlimited)</span>
 <span class="com">//   returns: total messages processed across all actors</span>
 <span class="kw">int</span> aether_scheduler_poll(<span class="kw">int</span> max_per_actor);</code></pre>
-<p><code>aether_scheduler_poll</code> is safe to call from the main thread at any time. It only processes actors that are in main-thread mode; scheduler worker threads are not affected. It is a no-op if no actors are registered.</p>
+<p>In the cooperative runtime <code>aether_scheduler_poll</code> steps every actor that has messages, at most <code>max_per_actor</code> of them each; with threads it returns 0. It is a no-op if no actors are registered.</p>
 <h2 id="see-also">See Also</h2>
 <ul><li><a href="/Docs/c-interop.html">C Interoperability</a> - Calling C from Aether</li><li><a href="/Docs/runtime-config.html">Runtime Configuration</a> - Runtime flags and options</li><li><a href="/Docs/actor-concurrency.html">Actor Concurrency</a> - Actor model concepts</li></ul>
 <nav class="doc-prevnext" aria-label="Previous and next page"><a class="pn-prev" href="/Docs/c-interop.html"><span class="pn-k">Previous</span><span class="pn-t">C Interoperability</span></a><a class="pn-next" href="/Docs/emit-lib.html"><span class="pn-k">Next</span><span class="pn-t">Embedding Aether as a Shared Library (--emit=lib)</span></a></nav>
@@ -1012,7 +1011,7 @@ Counter* spawn_Counter(<span class="kw">void</span>);
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.839 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.840 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

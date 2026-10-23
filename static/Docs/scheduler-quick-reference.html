@@ -4,11 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Aether Scheduler - Quick Reference · Aether</title>
-<meta name="description" content="Single-actor programs bypass the scheduler entirely. When only one actor exists and all messages originate from the main thread, the runtime processes...">
+<meta name="description" content="A send is asynchronous whatever the number of actors: the payload is copied to the heap and handed to the scheduler, and a scheduler thread runs the...">
 <link rel="canonical" href="https://aether-lang.dev/Docs/scheduler-quick-reference.html">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Aether Scheduler - Quick Reference · Aether">
-<meta property="og:description" content="Single-actor programs bypass the scheduler entirely. When only one actor exists and all messages originate from the main thread, the runtime processes...">
+<meta property="og:description" content="A send is asynchronous whatever the number of actors: the payload is copied to the heap and handed to the scheduler, and a scheduler thread runs the...">
 <meta property="og:url" content="https://aether-lang.dev/Docs/scheduler-quick-reference.html">
 <meta property="og:image" content="https://aether-lang.dev/og.png">
 <meta name="twitter:card" content="summary_large_image">
@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.839</span>
+      <span class="vtag">v0.840</span>
     </nav>
   </div>
 </header>
@@ -665,18 +665,13 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <article class="doc-body" id="doc">
         <div class="bc"><span class="prompt">$</span>docs / runtime</div>
 <h1 id="aether-scheduler---quick-reference">Aether Scheduler - Quick Reference</h1>
-<h2 id="main-thread-mode">Main Thread Mode</h2>
-<p>Single-actor programs bypass the scheduler entirely. When only one actor exists and all messages originate from the main thread, the runtime processes messages synchronously without spawning scheduler threads.</p>
-<p><strong>Activation:</strong></p>
-<ul><li>Automatic: Enabled when the first actor spawns, disabled when a second actor spawns</li><li>Manual disable: Set <code>AETHER_NO_INLINE=1</code> environment variable</li></ul>
-<p><strong>Mechanism:</strong></p>
-<ul><li><code>scheduler_start()</code> returns immediately</li><li><code>scheduler_wait()</code> returns immediately (non-destructive; does not stop threads)</li><li><code>aether_send_message</code> processes synchronously via <code>aether_send_message_sync</code></li><li><strong>Threaded mode:</strong> Zero-copy, message data passed directly from caller's stack</li><li><strong>Cooperative mode:</strong> Heap-copy, message data is <code>malloc</code>'d because mailbox FIFO order means the sent message may not be consumed by the immediate <code>step()</code> call</li></ul>
-<p><strong>Per-actor flag:</strong> The <code>main_thread_only</code> field on <code>ActorBase</code> signals scheduler threads to skip processing this actor. When a second actor spawns, the flag is cleared on the first actor. In cooperative mode, this flag stays set for all actors.</p>
+<h2 id="sends">Sends</h2>
+<p>A send is asynchronous whatever the number of actors: the payload is copied to the heap and handed to the scheduler, and a scheduler thread runs the handler while the sender goes on (#3112).</p>
 <hr>
 <h2 id="cooperative-scheduler">Cooperative Scheduler</h2>
 <p>On platforms without pthreads (WebAssembly, embedded) or when threading is explicitly disabled (<code>-DAETHER_NO_THREADING</code>), the cooperative scheduler (<code>aether_scheduler_coop.c</code>) provides the same API as the multi-core scheduler but runs everything on a single thread.</p>
 <p><strong>Key differences:</strong></p>
-<ul><li><code>scheduler_init()</code> forces <code>num_cores = 1</code>, <code>main_thread_mode = true</code></li><li><code>scheduler_start()</code> / <code>scheduler_stop()</code> are no-ops</li><li><code>scheduler_wait()</code> polls all actors via <code>aether_scheduler_poll()</code> until no messages remain</li><li>All sends go to local mailbox (no cross-core routing)</li><li>Ask/reply is synchronous (poll until <code>reply_ready</code>)</li></ul>
+<ul><li><code>scheduler_init()</code> forces <code>num_cores = 1</code></li><li><code>scheduler_start()</code> / <code>scheduler_stop()</code> are no-ops</li><li>A send queues (the mailbox, then the actor's inbox past 32 messages) and never runs a handler</li><li><code>scheduler_wait()</code> polls all actors via <code>aether_scheduler_poll()</code> until no messages remain</li><li>All sends go to local mailbox (no cross-core routing)</li><li>Ask/reply polls until <code>reply_ready</code></li></ul>
 <p><strong>Selection:</strong> Controlled by <code>PLATFORM=wasm|embedded</code> or auto-detected from <code>EXTRA_CFLAGS</code> containing <code>AETHER_NO_THREADING</code>. Only one scheduler .c file is compiled.</p>
 <pre><code><span class="com"># Test cooperative mode on native</span>
 make ci-coop
@@ -787,7 +782,7 @@ scheduler_release_actor(actor);</code></pre>
 <h3 id="high-latency">High Latency</h3>
 <ul><li>Tune <code>SCHEDULER_DRAIN_BATCH</code> for latency-sensitive workloads (lower = less batching delay)</li><li>Check progressive backoff thresholds</li><li>Avoid blocking operations in actor step functions</li></ul>
 <h3 id="crashes">Crashes</h3>
-<ul><li>Verify every actor struct starts with <code>ActorBase</code>'s fields: expand <code>AETHER_ACTOR_BASE_FIELDS</code> first (or put an <code>ActorBase</code> member first) rather than copying the list, which drifts as fields are added. In order, they are <code>active</code>, <code>id</code>, <code>mailbox</code>, <code>step</code>, <code>thread</code>, <code>auto_process</code>, <code>assigned_core</code>, <code>migrate_to</code>, <code>main_thread_only</code>, <code>spsc_queue</code>, <code>reply_slot</code>, <code>step_lock</code>, <code>timeout_ns</code>, <code>last_activity_ns</code>, <code>dead</code>, <code>alloc_size</code>, <code>destroy_state</code>, <code>scheduler_owned</code>, <code>inbox</code>, <code>thread_parked</code>.</li><li>Initialize <code>migrate_to = -1</code> after actor creation</li><li>Use <code>scheduler_send_remote</code> instead of direct mailbox writes for cross-core messages</li><li>Call <code>scheduler_shutdown()</code> before process exit (waits for quiescence, stops and joins threads)</li></ul>
+<ul><li>Verify every actor struct starts with <code>ActorBase</code>'s fields: expand <code>AETHER_ACTOR_BASE_FIELDS</code> first (or put an <code>ActorBase</code> member first) rather than copying the list, which drifts as fields are added. In order, they are <code>active</code>, <code>id</code>, <code>mailbox</code>, <code>step</code>, <code>thread</code>, <code>auto_process</code>, <code>assigned_core</code>, <code>migrate_to</code>, <code>spsc_queue</code>, <code>reply_slot</code>, <code>step_lock</code>, <code>timeout_ns</code>, <code>last_activity_ns</code>, <code>dead</code>, <code>alloc_size</code>, <code>destroy_state</code>, <code>scheduler_owned</code>, <code>inbox</code>, <code>thread_parked</code>, <code>inflight</code>.</li><li>Initialize <code>migrate_to = -1</code> after actor creation</li><li>Use <code>scheduler_send_remote</code> instead of direct mailbox writes for cross-core messages</li><li>Call <code>scheduler_shutdown()</code> before process exit (waits for quiescence, stops and joins threads)</li></ul>
 <h2 id="files-reference">Files Reference</h2>
 <h3 id="headers">Headers</h3>
 <ul><li><code>runtime/actors/actor_state_machine.h</code> - Message struct, mailbox</li><li><code>runtime/scheduler/multicore_scheduler.h</code> - Scheduler API, ActorBase, spinlock</li><li><code>runtime/scheduler/lockfree_queue.h</code> - Cross-core message queue</li><li><code>runtime/actors/aether_spsc_queue.h</code> - Same-core SPSC queue</li><li><code>runtime/actors/aether_adaptive_batch.h</code> - Adaptive batch sizing</li></ul>
@@ -798,7 +793,7 @@ scheduler_release_actor(actor);</code></pre>
 <nav class="doc-prevnext" aria-label="Previous and next page"><a class="pn-prev" href="/Docs/actor-concurrency.html"><span class="pn-k">Previous</span><span class="pn-t">Aether Runtime Guide</span></a><a class="pn-next" href="/Docs/memory-management.html"><span class="pn-k">Next</span><span class="pn-t">Memory Management</span></a></nav>
       </article>
     </main>
-    <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#main-thread-mode" class="l2" data-id="main-thread-mode">Main Thread Mode</a><a href="#cooperative-scheduler" class="l2" data-id="cooperative-scheduler">Cooperative Scheduler</a><a href="#actor-timeouts" class="l2" data-id="actor-timeouts">Actor Timeouts</a><a href="#cooperative-preemption" class="l2" data-id="cooperative-preemption">Cooperative Preemption</a><a href="#scheduler-usage" class="l2" data-id="scheduler-usage">Scheduler Usage</a><a href="#actor-allocation" class="l2" data-id="actor-allocation">Actor Allocation</a><a href="#message-flow" class="l2" data-id="message-flow">Message Flow</a><a href="#configuration" class="l2" data-id="configuration">Configuration</a><a href="#message-coalescing" class="l3" data-id="message-coalescing">Message Coalescing</a><a href="#adaptive-batch-size" class="l3" data-id="adaptive-batch-size">Adaptive Batch Size</a><a href="#mailbox-size" class="l3" data-id="mailbox-size">Mailbox Size</a><a href="#message-pool" class="l3" data-id="message-pool">Message Pool</a><a href="#cross-core-queue" class="l3" data-id="cross-core-queue">Cross-Core Queue</a><a href="#idle-detection" class="l2" data-id="idle-detection">Idle Detection</a><a href="#core-assignment-and-migration" class="l2" data-id="core-assignment-and-migration">Core Assignment and Migration</a><a href="#best-practices" class="l2" data-id="best-practices">Best Practices</a><a href="#troubleshooting" class="l2" data-id="troubleshooting">Troubleshooting</a><a href="#low-throughput" class="l3" data-id="low-throughput">Low Throughput</a><a href="#high-latency" class="l3" data-id="high-latency">High Latency</a><a href="#crashes" class="l3" data-id="crashes">Crashes</a><a href="#files-reference" class="l2" data-id="files-reference">Files Reference</a><a href="#headers" class="l3" data-id="headers">Headers</a><a href="#implementation" class="l3" data-id="implementation">Implementation</a><a href="#tests" class="l3" data-id="tests">Tests</a></nav>
+    <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#sends" class="l2" data-id="sends">Sends</a><a href="#cooperative-scheduler" class="l2" data-id="cooperative-scheduler">Cooperative Scheduler</a><a href="#actor-timeouts" class="l2" data-id="actor-timeouts">Actor Timeouts</a><a href="#cooperative-preemption" class="l2" data-id="cooperative-preemption">Cooperative Preemption</a><a href="#scheduler-usage" class="l2" data-id="scheduler-usage">Scheduler Usage</a><a href="#actor-allocation" class="l2" data-id="actor-allocation">Actor Allocation</a><a href="#message-flow" class="l2" data-id="message-flow">Message Flow</a><a href="#configuration" class="l2" data-id="configuration">Configuration</a><a href="#message-coalescing" class="l3" data-id="message-coalescing">Message Coalescing</a><a href="#adaptive-batch-size" class="l3" data-id="adaptive-batch-size">Adaptive Batch Size</a><a href="#mailbox-size" class="l3" data-id="mailbox-size">Mailbox Size</a><a href="#message-pool" class="l3" data-id="message-pool">Message Pool</a><a href="#cross-core-queue" class="l3" data-id="cross-core-queue">Cross-Core Queue</a><a href="#idle-detection" class="l2" data-id="idle-detection">Idle Detection</a><a href="#core-assignment-and-migration" class="l2" data-id="core-assignment-and-migration">Core Assignment and Migration</a><a href="#best-practices" class="l2" data-id="best-practices">Best Practices</a><a href="#troubleshooting" class="l2" data-id="troubleshooting">Troubleshooting</a><a href="#low-throughput" class="l3" data-id="low-throughput">Low Throughput</a><a href="#high-latency" class="l3" data-id="high-latency">High Latency</a><a href="#crashes" class="l3" data-id="crashes">Crashes</a><a href="#files-reference" class="l2" data-id="files-reference">Files Reference</a><a href="#headers" class="l3" data-id="headers">Headers</a><a href="#implementation" class="l3" data-id="implementation">Implementation</a><a href="#tests" class="l3" data-id="tests">Tests</a></nav>
   </div>
 </div>
 <script src="/docs.js" defer></script>
@@ -807,7 +802,7 @@ scheduler_release_actor(actor);</code></pre>
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.839 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.840 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

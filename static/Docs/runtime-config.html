@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.839</span>
+      <span class="vtag">v0.840</span>
     </nav>
   </div>
 </header>
@@ -800,7 +800,7 @@ aether_runtime_init(<span class="num">8</span>, flags);</code></pre>
 } <span class="kw">else</span> {
     scheduler_send_remote(actor, msg, my_core);
 }</code></pre>
-<p>A single-actor program takes an earlier path still: main-thread mode runs <code>step()</code> inline on the sender's thread rather than queueing at all. The SPSC queue is allocated on first use (<code>ensure_spsc_queue</code> in <a href="https://github.com/aether-lang-dev/aether/tree/main/runtime/scheduler/multicore_scheduler.c"><code>runtime/scheduler/multicore_scheduler.c</code></a>), so an actor that never receives a same-core send does not pay for one.</p>
+<p>Every send takes this path, whatever the number of actors (#3112). The SPSC queue is allocated on first use (<code>ensure_spsc_queue</code> in <a href="https://github.com/aether-lang-dev/aether/tree/main/runtime/scheduler/multicore_scheduler.c"><code>runtime/scheduler/multicore_scheduler.c</code></a>), so an actor that never receives a same-core send does not pay for one.</p>
 <h3 id="message-pool-allocation">Message Pool Allocation</h3>
 <pre><code><span class="com">// runtime/actors/aether_message_pool.h, per-thread pool, abridged</span>
 <span class="kw">static</span> <span class="kw">inline</span> Message* message_pool_alloc(<span class="kw">void</span>) {
@@ -812,7 +812,7 @@ aether_runtime_init(<span class="num">8</span>, flags);</code></pre>
 }</code></pre>
 <hr>
 <h2 id="environment-variables">Environment Variables</h2>
-<div class="tw"><table><thead><tr><th>Variable</th><th>Effect</th></tr></thead><tbody><tr><td><code>AETHER_NO_INLINE</code></td><td>Disables Main Thread Actor Mode (forces scheduler-based processing)</td></tr><tr><td><code>AETHER_INLINE</code></td><td>Forces Main Thread Actor Mode even with multiple actors</td></tr><tr><td><code>AETHER_SINGLE_CORE</code></td><td>Pins all actors to core 0 (eliminates cross-core overhead)</td></tr><tr><td><code>AETHER_PROFILE</code></td><td>Memory profile: <code>micro</code>, <code>small</code>, <code>medium</code> (default), <code>large</code></td></tr><tr><td><code>AETHER_MSG_POOL_SIZE</code></td><td>Override message pool size (default from profile)</td></tr><tr><td><code>AETHER_VERBOSE</code></td><td>Print optimization configuration at startup</td></tr><tr><td><code>AETHER_PREEMPT</code></td><td>Enable cooperative preemption (time-based drain loop break, default 1ms)</td></tr><tr><td><code>AETHER_PREEMPT_MS</code></td><td>Override preemption threshold in milliseconds (default 1)</td></tr><tr><td><code>BENCHMARK_MESSAGES</code></td><td>Sets message count for benchmark programs</td></tr></tbody></table></div>
+<div class="tw"><table><thead><tr><th>Variable</th><th>Effect</th></tr></thead><tbody><tr><td><code>AETHER_SINGLE_CORE</code></td><td>Pins all actors to core 0 (eliminates cross-core overhead)</td></tr><tr><td><code>AETHER_PROFILE</code></td><td>Memory profile: <code>micro</code>, <code>small</code>, <code>medium</code> (default), <code>large</code></td></tr><tr><td><code>AETHER_MSG_POOL_SIZE</code></td><td>Override message pool size (default from profile)</td></tr><tr><td><code>AETHER_VERBOSE</code></td><td>Print optimization configuration at startup</td></tr><tr><td><code>AETHER_PREEMPT</code></td><td>Enable cooperative preemption (time-based drain loop break, default 1ms)</td></tr><tr><td><code>AETHER_PREEMPT_MS</code></td><td>Override preemption threshold in milliseconds (default 1)</td></tr><tr><td><code>BENCHMARK_MESSAGES</code></td><td>Sets message count for benchmark programs</td></tr></tbody></table></div>
 <hr>
 <h2 id="best-practices">Best Practices</h2>
 <ol><li><strong>Always use <code>AETHER_FLAG_AUTO_DETECT</code></strong> unless you have a specific reason not to</li><li><strong>Use <code>AETHER_FLAG_VERBOSE</code></strong> during development to see what's enabled</li><li><strong>Don't recompile</strong> for different CPUs - auto-detect handles it</li><li><strong>Test on target hardware</strong> to verify optimizations are available</li><li><strong>Profile first</strong> - measure actual performance gains</li></ol>
@@ -859,7 +859,7 @@ AETHER_VERBOSE=<span class="num">1</span> ./program</code></pre>
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.839 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.840 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>
