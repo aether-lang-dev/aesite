@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.847</span>
+      <span class="vtag">v0.848</span>
     </nav>
   </div>
 </header>
@@ -673,13 +673,9 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <pre><code>git clone https://github.com/aether-lang-dev/aether.git
 cd aether
 
-make ae                      <span class="com"># build the compiler (aetherc) + the `ae` CLI, no tests</span>
-sudo make install            <span class="com"># install ae, aetherc, libaether.a, stdlib to /usr/local</span>
-
-<span class="com"># Optional: native contrib modules (sqlite, host_python, …), built only</span>
-<span class="com"># where the dev libraries are present; the rest are skipped, not fatal.</span>
-make contrib
-sudo make install-contrib</code></pre>
+./install.sh --contrib-too   <span class="com"># build from this tree, install to ~/.aether, no sudo</span></code></pre>
+<p>That builds the compiler, the <code>ae</code> CLI and the stdlib from the checkout, installs them to <code>~/.aether</code>, and (with <code>--contrib-too</code>) builds and installs the native contrib archives (sqlite, host_python, …) for each module whose dev library is present; the rest are skipped, not fatal. Leave the flag off if you don't use contrib. No tests run.</p>
+<p>Prefer this to <code>sudo make install</code>. An install under <code>/usr/local</code> is root-owned and shared by every checkout and session on the machine, and both <code>ae</code> and the compiler fall back to it when they find nothing earlier, so a stale one quietly supplies the wrong version and needs <code>sudo</code> to remove.</p>
 <p>Then, in a consumer project, <code>import std.X</code> / <code>import contrib.X</code> resolve, and you link Aether-as-a-library with <strong><code>$(ae cflags)</code></strong> (never hand-rolled <code>-I</code>/<code>-L</code>/<code>-laether</code>). Details below.</p>
 <hr>
 <h2 id="prerequisites">Prerequisites</h2>
@@ -698,18 +694,24 @@ sudo make install-contrib</code></pre>
 ./build/ae run examples/basics/hello.ae</code></pre>
 <p>If you want to stay entirely in the source tree (no system install), you can stop here and use <code>./build/ae</code> directly, its <code>cflags</code> will point the linker at <code>build/libaether.a</code> in this tree (run <code>make stdlib</code> once so that archive exists).</p>
 <h3 id="2-install-still-no-tests">2. Install (still no tests)</h3>
-<pre><code>sudo make install            <span class="com"># PREFIX defaults to /usr/local</span></code></pre>
-<p><code>make install</code> builds the optimized compiler, the <code>ae</code> CLI, and the stdlib archive, then lays them down, <strong>it has no test dependency</strong>. Override the location with <code>PREFIX</code>:</p>
-<pre><code>make install PREFIX=<span class="str">"$HOME/.local"</span>     <span class="com"># no sudo needed for a user prefix</span></code></pre>
+<pre><code>./install.sh                 <span class="com"># installs to ~/.aether; add --contrib-too for contrib</span></code></pre>
+<p><code>install.sh</code> builds from the tree around it and installs to <code>~/.aether</code>. It also records the build under <code>~/.aether/versions/</code>, so <code>ae use &lt;version&gt;</code> switches between it and any other installed version, and it adds <code>~/.aether/bin</code> to your <code>PATH</code> in your shell rc. Flags and an install prefix combine in any order (<code>./install.sh --contrib-too /opt/aether</code>).</p>
+<p><code>make install</code> lays down the same files without the version record or the rc change. Its <code>PREFIX</code> also defaults to <code>~/.aether</code>:</p>
+<pre><code>make install                           <span class="com"># ~/.aether, no sudo</span>
+make install PREFIX=<span class="str">"$HOME/.local"</span>     <span class="com"># any prefix you own</span>
+sudo make install PREFIX=/usr/local    <span class="com"># a system install, deliberately</span></code></pre>
+<p>As root, <code>make install</code> and <code>make install-contrib</code> refuse to run without an explicit <code>PREFIX</code>, because under <code>sudo</code> <code>$HOME</code> is root's and the default would land in <code>/root/.aether</code>.</p>
 <p>What lands where (full reference: <a href="/Docs/install-layout.html">install-layout.md</a>):</p>
 <pre><code>$(PREFIX)/bin/ae, $(PREFIX)/bin/aetherc
 $(PREFIX)/lib/aether/libaether.a            # the runtime/stdlib archive
 $(PREFIX)/share/aether/…                     # shipped source, MANIFEST, contrib descriptors</code></pre>
 <p>Make sure <code>$(PREFIX)/bin</code> is on your <code>PATH</code>.</p>
-<blockquote><strong>Alternative, user-local install via <code>./install.sh</code>.</strong> This source-builds and installs to <code>~/.aether</code> and patches your shell rc. Note it installs <code>ae</code>/<code>aetherc</code> and the contrib <em>descriptors</em> (so <code>import contrib.X</code> resolves) but does <strong>not</strong> build the contrib native <code>.a</code> archives, for those, run the contrib targets below against the same prefix.</blockquote>
+<p>Without <code>--contrib-too</code>, <code>install.sh</code> installs the contrib <em>descriptors</em> (so <code>import contrib.X</code> resolves) but not the native <code>.a</code> archives.</p>
 <h3 id="3-contrib-modules-optional-deps-permitting">3. Contrib modules (optional, deps-permitting)</h3>
-<pre><code>make contrib                 <span class="com"># probe + build only what your system can</span>
-sudo make install-contrib    <span class="com"># install the built archives + descriptors</span></code></pre>
+<pre><code>./install.sh --contrib-too   <span class="com"># as part of the install, or separately:</span>
+make contrib                 <span class="com"># probe + build only what your system can</span>
+make install-contrib         <span class="com"># install the built archives + descriptors to ~/.aether</span></code></pre>
+<p><code>--contrib-too</code> installs the archives before the version is recorded, so they are part of <code>~/.aether/versions/&lt;v&gt;</code> and <code>ae use</code> carries them; a separate <code>make install-contrib</code> is not recorded there.</p>
 <p><code>make contrib</code> runs <code>tests/scripts/contrib_build.sh</code>, which probes each module's dependency and builds only the ones it finds. Expected output looks like:</p>
 <pre><code>  sqlite             OK   build/contrib/libaether_sqlite.a
   host_python        OK   build/contrib/libaether_host_python.a
@@ -733,9 +735,8 @@ link_flags = <span class="str">"-laether_sqlite -lsqlite3"</span></code></pre>
 <h2 id="tracking-head-over-time">Tracking HEAD over time</h2>
 <p>To move to a newer <code>HEAD</code>:</p>
 <pre><code>git pull
-make clean &amp;&amp; make ae        <span class="com"># clean rebuild, incremental sometimes misses aetherc reshapes</span>
-sudo make install
-make contrib &amp;&amp; sudo make install-contrib   <span class="com"># if you use contrib</span></code></pre>
+make clean                   <span class="com"># clean rebuild, incremental sometimes misses aetherc reshapes</span>
+./install.sh --contrib-too   <span class="com"># drop the flag if you don't use contrib</span></code></pre>
 <p><code>ae --version</code> describes the binary in front of you: the version it was compiled from, its own path, and the <code>aetherc</code> it will actually run with that one's version. It says so because the two can differ, and <code>aetherc</code> is what performs codegen; a mismatch is printed as a warning rather than left to be discovered later. A pinned release (<code>~/.aether/active_version</code>, written by <code>ae version use</code>) is reported as a pin and never as the binary's version.</p>
 <p>The version stamp itself comes from the <code>VERSION</code> file in the tree. After a <code>git pull</code>, a <code>make clean</code> ensures it isn't stale.</p>
 <hr>
@@ -756,7 +757,7 @@ make install-contrib PREFIX=<span class="str">"$PWD/.aether-prefix"</span>
 printf <span class="str">'main() { println("ok") }\n'</span> &gt; /tmp/smoke.ae
 <span class="str">"$PWD/.aether-prefix/bin/ae"</span> run /tmp/smoke.ae <span class="com"># prints "ok"</span></code></pre>
 <p>Rules of thumb:</p>
-<ul><li><strong>Do not run the test suite</strong> (<code>make test</code>, <code>make test-ae</code>, <code>make ci</code>) to <em>use</em> Aether, those validate changes <em>to</em> Aether and are slow. Building + installing is sufficient and touches no test code.</li><li><strong>Treat contrib <code>SKIP</code> lines as success</strong>, not failure, they mean a dev library is absent. Only a non-zero exit from <code>make contrib</code> / <code>make install-contrib</code> is a real failure.</li><li><strong>Always link downstream C with <code>$(ae cflags)</code></strong>, do not synthesize <code>-I</code> / <code>-L</code> / <code>-laether</code> by hand; the include path and the <code>lib/aether/</code> archive location vary by install mode and <code>ae cflags</code> resolves them.</li><li>Re-running <code>make ae</code> / <code>make install</code> is safe. After a <code>git pull</code>, run <code>make clean &amp;&amp; make ae</code> before reinstalling so the version stamp and any compiler reshape are picked up.</li><li>Use a writable <code>PREFIX=…</code> to avoid <code>sudo</code>, and make sure <code>$(PREFIX)/bin</code> is on <code>PATH</code> (or invoke <code>ae</code> by absolute path as above). The default <code>PREFIX</code> is <code>/usr/local</code>.</li><li>A <code>--emit=lib</code> link error mentioning <code>recompile with -fPIC</code> means a stale pre-0.181 <code>libaether.a</code>; rebuild from current <code>HEAD</code>.</li><li>If <code>ae --version</code> and the <code>VERSION</code> file disagree, the binary is stale: <code>make clean &amp;&amp; make ae</code>. If it warns that its <code>aetherc</code> is a different version, two installs are mixed; <code>install.sh</code> defaults to <code>~/.aether/bin</code> and <code>get.sh</code> to <code>~/.local/bin</code>, and whichever is earlier on <code>PATH</code> wins. Both installers now name the shadowing binary when they see one.</li></ul>
+<ul><li><strong>Do not run the test suite</strong> (<code>make test</code>, <code>make test-ae</code>, <code>make ci</code>) to <em>use</em> Aether, those validate changes <em>to</em> Aether and are slow. Building + installing is sufficient and touches no test code.</li><li><strong>Treat contrib <code>SKIP</code> lines as success</strong>, not failure, they mean a dev library is absent. Only a non-zero exit from <code>make contrib</code> / <code>make install-contrib</code> is a real failure.</li><li><strong>Always link downstream C with <code>$(ae cflags)</code></strong>, do not synthesize <code>-I</code> / <code>-L</code> / <code>-laether</code> by hand; the include path and the <code>lib/aether/</code> archive location vary by install mode and <code>ae cflags</code> resolves them.</li><li>Re-running <code>make ae</code> / <code>make install</code> is safe. After a <code>git pull</code>, run <code>make clean &amp;&amp; make ae</code> before reinstalling so the version stamp and any compiler reshape are picked up.</li><li>Use a writable <code>PREFIX=…</code> to avoid <code>sudo</code>, and make sure <code>$(PREFIX)/bin</code> is on <code>PATH</code> (or invoke <code>ae</code> by absolute path as above). The default <code>PREFIX</code> is <code>~/.aether</code>; as root, <code>make install</code> refuses to run without an explicit one.</li><li>A <code>--emit=lib</code> link error mentioning <code>recompile with -fPIC</code> means a stale pre-0.181 <code>libaether.a</code>; rebuild from current <code>HEAD</code>.</li><li>If <code>ae --version</code> and the <code>VERSION</code> file disagree, the binary is stale: <code>make clean &amp;&amp; make ae</code>. If it warns that its <code>aetherc</code> is a different version, two installs are mixed; <code>install.sh</code> defaults to <code>~/.aether/bin</code> and <code>get.sh</code> to <code>~/.local/bin</code>, and whichever is earlier on <code>PATH</code> wins. Both installers now name the shadowing binary when they see one.</li></ul>
 <hr>
 <h2 id="see-also">See also</h2>
 <ul><li><a href="/Docs/install-layout.html">install-layout.md</a>, exactly what <code>make install</code> / <code>install.sh</code> lay down, and the MANIFEST contract aeb relies on.</li><li><a href="/Docs/getting-started.html">getting-started.md</a>, first program, project config, error handling, the language tour.</li><li><a href="/Docs/emit-lib.html">emit-lib.md</a>, building Aether as a <code>.so</code>/<code>.dylib</code> for FFI hosts (<code>--emit=lib</code>).</li><li><a href="https://github.com/aether-lang-dev/aether/blob/main/CONTRIBUTING.md">CONTRIBUTING.md</a>, the contributor flow, including the full CI suite you'd run if you were changing Aether itself.</li></ul>
@@ -772,7 +773,7 @@ printf <span class="str">'main() { println("ok") }\n'</span> &gt; /tmp/smoke.ae
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.847 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.848 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>
