@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.846</span>
+      <span class="vtag">v0.847</span>
     </nav>
   </div>
 </header>
@@ -689,8 +689,19 @@ main() {
 <p><strong>4. Interaction with structural sharing (e.g. <code>*StringSeq</code>'s shared tails)?</strong> Isolation in v1 is shallow: the linearity is enforced on the wrapper and its immediate source binding, not on the transitive graph. A deep-share value can be wrapped, and the wrapper's single-use discipline still holds, but v1 does not verify that the value's internals are unshared. The honest rule is "isolation is a binding-level move discipline; structural non-aliasing of the payload is the programmer's responsibility until the deep check lands."</p>
 <h2 id="the-move-checker">The move checker</h2>
 <p>Enforcement is a forward pass over each function body (<code>iso_check</code> in <code>compiler/analysis/typechecker.c</code>). It tracks, per control-flow path, the set of names already moved:</p>
-<ul><li><strong>Sequences</strong>: a move carries forward to later statements.</li><li><strong><code>if</code> / <code>else</code></strong>: each branch is analyzed on a copy of the incoming set; the join is their union, skipping a branch that diverges (ends in <code>return</code> / <code>break</code> / <code>continue</code>). So a value consumed on <em>both</em> branches is moved afterward, while one consumed on a branch that returns does not taint the fall-through.</li><li><strong>Loops</strong>: the body is analyzed twice, so consuming a loop-external Isolated inside the body (which would repeat across iterations) is caught, while a value created fresh and consumed each iteration is fine.</li><li><strong>Rebinding</strong>: assigning or re-declaring a name revives it (a fresh binding), so <code>it = isolate(...)</code> after a previous <code>consume(it)</code> is allowed.</li></ul>
-<p>The diagnostic is <code>use of moved value '&lt;name&gt;'</code> (error code E0200).</p>
+<ul><li><strong>Sequences</strong>: a move carries forward to later statements.</li><li><strong><code>if</code> / <code>else</code></strong>: each branch is analyzed on a copy of the incoming set; the join is their union, skipping a branch that diverges (ends in <code>return</code> / <code>break</code> / <code>continue</code>). So a value consumed on <em>both</em> branches is moved afterward, while one consumed on a branch that returns does not taint the fall-through.</li><li><strong>Loops</strong>: the body is analyzed twice, so consuming a loop-external Isolated inside the body (which would repeat across iterations) is caught, while a value created fresh and consumed each iteration is fine.</li><li><strong><code>match</code> / <code>switch</code></strong>: like <code>if</code>, each arm starts from the incoming set and the join is the union of the arms that complete.</li><li><strong><code>defer</code></strong>: a deferred statement is checked where its block ends, which is when it runs, in LIFO order. <code>defer bytes.free(b)</code> followed by <code>move b</code> is a use after the move; <code>defer take(it)</code> on an Isolated value is its one use.</li><li><strong>Closures</strong>: a closure that names a moved value is a use of it where the closure is written. A closure's own body is checked on its own.</li><li><strong>Rebinding</strong>: assigning or re-declaring a name revives it (a fresh binding), so <code>it = isolate(...)</code> after a previous <code>consume(it)</code> is allowed.</li></ul>
+<p>The diagnostic is <code>use of moved value '&lt;name&gt;': line &lt;n&gt; moved it, and it cannot be used again</code> (error code E0200), naming the line of the move.</p>
+<h2 id="move-handing-a-buffer-over-2975"><code>move</code>: handing a buffer over (#2975)</h2>
+<p>A <code>ptr</code> buffer (a <code>std.bytes</code> handle, a <code>*T</code>) sent in a message crosses as the pointer, so sender and receiver would share it. <code>move</code> makes the hand-over explicit and checked:</p>
+<pre><code>message Chunk { data: ptr }
+
+r ! Chunk { data: move buf }   // the receiver owns buf's buffer now
+bytes.length(buf)              // E0200: line 3 moved it</code></pre>
+<p><code>move buf</code> evaluates to <code>buf</code> and leaves <code>buf</code> moved-from: the same move checker as above rejects any later use of the name on any path that reaches it, including a second send, a free, a <code>defer</code> and a closure. Nothing is copied: the receiver gets the sender's data pointer, so a 64 MiB buffer costs what a small one does (<code>tests/regression/test_zerocopy_buffer_move.ae</code> asserts the pointer). The emitted C stores the value into the message and nulls the sender's local in the same expression.</p>
+<p>Refused, each with its own message:</p>
+<ul><li>a value that is not a <code>ptr</code>: a scalar is copied anyway, and a string already moves on a send when nothing else holds it (#2922), so <code>move</code> would claim a transfer the runtime makes on its own;</li><li>a borrowed parameter: a function's <code>ptr</code> parameter is borrowed for the call (the ownership model's R3), so handing it on needs <code>b: @keep ptr</code>;</li><li>a variable a closure captures, moved inside the closure;</li><li>a field (<code>move box.b</code>) or an element (<code>move xs[i]</code>) of something still live.</li></ul>
+<p><code>move</code> is contextual, not reserved: it is the operator only before a name on the same line. <code>fs.move(a, b)</code>, <code>mem.move(dst, src, n)</code> (bare after <code>import std.mem (*)</code>), a program's own <code>move()</code> and a variable called <code>move</code> are unaffected.</p>
+<p><strong>What is not done yet.</strong> The receiver owns the buffer and frees it as it would any other; the runtime does not. A receiver that drops the buffer without freeing it leaks it, and so does a message still queued when its receiver dies. Freeing it there needs the runtime to know how to free a <code>ptr</code>, which it does not, and the dead-actor delivery rules in #2974.</p>
 <h2 id="what-lowers-and-runs-today-and-what-is-a-follow-up">What lowers and runs today, and what is a follow-up</h2>
 <p>Working and covered by tests (<code>tests/regression/test_isolated_basic.ae</code>, <code>tests/integration/isolated_move_reject/</code>):</p>
 <ul><li><code>Isolated[T]</code> for scalar, string, and struct payloads.</li><li><code>isolate()</code> / <code>consume()</code> and ownership transfer into a function.</li><li>The full move checker (use-after-consume, use-after-<code>send</code>, heap-source reuse, loop-external consume all rejected; single-use, both-branch consume, fresh-per-iteration, and scalar-source reuse all accepted).</li><li>Zero-cost lowering: <code>Isolated[T]</code> is <code>T</code> in the emitted C; <code>isolate</code> and <code>consume</code> are the identity.</li></ul>
@@ -699,7 +710,7 @@ main() {
 <nav class="doc-prevnext" aria-label="Previous and next page"><a class="pn-prev" href="/Docs/aether_compared_to_capsicum.html"><span class="pn-k">Previous</span><span class="pn-t">Aether Sandbox Model vs. BSD Capsicum: Architecture, Parallels, and FreeBSD Integration</span></a><a class="pn-next" href="/Docs/compile-time-eval.html"><span class="pn-k">Next</span><span class="pn-t">Compile-time constant evaluation (phase-1)</span></a></nav>
       </article>
     </main>
-    <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#the-four-design-questions" class="l2" data-id="the-four-design-questions">The four design questions</a><a href="#the-move-checker" class="l2" data-id="the-move-checker">The move checker</a><a href="#what-lowers-and-runs-today-and-what-is-a-follow-up" class="l2" data-id="what-lowers-and-runs-today-and-what-is-a-follow-up">What lowers and runs today, and what is a follow-up</a></nav>
+    <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#the-four-design-questions" class="l2" data-id="the-four-design-questions">The four design questions</a><a href="#the-move-checker" class="l2" data-id="the-move-checker">The move checker</a><a href="#move-handing-a-buffer-over-2975" class="l2" data-id="move-handing-a-buffer-over-2975">move: handing a buffer over (#2975)</a><a href="#what-lowers-and-runs-today-and-what-is-a-follow-up" class="l2" data-id="what-lowers-and-runs-today-and-what-is-a-follow-up">What lowers and runs today, and what is a follow-up</a></nav>
   </div>
 </div>
 <script src="/docs.js" defer></script>
@@ -708,7 +719,7 @@ main() {
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.846 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.847 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.846</span>
+      <span class="vtag">v0.847</span>
     </nav>
   </div>
 </header>
@@ -734,6 +734,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
     scheduler_send_remote(actor, msg, current_core_id);
 }</code></pre>
 <p>For single-int messages, the code generator emits an inline path that stores the value directly in <code>msg.payload_int</code>, bypassing pool allocation.</p>
+<p>A <code>ptr</code> field (a <code>std.bytes</code> handle, a <code>*T</code>) crosses as the pointer, with no copy. To hand the buffer over rather than share it, send it with <code>move</code>: <code>r ! Chunk { data: move buf }</code>. The sender's <code>buf</code> is then moved-from, and any later use of it is a compile error naming the line of the move. See <a href="/Docs/isolated.html#move-handing-a-buffer-over-2975"><code>move</code></a>.</p>
 <h3 id="receiving-messages">Receiving Messages</h3>
 <p>The <code>receive</code> block in the actor definition becomes the step function. The code generator emits a computed goto dispatch table for message handler selection:</p>
 <pre><code><span class="kw">void</span> _aether_step_ActorName(ActorName* self) {
@@ -865,7 +866,7 @@ Stack trace (most recent call first):
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.846 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.847 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>
