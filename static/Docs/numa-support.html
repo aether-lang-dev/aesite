@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.849</span>
+      <span class="vtag">v0.850</span>
     </nav>
   </div>
 </header>
@@ -746,8 +746,8 @@ CPU to NUMA Node Mapping:
 NUMA-aware allocation is active in the multicore scheduler.</code></pre>
 <h2 id="build-integration">Build Integration</h2>
 <p>No changes needed. NUMA support is automatically included:</p>
-<pre><code>make test     <span class="com"># Tests include NUMA-aware scheduler</span>
-make examples <span class="com"># Benchmarks use NUMA allocation</span></code></pre>
+<pre><code>make test        <span class="com"># Tests include NUMA-aware scheduler</span>
+make benchmark   <span class="com"># Benchmarks use NUMA allocation</span></code></pre>
 <h2 id="linux-build-note">Linux Build Note</h2>
 <p>For full NUMA support on Linux, install libnuma:</p>
 <pre><code><span class="com"># Ubuntu/Debian</span>
@@ -772,8 +772,8 @@ make EXTRA_CFLAGS=<span class="str">"-DHAVE_LIBNUMA"</span> LDFLAGS=<span class=
 <h2 id="verification">Verification</h2>
 <p>All tests pass with NUMA support:</p>
 <pre><code>make test</code></pre>
-<p>The multicore benchmarks under <code>make examples</code> run through the NUMA-aware allocation path (they fall back to <code>malloc</code> unless a libnuma multi-node build is used):</p>
-<pre><code>make examples</code></pre>
+<p>The multicore benchmarks (<code>make benchmark</code>) run through the NUMA-aware allocation path (they fall back to <code>malloc</code> unless a libnuma multi-node build is used):</p>
+<pre><code>make benchmark</code></pre>
 <h2 id="future-enhancements">Future Enhancements</h2>
 <p>Potential improvements for true NUMA systems:</p>
 <ol><li><strong>NUMA-Aware Actor Placement</strong>: Assign actors to cores on same node</li><li><strong>Cross-Node Messaging Optimization</strong>: Different strategy for remote nodes</li><li><strong>Memory Binding</strong>: Bind spawned threads to their NUMA nodes</li><li><strong>Topology-Aware Work Stealing</strong>: Prefer stealing from same NUMA node</li></ol>
@@ -791,7 +791,7 @@ make EXTRA_CFLAGS=<span class="str">"-DHAVE_LIBNUMA"</span> LDFLAGS=<span class=
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.849 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.850 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

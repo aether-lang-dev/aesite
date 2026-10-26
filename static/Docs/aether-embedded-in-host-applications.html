@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.849</span>
+      <span class="vtag">v0.850</span>
     </nav>
   </div>
 </header>
@@ -717,7 +717,7 @@ AetherValue* aether_config_list_get  (AetherValue* list, <span class="kw">int32_
 <span class="kw">void</span>         aether_config_free      (AetherValue* root);</code></pre>
 <p>Ownership is documented on every signature (<code>Owned</code> vs <code>Borrowed</code>). The original "single <code>aether_config_eval(source_file)</code> entry point" was dropped, under <code>--emit=lib</code> each top-level Aether function is its own entry point, so there's no need for a generic eval. See <a href="/Docs/emit-lib.html"><code>emit-lib.md</code></a> for the full surface and accessor walkthrough.</p>
 <h4 id="3-java-binding-layer---built-via-v2-namespace-generator">3. Java binding layer  ✅ Built (via v2 namespace generator)</h4>
-<p>The recommended path is now the <strong>v2 embedded-namespace layer</strong>: <code>ae build --namespace &lt;dir&gt;</code> reads a manifest and emits a typed Java SDK (Panama, JDK 22+), a class with <code>set*</code> for inputs, <code>on*</code> for events, methods named after each Aether function, and <code>AutoCloseable</code> so try-with-resources releases the <code>Arena</code>. The host developer writes no JNI, no <code>MethodHandle</code> lookups, no <code>MemorySegment</code> plumbing. See <strong><a href="/Docs/embedded-namespaces-and-host-bindings.html"><code>embedded-namespaces-and-host-bindings.md</code></a></strong> for the design and <code>examples/embedded-java/trading/</code> for a worked example.</p>
+<p>The recommended path is now the <strong>v2 embedded-namespace layer</strong>: <code>ae build --namespace &lt;dir&gt;</code> reads a manifest and emits a typed Java SDK (Panama, JDK 22+), a class with <code>set*</code> for inputs, <code>on*</code> for events, methods named after each Aether function, and <code>AutoCloseable</code> so try-with-resources releases the <code>Arena</code>. The host developer writes no JNI, no <code>MethodHandle</code> lookups, no <code>MemorySegment</code> plumbing. See <strong><a href="/Docs/embedded-namespaces-and-host-bindings.html"><code>embedded-namespaces-and-host-bindings.md</code></a></strong> for the design and <code>examples/04-interop/06-java-host/</code> for a worked example.</p>
 <p>For hosts that want raw FFI without the namespace SDK:</p>
 <ul><li><strong>Panama (Java 22+)</strong>: declare each <code>aether_&lt;name&gt;</code> as a <code>downcallHandle</code> against the <code>.so</code> built by <code>ae build --emit=lib</code>. No JNI boilerplate. The <code>.so</code> exposes everything Panama needs.</li><li><strong>JNI</strong>: still works, no different from any other C library, but Panama makes it unnecessary.</li><li><strong>SWIG</strong>: the original v1 design considered SWIG. In practice the per-target generators in <code>tools/ae.c</code> are ~200-400 lines each and the templating control gained is worth not having SWIG in the toolchain.</li><li><strong>Subprocess + JSON</strong>: see §4 below; not built.</li></ul>
 <h4 id="4-config-mode-output-the-simplest-path---future-possibly-obsolete">4. Config-mode output (the simplest path)  📋 Future, possibly obsolete</h4>
@@ -727,7 +727,7 @@ AetherValue* aether_config_list_get  (AetherValue* list, <span class="kw">int32_
 main() {
     server = web_server(8080) {
         path("/api") {
-            end_point(GET, "/health") |req, res, ctx| { ... }
+            end_point(GET, "/health") | req, res, ctx | { ... }
         }
     }
     return server  // the map IS the config
@@ -767,7 +767,7 @@ inv = host_call("get_inventory")
 
 web_server(8080) {
     path("/api/cart") {
-        end_point(POST, "/add") |req, res, ctx| {
+        end_point(POST, "/add") | req, res, ctx | {
             hide inv   // can't touch inventory directly here
             sku = request_param(req, "sku")
             host_call("cart_add", sku)
@@ -900,7 +900,7 @@ aether_spawn_sandboxed(grants, "/tmp/pricing", input_json)</code></pre>
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.849 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.850 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

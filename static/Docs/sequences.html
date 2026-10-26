@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.849</span>
+      <span class="vtag">v0.850</span>
     </nav>
   </div>
 </header>
@@ -760,7 +760,7 @@ s = string.split_to_seq("alpha,beta,gamma,delta", ",")
 // each, call the closure per element for its side effects. The
 // closure may capture (here, an outer `ref` counter).
 n = ref(0)
-string.seq_each(s, |x: string| {
+string.seq_each(s, | x: string | {
     ref_set(n, ref_get(n) + 1)
     println(x)
 })                                   // prints all four; ref_get(n) == 4
@@ -768,11 +768,11 @@ string.seq_each(s, |x: string| {
 // map, fresh, independently-owned seq with the closure applied to
 // each element, order preserved. Free it with seq_free (or let scope
 // exit reclaim it); `s` is untouched.
-upper = string.seq_map(s, |x: string| { return string.to_upper(x) })
+upper = string.seq_map(s, | x: string | { return string.to_upper(x) })
 // upper == ["ALPHA", "BETA", "GAMMA", "DELTA"]
 
 // filter, fresh seq of the elements whose predicate is truthy.
-five = string.seq_filter(s, |x: string| {
+five = string.seq_filter(s, | x: string | {
     if string.length(x) == 5 { return 1 }
     return 0
 })                                   // ["alpha", "gamma", "delta"]
@@ -780,7 +780,7 @@ five = string.seq_filter(s, |x: string| {
 // reduce, left fold. acc is an opaque `ptr` the closure threads
 // through; here a `ref` cell holding a running character count.
 acc = ref(0)
-total = string.seq_reduce(s, acc, |a: ptr, x: string| {
+total = string.seq_reduce(s, acc, | a: ptr, x: string | {
     ref_set(acc, ref_get(acc) + string.length(x))
     return acc
 })                                   // ref_get(total) == 19
@@ -788,7 +788,7 @@ total = string.seq_reduce(s, acc, |a: ptr, x: string| {
 // zip_each, implicit zip over two seqs, stopping at the shorter.
 keys = string.split_to_seq("a,b,c", ",")
 vals = string.split_to_seq("1,2,3,4,5", ",")
-string.seq_zip_each(keys, vals, |k: string, v: string| {
+string.seq_zip_each(keys, vals, | k: string, v: string | {
     println("${k}=${v}")             // a=1, b=2, c=3 (stops at 3)
 })
 
@@ -874,7 +874,7 @@ string.seq_free(b)        // b's head frees, then [y, z] drops to 0
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.849 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.850 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

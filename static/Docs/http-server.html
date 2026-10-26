@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.849</span>
+      <span class="vtag">v0.850</span>
     </nav>
   </div>
 </header>
@@ -753,7 +753,7 @@ curl --http2 https://localhost:<span class="num">443</span>/        <span class=
 <p><strong>When libnghttp2 isn't linked</strong>, <code>http.server_set_h2</code> returns <code>"HTTP/2 unavailable: built without libnghttp2"</code>. The HTTP/1.1 path keeps working unchanged. Build-time detection is automatic via <code>pkg-config libnghttp2</code>; install the package to opt in:</p>
 <div class="tw"><table><thead><tr><th>OS</th><th>Package</th></tr></thead><tbody><tr><td>Debian/Ubuntu</td><td><code>apt install libnghttp2-dev</code></td></tr><tr><td>Fedora/RHEL</td><td><code>dnf install libnghttp2-devel</code></td></tr><tr><td>macOS (Homebrew)</td><td><code>brew install nghttp2</code></td></tr><tr><td>MSYS2/MinGW64</td><td><code>pacman -S mingw-w64-x86_64-nghttp2</code></td></tr></tbody></table></div>
 <p><strong>Middleware + transformer compatibility.</strong> Every middleware / response-transformer / hook / probe in <code>std.http</code> works identically on h2 streams as on HTTP/1.1 requests because all three protocols (<code>http_server_dispatch_for_h2</code> plus the original HTTP/1.1 path) feed the same chain:</p>
-<div class="tw"><table><thead><tr><th>Surface</th><th>h2 streams</th></tr></thead><tbody><tr><td><code>middleware.use_cors</code></td><td>✓</td></tr><tr><td><code>middleware.use_basic_auth</code></td><td>✓</td></tr><tr><td><code>middleware.use_bearer_auth</code></td><td>✓, RFC 6750 challenges (<code>error="invalid_token"</code> for malformed credentials) emitted regardless of protocol</td></tr><tr><td><code>middleware.use_session_auth</code></td><td>✓, <code>Cookie:</code> header parsed identically on h2 streams; redirect-on-failure works</td></tr><tr><td><code>middleware.use_rate_limit</code></td><td>✓</td></tr><tr><td><code>middleware.use_vhost</code></td><td>✓</td></tr><tr><td><code>middleware.use_static_files</code></td><td>✓</td></tr><tr><td><code>middleware.use_rewrite</code></td><td>✓</td></tr><tr><td><code>middleware.use_real_ip</code></td><td>✓, X-Real-IP appended to the request, visible to handlers + downstream middleware on every h2 stream</td></tr><tr><td><code>middleware.use_gzip</code> (response transformer)</td><td>✓, <code>Content-Encoding: gzip</code> rides on the h2 HEADERS frame</td></tr><tr><td><code>middleware.use_error_pages</code></td><td>✓</td></tr><tr><td><code>http_server_set_health_probes</code></td><td>✓</td></tr><tr><td><code>http_server_set_metrics</code></td><td>✓</td></tr><tr><td><code>http_server_set_access_log</code></td><td>✓, every h2 stream is one log entry</td></tr></tbody></table></div>
+<div class="tw"><table><thead><tr><th>Surface</th><th>h2 streams</th></tr></thead><tbody><tr><td><code>middleware.use_cors</code></td><td>✓</td></tr><tr><td><code>middleware.use_basic_auth</code></td><td>✓</td></tr><tr><td><code>middleware.use_bearer_auth</code></td><td>✓, RFC 6750 challenges (<code>error="invalid_token"</code> for malformed credentials) emitted regardless of protocol</td></tr><tr><td><code>middleware.use_session_auth</code></td><td>✓, <code>Cookie:</code> header parsed identically on h2 streams; redirect-on-failure works</td></tr><tr><td><code>middleware.use_rate_limit</code></td><td>✓</td></tr><tr><td><code>middleware.use_vhost</code></td><td>✓</td></tr><tr><td><code>middleware.use_static_files</code></td><td>✓</td></tr><tr><td><code>middleware.use_rewrite</code></td><td>✓</td></tr><tr><td><code>middleware.use_real_ip</code></td><td>✓, the resolved client becomes the request's reported peer and its X-Real-IP, for handlers + downstream middleware on every h2 stream</td></tr><tr><td><code>middleware.use_gzip</code> (response transformer)</td><td>✓, <code>Content-Encoding: gzip</code> rides on the h2 HEADERS frame</td></tr><tr><td><code>middleware.use_error_pages</code></td><td>✓</td></tr><tr><td><code>http_server_set_health_probes</code></td><td>✓</td></tr><tr><td><code>http_server_set_metrics</code></td><td>✓</td></tr><tr><td><code>http_server_set_access_log</code></td><td>✓, every h2 stream is one log entry</td></tr></tbody></table></div>
 <p>WebSocket and SSE remain HTTP/1.1-only, they use protocol- specific upgrade paths that don't apply to h2. Clients that need real-time pushes over h2 should use h2 server-streamed responses (periodic DATA frames) instead, or open an h1 connection specifically for WS/SSE alongside the h2 traffic.</p>
 <p><strong>Per-protocol response semantics:</strong></p>
 <ul><li><code>HEAD</code> requests on an h2 stream auto-fall through to the matching <code>GET</code> handler so <code>Content-Length</code> and headers describe what <code>GET</code> would return; the wrapper suppresses the DATA frames per RFC 7231 §4.3.2.</li><li>Connection-specific request headers (<code>Connection</code>, <code>Transfer-Encoding</code>, <code>Upgrade</code>, <code>Keep-Alive</code>, <code>Proxy-Connection</code>) are rejected with PROTOCOL_ERROR on h2 streams (RFC 7540 §8.1.2.2). The same names are stripped from responses on h2 streams, so handlers that emit them for HTTP/1.1 don't need to be h2-aware.</li><li>Pseudo-header presence (<code>:method</code>, <code>:scheme</code>, <code>:path</code>) is validated; missing or empty <code>:path</code> reaches RST_STREAM with PROTOCOL_ERROR rather than the route table.</li><li>The <code>:path</code> pseudo-header is split on <code>?</code> to populate <code>req-&gt;path</code> + <code>req-&gt;query_string</code> separately, matching the HTTP/1.1 parser shape.</li></ul>
@@ -839,26 +839,26 @@ middleware.use_gzip(server, 1024, 6)
 middleware.use_static_files(server, "/assets", "/var/www/static")
 
 // URL rewriting
-opts = aether_rewrite_opts_new()
+opts = middleware.rewrite_new()
 middleware.rewrite_add_rule(opts, "/old/", "/new/")
 middleware.use_rewrite(server, opts)
 
 // Custom error pages
-ep = aether_error_pages_opts_new()
+ep = middleware.error_pages_new()
 middleware.error_pages_register(ep, 404, "&lt;h1&gt;Not found&lt;/h1&gt;", "text/html")
 middleware.error_pages_register(ep, 500, "&lt;h1&gt;Server error&lt;/h1&gt;", "text/html")
 middleware.use_error_pages(server, ep)
 
-// Real-IP / X-Forwarded-For, extracts the original client IP
-// when the server is behind a load balancer / reverse proxy / CDN.
-// Reads the configured header (default "X-Forwarded-For"), takes
-// the leftmost IP, and adds X-Real-IP to the request so downstream
-// handlers / ratelimit / access logs see the real client identity.
-// Pass "" for the default header name; alternatives include
-// "Forwarded", "CF-Connecting-IP", "True-Client-IP".
-middleware.use_real_ip(server, "")</code></pre>
-<p>Middleware shape: each is a function-pointer chain entry. Pre-handler middleware (cors / basic_auth / rate_limit / vhost / static_files / rewrite / real_ip) run before route dispatch and can short-circuit; response transformers (gzip / error_pages) run after the route handler emits the response. Order is registration order.</p>
-<p><strong>Real-IP trust model.</strong> <code>use_real_ip</code> does NOT validate that the request actually came through a trusted proxy. Operators must only run it behind trusted edge infrastructure that strips any client-supplied X-Forwarded-For, typical setups are a firewall- restricted port plus a load-balancer rule, or a CDN that overwrites X-Forwarded-For. Without that guarantee, callers can spoof their apparent client IP. The middleware is idempotent, running it twice (or running it after the edge already set X-Real-IP) doesn't double-tag the request.</p>
+// Real-IP: the client behind the proxies named in the last argument
+// (addresses and networks, comma-separated). The header ("" for
+// "X-Forwarded-For") is believed only from one of them, and read from
+// the right: the first entry that is not a trusted proxy is the client.
+// It becomes the peer the request reports (http.request_remote_addr) and
+// its X-Real-IP, so downstream handlers / ratelimit / access logs / the
+// proxy see the client. "Forwarded" reads each element's for=.
+middleware.use_real_ip(server, "", "10.0.0.0/8, fd00::/8")</code></pre>
+<p>Middleware shape: each is a function-pointer chain entry. Pre-handler middleware (cors / basic_auth / rate_limit / vhost / static_files / rewrite / real_ip) run before route dispatch and can short-circuit; response transformers (gzip / error_pages) run after the route handler emits the response, and not on a response a middleware answered (a proxied one, a 401, a 429). The request hooks (the access log, metrics) observe every response, that one included (#3213). Order is registration order. The server owns what each factory registers, the opts handed to <code>use_rewrite</code> and <code>use_error_pages</code> included, and <code>http.server_free</code> frees them (#3191). A middleware a program registers itself with <code>http_server_use_middleware</code> leaves its user data to the program; <code>http_server_use_middleware_owned</code> and <code>http_server_use_response_transformer_owned</code> take a release the server runs on it.</p>
+<p><strong>Real-IP trust model.</strong> A forwarding header is a list any client can start: <code>curl -H 'X-Forwarded-For: 1.2.3.4'</code> writes one. <code>use_real_ip</code> therefore believes it only from a peer among the proxies it is given, and reads it from the right, as nginx's <code>set_real_ip_from</code> with <code>real_ip_recursive on</code> does: each entry is the address the hop before it saw, and the first one that is not a trusted proxy is the client. What a client writes itself sits to the left of that and changes nothing, behind a proxy that appends to the header (std.http.proxy, nginx by default, cloud load balancers) as behind one that replaces it. From a peer that is not trusted the peer is the client (#3212). The middleware sets the address the way nginx's realip module does: <code>http.request_remote_addr</code> answers the client it resolved, not the edge's address, to every middleware and handler after it, and the port reads as 0. An <code>X-Real-IP</code> already on the request, which any client can send, is replaced with the same address, never kept (#3169). Running it twice sets the same values again.</p>
 <hr>
 <h2 id="reverse-proxy">Reverse proxy</h2>
 <p><code>std.http.proxy</code> adds the outbound side: forward inbound requests to a pool of upstream HTTP servers. nginx-class feature set, weighted load balancing (round-robin / least-conn / ip-hash / smooth weighted RR), active health checks, in-memory LRU response cache with RFC 7234 cacheability rules, per-upstream circuit breaker, and Hop-by-Hop header handling per RFC 7230.</p>
@@ -943,7 +943,7 @@ http.server_sse(server, "/events", events_handler, null)</code></pre>
 <p>JSON format example output:</p>
 <pre><code>{"ts":"2026-04-27T11:32:14Z","method":"GET","path":"/api/users",
  "status":200,"bytes":342,"dur_us":1247,"ua":"curl/8.4.0","ref":""}</code></pre>
-<p>NCSA Combined Log Format is the Apache default. File is opened <code>"ab"</code> so process restarts append rather than truncate.</p>
+<p>NCSA Combined Log Format is the Apache default. File is opened <code>"ab"</code> so process restarts append rather than truncate. Every response the server sends is logged, one a middleware answered included: a proxied request, a 401 from basic auth, a 429 from the rate limiter (#3213).</p>
 <hr>
 <h2 id="prometheus-metrics">Prometheus metrics</h2>
 <pre><code>http.server_set_metrics(server, "/metrics")</code></pre>
@@ -1014,7 +1014,7 @@ http.server_set_health_probes(server, "/healthz", "/readyz", ready_check, null)<
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.849 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.850 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

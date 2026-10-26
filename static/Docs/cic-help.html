@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.849</span>
+      <span class="vtag">v0.850</span>
     </nav>
   </div>
 </header>
@@ -697,6 +697,7 @@ Available setters in avnserver: repo, port, superuser_token,
 <p>Inside any closure-DSL block (a trailing <code>{ ... }</code> after a <code>builder</code>-keyword or fn-taking-fn callee), pattern-match for non-Aether shapes:</p>
 <div class="tw"><table><thead><tr><th>User wrote</th><th>Help suggests</th></tr></thead><tbody><tr><td><code>port: 9990</code></td><td><code>port(9990)</code> (Aether setters use call form)</td></tr><tr><td><code>port = 9990</code></td><td><code>port(9990)</code> (HCL <code>=</code> not valid here)</td></tr><tr><td><code>repos: [...]</code></td><td>one <code>repo(...)</code> call per entry</td></tr><tr><td><code>port("9990")</code></td><td><code>port(9990)</code> (drop quotes; setter expects int)</td></tr><tr><td><code>- name: alpha</code></td><td><code>repo("alpha", "/path")</code></td></tr></tbody></table></div>
 <p>The list is bounded by what people actually do, keep it short and high-precision. False positives are worse than misses here, since the user is already confused.</p>
+<p>Such a line is usually where the parser gives up, and its errors from there on (<code>Expected RIGHT_BRACE, got IDENTIFIER</code> on the HCL line, a stray <code>}</code> at the end of the file) follow from it. A finding that names a line accounts for them, so the raw syntax errors from the first such line on are left out of the report; a syntax error on an earlier line is a problem of its own and stays. After the rewrite, <code>ae help</code> again shows whatever the parser still finds (#3150).</p>
 <h3 id="3-type-mismatch-with-english">3. Type-mismatch with English</h3>
 <p>When the typer reports "expected int, got string" on a setter call, join the reported types to the parameter name from the library's exported signature:</p>
 <pre><code>Line 6: port() expects an integer (the TCP port). You passed a
@@ -780,7 +781,7 @@ as the entry point. Wrap it:
 <p>The recommendation in the help command's own usage banner is plain: heuristics are sufficient for ~80% of novice mistakes; the LLM escalation is a sharp tool for the long tail, and you bring your own weights.</p>
 <h2 id="implementation">Implementation</h2>
 <p>The pieces, as built in <code>tools/ae_help.c</code>:</p>
-<p>The error source is <code>aetherc</code> itself. Rather than carving a "diagnose" mode into the typer, <code>ae help</code> runs the real <code>aetherc</code> as a subprocess, captures its stderr, and parses the already-structured <code>error[Eabcd]: …</code> lines into findings. This avoids any risk of typer regressions from a parallel code path; the tradeoff is that it only sees the errors <code>aetherc</code> already surfaces.</p>
+<p>The error source is <code>aetherc</code> itself. Rather than carving a "diagnose" mode into the typer, <code>ae help</code> runs the real <code>aetherc</code> as a subprocess, with the <code>--lib</code> directories it was given (before the input, where aetherc reads options), captures its stderr, and parses the already-structured error lines into findings: the coded <code>error[Eabcd]: …</code> ones and the uncoded <code>error: …</code> ones, an unresolved import among them, which names every directory the compile searched. This avoids any risk of typer regressions from a parallel code path; the tradeoff is that it only sees the errors <code>aetherc</code> already surfaces. A compile that fails with nothing ae help can read is reported as such, with what the compiler printed, and ae help exits 1; it never says "no diagnostics" about a file that does not compile. <code>--json</code> carries <code>"compiled": false</code> then.</p>
 <p>The hint loader walks the imported libraries, finds any <code>&lt;name&gt;.help.md</code> next to their <code>module.ae</code> / source, and parses the structured sections into synthetic findings.</p>
 <p>The pattern matchers are per-pattern predicates over the script text: Levenshtein-1 name suggestions, YAML/HCL shape detection inside DSL blocks, and top-level-DSL detection. The set is kept small and high-precision.</p>
 <p>The renderer pretty-prints findings (line, original, suggestion, doc cross-ref, and a diff where applicable) in human form, or as <code>--json</code>.</p>
@@ -800,7 +801,7 @@ as the entry point. Wrap it:
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.849 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.850 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

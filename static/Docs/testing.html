@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.849</span>
+      <span class="vtag">v0.850</span>
     </nav>
   </div>
 </header>
@@ -708,6 +708,26 @@ ae test --list       <span class="com"># print what would run, run nothing</span
 }</code></pre>
 <p><code>before_each</code> runs outermost-to-innermost, <code>after_each</code> innermost-to-outermost, and both are inherited by descendant suites. One framework is supported per process: a second <code>init()</code> rebinds the ambient context.</p>
 <p>Because a passing run <em>returns</em> (rather than exiting), a test that starts a long-running actor or server should stop it or end <code>main()</code> with an explicit <code>exit(0)</code>.</p>
+<h2 id="testing-actors">Testing actors</h2>
+<p>A check inside an actor's <code>receive</code> cannot fail the test. A <code>panic</code> in a handler is caught by the scheduler's per-step barrier: it ends that actor, <code>main()</code> carries on, and the program exits <code>0</code> with nothing on stderr.</p>
+<p>Record what the actor saw in its <code>state</code>, wait with <code>wait_for_idle()</code>, and check from <code>main()</code>, whose return value is the exit code:</p>
+<pre><code>message Check { v: int }
+actor Checker {
+    state seen = 0
+    receive { Check(v) -&gt; { seen = v } }
+}
+
+main() {
+    c = spawn(Checker())
+    c ! Check { v: 2 }
+    wait_for_idle()
+    if c.seen != 2 {
+        println("FAIL: checker saw ${c.seen}")
+        return 1
+    }
+    return 0
+}</code></pre>
+<p>Reading an actor's state after <code>wait_for_idle()</code> is safe, including for an actor a panic ended. Break the handler and confirm the test fails before relying on it ("Prove the test can fail" in <code>CONTRIBUTING.md</code>).</p>
 <h2 id="assertions">Assertions</h2>
 <p>Failures are <strong>soft</strong>: a failed assertion records the failure, prints it, and returns, so several checks in one <code>it</code> all report. Any recorded failure makes that <code>it</code> red.</p>
 <h3 id="flat-assertions">Flat assertions</h3>
@@ -853,7 +873,7 @@ duration_ns=&lt;N&gt;
 <nav class="doc-prevnext" aria-label="Previous and next page"><a class="pn-prev" href="/Docs/cross-ios.html"><span class="pn-k">Previous</span><span class="pn-t">Cross-compiling for iOS (arm64)</span></a><a class="pn-next" href="/Docs/mutation-testing.html"><span class="pn-k">Next</span><span class="pn-t">Mutation testing: std.mutation</span></a></nav>
       </article>
     </main>
-    <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#a-first-test" class="l2" data-id="a-first-test">A first test</a><a href="#suites-context-and-hooks" class="l2" data-id="suites-context-and-hooks">Suites, context, and hooks</a><a href="#assertions" class="l2" data-id="assertions">Assertions</a><a href="#flat-assertions" class="l3" data-id="flat-assertions">Flat assertions</a><a href="#asserting-on-the-failure-path" class="l3" data-id="asserting-on-the-failure-path">Asserting on the failure path</a><a href="#fluent-assertions" class="l3" data-id="fluent-assertions">Fluent assertions</a><a href="#extending-the-fluent-chain" class="l3" data-id="extending-the-fluent-chain">Extending the fluent chain</a><a href="#collection-matchers" class="l3" data-id="collection-matchers">Collection matchers</a><a href="#timing-budgets" class="l3" data-id="timing-budgets">Timing budgets</a><a href="#skipping-a-test-whose-dependency-may-be-absent" class="l3" data-id="skipping-a-test-whose-dependency-may-be-absent">Skipping a test whose dependency may be absent</a><a href="#structured-reporting" class="l2" data-id="structured-reporting">Structured reporting</a><a href="#tap" class="l3" data-id="tap">TAP</a><a href="#aeocha-v1" class="l3" data-id="aeocha-v1">aeocha v1</a><a href="#how-it-works-and-running-it-yourself" class="l3" data-id="how-it-works-and-running-it-yourself">How it works (and running it yourself)</a><a href="#conventions" class="l2" data-id="conventions">Conventions</a><a href="#see-also" class="l2" data-id="see-also">See also</a><a href="#domain-matcher-arms-stdostesting-and-stdhttpclienthttptest" class="l2" data-id="domain-matcher-arms-stdostesting-and-stdhttpclienthttptest">Domain matcher arms: std.os.testing and std.http.client.httptest</a><a href="#test-report-format-aeocha-v1-a-stable-versioned-contract" class="l2" data-id="test-report-format-aeocha-v1-a-stable-versioned-contract">Test report format (aeocha-v1), a stable, versioned contract</a><a href="#contribaeocha-is-retired" class="l2" data-id="contribaeocha-is-retired">contrib.aeocha is retired</a></nav>
+    <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#a-first-test" class="l2" data-id="a-first-test">A first test</a><a href="#suites-context-and-hooks" class="l2" data-id="suites-context-and-hooks">Suites, context, and hooks</a><a href="#testing-actors" class="l2" data-id="testing-actors">Testing actors</a><a href="#assertions" class="l2" data-id="assertions">Assertions</a><a href="#flat-assertions" class="l3" data-id="flat-assertions">Flat assertions</a><a href="#asserting-on-the-failure-path" class="l3" data-id="asserting-on-the-failure-path">Asserting on the failure path</a><a href="#fluent-assertions" class="l3" data-id="fluent-assertions">Fluent assertions</a><a href="#extending-the-fluent-chain" class="l3" data-id="extending-the-fluent-chain">Extending the fluent chain</a><a href="#collection-matchers" class="l3" data-id="collection-matchers">Collection matchers</a><a href="#timing-budgets" class="l3" data-id="timing-budgets">Timing budgets</a><a href="#skipping-a-test-whose-dependency-may-be-absent" class="l3" data-id="skipping-a-test-whose-dependency-may-be-absent">Skipping a test whose dependency may be absent</a><a href="#structured-reporting" class="l2" data-id="structured-reporting">Structured reporting</a><a href="#tap" class="l3" data-id="tap">TAP</a><a href="#aeocha-v1" class="l3" data-id="aeocha-v1">aeocha v1</a><a href="#how-it-works-and-running-it-yourself" class="l3" data-id="how-it-works-and-running-it-yourself">How it works (and running it yourself)</a><a href="#conventions" class="l2" data-id="conventions">Conventions</a><a href="#see-also" class="l2" data-id="see-also">See also</a><a href="#domain-matcher-arms-stdostesting-and-stdhttpclienthttptest" class="l2" data-id="domain-matcher-arms-stdostesting-and-stdhttpclienthttptest">Domain matcher arms: std.os.testing and std.http.client.httptest</a><a href="#test-report-format-aeocha-v1-a-stable-versioned-contract" class="l2" data-id="test-report-format-aeocha-v1-a-stable-versioned-contract">Test report format (aeocha-v1), a stable, versioned contract</a><a href="#contribaeocha-is-retired" class="l2" data-id="contribaeocha-is-retired">contrib.aeocha is retired</a></nav>
   </div>
 </div>
 <script src="/docs.js" defer></script>
@@ -862,7 +882,7 @@ duration_ns=&lt;N&gt;
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.849 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.850 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

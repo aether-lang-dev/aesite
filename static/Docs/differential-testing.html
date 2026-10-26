@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.849</span>
+      <span class="vtag">v0.850</span>
     </nav>
   </div>
 </header>
@@ -700,13 +700,18 @@ main() { run() }</code></pre>
 <p>CI runs it on the Linux / GCC leg only, after <code>make ci</code>. The sweep there has just built every program at <code>-O2</code> with the same compiler and flags, so those builds are normally served from the build cache and the step costs about one <code>-O0</code> sweep.</p>
 <p>Its carveouts live in <code>tests/differential/opt_diff_carveouts.txt</code>, as <code>&lt;program&gt; &lt;reason&gt;</code>, and follow the rules above: reported on every run, an error if the program no longer exists. A carved-out program still has its exit codes compared, so a crash at one level is caught in it too; only its stdout is excused. A program belongs there only when its stdout varies from run to run at a single level (a clock, a pid, an interleaving of threads). One that prints the same thing each time at each level, but something different between them, is a bug in the compiler or in the test, and is fixed instead.</p>
 <p><code>OPT_DIFF_ONLY=&lt;regex&gt;</code> narrows a run to the matching programs, for re-running the ones a sweep reported.</p>
+<h2 id="undefined-behaviour-the-corpus-under-ubsan">Undefined behaviour: the corpus under UBSan</h2>
+<p>A program can agree with itself at both levels and still rest on undefined behaviour that a later compiler, or another flag, turns into a different program. <code>make test-ubsan</code> (#2488) runs the C unit tests and the whole <code>make test-ae</code> sweep with UndefinedBehaviorSanitizer on everything: aetherc, ae and libaether are rebuilt instrumented, and so is every program and C host the tests build. The flags reach all of them through one sanitizing compiler, <code>build/ubsan/bin/gcc</code> (and <code>cc</code>), first on PATH and named by its path in <code>CC</code>, so the Makefile, <code>ae build</code> and the shell tests that run <code>"$CC"</code> or <code>gcc</code> by name all go through it. Naming it by path keeps the build-flags digest and <code>ae</code>'s cache key apart from a plain build's: nothing instrumented is mixed with anything plain.</p>
+<p>A report stops the program (<code>-fno-sanitize-recover</code>), so the test fails, and is written to <code>build/ubsan/reports/report.&lt;program&gt;.&lt;pid&gt;</code>, where a test that expects its program to fail, or compares stderr, cannot hide it. The target fails on any report and lists them grouped by source location. Before the tests it proves the configuration took: <code>build/libaether.a</code> must call the UBSan handlers, and <code>tests/ubsan/canary.ae</code>, whose C half shifts an <code>int</code> by 32, must be stopped with a report. A run whose flags never reached the programs would otherwise read as a clean corpus.</p>
+<p>A finding is fixed where it is, never suppressed, unless it is in vendored third-party code and shown to be; then the suppression names that code's upstream report. The first run found a misaligned 16-bit load in liblzf (our <code>lzfP.h</code> had turned its <code>STRICT_ALIGN</code> off), signed shifts that overflowed in <code>std.mem</code>'s u64 readers and in two base64 decoders, a test child that faulted by writing through null, and a <code>lane_wide</code> check that counted the instrumented build's stack spills as heap moves.</p>
+<p>It needs a UBSan runtime: gcc's libubsan or clang's compiler-rt, so Linux and macOS (MinGW has none, and the target stops there and says so). CI runs it in <code>.github/workflows/ubsan.yml</code> on ubuntu-22.04, on the pull requests that touch the compiler, the runtime, std, <code>ae</code>, the Makefile or the sweep's scripts, every night on main, and by hand. It takes about 11 minutes (the sweep under UBSan is 1.75 times the plain one), which is why it is not on every PR.</p>
 <h2 id="extending-it">Extending it</h2>
-<p>The exe-vs-lib pair and the two optimisation levels are path comparisons; there are others. A UBSan build is the natural third configuration of the optimisation-level target. Per-target codegen is another (the Linux and MSYS2 builds CI already runs are each checked only against their own expectations, never against each other).</p>
+<p>The exe-vs-lib pair and the two optimisation levels are path comparisons; there are others. Per-target codegen is one (the Linux and MSYS2 builds CI already runs are each checked only against their own expectations, never against each other).</p>
 <p>The harness self-checks that its comparison can fail. Without that, a broken diff would make every case vacuously agree and the suite would report success while testing nothing.</p>
 <nav class="doc-prevnext" aria-label="Previous and next page"><a class="pn-prev" href="/Docs/mutation-testing.html"><span class="pn-k">Previous</span><span class="pn-t">Mutation testing: std.mutation</span></a><a class="pn-next" href="/Docs/performance-benchmarks.html"><span class="pn-k">Next</span><span class="pn-t">Aether Performance Benchmarks</span></a></nav>
       </article>
     </main>
-    <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#what-runs" class="l2" data-id="what-runs">What runs</a><a href="#writing-a-case" class="l2" data-id="writing-a-case">Writing a case</a><a href="#carveouts" class="l2" data-id="carveouts">Carveouts</a><a href="#platform-note" class="l2" data-id="platform-note">Platform note</a><a href="#optimisation-levels--o0-against--o2" class="l2" data-id="optimisation-levels--o0-against--o2">Optimisation levels: -O0 against -O2</a><a href="#extending-it" class="l2" data-id="extending-it">Extending it</a></nav>
+    <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#what-runs" class="l2" data-id="what-runs">What runs</a><a href="#writing-a-case" class="l2" data-id="writing-a-case">Writing a case</a><a href="#carveouts" class="l2" data-id="carveouts">Carveouts</a><a href="#platform-note" class="l2" data-id="platform-note">Platform note</a><a href="#optimisation-levels--o0-against--o2" class="l2" data-id="optimisation-levels--o0-against--o2">Optimisation levels: -O0 against -O2</a><a href="#undefined-behaviour-the-corpus-under-ubsan" class="l2" data-id="undefined-behaviour-the-corpus-under-ubsan">Undefined behaviour: the corpus under UBSan</a><a href="#extending-it" class="l2" data-id="extending-it">Extending it</a></nav>
   </div>
 </div>
 <script src="/docs.js" defer></script>
@@ -715,7 +720,7 @@ main() { run() }</code></pre>
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.849 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.850 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.849</span>
+      <span class="vtag">v0.850</span>
     </nav>
   </div>
 </header>
@@ -678,7 +678,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <p><strong>The axes multiply.</strong> Any of the three forms on the call side can target either flavour on the definition side, giving six legal combinations. Builder is not a fourth trailing-block form. It's a function-side contract that any of the three trailing-block forms can attach to. The fourth form, <code>quote</code>, is outside both axes: its block never runs, and the function (whose last parameter is a <code>quote.Tree</code>) reads it as a tree instead (<a href="/Docs/quote.html">quote.md</a>).</p>
 <p><strong>Related supporting machinery (covered later):</strong></p>
 <ul><li><strong>Builder context stack</strong> (<code>_ctx: ptr</code> auto-injection, <code>builder_context()</code>, <code>_aether_ctx_push/pop</code>) wires parents to children automatically inside Immediate trailing blocks.</li><li><strong>Block-receiver scoping</strong>, <code>receiver.method(...) { body }</code> falls back through <code>&lt;receiver&gt;_&lt;name&gt;</code> for bare-name calls inside <code>body</code>.</li><li><strong>Ref cells</strong> (<code>ref(v)</code> / <code>ref_get</code> / <code>ref_set</code>), shared mutable state for closures (which otherwise capture by value).</li><li><strong>Boxed closures</strong> (<code>box_closure</code> / <code>unbox_closure</code>), heap-allocate a closure so it can be stored in <code>std.list</code> / struct fields.</li><li><strong><code>fn</code> type</strong>, the parameter type for "this function takes a closure"; invoked with <code>call(fn_var, args...)</code>.</li></ul>
-<p><strong>Same-line rule</strong> (line 100+): a trailing block is attached to a call only when <code>{</code> appears on the same line as the call's closing <code>)</code>. A <code>{</code> on the next line is an independent block. This is what stops <code>result = build()\n{ ... }</code> from greedily consuming the bare block as <code>build</code>'s closure.</p>
+<p><strong>Same-line rule</strong> (line 100+): a trailing block is attached to a call only when <code>{</code> appears on the same line as the call's closing <code>)</code>. A <code>{</code> on the next line is an independent block. This is what stops <code>result = build()\n{ ... }</code> from greedily consuming the bare block as <code>build</code>'s closure. The <code>()</code> is never optional: <code>serve { port(1) }</code> is the name <code>serve</code> and then a bare block, and a function's name alone as a statement calls nothing, so it is an error at the name, bare or qualified (<code>my_lib.serve</code>), that says to write <code>serve() { ... }</code> (#3188).</p>
 <p><strong>Separate axis, fluent method chaining (UFCS):</strong> the two axes above are the <em>block</em> DSL (a trailing block fills structure). The <em>value-chain</em> primitive is orthogonal: <code>x.f(args)</code> desugars to <code>f(x, args)</code> when <code>f</code>'s first parameter matches <code>typeof(x)</code>, so calls chain left-to-right (<code>expect(5).to_equal(5).to_be_gt(0)</code>). It works on imported library surfaces and is a strict last-resort that never shadows a module/field call. See <a href="#fluent-method-chaining-ufcs">Fluent Method Chaining (UFCS)</a>.</p>
 <h2 id="background">Background</h2>
 <p>The builder-style DSL pattern, where nested blocks of code describe structure declaratively while retaining full imperative power, originated in Smalltalk's block-based APIs, was popularized by Ruby (Shoes, Sinatra, RSpec), and refined by Groovy (SwingBuilder, MarkupBuilder). Kotlin (Compose, TornadoFX) and Swift (SwiftUI) carry the tradition forward.</p>
@@ -686,11 +686,11 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <h2 id="closure-syntax">Closure Syntax</h2>
 <p>Aether closures use pipe-delimited parameters with arrow or block bodies:</p>
 <pre><code>// Arrow closure (single expression, returns value)
-doubler = |x: int| -&gt; x * 2
+doubler = | x: int | -&gt; x * 2
 
 // Arrow closure with a block: returns its last value, as a function's
 // `-&gt; { ... }` body does
-scaled = |x: int| -&gt; {
+scaled = | x: int | -&gt; {
     y = x * 3
     y + 1
 }
@@ -703,7 +703,7 @@ count = 0
 bump = || -&gt; { count = count + 1 }
 
 // Block closure (multiple statements; returns only what it `return`s)
-greeter = |name: string| {
+greeter = | name: string | {
     println("Hello ${name}")
 }
 
@@ -713,11 +713,11 @@ action = || {
 }</code></pre>
 <p>Closures capture variables from their enclosing scope:</p>
 <pre><code>base = 100
-adder = |x: int| -&gt; x + base    // captures 'base'
+adder = | x: int | -&gt; x + base    // captures 'base'
 result = call(adder, 42)         // 142</code></pre>
 <h2 id="invoking-closures">Invoking Closures</h2>
 <p>Use the <code>call()</code> builtin:</p>
-<pre><code>doubler = |x: int| -&gt; x * 2
+<pre><code>doubler = | x: int | -&gt; x * 2
 result = call(doubler, 21)    // 42</code></pre>
 <p>A closure-typed local is called directly too, <code>doubler(21)</code>, and so is a closure kept in a struct field (<code>cb: fn</code>): <code>h.cb(21)</code> is the same call as <code>call(h.cb, 21)</code>, on a struct value or through a pointer to one.</p>
 <h2 id="closures-as-function-parameters">Closures as Function Parameters</h2>
@@ -731,7 +731,7 @@ apply_twice(x: <span class="fn">int</span>, f: fn) {
 }
 
 main() {
-    doubler = |x: <span class="fn">int</span>| -&gt; x * <span class="num">2</span>
+    doubler = | x: <span class="fn">int</span> | -&gt; x * <span class="num">2</span>
     println(apply(<span class="num">21</span>, doubler))         <span class="com">// 42</span>
     println(apply_twice(<span class="num">3</span>, doubler))    <span class="com">// 12</span>
 }</code></pre>
@@ -798,10 +798,10 @@ btn("decrement") callback { ref_set(counter, ref_get(counter) - 1) }</code></pre
 <p>The callbacks capture <code>counter</code> from the enclosing scope. No need to thread it through as an explicit parameter. At the call site, <code>call(handler)</code> is enough.</p>
 <p>Callback blocks also support explicit params and arrow bodies:</p>
 <pre><code>// With params, invoked as call(adder, 3, 4)
-store(action) callback |a: int, b: int| { return a + b }
+store(action) callback | a: int, b: int | { return a + b }
 
 // Arrow body, shorthand for single-expression callbacks
-store(action) callback |x: int| -&gt; x * 2</code></pre>
+store(action) callback | x: int | -&gt; x * 2</code></pre>
 <h2 id="dsl-block-receiver-scoping">DSL Block Receiver Scoping</h2>
 <p>When a trailing closure is bound to a member-access call, <code>receiver.method(args) { body }</code> bare-name function references inside <code>body</code> fall back through the receiver's namespace before erroring as undefined. Resolution order:</p>
 <ol><li>Block-local definitions (closure params, <code>let</code> bindings).</li><li><code>&lt;receiver&gt;_&lt;name&gt;</code> looked up walking the scope chain.</li><li>The current file's scope (existing imports, top-level decls).</li><li>Otherwise: undefined-name error.</li></ol>
@@ -871,13 +871,13 @@ main() {
     list.add(nums, <span class="num">4</span>)
     list.add(nums, <span class="num">5</span>)
 
-    each(nums) |x: <span class="fn">int</span>| { print(<span class="str">"${x} "</span>) }
+    each(nums) | x: <span class="fn">int</span> | { print(<span class="str">"${x} "</span>) }
     <span class="com">// 1 2 3 4 5</span>
 
-    doubled = map(nums) |x: <span class="fn">int</span>| -&gt; x * <span class="num">2</span>
+    doubled = map(nums) | x: <span class="fn">int</span> | -&gt; x * <span class="num">2</span>
     <span class="com">// [2, 4, 6, 8, 10]</span>
 
-    big = filter(nums) |x: <span class="fn">int</span>| -&gt; x &gt; <span class="num">2</span>
+    big = filter(nums) | x: <span class="fn">int</span> | -&gt; x &gt; <span class="num">2</span>
     <span class="com">// [3, 4, 5]</span>
 }</code></pre>
 <h2 id="builder-context-stack">Builder Context Stack</h2>
@@ -1030,7 +1030,7 @@ _aether_ctx_pop();                                  <span class="com">// 3. pop<
 <pre><code>count = ref(0)           // heap-allocated mutable cell
 defer ref_free(count)
 
-inc = |r: ptr| { ref_set(r, ref_get(r) + 1) }
+inc = | r: ptr | { ref_set(r, ref_get(r) + 1) }
 
 call(inc, count)         // mutates shared state
 call(inc, count)
@@ -1055,7 +1055,7 @@ println(force(value))    // the remembered result, no second run</code></pre>
 <pre><code>import std.list
 
 handlers = list.new()
-action = |x: ptr| { ref_set(x, ref_get(x) + 1) }
+action = | x: ptr | { ref_set(x, ref_get(x) + 1) }
 list.add(handlers, box_closure(action))
 
 // Later: retrieve and invoke
@@ -1068,15 +1068,15 @@ call(handler, some_ref)</code></pre>
 prev = ref(0)
 op   = ref(0)
 
-digit  = |n: ptr, d: int| { ref_set(n, ref_get(n) * 10 + d) }
-set_op = |n: ptr, p: ptr, o: ptr, v: int| {
+digit  = | n: ptr, d: int | { ref_set(n, ref_get(n) * 10 + d) }
+set_op = | n: ptr, p: ptr, o: ptr, v: int | {
     ref_set(p, ref_get(n)); ref_set(n, 0); ref_set(o, v)
 }
 
 g = grid() {
-    btn("7") |n: ptr, p: ptr, o: ptr| { call(digit, n, 7) }
-    btn("+") |n: ptr, p: ptr, o: ptr| { call(set_op, n, p, o, PLUS) }
-    btn("=") |n: ptr, p: ptr, o: ptr| {
+    btn("7") | n: ptr, p: ptr, o: ptr | { call(digit, n, 7) }
+    btn("+") | n: ptr, p: ptr, o: ptr | { call(set_op, n, p, o, PLUS) }
+    btn("=") | n: ptr, p: ptr, o: ptr | {
         v = ref_get(n); pv = ref_get(p); ov = ref_get(o)
         if ov == PLUS  { v = pv + v }
         if ov == MINUS { v = pv - v }
@@ -1135,7 +1135,7 @@ r = assert.expect_int(5).to_equal(5).to_be_gt(0)  // matchers imported, chain lo
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.849 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.850 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

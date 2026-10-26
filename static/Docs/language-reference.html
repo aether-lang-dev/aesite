@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.849</span>
+      <span class="vtag">v0.850</span>
     </nav>
   </div>
 </header>
@@ -865,7 +865,7 @@ main() {
 <pre><code>150
 3 99 169
 2 2 5</code></pre>
-<ul><li><strong><code>s.len</code></strong> is the element count, an <code>int</code>. It is read, never written: a slice's length is fixed when the slice is made, and an array's is a constant, so <code>s.len = n</code> (or <code>+=</code>, <code>++</code>) is a type error that points at <code>s[lo..hi]</code> for fewer elements (#3104). It is the only member a slice or an array has: any other name, <code>s.length</code> or <code>s.size</code>, is a type error that names <code>.len</code> (#3092).</li><li><strong><code>s[i]</code> is bounds-checked.</strong> An index outside <code>0 ..&lt; s.len</code> is a runtime panic naming the source line, the index and the length (<code>slice index 5 out of range for length 3</code>). It is an ordinary panic: <code>try</code> catches it, and an actor step that trips it dies cleanly. A negative index is out of range, never a read before the buffer. An index into a fixed-size <code>T[N]</code> array is checked the same way, against <code>N</code> (<a href="#array-types">Array Types</a>).</li><li><strong><code>s[lo..hi]</code></strong> is the half-open sub-slice <code>[lo, hi)</code>, checked the same way (<code>lo &lt;= hi &lt;= s.len</code>). <code>s[lo..]</code> runs to the end, <code>s[..hi]</code> from the start, <code>s[..]</code> is the whole thing. The base may be a slice or a <code>T[N]</code> array; the result is always a <code>T[]</code> over the <em>same</em> elements, so a write through it is visible through the original.</li><li><strong>A <code>T[N]</code> array converts to <code>T[]</code> implicitly</strong> wherever a slice is expected: a parameter, a <code>T[]</code>-typed binding or field, a <code>return</code> from a <code>-&gt; T[]</code> function. The length travels with it. <code>null</code>, and the empty literal <code>[]</code>, convert to the empty slice: <code>.len</code> is <code>0</code>, it views no storage, and it compares equal to <code>null</code>. So <code>s == []</code> is <code>s == null</code> (it asks whether <code>s</code> views any storage; test <code>s.len == 0</code> for emptiness), a C function's <code>T[]</code> parameter takes <code>[]</code> as the null pointer, and an if-expression or a <code>match</code> given to a <code>T[]</code> converts each arm on its own. A module-level <code>var</code> or <code>const</code> of type <code>T[]</code> takes either as its initial value.</li><li><strong>A string is not a slice.</strong> Passing one where a <code>T[]</code> is expected (a parameter, a binding, a <code>return</code>) is a type error; <code>string.bytes(s)</code> is the bounded, read-only <code>byte[]</code> view of a string's bytes, and it decays to their pointer at a C extern like any slice. Reading it costs what any slice's read does; a store through it (an element store, <code>+=</code>, <code>++</code>), or through any view made from it (a sub-slice, a pattern's tail), in this function or one it is given to, panics with "a write through a read-only view of a string", and one the checker can see through a local bound to it is a compile error (E0200) (#3025). A string's own bytes are read-only too: <code>s[i]</code> reads one, and a write (<code>s[i] = v</code>, <code>s[i] += v</code>, <code>s[i]++</code>) is a compile error (E0200). Build the new text as a new string, or work on the bytes in a <code>byte[N]</code> array of your own.</li><li><strong>A slice decays to its pointer</strong> wherever a <code>ptr</code> is expected, exactly as a <code>T[N]</code> array does: a <code>ptr</code> parameter, a C extern's parameter (including one declared <code>T[]</code>), a comparison against <code>null</code>, and pointer arithmetic (<code>s + n</code> is a <code>ptr</code> to element <code>n</code>). <code>s as ptr</code> spells the same conversion explicitly, for a <code>ptr</code> return or binding. The length is dropped at that boundary; nothing else about the extern ABI changes.</li><li><strong><code>make([]T, n)</code></strong> allocates <code>n</code> zeroed elements and returns them as a bounded slice; <code>free(s)</code> releases them. Only the slice that holds such a buffer, or a view of a raw pointer the program owns from its start (<code>(p as T[])[0..n]</code>), may be freed: a view owns nothing. <code>free</code> of a sub-slice (<code>b[2..4]</code>, <code>b[1..]</code>, a list pattern's tail), of an array viewed as a slice, of <code>string.bytes(s)</code>, or of an array <code>T[N]</code>, is a compile error where the checker sees it (a local bound once to one, or the expression itself), and a named panic at run time anywhere else (<code>free of a view of elements another slice or an array holds, which owns nothing</code>). Before, the allocator was given a pointer it never handed out. In a module that defines a <code>free</code> of its own (<code>bignum.free</code>, <code>json.free</code>), <code>free(s)</code> of a slice is still this release, unless the module's <code>free</code> itself takes a slice: the module's function would only see the slice's pointer (#3116).</li><li>A slice does not own the storage it views. It is valid for exactly as long as that storage: an array in an enclosing scope, a <code>make</code> buffer until its <code>free</code>, a C buffer until C reclaims it. The elements are the storage's: a string read out of a <code>string[]</code> slice (<code>t = s[i]</code>, a return, a field) takes a reference of its own, and a store into an element (<code>s[i] = v</code>) takes the new string and releases the one it replaces, as a store into the array itself does. Memory C owns, viewed as <code>p as string[]</code>, owns nothing: a store there gives C the characters and takes no reference (<a href="/Docs/memory-management.html#ptr-slots">memory-management.md</a>).</li><li><strong>A slice of a function's own storage stays in the function</strong> (E0900). An array literal in a slice slot, and a function's own fixed-size array, live in its frame, which ends when the function returns. A slice of either may be used while the function runs and passed down to the functions it calls, but it may not leave the function: returned (alone, in a struct or tuple, or in a closure that captured it), stored in a module-level <code>var</code>, or stored in a field of something that may outlive the function: a struct behind a pointer, or a global (a struct value of the function's own may take it, and is then itself such a slice). Each of those is refused at the value that leaves, <code>'lit' returns a slice of its own storage (an array literal)</code>. Keep such a slice in storage that lives as long as it: a <code>make([]T, n)</code> buffer, a slice the caller passed in, or a module-level array. A slice parameter (<code>xs: int[]</code>) views the caller's storage and may be returned; a fixed-size array parameter (<code>a: int[3]</code>) is the function's own copy of the caller's array, so a slice of it is a slice of the function's storage. What a name holds where it leaves is what counts, path by path: a local or a field of a local struct re-bound to a <code>make</code> buffer before the <code>return</code> holds no slice of the frame any more, but one that still holds it on any path to the <code>return</code> (an <code>if</code> that re-binds it in one branch only, a loop that may <code>break</code> before the re-bind) is refused. A call of a closure the function binds (<code>reset()</code> after <code>reset = || { v = make([]int, 4) }</code>) counts what the closure re-binds for sure: a name of the function it binds on every way through its body before any <code>return</code> (both branches of an <code>if</code>, every arm of a <code>match</code> that covers its value, not a loop's body) holds what the closure gave it after the call. The name is the function's own when the function binds it ahead of the closure, in a block around it, and the closure does not declare one of its own first; a closure bound more than once, or called before it is bound, re-binds nothing that counts. A <code>try</code> around such a call starts its handler from what held a slice before any statement of its body ran, or after any. The other way is counted, conservatively: a closure that may store a slice of the function's storage into one of its names (<code>setview = || { v = arr }</code>) gives that name a slice from where the closure is written on, whether and whenever it is called, and a store a closure makes through a pointer or into a module-level <code>var</code> is judged as the same store written in the function. What the closure stores is judged as the function's own stores are: a fixed-size array of the function or an array literal, a name that holds such a slice at some point of the function, a local of the closure bound to one, or a parameter of the closure it is called with one for (any parameter that can hold a slice, when the closure is passed on or stored). A slice parameter of the function, a <code>make</code> buffer, a module-level <code>var</code> or <code>[]</code> stored by a closure leaves the name as it was. A call's result is taken to be no view of the caller, so a function that hands back the slice it was given is not seen through, in a closure (<code>v = same(arr)</code>) or not.</li></ul>
+<ul><li><strong><code>s.len</code></strong> is the element count, an <code>int</code>. It is read, never written: a slice's length is fixed when the slice is made, and an array's is a constant, so <code>s.len = n</code> (or <code>+=</code>, <code>++</code>) is a type error that points at <code>s[lo..hi]</code> for fewer elements (#3104). It is the only member a slice or an array has: any other name, <code>s.length</code> or <code>s.size</code>, is a type error that names <code>.len</code> (#3092).</li><li><strong><code>s[i]</code> is bounds-checked.</strong> An index outside <code>0 ..&lt; s.len</code> is a runtime panic naming the source line, the index and the length (<code>slice index 5 out of range for length 3</code>). It is an ordinary panic: <code>try</code> catches it, and an actor step that trips it dies cleanly. A negative index is out of range, never a read before the buffer. An index into a fixed-size <code>T[N]</code> array is checked the same way, against <code>N</code> (<a href="#array-types">Array Types</a>).</li><li><strong><code>s[lo..hi]</code></strong> is the half-open sub-slice <code>[lo, hi)</code>, checked the same way (<code>lo &lt;= hi &lt;= s.len</code>). <code>s[lo..]</code> runs to the end, <code>s[..hi]</code> from the start, <code>s[..]</code> is the whole thing. The base may be a slice or a <code>T[N]</code> array; the result is always a <code>T[]</code> over the <em>same</em> elements, so a write through it is visible through the original.</li><li><strong>A <code>T[N]</code> array converts to <code>T[]</code> implicitly</strong> wherever a slice is expected: a parameter, a <code>T[]</code>-typed binding or field, a <code>return</code> from a <code>-&gt; T[]</code> function. The length travels with it. <code>null</code>, and the empty literal <code>[]</code>, convert to the empty slice: <code>.len</code> is <code>0</code>, it views no storage, and it compares equal to <code>null</code>. So <code>s == []</code> is <code>s == null</code> (it asks whether <code>s</code> views any storage; test <code>s.len == 0</code> for emptiness), a C function's <code>T[]</code> parameter takes <code>[]</code> as the null pointer, and an if-expression or a <code>match</code> given to a <code>T[]</code> converts each arm on its own. A module-level <code>var</code> or <code>const</code> of type <code>T[]</code> takes either as its initial value.</li><li><strong>A string is not a slice.</strong> Passing one where a <code>T[]</code> is expected (a parameter, a binding, a <code>return</code>) is a type error; <code>string.bytes(s)</code> is the bounded, read-only <code>byte[]</code> view of a string's bytes, and it decays to their pointer at a C extern like any slice. Reading it costs what any slice's read does; a store through it (an element store, <code>+=</code>, <code>++</code>), or through any view made from it (a sub-slice, a pattern's tail), in this function or one it is given to, panics with "a write through a read-only view of a string", and one the checker can see through a local bound to it is a compile error (E0200) (#3025). A string's own bytes are read-only too: <code>s[i]</code> reads one, and a write (<code>s[i] = v</code>, <code>s[i] += v</code>, <code>s[i]++</code>) is a compile error (E0200). Build the new text as a new string, or work on the bytes in a <code>byte[N]</code> array of your own.</li><li><strong>A slice decays to its pointer</strong> wherever a <code>ptr</code> is expected, exactly as a <code>T[N]</code> array does: a <code>ptr</code> parameter, a C extern's parameter (including one declared <code>T[]</code>), a comparison against <code>null</code>, and pointer arithmetic (<code>s + n</code> is a <code>ptr</code> to element <code>n</code>). <code>s as ptr</code> spells the same conversion explicitly, for a <code>ptr</code> return or binding. The length is dropped at that boundary; nothing else about the extern ABI changes.</li><li><strong><code>make([]T, n)</code></strong> allocates <code>n</code> zeroed elements and returns them as a bounded slice; <code>free(s)</code> releases them, and first what they hold: each element is a place a store into it takes a reference for (a string, a closure, a struct that holds one), so the free gives each back, as a struct's destroy does its fields (#3159). The elements of C memory viewed as a slice hold no reference, and its free releases only the memory. Only the slice that holds such a buffer, or a view of a raw pointer the program owns from its start (<code>(p as T[])[0..n]</code>), may be freed: a view owns nothing. <code>free</code> of a sub-slice (<code>b[2..4]</code>, <code>b[1..]</code>, a list pattern's tail), of an array viewed as a slice, of <code>string.bytes(s)</code>, or of an array <code>T[N]</code>, is a compile error where the checker sees it (a local bound once to one, or the expression itself), and a named panic at run time anywhere else (<code>free of a view of elements another slice or an array holds, which owns nothing</code>). Before, the allocator was given a pointer it never handed out. In a module that defines a <code>free</code> of its own (<code>bignum.free</code>, <code>json.free</code>), <code>free(s)</code> of a slice is still this release, unless the module's <code>free</code> itself takes a slice: the module's function would only see the slice's pointer (#3116).</li><li>A slice does not own the storage it views. It is valid for exactly as long as that storage: an array in an enclosing scope, a <code>make</code> buffer until its <code>free</code>, a C buffer until C reclaims it. The elements are the storage's: a string read out of a <code>string[]</code> slice (<code>t = s[i]</code>, a return, a field) takes a reference of its own, and a store into an element (<code>s[i] = v</code>) takes the new string and releases the one it replaces, as a store into the array itself does. Memory C owns, viewed as <code>p as string[]</code>, owns nothing: a store there gives C the characters and takes no reference (<a href="/Docs/memory-management.html#ptr-slots">memory-management.md</a>).</li><li><strong>A slice of a function's own storage stays in the function</strong> (E0900). An array literal in a slice slot, and a function's own fixed-size array, live in its frame, which ends when the function returns. A slice of either may be used while the function runs and passed down to the functions it calls, but it may not leave the function: returned (alone, in a struct or tuple, or in a closure that captured it), stored in a module-level <code>var</code>, or stored in a field of something that may outlive the function: a struct behind a pointer, or a global (a struct value of the function's own may take it, and is then itself such a slice). Each of those is refused at the value that leaves, <code>'lit' returns a slice of its own storage (an array literal)</code>. Keep such a slice in storage that lives as long as it: a <code>make([]T, n)</code> buffer, a slice the caller passed in, or a module-level array. A slice parameter (<code>xs: int[]</code>) views the caller's storage and may be returned; a fixed-size array parameter (<code>a: int[3]</code>) is the function's own copy of the caller's array, so a slice of it is a slice of the function's storage. What a name holds where it leaves is what counts, path by path: a local or a field of a local struct re-bound to a <code>make</code> buffer before the <code>return</code> holds no slice of the frame any more, but one that still holds it on any path to the <code>return</code> (an <code>if</code> that re-binds it in one branch only, a loop that may <code>break</code> before the re-bind) is refused. A call of a closure the function binds (<code>reset()</code> after <code>reset = || { v = make([]int, 4) }</code>) counts what the closure re-binds for sure: a name of the function it binds on every way through its body before any <code>return</code> (both branches of an <code>if</code>, every arm of a <code>match</code> that covers its value, not a loop's body) holds what the closure gave it after the call. The name is the function's own when the function binds it ahead of the closure, in a block around it, and the closure does not declare one of its own first; a closure bound more than once, or called before it is bound, re-binds nothing that counts. A <code>try</code> around such a call starts its handler from what held a slice before any statement of its body ran, or after any. The other way is counted, conservatively: a closure that may store a slice of the function's storage into one of its names (<code>setview = || { v = arr }</code>) gives that name a slice from where the closure is written on, whether and whenever it is called, and a store a closure makes through a pointer or into a module-level <code>var</code> is judged as the same store written in the function. What the closure stores is judged as the function's own stores are: a fixed-size array of the function or an array literal, a name that holds such a slice at some point of the function, a local of the closure bound to one, or a parameter of the closure it is called with one for (any parameter that can hold a slice, when the closure is passed on or stored). A slice parameter of the function, a <code>make</code> buffer, a module-level <code>var</code> or <code>[]</code> stored by a closure leaves the name as it was. A call's result is taken to be no view of the caller, so a function that hands back the slice it was given is not seen through, in a closure (<code>v = same(arr)</code>) or not.</li></ul>
 <p><strong>Views over a raw pointer are unbounded.</strong> <code>p as T[]</code> (the typed-array cast) and a <code>T[]</code> handed back by a C extern have no length the compiler can know. Such a view indexes without a check, as it always did, and its <code>.len</code> is <code>-1</code>. Bound it with an explicit end to get checking back:</p>
 <pre><code>extern malloc(sz: long) -&gt; ptr
 raw = malloc(64)
@@ -894,12 +894,25 @@ main() {
 }</code></pre>
 <p>The full surface lives in <code>std.string</code> (alongside <code>string.array_*</code> for the legacy <code>AetherStringArray</code> shape). See <a href="/Docs/sequences.html">sequences.md</a> for the worked examples and the literal-disambiguation rule (<code>[a, b, c]</code> builds a cons chain when the target type is <code>*StringSeq</code>, vs a static C array when the target is <code>string[]</code>).</p>
 <h3 id="numeric-literal-formats">Numeric Literal Formats</h3>
-<p>Integer literals support hex, octal, and binary notation. Underscore separators are allowed anywhere in digits for readability.</p>
+<p>Integer literals support hex, octal, and binary notation.</p>
 <div class="tw"><table><thead><tr><th>Format</th><th>Prefix</th><th>Example</th><th>Value</th></tr></thead><tbody><tr><td>Decimal</td><td>(none)</td><td><code>255</code></td><td>255</td></tr><tr><td>Hexadecimal</td><td><code>0x</code> / <code>0X</code></td><td><code>0xFF</code></td><td>255</td></tr><tr><td>Octal</td><td><code>0o</code> / <code>0O</code></td><td><code>0o377</code></td><td>255</td></tr><tr><td>Binary</td><td><code>0b</code> / <code>0B</code></td><td><code>0b1111_1111</code></td><td>255</td></tr></tbody></table></div>
-<pre><code>mask = 0xFF
-flags = 0b1010_0101
-perms = 0o755
-big = 1_000_000</code></pre>
+<p>An underscore separates two digits, for readability, in every form: the digits of an integer, the fraction and the exponent of a float, a duration's digits, and the digits after a <code>0x</code>, <code>0o</code> or <code>0b</code> prefix (#3155). It changes nothing about the value.</p>
+<pre><code>main() {
+    mask = 0xFF_FF
+    flags = 0b1010_0101
+    perms = 0o755
+    big = 1_000_000
+    long huge = 3_000_000_000
+    rate = 1_234.567_8
+    println("${mask} ${flags} ${perms} ${big} ${huge} ${rate} ${30_000ms}")
+}</code></pre>
+<pre><code>65535 165 493 1000000 3000000000 1234.57 30s</code></pre>
+<p>An underscore anywhere else, at the end of the digits, beside another <code>_</code>, beside the <code>.</code> or the exponent's <code>e</code>, or straight after the prefix, is a compile error at the <code>_</code>:</p>
+<pre><code>main() {
+    n = 1_000_
+}
+// error[E0100]: misplaced `_` in a number
+// help: an underscore goes between two digits, as in 1_000_000 or 0xFF_FF</code></pre>
 <p>All numeric literal formats work with bitwise operators and in any expression context.</p>
 <h3 id="string-literals">String Literals</h3>
 <p>A string literal is double-quoted. Its escapes are decoded once, in a plain literal and in the text of an interpolated one alike: <code>\n</code>, <code>\t</code>, <code>\r</code>, <code>\\</code>, <code>\"</code>, <code>\xN</code> / <code>\xNN</code> (one or two hex digits), <code>\N</code> to <code>\NNN</code> (octal), and any other <code>\c</code> is the character <code>c</code>.</p>
@@ -963,10 +976,10 @@ main() {
 <h3 id="casting-between-types">Casting between types</h3>
 <p>Aether has <strong>no general-purpose cast operator</strong>. The <code>as</code> keyword is reserved for module aliasing and three specific value-cast forms:</p>
 <ul><li><code>import mod as alias</code> module aliasing (only inside <code>import</code> statements)</li><li><code>expr as *StructName</code> pointer-overlay struct cast (a leading <code>*</code> then a struct name; see <a href="#pointer-to-struct-type-structname-and-expr-as-structname">§ Pointer-to-struct type</a> below)</li><li><code>expr as fn(T1, T2, ...) -&gt; R</code> function-pointer cast (call a stored pointer with type checking; see <a href="#function-pointer-parameters-fnt1-t2---r">§ Function-pointer parameters</a> below)</li><li><code>expr as Name</code> where <code>Name</code> is a named function-pointer type (<code>type Name = fn(...) -&gt; R</code> or <code>cfn Name(...) -&gt; R</code>), the same function-pointer cast under a name (see <a href="#named-c-function-pointer-types-type-name--fnt1-t2---r">§ Named C function-pointer types</a> below)</li><li><code>expr as T[]</code> typed-array view cast (reinterpret a raw pointer as an unbounded <code>T[]</code> slice; see <a href="#slices-t">§ Slices</a>)</li></ul>
-<p>After <code>as</code> the parser also accepts a primitive <strong>value cast</strong>: <code>n as int</code> and other numeric casts compile and run, and a cast between a distinct type and its base type is allowed too. Casts the type system can't justify (for example <code>buf as string</code> or <code>p as ptr</code>) still parse, but are rejected at type-check with <code>E0200</code>, wherever they appear (a <code>return</code> value included), use a named helper for those. The <code>*StructName</code>, <code>fn(...) -&gt; R</code>, and <code>T[]</code> forms remain available. Other primitive conversions:</p>
+<p>After <code>as</code> the parser also accepts a primitive <strong>value cast</strong>: <code>n as int</code> and other numeric casts compile and run, and a cast between a distinct type and its base type is allowed too, an enum and an integer included (<code>Direction.West as int</code>, <code>3 as Direction</code>; two different enums never convert, #3157). Casts the type system can't justify (for example <code>buf as string</code> or <code>p as ptr</code>) still parse, but are rejected at type-check with <code>E0200</code>, wherever they appear (a <code>return</code> value included), use a named helper for those. The <code>*StructName</code>, <code>fn(...) -&gt; R</code>, and <code>T[]</code> forms remain available. Other primitive conversions:</p>
 <div class="tw"><table><thead><tr><th>From → To</th><th>How</th></tr></thead><tbody><tr><td><code>int</code> → <code>ptr</code> (e.g. passing an int to a <code>ptr</code>-typed extern param)</td><td>Implicit. The compiler emits <code>(void*)(intptr_t)</code> automatically at the call site.</td></tr><tr><td><code>string</code> → C <code>const char*</code> (passing a <code>string</code> to a C extern, or through a <code>fn(...)</code> pointer)</td><td>Implicit. The auto-unwrap injects <code>aether_string_data(arg)</code> at call sites for <code>string</code>-typed extern parameters, and for <code>string</code> parameters of a typed function pointer (a cast local, a <code>fn(...)</code> parameter, a struct field).</td></tr><tr><td><code>int</code> → <code>string</code></td><td><code>string.from_int(n)</code> (and <code>string.from_long(n)</code>, <code>string.from_float(f)</code>).</td></tr><tr><td>C <code>const char*</code> → Aether <code>string</code></td><td>Assignment to a <code>string</code>-typed variable, or a <code>return</code> from a function declared <code>-&gt; string</code>. The place takes the value as it takes any string: C's characters are copied into a counted string the place owns, and a counted string behind the pointer is retained. An extern declared <code>-&gt; string @heap</code> hands over a string the caller adopts without a copy.</td></tr><tr><td><code>int</code> ↔ <code>int64</code> / <code>byte</code> ↔ <code>int</code></td><td>Implicit safe widenings (<code>byte → int</code>, <code>int → int64</code>). The narrowing direction (<code>int → byte</code>) requires a literal-range check and truncates non-literals at runtime. See <a href="#byte-unsigned-8-bit">§ <code>byte</code></a>. Spelled out with <code>as</code>, <code>b as int</code> widens a <code>byte</code> (always 0 to 255, it is unsigned) and <code>n as byte</code> keeps the low 8 bits, as for <code>uint8</code>.</td></tr><tr><td><code>float</code> → <code>int</code></td><td>Into an <strong>explicitly</strong> typed slot (<code>int k = 4.5</code>, an <code>int</code> parameter or field, an element of <code>int[N] xs</code>) the value truncates, as in C. Into a slot whose <code>int</code> type was <strong>inferred</strong> (<code>r = 0</code> then <code>r = 2.5</code>; <code>xs = [1, 2]</code> then <code>xs[0] = 7.5</code>) it is a compile error naming the fix (the same rule as a 64-bit value into an inferred <code>int</code>), because the truncation was never chosen.</td></tr><tr><td><code>uint32</code> → <code>int</code></td><td>Explicit slots convert as in C. Into an <strong>inferred</strong> <code>int</code> (<code>k = 5</code> then <code>k = some_uint32</code>) it is the same narrowing error: values past 2³¹ do not fit. Annotate <code>uint32 k = ...</code> to keep it unsigned.</td></tr><tr><td>Reinterpret a raw <code>ptr</code> as a typed struct view, function pointer, or array</td><td><code>expr as *StructName</code>, <code>expr as fn(...) -&gt; R</code>, or <code>expr as T[]</code> (the only <code>as</code> forms for values).</td></tr></tbody></table></div>
 <h3 id="null">Null</h3>
-<p>The <code>null</code> keyword represents a null pointer, typed as <code>ptr</code>:</p>
+<p>The <code>null</code> keyword represents a null pointer, typed as <code>ptr</code>. In a <code>string</code> slot it is the null string: it reads as the empty text, and <code>s == null</code> tells it apart from <code>""</code> (<a href="#comparison-operators">Comparison Operators</a>):</p>
 <pre><code>x = null             // inferred: ptr
 if x == null {
     println("no value")
@@ -999,6 +1012,16 @@ const SIZEOF_JSSTRING = sizeof(JSString)          // ok, folds to a C constant
 const STR_BUF_OFFSET  = offsetof(JSString, buf)   // ok
 const STR_PADDED      = sizeof(JSString) + 8      // arithmetic over them is ok too</code></pre>
 <p>This lets a port that mirrors C structs as <code>extern struct</code> overlays centralise its offset/size table as named consts that are <strong>self-verifying by construction</strong>, the C compiler computes each value, so it cannot drift from the real layout, instead of hand-maintaining numeric offsets plus <code>_Static_assert</code> drift guards. The general "no function calls in a <code>const</code> initializer" rule is unchanged; these two layout builtins are the only carve-out.</p>
+<p><code>sizeof</code> takes any type a declaration takes (#3174): a keyword type (<code>int</code>, <code>long</code>, <code>float</code>, <code>byte</code>, <code>bool</code>, <code>ptr</code>, <code>string</code>), a width (<code>uint16</code>, <code>uint32</code>, <code>f32</code>, <code>size_t</code>), a pointer (<code>*Node</code>), a fixed-size array (<code>int[4]</code>, its element's size times its length), a struct, an enum or a distinct type, each the size C gives the type it lowers to. <code>offsetof</code> takes a struct, bare or qualified (<code>gpu.Shader</code>); another type has no fields and is an error at the type.</p>
+<pre><code>struct Pair {
+    a: int
+    b: long
+}
+
+main() {
+    println("${sizeof(int)} ${sizeof(long)} ${sizeof(uint16)} ${sizeof(int[4])} ${sizeof(Pair)} ${offsetof(Pair, b)}")
+}</code></pre>
+<pre><code>4 8 2 16 16 8</code></pre>
 <h3 id="mutable-module-level-globals">Mutable module-level globals</h3>
 <p>Where a <code>const</code> is a fixed value, a module-level <code>var</code> is <strong>one persistent, mutable word of state</strong> shared by every function in the module, a PRNG seed, a monotonic counter, a one-slot cache:</p>
 <pre><code>var rand48_x: uint64 = 0x1234ABCD330E      // module scope, mutable
@@ -1197,9 +1220,9 @@ fib(n) -&gt; fib(n - 1) + fib(n - 2)</code></pre>
 <h3 id="guard-clauses">Guard Clauses</h3>
 <p>Guards add conditions using the <code>when</code> keyword:</p>
 <pre><code>// Classify numbers using guards
-classify(x) when x &lt; 0 -&gt; print("negative\n")
-classify(x) when x == 0 -&gt; print("zero\n")
-classify(x) when x &gt; 0 -&gt; print("positive\n")
+classify(x) when x &lt; 0 -&gt; println("negative")
+classify(x) when x == 0 -&gt; println("zero")
+classify(x) when x &gt; 0 -&gt; println("positive")
 
 // Factorial with guard
 factorial(0) -&gt; 1
@@ -1289,6 +1312,25 @@ clamp(x, lo, hi) -&gt; {
     x
 }</code></pre>
 <p>This allows complex logic in arrow-style functions without switching to block syntax.</p>
+<p>A written result type may come before an arrow body, <code>-&gt; T -&gt; expr</code> or <code>-&gt; T -&gt; { ... }</code>, with any contract clauses between them (#3158). The body's value is returned against <code>T</code>, as a block body's <code>return</code> is: a value of another type is E0200 at the value.</p>
+<pre><code>struct Point {
+    x: int
+    y: int
+}
+
+square(x: int) -&gt; int -&gt; x * x
+
+origin() -&gt; Point -&gt; Point { x: 0, y: 0 }
+
+label(n: int) -&gt; string -&gt; {
+    s = "n=${n}"
+    s
+}
+
+main() {
+    println("${square(7)} ${origin().y} ${label(3)}")
+}</code></pre>
+<pre><code>49 0 n=3</code></pre>
 <p>The last statement is the result only when it has a value: an expression, other than a call of a function that returns nothing, or a <code>match</code> one of whose arms gives a value. Any other statement there is a statement like any other, and the body ends with it:</p>
 <ul><li>An <code>if</code>, a loop, a <code>switch</code>, a <code>try</code>, a <code>defer</code> or a <code>panic</code>. A body ending in one has to <code>return</code> on every path its own way: <code>-&gt; { if x &gt; 0 { return 1 } }</code> is a <a href="#returning-on-every-path-e0700">missing return</a> when <code>x</code> is not positive.</li><li>A binding or a store: <code>x = v</code>, whether it declares <code>x</code> or assigns an existing one, <code>x += v</code>, <code>p.n = v</code>, <code>xs[i] = v</code>, <code>a, b = f()</code>. With a global <code>var hits = 0</code>, <code>bump() -&gt; { hits = hits + 1 }</code> stores and returns nothing, and so does <code>-&gt; { label = "n=${n}" }</code>, which binds a local nobody reads. The single expression form is the same: <code>store(p: *P, v: int) -&gt; p.n = v</code> stores.</li><li>A send, <code>a ! M { ... }</code>, which has no value.</li><li>A call of a function that returns nothing (<code>println(...)</code>, or one of the program's with no result): with such a <code>note</code>, <code>-&gt; { note(x) }</code> and <code>-&gt; note(x)</code> end with the call and return nothing. So does a <code>match</code> all of whose arms end in such a call or in a statement, <code>-&gt; { match x { 1 -&gt; note(1)  _ -&gt; note(0) } }</code>.</li></ul>
 <p>Whether a function returns nothing is settled for the whole program before any body is checked, so it does not depend on the order the functions are defined in: <code>f(x) -&gt; { g(x) }</code> returns nothing when <code>g(x) -&gt; { note(x) }</code> does, wherever <code>g</code> is.</p>
@@ -1311,13 +1353,14 @@ is_odd(n) when n &gt; 0 -&gt; is_even(n - 1)</code></pre>
 <hr>
 <h2 id="control-flow">Control Flow</h2>
 <h3 id="if-statements">If Statements</h3>
-<pre><code>if (x &gt; 0) {
-    print("Positive\n");
-} else if (x &lt; 0) {
-    print("Negative\n");
+<pre><code>if x &gt; 0 {
+    println("positive")
+} else if x &lt; 0 {
+    println("negative")
 } else {
-    print("Zero\n");
+    println("zero")
 }</code></pre>
+<p>The condition needs no parentheses; <code>if (x &gt; 0)</code> is accepted too, the parentheses read as grouping.</p>
 <h3 id="if-expressions">If-Expressions</h3>
 <p><code>if</code>/<code>else</code> can be used as an expression that produces a value (like a ternary operator):</p>
 <pre><code>// Assign based on condition
@@ -1333,16 +1376,15 @@ grade = if score &gt;= 90 { 4 } else { if score &gt;= 80 { 3 } else { 2 } }</cod
 <p>A branch whose type the other branch's takes as a binding would (<code>null</code> beside a pointer) is converted into it, and the expression has the wider type. Two branches of no one type (an <code>int</code> and a <code>string</code>, arrays of another length or element type, tuples of another length) are a compile error naming both types.</p>
 <p>Each branch is an expression that gives a value, so a branch made of a call that returns nothing is a compile error, and so is one made of <code>exit(n)</code>, which never returns: an <code>if</code> expression chooses between two values and nothing leaves from one of its branches. To leave on one path, test it with an <code>if</code> statement first, or use a value <code>match</code>, whose arm may leave (<code>_ -&gt; exit(4)</code>).</p>
 <h3 id="while-loops">While Loops</h3>
-<pre><code>i = 0;
-while (i &lt; 10) {
-    print(i);
-    print("\n");
-    i = i + 1;
+<pre><code>i = 0
+while i &lt; 10 {
+    println(i)
+    i = i + 1
 }</code></pre>
 <h3 id="for-loops">For Loops</h3>
-<pre><code>for (i = 0; i &lt; 10; i = i + 1) {
-    print(i);
-    print("\n");
+<p>The C-style loop: an init, a condition and a step. A loop over a range of numbers is usually written as a range-for (below).</p>
+<pre><code>for (i = 0; i &lt; 10; i++) {
+    println(i)
 }</code></pre>
 <p>A bare init (<code>i = 0</code>) is the binding <code>i = 0</code> is anywhere. When the name is already bound where the loop is (a local, a module-level <code>var</code>, an actor's state field), it assigns that variable, which holds the value the loop ends with:</p>
 <pre><code>main() {
@@ -1387,10 +1429,9 @@ while (i &lt; 10) {
 <pre><code>12</code></pre>
 <h3 id="range-based-for-loops">Range-Based For Loops</h3>
 <p>Iterate over a range with <code>for VAR in START..END</code>:</p>
-<pre><code>// Prints 0 1 2 3 4
+<pre><code>// Prints 0 to 4, one a line
 for i in 0..5 {
-    print(i)
-    print(" ")
+    println(i)
 }
 
 // Sum with variable bound
@@ -1400,19 +1441,19 @@ for i in 1..n {
 }</code></pre>
 <p>The range <code>start..end</code> is exclusive of <code>end</code> (like Python's <code>range(start, end)</code>). It desugars to a C-style for loop internally. Its variable is the loop's own, a new one even where the name is bound outside the loop.</p>
 <h3 id="loop-control">Loop Control</h3>
-<pre><code>// Break - exit loop early
-for (i = 0; i &lt; 100; i = i + 1) {
-    if (i == 50) {
-        break;
+<pre><code>// break: leave the loop early
+for i in 0..100 {
+    if i == 50 {
+        break
     }
 }
 
-// Continue - skip to next iteration
-for (i = 0; i &lt; 10; i = i + 1) {
-    if (i == 5) {
-        continue;
+// continue: on to the next pass
+for i in 0..10 {
+    if i == 5 {
+        continue
     }
-    print(i);
+    println(i)
 }</code></pre>
 <h4 id="labeled-break--continue">Labeled break / continue</h4>
 <p>A <code>while</code> or <code>for</code> loop may carry a label (<code>label: while ...</code>), and <code>break label</code> / <code>continue label</code> then target that loop from inside a nested loop, <code>break label</code> exits the labeled loop, <code>continue label</code> jumps to its next iteration. This replaces the boolean-flag dance a C port would otherwise need for a nested-loop early exit (the C <code>goto cleanup</code> / labeled-break idiom):</p>
@@ -1431,11 +1472,11 @@ for (i = 0; i &lt; 10; i = i + 1) {
 <h2 id="match-statements">Match Statements</h2>
 <p>Match statements provide pattern-based dispatch:</p>
 <h3 id="integer-matching">Integer Matching</h3>
-<pre><code>match (value) {
-    0 -&gt; { print("zero\n"); }
-    1 -&gt; { print("one\n"); }
-    2 -&gt; { print("two\n"); }
-    _ -&gt; { print("other\n"); }
+<pre><code>match value {
+    0 -&gt; { println("zero") }
+    1 -&gt; { println("one") }
+    2 -&gt; { println("two") }
+    _ -&gt; { println("other") }
 }</code></pre>
 <h3 id="string-matching">String Matching</h3>
 <p>Strings are compared by content (length and bytes), so string literal arms work correctly:</p>
@@ -1524,20 +1565,26 @@ main() {
 <hr>
 <h2 id="switch-statements">Switch Statements</h2>
 <p>C-style switch for simple value dispatch:</p>
-<pre><code>switch (month) {
-    case 1: name = "January";
-    case 2: name = "February";
-    case 3: name = "March";
+<pre><code>switch month {
+    case 1: name = "January"
+    case 2: name = "February"
+    case 3: name = "March"
     // ... more cases
-    default: name = "Invalid";
+    default: name = "Invalid"
 }</code></pre>
 <p>Aether's <code>switch</code> has <strong>no fall-through</strong>: each case auto-breaks after its body. Cases also accept comma-lists and ranges, the same as <code>match</code> arms:</p>
-<pre><code>switch code {
-case 200, 201, 204: kind = "success";
-case 300..&lt;400:     kind = "redirect";   // ranged case (lowered to an if-chain)
-case 400..&lt;500:     kind = "client-error";
-default:            kind = "other";
+<pre><code>main() {
+    code = 404
+    kind = ""
+    switch code {
+        case 200, 201, 204: kind = "success"
+        case 300..&lt;400: kind = "redirect" // a ranged case, lowered to an if-chain
+        case 400..&lt;500: kind = "client-error"
+        default: kind = "other"
+    }
+    println(kind)
 }</code></pre>
+<pre><code>client-error</code></pre>
 <p>A comma-list case lowers to several C <code>case</code> labels sharing one body; a <code>switch</code> containing any ranged case is lowered to an equivalent if-else chain (safe because there is no fall-through to preserve).</p>
 <p>A <code>switch</code> over a string, a pointer or a float compares by an if-chain as well, a string by content. Its cases are checked against the value as a <code>match</code> arm's are (<a href="#match-expressions">Match Expressions</a>): a case naming a value the <code>switch</code>'s value can never equal, or a name that is no variable, constant or enum member, is an error at the case, and a value that cannot be compared (an optional, a sum, a struct) is one at the <code>switch</code>. A bare enum member (<code>case Red:</code>) is that member, as in a <code>match</code>.</p>
 <p>A <code>break</code> in a case leaves the <code>switch</code>, and nothing more, whichever of the two forms it lowers to: inside a loop, the loop goes on with the statement after the <code>switch</code>. On its way out it runs the defers of the scopes it leaves inside the case, not those of the loop body around the <code>switch</code>. A <code>break</code> in a <code>match</code> arm leaves the <code>switch</code> or loop around the <code>match</code>. <code>continue</code> goes on to the loop's next iteration, and <code>break label</code> leaves the loop it names. Each case is a scope of its own, as an <code>if</code> branch is: a <code>defer</code> in it runs when the case ends, and only when the case ran. A name a case binds is one variable with the rest of the function exactly where a name an <code>if</code> branch binds would be (<a href="#variables">Variables</a>): read after a <code>switch</code> at the top of the function body, bound in a <code>while</code> body, or bound by every case of a <code>switch</code> with a <code>default</code>. Elsewhere a read after the <code>switch</code> is <code>Undefined variable</code>:</p>
@@ -1588,21 +1635,23 @@ main() {
 <h2 id="defer-statement">Defer Statement</h2>
 <p>The <code>defer</code> statement schedules code to run when leaving the current scope:</p>
 <pre><code>process_file() {
-    handle = open_resource();
-    defer close_resource(handle);  // Runs when function exits
+    handle = open_resource()
+    defer close_resource(handle) // runs when the function exits
 
-    use_resource(handle);
-    use_resource(handle);
-    // close_resource(handle) called automatically here
+    use_resource(handle)
+    use_resource(handle)
+    // close_resource(handle) runs here
 }</code></pre>
 <h3 id="lifo-order">LIFO Order</h3>
 <p>Multiple defers execute in Last-In-First-Out order:</p>
-<pre><code>example() {
-    defer print("First\n");   // Runs third
-    defer print("Second\n");  // Runs second
-    defer print("Third\n");   // Runs first
-}
-// Output: Third, Second, First</code></pre>
+<pre><code>main() {
+    defer println("First") // runs third
+    defer println("Second") // runs second
+    defer println("Third") // runs first
+}</code></pre>
+<pre><code>Third
+Second
+First</code></pre>
 <h3 id="defer-try-and-defer-catch-cleanup-for-one-outcome-only"><code>defer try</code> and <code>defer catch</code>, cleanup for one outcome only</h3>
 <p>A plain <code>defer</code> runs on <strong>every</strong> exit, a panic that a <code>try</code> catches further up included. Two qualified forms run on only one, and neither on a panic:</p>
 <pre><code>defer       cleanup()    // always: on every exit
@@ -1660,8 +1709,7 @@ main() {
     <span class="kw">defer</span> list.free(items)
 
     list.add(items, <span class="str">"hello"</span>)
-    print(list.size(items))
-    print(<span class="str">"\n"</span>)
+    println(list.size(items))
     <span class="com">// list.free(items) runs here (scope exit)</span>
 }</code></pre>
 <p>A <code>defer</code> runs any statement, not only a stdlib free.</p>
@@ -1669,12 +1717,10 @@ main() {
 <p>A function that returns a handle it allocated gives it to the caller, which frees it:</p>
 <pre><code><span class="kw">import</span> std.list
 
-build_list(n) : <span class="fn">ptr</span> {
+build_list(n: <span class="fn">int</span>) -&gt; <span class="fn">ptr</span> {
     result = list.new()
-    i = <span class="num">0</span>
-    <span class="kw">while</span> i &lt; n {
-        list.add(result, i)
-        i = i + <span class="num">1</span>
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="num">0</span>..n {
+        list.add(result, <span class="str">"item ${i}"</span>)
     }
     <span class="kw">return</span> result
 }
@@ -1683,8 +1729,7 @@ main() {
     items = build_list(<span class="num">10</span>)
     <span class="kw">defer</span> list.free(items)
 
-    print(list.size(items))
-    print(<span class="str">"\n"</span>)
+    println(list.size(items))
 }</code></pre>
 <h3 id="multiple-return-values-result-types">Multiple Return Values (Result Types)</h3>
 <p>Functions can return multiple values using comma-separated returns:</p>
@@ -1710,6 +1755,7 @@ main() {
 }</code></pre>
 <p>The error convention: empty string <code>""</code> means no error, non-empty string is the error message. Use <code>!= ""</code> to check for errors.</p>
 <p>Tuple destructuring creates typed local variables. The compiler generates C structs for each unique tuple type (<code>_tuple_int_string</code>, etc.).</p>
+<p>A slot is a name, <code>_</code> (the value is dropped), an element or a field (#3167): <code>names[0], _ = pair()</code>, <code>p.name, p.n = pair()</code>, <code>last, counts[1] = pair()</code>. An element or a field takes its value as <code>place = value</code> stores it, ownership included, and the names among the slots bind as they would in a destructure of names only. An element's index is evaluated first, left to right and before the value, as in Go: <code>xs[i], i = pair()</code> stores into the element <code>i</code> named before the statement (#3208).</p>
 <h4 id="explicit-tuple-return-type">Explicit tuple return type</h4>
 <p>The compiler infers the return tuple from <code>return a, b</code> statements in the body, but you can also declare it up front using the same parenthesised form accepted on <code>extern</code>:</p>
 <pre><code>safe_divide(a: int, b: int) -&gt; (int, string) {
@@ -1768,6 +1814,45 @@ r = safe_divide(x, y) or {
     return safe_divide(x, d)!   // forwards safe_divide's error unchanged
 }</code></pre>
 <p>Used outside a <code>T!</code> function, <code>expr!</code> is <em>unwrap-or-trap</em>: it panics on a non-empty error slot (catchable with <code>try</code>/<code>catch</code>). Both <code>!</code> and <code>or</code> accept any <code>(value, err)</code> tuple, not just <code>T!</code> returns.</p>
+<h3 id="panics-panic-try-and-catch">Panics: <code>panic</code>, <code>try</code> and <code>catch</code></h3>
+<p>An error result is for a failure the caller expects and handles; a panic is for a bug. <code>panic("reason")</code> unwinds to the nearest enclosing <code>try</code>, whose <code>catch name { ... }</code> block runs with the reason bound to <code>name</code>. The runtime raises the same kind of panic for a broken contract, an index out of range, <code>x!</code> on <code>none</code> and a call through an empty closure, each reason starting with its <a href="#panic-categories">category</a>. Outside any <code>try</code> a panic prints its reason and ends the program; in an actor's handler it ends that actor. What the scopes it leaves hold is released, and their plain <code>defer</code>s run.</p>
+<pre><code>average(xs: int[]) -&gt; int {
+    if xs.len == 0 {
+        panic("average of no numbers")
+    }
+    total = 0
+    for i in 0..xs.len {
+        total = total + xs[i]
+    }
+    return total / xs.len
+}
+
+main() {
+    result = 0
+    try {
+        result = average([4, 8])
+        result = average([])
+    } catch reason {
+        println("caught: ${reason}")
+    }
+    println(result)
+}</code></pre>
+<pre><code>caught: average of no numbers
+6</code></pre>
+<p><code>try</code> is a statement and gives no value: to keep what its block computes, assign it inside the block, as above. A <code>try</code> where a value goes is one error (#3150):</p>
+<pre><code>work() -&gt; int {
+    return 42
+}
+
+main() {
+    r = try {
+        work()
+    } catch e {
+        println("caught ${e}")
+    }
+}
+// error[E0100]: `try` is a statement and gives no value
+// help: bind the value inside it: `try { r = work() } catch e { ... }`</code></pre>
 <h3 id="function-contracts-requires--ensures">Function contracts: <code>requires</code> / <code>ensures</code></h3>
 <p>Eiffel-style runtime-checked preconditions and postconditions. Clauses appear after the typed return arrow and before the body; each is a single boolean expression, panic on violation.</p>
 <pre><code>add(a: int, b: int) -&gt; int
@@ -1801,7 +1886,7 @@ r = safe_divide(x, y) or {
 <p>Compile-time contract errors fire <strong>even under <code>--no-contracts</code></strong>, that flag removes runtime <em>checks</em>, not free compile-time correctness findings. If a provably-violating call is intentionally unreachable, route the value through a runtime variable; only constant arguments participate in folding.</p>
 <p><strong>Limitations / out-of-scope for v1</strong>:</p>
 <ul><li>Postconditions are checked only at explicit <code>return &lt;expr&gt;</code> statements with a single value. Multi-value (tuple) returns and fall-off-the-end of void functions are not yet wrapped, calling <code>aether_panic</code> from those paths is a follow-up.</li><li>Short-circuit folding is asymmetric on purpose. <code>x || true</code> (unknown <code>x</code>) keeps the runtime check, because evaluating <code>x</code> may carry a side effect the user expects to fire, but <code>true || x</code> elides, since the runtime would short-circuit past <code>x</code> anyway; and <code>x &amp;&amp; false</code> may be reported always-false, because a false verdict never skips any runtime evaluation (it is either a build error or an emitted runtime check).</li><li>Call-site folding sees only the call itself: arguments must be constants right there. A constant flowing through an intermediate variable or a helper function is not tracked (that would be dataflow analysis).</li><li>The <code>--emit=lib</code> <code>aether_describe()</code> metadata doesn't yet surface contracts to FFI consumers; that's the next layer.</li></ul>
-<p>See <a href="https://github.com/aether-lang-dev/aether/tree/main/examples/basics/contracts.ae">examples/basics/contracts.ae</a> for runnable demos.</p>
+<p>See <a href="https://github.com/aether-lang-dev/aether/tree/main/examples/01-language/15-contracts.ae">examples/01-language/15-contracts.ae</a> for a runnable example.</p>
 <hr>
 <h3 id="string-ownership">String ownership</h3>
 <p>Every place that holds a string (a local, a struct field, an element, a module-level <code>var</code>, a closure's capture) owns one reference to it, and releases it when the place is given a new value or goes away (scope exit on every path, a struct destroyed). <strong>You do not write <code>defer string.free(s)</code>.</strong> The model is <a href="https://github.com/aether-lang-dev/aether/blob/main/docs/design/ownership-model.md">docs/design/ownership-model.md</a>.</p>
@@ -1846,7 +1931,7 @@ while i &lt; 1000000 {
     s = my_concat(s, "x")               // O(1) memory: the store releases the old s
     i = i + 1
 }</code></pre>
-<p>See <a href="https://github.com/aether-lang-dev/aether/tree/main/examples/basics/string-ownership.ae">examples/basics/string-ownership.ae</a> for a runnable demonstration.</p>
+<p>See <a href="https://github.com/aether-lang-dev/aether/tree/main/examples/01-language/17-ownership.ae">examples/01-language/17-ownership.ae</a> for a runnable example.</p>
 <h4 id="migrating-from-0835">Migrating from 0.835</h4>
 <p>0.836.0's E0902 rules refuse two shapes that 0.835.0 compiled. Both refusals are intended, each has a one-line fix, and the E0902 help names it.</p>
 <p><strong>1. A pointer into a borrowed argument, returned.</strong> <code>p + n</code> carries what <code>p</code> carries, and a borrowed <code>ptr</code> parameter may not be returned. Declare the parameter <code>@into</code>: the function's result holds it, and a caller holds the result as it holds the argument. The help names the declaration, here <code>bytes: @into ptr</code>.</p>
@@ -1932,6 +2017,7 @@ main() {
 <pre><code>let maybe: int? = 69        // a present value, implicitly wrapped
 let empty: int? = none      // the absent sentinel</code></pre>
 <p><code>T?</code> works for any element type, value types (<code>int?</code>, <code>float?</code>, <code>bool?</code>, an enum's <code>Color?</code>, a distinct type's <code>Meters?</code>) and reference types (<code>string?</code>, <code>*Node?</code>) alike, with one uniform representation, so there is no ambiguity between "the value is a null pointer" and "the key was absent". An optional can also be an element of a tuple, <code>-&gt; (string?, int)</code>, returned as <code>return "pos", n</code> or <code>return none, n</code>, and a tuple can be optional: <code>let t: (int, int)? = (3, 4)</code> wraps the tuple literal as it wraps any value (#2833).</p>
+<p>A value wraps into an optional on its own, and an optional never unwraps on its own: a <code>T?</code> is no <code>T</code>, wherever a <code>T</code> goes. A binding, a <code>return</code>, a field, an element and an argument all refuse it, <code>shout(maybe(1))</code> for a <code>shout(s: string)</code> included (E0200, <em>Argument 1 's' of 'shout': expected string, got string?</em>), and the way out is to say what happens when it holds <code>none</code>: <code>maybe(1) ?? "fallback"</code>, <code>maybe(1)!</code> (which panics on <code>none</code>), or a <code>match</code>. A local bound to a <code>T</code> in one branch or loop body and to a <code>T?</code> in another is one <code>T?</code> variable (a local first bound in a branch or loop body is one variable for the whole function), so a read of it in either body is optional too, and passing it where a <code>T</code> goes names that (#3153).</p>
 <p>A struct field can be optional (#2820): <code>struct Box { v: int?  at: Point? }</code>. A struct literal (<code>Box { v: 7, at: none }</code>) and a field store (<code>b.v = 9</code>, <code>b.v = none</code>) take the value as an optional binding does, a bare value wrapped. An optional field whose value owns memory (a <code>string?</code>, an optional <code>fn</code>, or an optional of a struct, a fixed-size array or a tuple that holds a string or a closure, such as <code>(string, int)?</code>) owns it as a field of the bare type does: a literal or a store takes the value, and a later store and the struct's destroy release it (#2822).</p>
 <h3 id="none-and-equality"><code>none</code> and equality</h3>
 <p><code>none</code> is a reserved literal (like <code>true</code>, <code>false</code>, and <code>null</code>): it cannot be used as a variable, parameter or constant name, and the compiler refuses the declaration, because every later use of such a binding would read as the literal instead. Compare against it with <code>==</code> / <code>!=</code>:</p>
@@ -2052,14 +2138,22 @@ if d == Direction.East { ... }  // compare (nominal: same enum only)</code></pre
 }</code></pre>
 <p>An enum <code>match</code> is <strong>exhaustive-checked</strong>: if it covers every member, no <code>_</code> arm is needed (as above); if a member is left uncovered and there is no <code>_</code>, it is a compile error naming the missing members (the same guarantee sum types give). A <code>_</code> arm still catches the rest when you want a default.</p>
 <p>Because an enum is integer-backed, its members interconvert with integer scalars (<code>x: int = Errno.Perm</code> gives <code>13</code>; <code>code == Errno.NotFound</code> compares as ints), <code>byte</code> included, which is C's <code>uint8_t</code> as <code>uint8</code> is: an enum coded as a byte on the wire is bound, passed and returned as a byte and back. Two <strong>different</strong> enums are never compatible with each other.</p>
-<p>Where the expected type is already a known enum, a member may be written <strong>bare</strong>, without the enum prefix. This applies to a function argument, a typed initializer, an assignment, a return, and either side of an enum comparison:</p>
+<p>Where the expected type is already a known enum, a member may be written <strong>bare</strong>, without the enum prefix. This applies to a function argument, a typed initializer, an assignment, a return, and either side of an enum comparison, and to the value of each arm of a <code>match</code> or an <code>if</code> in one of those places, since such a value is converted arm by arm (#3156):</p>
 <pre><code>paint(c: Color) -&gt; string { ... }
 
 paint(North)                 // function argument
 let c: Direction = North     // typed initializer
 c = South                    // assignment
 if c == North { ... }        // comparison (either order)
-heading() -&gt; Direction { return West }   // return</code></pre>
+heading() -&gt; Direction { return West }   // return
+flip(d: Direction) -&gt; Direction {
+    return match d {         // each arm's value, too
+        North -&gt; South
+        South -&gt; North
+        _ -&gt; d
+    }
+}
+let e: Direction = if c == North { East } else { West }</code></pre>
 <p>A real binding always wins: if a variable named <code>North</code> is in scope, <code>North</code> refers to it, not the member. A bare name that is not a member of the expected enum stays an ordinary "undefined variable" error.</p>
 <h3 id="enum-indexed-arrays">Enum-indexed arrays</h3>
 <p><code>[E]T</code> is a fixed array with exactly one slot per member of enum <code>E</code>, indexed by an <code>E</code> value rather than a raw integer. It is sized at compile time to the enum's member range and lowers to a plain C array (zero runtime cost):</p>
@@ -2155,29 +2249,26 @@ type Tree = Leaf | Pair</code></pre>
 <p><code>match</code> becomes a <code>switch</code> on <code>.tag</code> with the matched value narrowed to the active union member in each <code>case</code>. v1 is monomorphic; type parameters are a follow-up.</p>
 <hr>
 <h2 id="structs">Structs</h2>
-<p>Structs group related data:</p>
-<pre><code><span class="kw">struct</span> Point {
-    x,
-    y
+<p>Structs group related data, each field with its name and its type:</p>
+<pre><code>struct Point {
+    x: int
+    y: int
 }
 
-<span class="kw">struct</span> Person {
-    name,
-    age
+struct Person {
+    name: string
+    age: int
 }
 
 main() {
-    p = Point { x: <span class="num">10</span>, y: <span class="num">20</span> };
-    print(p.x);  <span class="com">// 10</span>
-    print(p.y);  <span class="com">// 20</span>
+    p = Point { x: 10, y: 20 }
+    who = Person { name: "Ada", age: 36 }
+    println("${p.x} ${p.y} ${who.name} ${who.age}")
 }</code></pre>
-<h3 id="explicit-field-types">Explicit Field Types</h3>
-<pre><code>struct Point {
-    int x,
-    int y
-}
-
-struct Config {
+<pre><code>10 20 Ada 36</code></pre>
+<h3 id="field-types">Field Types</h3>
+<p>A field's type may also come first, C's way, with commas between the fields:</p>
+<pre><code>struct Config {
     string name,
     int timeout,
     float threshold
@@ -2324,23 +2415,43 @@ message Reset {}  // Empty message</code></pre>
 <h2 id="actors">Actors</h2>
 <p>Actors are the core concurrency primitive with encapsulated state and message handling.</p>
 <h3 id="actor-definition">Actor Definition</h3>
-<pre><code>actor Counter {
-    state count = 0;
+<pre><code>message Increment {
+    amount: int
+}
+
+message Move {
+    dx: int
+    dy: int
+}
+
+message Show {}
+
+actor Counter {
+    state count = 0
+    state x = 0
 
     receive {
         Increment(amount) -&gt; {
-            count = count + amount;
+            count = count + amount
         }
-        GetCount() -&gt; {
-            print(count);
-            print("\n");
+        Move(dx: step, dy) -&gt; {
+            x = x + step + dy
         }
-        _ -&gt; {
-            print("Unknown message\n");
+        Show -&gt; {
+            println("count ${count}, x ${x}")
         }
     }
+}
+
+main() {
+    c = spawn(Counter())
+    c ! Increment { amount: 5 }
+    c ! Move { dx: 2, dy: 1 }
+    c ! Show {}
+    wait_for_idle()
 }</code></pre>
-<p>An actor has one arm per message: an arm matches by the message alone, so a second arm for a message the actor already receives (in the same <code>receive</code> block or another) could never run, and the compiler refuses it, naming the first.</p>
+<pre><code>count 5, x 3</code></pre>
+<p>An arm binds the message's fields <strong>by name</strong>: <code>Increment(amount)</code> binds the field <code>amount</code>, <code>Move(dx: step, dy)</code> binds the field <code>dx</code> as <code>step</code> and <code>dy</code> as itself, in any order, and an arm may leave fields out (<code>Show</code> binds none). A name that is no field of the message is an error at the arm, naming the fields it has (#3164); so is a binding named like a state of the actor, which the <code>field: name</code> form renames. An actor has one arm per message: an arm matches by the message alone, so a second arm for a message the actor already receives (in the same <code>receive</code> block or another) could never run, and the compiler refuses it, naming the first.</p>
 <h3 id="receive-timeouts">Receive Timeouts</h3>
 <p>The <code>after</code> clause fires a handler if no message arrives within N milliseconds:</p>
 <pre><code>actor Monitor {
@@ -2353,24 +2464,81 @@ message Reset {}  // Empty message</code></pre>
         alive = 0
     }
 }</code></pre>
-<p>The timeout is one-shot: it is cancelled when any message is received. The countdown starts when the actor's mailbox becomes empty.</p>
-<h3 id="state-variables">State Variables</h3>
-<p>State persists across messages:</p>
-<pre><code>actor BankAccount {
-    state balance = 0;
-    state transactions = 0;
-    state int[100] history;
+<p>The countdown starts when the actor waits on an empty mailbox: at spawn, and again each time it has handled a message. A message that arrives within the interval stops it, and the next wait starts it from the beginning, so the Monitor above warns every time five seconds pass without a heartbeat, however many came before. The timeout fires once per countdown: when its handler has run, only a message starts the next one. A handler that sends the actor a message keeps a cycle going, as a poller does:</p>
+<pre><code>actor Poller {
+    state ticks = 0
+
+    receive {
+        Tick -&gt; { ticks = ticks + 1 }
+    } after 1000 -&gt; {
+        self ! Tick {}
+    }
 }</code></pre>
+<p>and a handler that sends nothing leaves the actor idle, so <code>wait_for_idle()</code> returns. <code>wait_for_idle()</code> waits for every countdown that is running, so a poller that never stops keeps it waiting (#3162), and so does the end of <code>main</code>: a countdown of a minute that started just before <code>main</code> returned holds the exit for that minute. There is no way yet to let <code>main</code> end without it (#3219).</p>
+<h3 id="state-variables">State Variables</h3>
+<p>State persists across messages. A state takes its type from its value, or from a type written as a struct field's is, <code>state name: T = value</code> (#3163), for every type a field takes: a number of any width, a string, a struct, an enum, a tuple, an optional, a fixed-size array, a closure, and an <code>actor_ref</code>, which holds another actor's reference. The value is checked against a written type as a typed binding's is, and a state written with no value starts at its type's zero. The type-first form <code>state int[100] history</code> is accepted too. An array of references takes its size after <code>actor_ref</code>, a number or a <code>const</code> of the file (<code>state members: actor_ref[8]</code>), and a typed one after its parameter (<code>actor_ref[Member][8]</code>): a name after <code>actor_ref[</code> that is not such a <code>const</code> is the actor type (#3189).</p>
+<pre><code>message Deposit {
+    amount: int
+}
+
+message Connect {
+    to: actor_ref
+}
+
+message Report {}
+
+message Balance {
+    amount: long
+}
+
+actor Account {
+    state balance: long = 0
+    state history: int[4]
+    state count = 0
+    state auditor: actor_ref = null
+
+    receive {
+        Connect(to) -&gt; {
+            auditor = to
+        }
+        Deposit(amount) -&gt; {
+            balance = balance + amount
+            history[count % 4] = amount
+            count = count + 1
+        }
+        Report -&gt; {
+            auditor ! Balance { amount: balance }
+        }
+    }
+}
+
+actor Auditor {
+    receive {
+        Balance(amount) -&gt; {
+            println("balance ${amount}")
+        }
+    }
+}
+
+main() {
+    a = spawn(Account())
+    a ! Connect { to: spawn(Auditor()) }
+    a ! Deposit { amount: 70 }
+    a ! Deposit { amount: 30 }
+    a ! Report {}
+    wait_for_idle()
+}</code></pre>
+<pre><code>balance 100</code></pre>
 <h3 id="spawning-actors">Spawning Actors</h3>
-<pre><code>counter = spawn(Counter());
-calculator = spawn(Calculator());</code></pre>
+<pre><code>counter = spawn(Counter())
+calculator = spawn(Calculator())</code></pre>
 <h3 id="sending-messages-fire-and-forget">Sending Messages (Fire-and-Forget)</h3>
-<pre><code>counter ! Increment { amount: 10 };
-counter ! Reset {};</code></pre>
+<pre><code>counter ! Increment { amount: 10 }
+counter ! Reset {}</code></pre>
 <h3 id="ask-pattern-request-reply">Ask Pattern (Request-Reply)</h3>
 <p>The <code>?</code> operator sends a message and blocks until the actor replies. The compiler infers the reply type from the actor's receive handler, so the result is typed without an annotation. Multiple concurrent asks to the same actor are supported, each message carries its own reply slot.</p>
 <pre><code>// Synchronous request-reply, result is an int (from Result.value)
-result = calculator ? Add { a: 5, b: 3 };</code></pre>
+result = calculator ? Add { a: 5, b: 3 }</code></pre>
 <p>A handler replies in one of two ways, and the ask takes its type from whichever it used:</p>
 <pre><code>message GetName {}
 message GetSize {}
@@ -2387,15 +2555,23 @@ actor Store {
 label = store ? GetName {}   // string, from the replied expression
 size  = store ? GetSize {}   // int, from the reply message's first field</code></pre>
 <p>A reply message hands back its <strong>first declared field</strong>, so put the value there. A string reply is deep-copied before it crosses back, so the asker's copy outlives the handler's own scope, and the asker owns it: it is reclaimed at scope exit like any other owned string, and freeing it by hand is not required.</p>
-<p>If the handler does not call <code>reply</code> within the timeout (default 5 seconds), <code>?</code> returns 0.</p>
+<p>An ask that gets no reply gives the reply type's zero value (<code>0</code>, <code>""</code>). Destructured into two names, it says why, in the result convention: the reply and <code>""</code>, or the zero value and the reason (#3151):</p>
+<pre><code>size, err = store ? GetSize {}
+if err != "" {
+    println("no size: ${err}")
+}</code></pre>
+<p>Two names after an ask are always the reply and the reason, whatever the reply's type: a reply that is a pair itself is the first name, whole, and is destructured from there (<code>p, err = store ? GetRange {}</code>, then <code>lo, hi = p</code>).</p>
+<div class="tw"><table><thead><tr><th><code>err</code></th><th>when</th></tr></thead><tbody><tr><td><code>""</code></td><td>the handler replied</td></tr><tr><td><code>"ask timed out after 5000 ms"</code></td><td>no reply within the timeout (default 5 seconds)</td></tr><tr><td><code>"the actor is dead"</code></td><td>the actor had died (or was released) before the ask reached it</td></tr><tr><td><code>"the actor died before it replied"</code></td><td>the handler panicked with the ask in hand</td></tr><tr><td><code>"the handler returned without replying"</code></td><td>the handler that took the ask finished without a <code>reply</code></td></tr></tbody></table></div>
+<p>An ask to a dead actor, in either form, ends at once rather than after the timeout, and so does one whose actor dies before replying or whose handler returns without a reply: a <code>reply</code> answers the ask its own handler took, so none can come later.</p>
+<p>An ask made inside a handler blocks the asking actor's core until the reply, and no actor is moved onto that core meanwhile. An asked actor that is the core's own (an actor the handler spawned starts there) is stepped by the waiting thread itself, as a send steps an idle actor of the core, so it answers, and one that asks another of the core's actors in turn has it stepped the same way: a chain of asks among one core's actors answers (#3196, #3220). The core's other actors wait for the reply, so an asked actor on another core that asks one of them in turn waits with it, to the timeout (#3197).</p>
 <h3 id="reply-statement">Reply Statement</h3>
-<p>The <code>reply</code> statement sends a response back to the waiting <code>?</code> caller. Omitting <code>reply</code> in a handler that was invoked via <code>?</code> causes the caller to time out.</p>
+<p>The <code>reply</code> statement sends a response back to the waiting <code>?</code> caller. Omitting <code>reply</code> in a handler that was invoked via <code>?</code> causes the caller to time out (<code>err</code> is <code>"ask timed out after 5000 ms"</code> in the two-name form above).</p>
 <p>Actors respond using the <code>reply</code> statement:</p>
 <pre><code>actor Calculator {
     receive {
         Add(a, b) -&gt; {
-            result = a + b;
-            reply Result { value: result };
+            result = a + b
+            reply Result { value: result }
         }
     }
 }</code></pre>
@@ -2403,7 +2579,7 @@ size  = store ? GetSize {}   // int, from the reply message's first field</code>
 <p>The <code>_</code> pattern catches unmatched messages:</p>
 <pre><code>receive {
     Known() -&gt; { /* handle */ }
-    _ -&gt; { print("Unknown message\n"); }
+    _ -&gt; { println("unknown message") }
 }</code></pre>
 <hr>
 <h2 id="operators">Operators</h2>
@@ -2411,7 +2587,7 @@ size  = store ? GetSize {}   // int, from the reply message's first field</code>
 <div class="tw"><table><thead><tr><th>Operator</th><th>Description</th><th>Example</th></tr></thead><tbody><tr><td><code>+</code></td><td>Addition</td><td><code>a + b</code></td></tr><tr><td><code>-</code></td><td>Subtraction</td><td><code>a - b</code></td></tr><tr><td><code>*</code></td><td>Multiplication</td><td><code>a * b</code></td></tr><tr><td><code>/</code></td><td>Division</td><td><code>a / b</code></td></tr><tr><td><code>%</code></td><td>Modulo</td><td><code>a % b</code></td></tr></tbody></table></div>
 <h3 id="comparison-operators">Comparison Operators</h3>
 <div class="tw"><table><thead><tr><th>Operator</th><th>Description</th><th>Example</th></tr></thead><tbody><tr><td><code>==</code></td><td>Equal</td><td><code>a == b</code></td></tr><tr><td><code>!=</code></td><td>Not equal</td><td><code>a != b</code></td></tr><tr><td><code>&lt;</code></td><td>Less than</td><td><code>a &lt; b</code></td></tr><tr><td><code>&gt;</code></td><td>Greater than</td><td><code>a &gt; b</code></td></tr><tr><td><code>&lt;=</code></td><td>Less or equal</td><td><code>a &lt;= b</code></td></tr><tr><td><code>&gt;=</code></td><td>Greater or equal</td><td><code>a &gt;= b</code></td></tr></tbody></table></div>
-<blockquote><strong>String comparison:</strong> When both operands are strings, <code>==</code> and <code>!=</code> compare by content, not by pointer identity: two strings are equal when they have the same length and the same bytes, embedded NULs included, however they were allocated. <code>&lt;</code>, <code>&lt;=</code>, <code>&gt;</code> and <code>&gt;=</code> order them byte by byte over their whole length, a string after any proper prefix of it. A string comparison in a function-clause guard (<code>f(s) when s == "bob"</code>) works the same way.</blockquote>
+<blockquote><strong>String comparison:</strong> When both operands are strings, <code>==</code> and <code>!=</code> compare by content, not by pointer identity: two strings are equal when they have the same length and the same bytes, embedded NULs included, however they were allocated. <code>&lt;</code>, <code>&lt;=</code>, <code>&gt;</code> and <code>&gt;=</code> order them byte by byte over their whole length, a string after any proper prefix of it. A string comparison in a function-clause guard (<code>f(s) when s == "bob"</code>) works the same way.  <strong>A null string is the empty text</strong> wherever it is read as text: <code>==</code>, <code>!=</code> and the ordering operators, <code>string.equals</code>, <code>string.length</code>, printing and interpolation (#3129). So <code>os.getenv("X") != ""</code> is false for an unset <code>X</code>, and <code>"[${s}]"</code> is <code>"[]"</code> for a null <code>s</code>, where it used to give C's <code>(null)</code>. Whether there is a string at all is <code>s == null</code> (or <code>s != null</code>), which compares the pointer: an unset variable is <code>null</code>, a variable set to the empty string is not.</blockquote>
 <h3 id="bitwise-operators">Bitwise Operators</h3>
 <div class="tw"><table><thead><tr><th>Operator</th><th>Description</th><th>Example</th></tr></thead><tbody><tr><td><code>&amp;</code></td><td>Bitwise AND</td><td><code>flags &amp; mask</code></td></tr><tr><td><code>\|</code></td><td>Bitwise OR</td><td><code>flags \| bit</code></td></tr><tr><td><code>^</code></td><td>Bitwise XOR</td><td><code>a ^ b</code></td></tr><tr><td><code>~</code></td><td>Bitwise NOT</td><td><code>~mask</code></td></tr><tr><td><code>&lt;&lt;</code></td><td>Left shift</td><td><code>1 &lt;&lt; 4</code></td></tr><tr><td><code>&gt;&gt;</code></td><td>Right shift</td><td><code>n &gt;&gt; 2</code></td></tr></tbody></table></div>
 <p>Bitwise operators work on <code>int</code> and <code>long</code> values and map directly to C operators (zero runtime cost).</p>
@@ -2438,15 +2614,15 @@ shifted = 1 &lt;&lt; 4        // 16</code></pre>
 <hr>
 <h2 id="modules-and-imports">Modules and Imports</h2>
 <h3 id="standard-library-imports">Standard Library Imports</h3>
-<pre><code>import std.file;         // File operations
-import std.string;       // String utilities
-import std.list;         // ArrayList
-import std.http;         // HTTP client &amp; server
-import std.json;         // JSON parsing
+<pre><code>import std.fs      // files and directories
+import std.string  // string utilities
+import std.list    // a list that grows
+import std.http    // HTTP client and server
+import std.json    // JSON
 
 // Use with namespace syntax
-result = string.new("hello");
-if (file.exists("config.txt") == 1) { }</code></pre>
+loud = string.to_upper("hello")
+if fs.exists("config.txt") == 1 { }</code></pre>
 <h3 id="selective-imports">Selective Imports</h3>
 <p>Import only specific symbols from a module:</p>
 <pre><code><span class="kw">import</span> std.math (sqrt, pow)
@@ -2562,10 +2738,10 @@ solve(constraints: ptr, n: int) {
 <ul><li>The import is a copy of the module of its own (its own functions and module variables), compiled for AVX2 while the rest of the program keeps the build's flags. It is named by its alias, which is required, and imported whole: no <code>(names)</code> list, no glob.</li><li>Both copies compute the same bits; only their width differs. <code>lanes.native8()</code> is true in the copy, and <code>lanes.cpu_has_avx2()</code> says whether this CPU can run it (false off x86).</li><li>Two files importing the same module at the target share one copy.</li><li>An eight-lane value (<code>f32x8</code>, <code>i32x8</code>, or a struct, pointer, array, tuple or optional holding one) cannot cross between the copies, or from the copy into C compiled apart: the two copies spell it as different C types, so the call is a compile error (E0200). The entry points take scalars and pointers to the data.</li><li>A closure inside the copy is a compile error: its body would be compiled outside the copy.</li><li><code>"avx2"</code> is the one target, the one that changes an <code>f32x8</code>'s width. With a compiler other than GCC or Clang on x86, on the <code>AETHER_GCC_COMPAT=0</code> path, and with GCC on Windows at <code>-O0</code> (which cannot compile a 256-bit local there, #3023), the copy is plain code with no target attribute.</li></ul>
 <p><code>std/lanes/README.md</code> ("One binary, two widths") has the rest.</p>
 <h3 id="local-module-imports">Local Module Imports</h3>
-<pre><code>import utils;           // Loads lib/utils/module.ae
-import helpers;         // Loads lib/helpers/module.ae
+<pre><code>import utils    // loads lib/utils/module.ae
+import helpers  // loads lib/helpers/module.ae
 
-result = utils.double_value(21);</code></pre>
+result = utils.double_value(21)</code></pre>
 <p>In <code>utils.name</code>, <code>utils</code> is the imported module unless a value of that name (a local, a parameter, a global) is in scope, whose field it then reads. A function of that name is no value and hides nothing: a program's <code>frame()</code> leaves <code>frame.SETS</code> the constant of an imported <code>frame</code> module, in the program and in a module that imports <code>frame</code> itself, beside a function of the module's own named <code>frame</code> too. A module's code sees its own declarations, what it imports and the builtins, never the program's: a module that calls a program's <code>helper()</code> without importing it is refused, and a program's <code>struct frame</code> is no <code>frame</code> in the module.</p>
 <h3 id="available-standard-library-modules">Available Standard Library Modules</h3>
 <div class="tw"><table><thead><tr><th>Module</th><th>Namespace</th><th>Description</th></tr></thead><tbody><tr><td><code>std.file</code></td><td><code>file</code></td><td>File operations (<code>file.open()</code>, <code>file.exists()</code>)</td></tr><tr><td><code>std.dir</code></td><td><code>dir</code></td><td>Directory operations (<code>dir.list()</code>, <code>dir.create()</code>)</td></tr><tr><td><code>std.path</code></td><td><code>path</code></td><td>Path utilities (<code>path.join()</code>, <code>path.basename()</code>)</td></tr><tr><td><code>std.string</code></td><td><code>string</code></td><td>String manipulation (<code>string.new()</code>, <code>string.length()</code>)</td></tr><tr><td><code>std.list</code></td><td><code>list</code></td><td>Dynamic array (<code>list.new()</code>, <code>list.add()</code>)</td></tr><tr><td><code>std.map</code></td><td><code>map</code></td><td>Hash map (<code>map.new()</code>, <code>map.put()</code>)</td></tr><tr><td><code>std.set</code></td><td><code>set</code></td><td>Unique-string set (<code>set.new()</code>, <code>set.add()</code>)</td></tr><tr><td><code>std.pqueue</code></td><td><code>pqueue</code></td><td>Priority queue (<code>pqueue.new()</code>, <code>pqueue.push()</code>)</td></tr><tr><td><code>std.json</code></td><td><code>json</code></td><td>JSON encoding/decoding (<code>json.parse()</code>, <code>json.free()</code>)</td></tr><tr><td><code>std.http</code></td><td><code>http</code></td><td>HTTP client &amp; server (<code>http.get()</code>, <code>http.server_create()</code>)</td></tr><tr><td><code>std.tcp</code></td><td><code>tcp</code></td><td>TCP sockets (<code>tcp.connect()</code>, <code>tcp.write()</code>)</td></tr><tr><td><code>std.math</code></td><td><code>math</code></td><td>Math functions (<code>math.sqrt()</code>, <code>math.sin()</code>)</td></tr><tr><td><code>std.log</code></td><td><code>log</code></td><td>Logging utilities (<code>log.init()</code>, <code>log.write()</code>)</td></tr><tr><td><code>std.io</code></td><td><code>io</code></td><td>Input/output (<code>io.print()</code>, <code>io.getenv()</code>)</td></tr></tbody></table></div>
@@ -2715,10 +2891,10 @@ animate(el: @keep ptr, tick: fn(@keep ptr, float)) {
 main() {
     registry = list.new()
     shape = list.new()
-    animate(shape) callback |el: @keep ptr, t: float| {
+    animate(shape) callback | el: @keep ptr, t: float | {
         element_set_fill(el, "red")
     }
-    animate(shape) callback |el, t| {     // takes `@keep ptr` and `float`
+    animate(shape) callback | el, t | {     // takes `@keep ptr` and `float`
         element_set_fill(el, "blue")
     }
     println("${list.size(registry)}")
@@ -2755,7 +2931,7 @@ make_buffer() -&gt; int {
 
 main() {
     m = heap.new(Model)
-    token = observe.observe(m, |obj: <span class="fn">ptr</span>| {
+    token = observe.observe(m, | obj: <span class="fn">ptr</span> | {
         println(<span class="str">"count is now ${m.count}"</span>)
     })
     m.count = <span class="num">1</span>          <span class="com">// count is now 1</span>
@@ -3178,6 +3354,7 @@ k1 and 8</code></pre>
 <div class="tw"><table><thead><tr><th>Keyword</th><th>Purpose</th></tr></thead><tbody><tr><td><code>if</code>, <code>else</code></td><td>Conditionals</td></tr><tr><td><code>while</code>, <code>for</code>, <code>in</code>, <code>break</code>, <code>continue</code></td><td>Loops</td></tr><tr><td><code>return</code></td><td>Function return</td></tr><tr><td><code>match</code>, <code>switch</code>, <code>case</code>, <code>default</code></td><td>Pattern matching / dispatch</td></tr><tr><td><code>when</code></td><td>Guard clauses, <code>when defined(...)</code> regions</td></tr><tr><td><code>defer</code>, <code>try</code>, <code>catch</code>, <code>panic</code></td><td>Scope-exit cleanup and panics</td></tr><tr><td><code>requires</code>, <code>ensures</code></td><td>Function contracts</td></tr><tr><td><code>actor</code>, <code>receive</code>, <code>spawn</code>, <code>spawn_actor</code>, <code>send</code>, <code>reply</code>, <code>after</code>, <code>self</code></td><td>Actor system</td></tr><tr><td><code>state</code></td><td>Actor state (only reserved inside actor bodies)</td></tr><tr><td><code>message</code>, <code>struct</code>, <code>union</code>, <code>builder</code>, <code>func</code>, <code>callback</code></td><td>Definitions and trailing-block forms</td></tr><tr><td><code>let</code>, <code>var</code>, <code>const</code></td><td>Bindings, module-level globals, constants</td></tr><tr><td><code>import</code>, <code>as</code>, <code>export</code>, <code>exports</code>, <code>module</code>, <code>extern</code></td><td>Modules and C interop</td></tr><tr><td><code>hide</code>, <code>seal</code>, <code>except</code></td><td>Scope-level name denial (see <a href="/Docs/hide-and-seal.html">hide-and-seal.md</a>)</td></tr><tr><td><code>null</code>, <code>true</code>, <code>false</code></td><td>Literals</td></tr><tr><td><code>main</code>, <code>print</code>, <code>make</code></td><td>The entry point and two builtins</td></tr><tr><td><code>int</code>, <code>long</code>, <code>uint64</code>, <code>float</code>, <code>bool</code>, <code>byte</code>, <code>string</code>, <code>ptr</code>, <code>Duration</code>, <code>actor_ref</code>, <code>ActorRef</code>, <code>Message</code></td><td>Type names</td></tr></tbody></table></div>
 <p><code>none</code> is not a keyword but cannot be declared as a name either: it is the empty optional's literal (<a href="#none-and-equality">Optionals</a>). <code>enum</code>, <code>type</code>, <code>fn</code> and <code>cfn</code> are recognised where a declaration starts and are ordinary names elsewhere.</p>
 <p>Note: <code>state</code> is context-sensitive, it is a keyword only inside actor bodies. In all other code, <code>state</code> can be used as a regular variable name.</p>
+<p>Note: <code>move</code> is not reserved. It is the operator that hands a <code>ptr</code> over (<code>r ! Chunk { data: move buf }</code>) only before a name on the same line (see <a href="/Docs/isolated.html#move-handing-a-buffer-over-2975">isolated.md</a>); <code>fs.move(a, b)</code>, <code>mem.move(dst, src, n)</code>, a program's own <code>move()</code> and a variable called <code>move</code> are unaffected.</p>
 <p>Note: <code>quote</code> is not reserved. It quotes a trailing block only straight after a call's <code>)</code> on the same line, followed by <code>|</code>, <code>||</code>, <code>{</code> or <code>-&gt;</code> (see <a href="/Docs/quote.html">quote.md</a>); everywhere else it is an ordinary name, and <code>std.quote</code> is a module called <code>quote</code>.</p>
 <p>Note: <strong><code>ptr</code>, <code>byte</code>, <code>func</code>, <code>state</code> and <code>after</code> are usable as ordinary value identifiers</strong>, parameter names, local names, struct field names, struct-literal fields, and field-access targets, <em>without</em> the backtick escape. These tokens have meaning only in type position (<code>ptr</code>/<code>byte</code>), as a declaration head (<code>func</code>), or as a statement head (<code>state</code>/<code>after</code>), none of which overlaps a value position, so a bare <code>ptr</code>/<code>byte</code>/<code>func</code>/<code>state</code>/<code>after</code> in value position is unambiguously a name:</p>
 <pre><code>add(<span class="fn">ptr</span>: <span class="fn">int</span>) -&gt; <span class="fn">int</span> { <span class="kw">return</span> <span class="fn">ptr</span> + <span class="num">1</span> }     <span class="com">// `ptr` is the parameter name</span>
@@ -3297,61 +3474,66 @@ add(a, b: int) { return a + b; }     // mixed</code></pre>
 extern free(p: ptr) -&gt; void</code></pre>
 <p>Explicit types are optional but can improve clarity:</p>
 <pre><code>// Both are valid:
-x = 42;
-int y = 42;</code></pre>
+x = 42
+int y = 42</code></pre>
 <hr>
 <h2 id="example-programs">Example Programs</h2>
 <h3 id="hello-world">Hello World</h3>
 <pre><code>main() {
-    print(<span class="str">"Hello, World!\n"</span>);
+    println("Hello, World!")
 }</code></pre>
+<pre><code>Hello, World!</code></pre>
 <h3 id="factorial-with-pattern-matching">Factorial with Pattern Matching</h3>
-<pre><code>factorial(<span class="num">0</span>) -&gt; <span class="num">1</span>
-factorial(n) <span class="kw">when</span> n &gt; <span class="num">0</span> -&gt; n * factorial(n - <span class="num">1</span>)
+<pre><code>factorial(0) -&gt; 1
+factorial(n) when n &gt; 0 -&gt; n * factorial(n - 1)
 
 main() {
-    print(factorial(<span class="num">10</span>))  <span class="com">// 3628800</span>
+    println(factorial(10))
 }</code></pre>
+<pre><code>3628800</code></pre>
 <h3 id="counter-actor">Counter Actor</h3>
-<pre><code><span class="kw">message</span> Increment { amount: <span class="fn">int</span> }
-<span class="kw">message</span> GetCount {}
+<pre><code>message Increment {
+    amount: int
+}
 
-<span class="kw">actor</span> Counter {
-    <span class="kw">state</span> count = <span class="num">0</span>;
+message GetCount {}
 
-    <span class="kw">receive</span> {
+actor Counter {
+    state count = 0
+
+    receive {
         Increment(amount) -&gt; {
-            count = count + amount;
+            count = count + amount
         }
-        GetCount() -&gt; {
-            print(count);
-            print(<span class="str">"\n"</span>);
+        GetCount -&gt; {
+            println(count)
         }
     }
 }
 
 main() {
-    c = <span class="kw">spawn</span>(Counter());
-    c ! Increment { amount: <span class="num">5</span> };
-    c ! Increment { amount: <span class="num">3</span> };
-    c ! GetCount {};
-    wait_for_idle();  <span class="com">// Output: 8</span>
+    c = spawn(Counter())
+    c ! Increment { amount: 5 }
+    c ! Increment { amount: 3 }
+    c ! GetCount {}
+    wait_for_idle()
 }</code></pre>
+<pre><code>8</code></pre>
 <h3 id="resource-management-with-defer">Resource Management with Defer</h3>
 <pre><code>extern fopen(path: string, mode: string) -&gt; ptr
 extern fclose(file: ptr) -&gt; int
 
-process_file(path) {
-    file = fopen(path, "r");
-    defer fclose(file);
+process_file(path: string) {
+    file = fopen(path, "r")
+    defer fclose(file)
 
-    // Process file...
-    // fclose called automatically
+    // Process the file...
+    // fclose runs when the function returns
 }</code></pre>
 <nav class="doc-prevnext" aria-label="Previous and next page"><a class="pn-prev" href="/Docs/tutorial.html"><span class="pn-k">Previous</span><span class="pn-t">Aether Language Tutorial</span></a><a class="pn-next" href="/Docs/type-inference-guide.html"><span class="pn-k">Next</span><span class="pn-t">Aether Type Inference Guide</span></a></nav>
       </article>
     </main>
-    <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#overview" class="l2" data-id="overview">Overview</a><a href="#paradigm-placement" class="l2" data-id="paradigm-placement">Paradigm placement</a><a href="#where-aether-leans-functional" class="l3" data-id="where-aether-leans-functional">Where Aether leans functional</a><a href="#where-aether-borrows-from-oo-in-a-limited-way" class="l3" data-id="where-aether-borrows-from-oo-in-a-limited-way">Where Aether borrows from OO (in a limited way)</a><a href="#where-aether-is-neither-its-just-systems-pragmatic" class="l3" data-id="where-aether-is-neither-its-just-systems-pragmatic">Where Aether is neither, it's just systems-pragmatic</a><a href="#what-this-means-in-practice" class="l3" data-id="what-this-means-in-practice">What this means in practice</a><a href="#table-of-contents" class="l2" data-id="table-of-contents">Table of Contents</a><a href="#types" class="l2" data-id="types">Types</a><a href="#primitive-types" class="l3" data-id="primitive-types">Primitive Types</a><a href="#composite-types" class="l3" data-id="composite-types">Composite Types</a><a href="#array-types" class="l3" data-id="array-types">Array Types</a><a href="#slices-t" class="l3" data-id="slices-t">Slices (T[])</a><a href="#sequence-types-stringseq" class="l3" data-id="sequence-types-stringseq">Sequence Types (*StringSeq)</a><a href="#numeric-literal-formats" class="l3" data-id="numeric-literal-formats">Numeric Literal Formats</a><a href="#string-literals" class="l3" data-id="string-literals">String Literals</a><a href="#variables" class="l2" data-id="variables">Variables</a><a href="#casting-between-types" class="l3" data-id="casting-between-types">Casting between types</a><a href="#null" class="l3" data-id="null">Null</a><a href="#constants" class="l3" data-id="constants">Constants</a><a href="#mutable-module-level-globals" class="l3" data-id="mutable-module-level-globals">Mutable module-level globals</a><a href="#functions" class="l2" data-id="functions">Functions</a><a href="#returning-on-every-path-e0700" class="l3" data-id="returning-on-every-path-e0700">Returning on every path [E0700]</a><a href="#what-a-return-gives-e0200" class="l3" data-id="what-a-return-gives-e0200">What a return gives [E0200]</a><a href="#default-arguments" class="l3" data-id="default-arguments">Default arguments</a><a href="#source-location-intrinsics" class="l3" data-id="source-location-intrinsics">Source-location intrinsics</a><a href="#calling-a-function-value" class="l3" data-id="calling-a-function-value">Calling a function value</a><a href="#trailing-blocks" class="l3" data-id="trailing-blocks">Trailing blocks</a><a href="#pattern-matching-functions" class="l2" data-id="pattern-matching-functions">Pattern Matching Functions</a><a href="#basic-pattern-matching" class="l3" data-id="basic-pattern-matching">Basic Pattern Matching</a><a href="#guard-clauses" class="l3" data-id="guard-clauses">Guard Clauses</a><a href="#list-patterns" class="l3" data-id="list-patterns">List Patterns</a><a href="#struct-patterns" class="l3" data-id="struct-patterns">Struct Patterns</a><a href="#how-a-clause-set-runs" class="l3" data-id="how-a-clause-set-runs">How a Clause Set Runs</a><a href="#multi-statement-arrow-bodies" class="l3" data-id="multi-statement-arrow-bodies">Multi-Statement Arrow Bodies</a><a href="#multi-parameter-guards" class="l3" data-id="multi-parameter-guards">Multi-parameter Guards</a><a href="#mutual-recursion-with-guards" class="l3" data-id="mutual-recursion-with-guards">Mutual Recursion with Guards</a><a href="#control-flow" class="l2" data-id="control-flow">Control Flow</a><a href="#if-statements" class="l3" data-id="if-statements">If Statements</a><a href="#if-expressions" class="l3" data-id="if-expressions">If-Expressions</a><a href="#while-loops" class="l3" data-id="while-loops">While Loops</a><a href="#for-loops" class="l3" data-id="for-loops">For Loops</a><a href="#range-based-for-loops" class="l3" data-id="range-based-for-loops">Range-Based For Loops</a><a href="#loop-control" class="l3" data-id="loop-control">Loop Control</a><a href="#match-statements" class="l2" data-id="match-statements">Match Statements</a><a href="#integer-matching" class="l3" data-id="integer-matching">Integer Matching</a><a href="#string-matching" class="l3" data-id="string-matching">String Matching</a><a href="#ranged-and-multi-value-cases" class="l3" data-id="ranged-and-multi-value-cases">Ranged and multi-value cases</a><a href="#list-pattern-matching" class="l3" data-id="list-pattern-matching">List Pattern Matching</a><a href="#list-pattern-types" class="l3" data-id="list-pattern-types">List Pattern Types</a><a href="#struct-pattern-matching" class="l3" data-id="struct-pattern-matching">Struct Pattern Matching</a><a href="#names-an-arm-binds" class="l3" data-id="names-an-arm-binds">Names an arm binds</a><a href="#switch-statements" class="l2" data-id="switch-statements">Switch Statements</a><a href="#interpreter-dispatch-loops" class="l3" data-id="interpreter-dispatch-loops">Interpreter dispatch loops</a><a href="#switch-vs-match" class="l3" data-id="switch-vs-match">Switch vs Match</a><a href="#defer-statement" class="l2" data-id="defer-statement">Defer Statement</a><a href="#lifo-order" class="l3" data-id="lifo-order">LIFO Order</a><a href="#defer-try-and-defer-catch-cleanup-for-one-outcome-only" class="l3" data-id="defer-try-and-defer-catch-cleanup-for-one-outcome-only">defer try and defer catch, cleanup for one outcome only</a><a href="#use-cases" class="l3" data-id="use-cases">Use Cases</a><a href="#scope-directives-hide-and-seal-except" class="l2" data-id="scope-directives-hide-and-seal-except">Scope Directives: hide and seal except</a><a href="#hide-blacklist-specific-names" class="l3" data-id="hide-blacklist-specific-names">hide blacklist specific names</a><a href="#seal-except-whitelist" class="l3" data-id="seal-except-whitelist">seal except whitelist</a><a href="#key-semantics" class="l3" data-id="key-semantics">Key semantics</a><a href="#memory-management" class="l2" data-id="memory-management">Memory Management</a><a href="#defer-for-handles" class="l3" data-id="defer-for-handles">defer for handles</a><a href="#returning-a-handle" class="l3" data-id="returning-a-handle">Returning a handle</a><a href="#multiple-return-values-result-types" class="l3" data-id="multiple-return-values-result-types">Multiple Return Values (Result Types)</a><a href="#function-contracts-requires--ensures" class="l3" data-id="function-contracts-requires--ensures">Function contracts: requires / ensures</a><a href="#string-ownership" class="l3" data-id="string-ownership">String ownership</a><a href="#optionals" class="l2" data-id="optionals">Optionals</a><a href="#none-and-equality" class="l3" data-id="none-and-equality">none and equality</a><a href="#force-unwrap-" class="l3" data-id="force-unwrap-">Force-unwrap !</a><a href="#null-coalesce-" class="l3" data-id="null-coalesce-">Null-coalesce ??</a><a href="#optional-chaining-" class="l3" data-id="optional-chaining-">Optional chaining ?.</a><a href="#matching-on-optionals" class="l3" data-id="matching-on-optionals">Matching on optionals</a><a href="#narrowing" class="l3" data-id="narrowing">Narrowing</a><a href="#functions" class="l3" data-id="functions">Functions</a><a href="#codegen" class="l3" data-id="codegen">Codegen</a><a href="#enums" class="l2" data-id="enums">Enums</a><a href="#enum-indexed-arrays" class="l3" data-id="enum-indexed-arrays">Enum-indexed arrays</a><a href="#bit-sets" class="l2" data-id="bit-sets">Bit Sets</a><a href="#bitstructs" class="l2" data-id="bitstructs">Bitstructs</a><a href="#bit-layout-and-byte-order-are-separate-concerns" class="l3" data-id="bit-layout-and-byte-order-are-separate-concerns">Bit layout and byte order are separate concerns</a><a href="#sum--variant-types" class="l2" data-id="sum--variant-types">Sum / Variant Types</a><a href="#constructing-implicit-wrap" class="l3" data-id="constructing-implicit-wrap">Constructing, implicit wrap</a><a href="#matching-narrowing--exhaustiveness" class="l3" data-id="matching-narrowing--exhaustiveness">Matching, narrowing + exhaustiveness</a><a href="#recursive-sums" class="l3" data-id="recursive-sums">Recursive sums</a><a href="#codegen" class="l3" data-id="codegen">Codegen</a><a href="#structs" class="l2" data-id="structs">Structs</a><a href="#explicit-field-types" class="l3" data-id="explicit-field-types">Explicit Field Types</a><a href="#field-injection-with-using-composition-no-vtables" class="l3" data-id="field-injection-with-using-composition-no-vtables">Field injection with using (composition, no vtables)</a><a href="#function-pointer-struct-fields-a-vtable-of-callbacks" class="l3" data-id="function-pointer-struct-fields-a-vtable-of-callbacks">Function-pointer struct fields, a vtable of callbacks</a><a href="#pointer-to-struct-type-structname-and-expr-as-structname" class="l3" data-id="pointer-to-struct-type-structname-and-expr-as-structname">Pointer-to-struct type, *StructName and expr as *StructName</a><a href="#messages" class="l2" data-id="messages">Messages</a><a href="#actors" class="l2" data-id="actors">Actors</a><a href="#actor-definition" class="l3" data-id="actor-definition">Actor Definition</a><a href="#receive-timeouts" class="l3" data-id="receive-timeouts">Receive Timeouts</a><a href="#state-variables" class="l3" data-id="state-variables">State Variables</a><a href="#spawning-actors" class="l3" data-id="spawning-actors">Spawning Actors</a><a href="#sending-messages-fire-and-forget" class="l3" data-id="sending-messages-fire-and-forget">Sending Messages (Fire-and-Forget)</a><a href="#ask-pattern-request-reply" class="l3" data-id="ask-pattern-request-reply">Ask Pattern (Request-Reply)</a><a href="#reply-statement" class="l3" data-id="reply-statement">Reply Statement</a><a href="#wildcard-handler" class="l3" data-id="wildcard-handler">Wildcard Handler</a><a href="#operators" class="l2" data-id="operators">Operators</a><a href="#arithmetic-operators" class="l3" data-id="arithmetic-operators">Arithmetic Operators</a><a href="#comparison-operators" class="l3" data-id="comparison-operators">Comparison Operators</a><a href="#bitwise-operators" class="l3" data-id="bitwise-operators">Bitwise Operators</a><a href="#logical-operators" class="l3" data-id="logical-operators">Logical Operators</a><a href="#assignment-operators" class="l3" data-id="assignment-operators">Assignment Operators</a><a href="#increment-and-decrement" class="l3" data-id="increment-and-decrement">Increment and Decrement</a><a href="#actor-operators" class="l3" data-id="actor-operators">Actor Operators</a><a href="#member-access" class="l3" data-id="member-access">Member Access</a><a href="#operator-precedence-high-to-low" class="l3" data-id="operator-precedence-high-to-low">Operator Precedence (High to Low)</a><a href="#modules-and-imports" class="l2" data-id="modules-and-imports">Modules and Imports</a><a href="#standard-library-imports" class="l3" data-id="standard-library-imports">Standard Library Imports</a><a href="#selective-imports" class="l3" data-id="selective-imports">Selective Imports</a><a href="#what-a-file-can-reach" class="l3" data-id="what-a-file-can-reach">What a file can reach</a><a href="#module-public-api-exports-" class="l3" data-id="module-public-api-exports-">Module Public API, exports (…)</a><a href="#glob-import-import-mod--aka-unqualified-import" class="l3" data-id="glob-import-import-mod--aka-unqualified-import">Glob Import, import mod (*) (a.k.a. unqualified import)</a><a href="#import-with-alias" class="l3" data-id="import-with-alias">Import with Alias</a><a href="#targetavx2-import-m-as-alias-a-second-copy-compiled-for-avx2" class="l3" data-id="targetavx2-import-m-as-alias-a-second-copy-compiled-for-avx2">@target("avx2") import m as alias a second copy compiled for AVX2</a><a href="#local-module-imports" class="l3" data-id="local-module-imports">Local Module Imports</a><a href="#available-standard-library-modules" class="l3" data-id="available-standard-library-modules">Available Standard Library Modules</a><a href="#extern-functions" class="l2" data-id="extern-functions">Extern Functions</a><a href="#typed-and-qualified-c-pointers" class="l3" data-id="typed-and-qualified-c-pointers">Typed and qualified C pointers</a><a href="#an-externs-effects-are-unknown" class="l3" data-id="an-externs-effects-are-unknown">An extern's effects are unknown</a><a href="#retain-noescape-and-into-what-an-extern-does-with-a-parameter" class="l3" data-id="retain-noescape-and-into-what-an-extern-does-with-a-parameter">@retain, @noescape and @into: what an extern does with a parameter</a><a href="#externc_name-bind-to-a-renamed-c-symbol" class="l3" data-id="externc_name-bind-to-a-renamed-c-symbol">@extern("c_name") bind to a renamed C symbol</a><a href="#extern-const-name-type-c_import-import-an-object-like-c-macro" class="l3" data-id="extern-const-name-type-c_import-import-an-object-like-c-macro">extern const NAME: type @c_import import an object-like C macro</a><a href="#extern--c_import-let-a-c-header-own-the-prototype" class="l3" data-id="extern--c_import-let-a-c-header-own-the-prototype">extern ... @c_import let a C header own the prototype</a><a href="#va_list-forward-a-variadic-tail-to-c" class="l3" data-id="va_list-forward-a-variadic-tail-to-c">va_list forward a variadic tail to C</a><a href="#sourcefilec-a-c-file-the-module-ships" class="l3" data-id="sourcefilec-a-c-file-the-module-ships">@source("file.c") a C file the module ships</a><a href="#c_callback-export-an-aether-function-as-a-c-callback" class="l3" data-id="c_callback-export-an-aether-function-as-a-c-callback">@c_callback export an Aether function as a C callback</a><a href="#function-pointer-parameters-fnt1-t2---r" class="l3" data-id="function-pointer-parameters-fnt1-t2---r">Function-pointer parameters, fn(T1, T2) -&gt; R</a><a href="#closure-types-that-say-what-they-keep-fnkeep-ptr-float" class="l3" data-id="closure-types-that-say-what-they-keep-fnkeep-ptr-float">Closure types that say what they keep, fn(@keep ptr, float)</a><a href="#named-c-function-pointer-types-type-name--fnt1-t2---r" class="l3" data-id="named-c-function-pointer-types-type-name--fnt1-t2---r">Named C function-pointer types, type Name = fn(T1, T2) -&gt; R</a><a href="#observable-notify-on-every-field-store" class="l3" data-id="observable-notify-on-every-field-store">@observable notify on every field store</a><a href="#deriveeq-synthesize-an-equality-helper-for-a-struct" class="l3" data-id="deriveeq-synthesize-an-equality-helper-for-a-struct">@derive(eq) synthesize an equality helper for a struct</a><a href="#deriveschema-a-structs-field-table-for-inspectors-saves-and-replication" class="l3" data-id="deriveschema-a-structs-field-table-for-inspectors-saves-and-replication">@derive(schema) a struct's field table, for inspectors, saves and replication</a><a href="#built-in-functions" class="l2" data-id="built-in-functions">Built-in Functions</a><a href="#io" class="l3" data-id="io">I/O</a><a href="#heredoc-strings" class="l3" data-id="heredoc-strings">Heredoc strings</a><a href="#timing" class="l3" data-id="timing">Timing</a><a href="#concurrency" class="l3" data-id="concurrency">Concurrency</a><a href="#environment--process" class="l3" data-id="environment--process">Environment &amp; Process</a><a href="#compiler-errors" class="l2" data-id="compiler-errors">Compiler Errors</a><a href="#limits" class="l3" data-id="limits">Limits</a><a href="#a-pointer-given-to-a-string-local-e0202" class="l3" data-id="a-pointer-given-to-a-string-local-e0202">A Pointer Given to a String Local [E0202]</a><a href="#compiler-warnings" class="l2" data-id="compiler-warnings">Compiler Warnings</a><a href="#unused-variables-w1001" class="l3" data-id="unused-variables-w1001">Unused Variables [W1001]</a><a href="#unreachable-code-w1002" class="l3" data-id="unreachable-code-w1002">Unreachable Code [W1002]</a><a href="#constant-expression-overflow-w1003" class="l3" data-id="constant-expression-overflow-w1003">Constant-Expression Overflow [W1003]</a><a href="#unreachable-match-arm-w1004" class="l3" data-id="unreachable-match-arm-w1004">Unreachable Match Arm [W1004]</a><a href="#a-module-named-twice-w1006" class="l3" data-id="a-module-named-twice-w1006">A Module Named Twice [W1006]</a><a href="#match-expressions" class="l2" data-id="match-expressions">Match Expressions</a><a href="#keywords" class="l2" data-id="keywords">Keywords</a><a href="#raw-identifiers-using-a-keyword-as-a-name" class="l3" data-id="raw-identifiers-using-a-keyword-as-a-name">Raw identifiers, using a keyword as a name</a><a href="#source-files" class="l2" data-id="source-files">Source Files</a><a href="#comments" class="l2" data-id="comments">Comments</a><a href="#conditional-compilation" class="l2" data-id="conditional-compilation">Conditional Compilation</a><a href="#build-symbols" class="l3" data-id="build-symbols">Build symbols</a><a href="#when-regions" class="l3" data-id="when-regions">when regions</a><a href="#select-for-values" class="l3" data-id="select-for-values">select for values</a><a href="#compilation" class="l2" data-id="compilation">Compilation</a><a href="#using-the-cli" class="l3" data-id="using-the-cli">Using the CLI</a><a href="#using-the-compiler-directly" class="l3" data-id="using-the-compiler-directly">Using the Compiler Directly</a><a href="#type-system" class="l2" data-id="type-system">Type System</a><a href="#inference-rules" class="l3" data-id="inference-rules">Inference rules</a><a href="#type-annotations-are-optional" class="l3" data-id="type-annotations-are-optional">Type annotations are optional</a><a href="#extern-requires-annotations" class="l3" data-id="extern-requires-annotations">extern requires annotations</a><a href="#example-programs" class="l2" data-id="example-programs">Example Programs</a><a href="#hello-world" class="l3" data-id="hello-world">Hello World</a><a href="#factorial-with-pattern-matching" class="l3" data-id="factorial-with-pattern-matching">Factorial with Pattern Matching</a><a href="#counter-actor" class="l3" data-id="counter-actor">Counter Actor</a><a href="#resource-management-with-defer" class="l3" data-id="resource-management-with-defer">Resource Management with Defer</a></nav>
+    <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#overview" class="l2" data-id="overview">Overview</a><a href="#paradigm-placement" class="l2" data-id="paradigm-placement">Paradigm placement</a><a href="#where-aether-leans-functional" class="l3" data-id="where-aether-leans-functional">Where Aether leans functional</a><a href="#where-aether-borrows-from-oo-in-a-limited-way" class="l3" data-id="where-aether-borrows-from-oo-in-a-limited-way">Where Aether borrows from OO (in a limited way)</a><a href="#where-aether-is-neither-its-just-systems-pragmatic" class="l3" data-id="where-aether-is-neither-its-just-systems-pragmatic">Where Aether is neither, it's just systems-pragmatic</a><a href="#what-this-means-in-practice" class="l3" data-id="what-this-means-in-practice">What this means in practice</a><a href="#table-of-contents" class="l2" data-id="table-of-contents">Table of Contents</a><a href="#types" class="l2" data-id="types">Types</a><a href="#primitive-types" class="l3" data-id="primitive-types">Primitive Types</a><a href="#composite-types" class="l3" data-id="composite-types">Composite Types</a><a href="#array-types" class="l3" data-id="array-types">Array Types</a><a href="#slices-t" class="l3" data-id="slices-t">Slices (T[])</a><a href="#sequence-types-stringseq" class="l3" data-id="sequence-types-stringseq">Sequence Types (*StringSeq)</a><a href="#numeric-literal-formats" class="l3" data-id="numeric-literal-formats">Numeric Literal Formats</a><a href="#string-literals" class="l3" data-id="string-literals">String Literals</a><a href="#variables" class="l2" data-id="variables">Variables</a><a href="#casting-between-types" class="l3" data-id="casting-between-types">Casting between types</a><a href="#null" class="l3" data-id="null">Null</a><a href="#constants" class="l3" data-id="constants">Constants</a><a href="#mutable-module-level-globals" class="l3" data-id="mutable-module-level-globals">Mutable module-level globals</a><a href="#functions" class="l2" data-id="functions">Functions</a><a href="#returning-on-every-path-e0700" class="l3" data-id="returning-on-every-path-e0700">Returning on every path [E0700]</a><a href="#what-a-return-gives-e0200" class="l3" data-id="what-a-return-gives-e0200">What a return gives [E0200]</a><a href="#default-arguments" class="l3" data-id="default-arguments">Default arguments</a><a href="#source-location-intrinsics" class="l3" data-id="source-location-intrinsics">Source-location intrinsics</a><a href="#calling-a-function-value" class="l3" data-id="calling-a-function-value">Calling a function value</a><a href="#trailing-blocks" class="l3" data-id="trailing-blocks">Trailing blocks</a><a href="#pattern-matching-functions" class="l2" data-id="pattern-matching-functions">Pattern Matching Functions</a><a href="#basic-pattern-matching" class="l3" data-id="basic-pattern-matching">Basic Pattern Matching</a><a href="#guard-clauses" class="l3" data-id="guard-clauses">Guard Clauses</a><a href="#list-patterns" class="l3" data-id="list-patterns">List Patterns</a><a href="#struct-patterns" class="l3" data-id="struct-patterns">Struct Patterns</a><a href="#how-a-clause-set-runs" class="l3" data-id="how-a-clause-set-runs">How a Clause Set Runs</a><a href="#multi-statement-arrow-bodies" class="l3" data-id="multi-statement-arrow-bodies">Multi-Statement Arrow Bodies</a><a href="#multi-parameter-guards" class="l3" data-id="multi-parameter-guards">Multi-parameter Guards</a><a href="#mutual-recursion-with-guards" class="l3" data-id="mutual-recursion-with-guards">Mutual Recursion with Guards</a><a href="#control-flow" class="l2" data-id="control-flow">Control Flow</a><a href="#if-statements" class="l3" data-id="if-statements">If Statements</a><a href="#if-expressions" class="l3" data-id="if-expressions">If-Expressions</a><a href="#while-loops" class="l3" data-id="while-loops">While Loops</a><a href="#for-loops" class="l3" data-id="for-loops">For Loops</a><a href="#range-based-for-loops" class="l3" data-id="range-based-for-loops">Range-Based For Loops</a><a href="#loop-control" class="l3" data-id="loop-control">Loop Control</a><a href="#match-statements" class="l2" data-id="match-statements">Match Statements</a><a href="#integer-matching" class="l3" data-id="integer-matching">Integer Matching</a><a href="#string-matching" class="l3" data-id="string-matching">String Matching</a><a href="#ranged-and-multi-value-cases" class="l3" data-id="ranged-and-multi-value-cases">Ranged and multi-value cases</a><a href="#list-pattern-matching" class="l3" data-id="list-pattern-matching">List Pattern Matching</a><a href="#list-pattern-types" class="l3" data-id="list-pattern-types">List Pattern Types</a><a href="#struct-pattern-matching" class="l3" data-id="struct-pattern-matching">Struct Pattern Matching</a><a href="#names-an-arm-binds" class="l3" data-id="names-an-arm-binds">Names an arm binds</a><a href="#switch-statements" class="l2" data-id="switch-statements">Switch Statements</a><a href="#interpreter-dispatch-loops" class="l3" data-id="interpreter-dispatch-loops">Interpreter dispatch loops</a><a href="#switch-vs-match" class="l3" data-id="switch-vs-match">Switch vs Match</a><a href="#defer-statement" class="l2" data-id="defer-statement">Defer Statement</a><a href="#lifo-order" class="l3" data-id="lifo-order">LIFO Order</a><a href="#defer-try-and-defer-catch-cleanup-for-one-outcome-only" class="l3" data-id="defer-try-and-defer-catch-cleanup-for-one-outcome-only">defer try and defer catch, cleanup for one outcome only</a><a href="#use-cases" class="l3" data-id="use-cases">Use Cases</a><a href="#scope-directives-hide-and-seal-except" class="l2" data-id="scope-directives-hide-and-seal-except">Scope Directives: hide and seal except</a><a href="#hide-blacklist-specific-names" class="l3" data-id="hide-blacklist-specific-names">hide blacklist specific names</a><a href="#seal-except-whitelist" class="l3" data-id="seal-except-whitelist">seal except whitelist</a><a href="#key-semantics" class="l3" data-id="key-semantics">Key semantics</a><a href="#memory-management" class="l2" data-id="memory-management">Memory Management</a><a href="#defer-for-handles" class="l3" data-id="defer-for-handles">defer for handles</a><a href="#returning-a-handle" class="l3" data-id="returning-a-handle">Returning a handle</a><a href="#multiple-return-values-result-types" class="l3" data-id="multiple-return-values-result-types">Multiple Return Values (Result Types)</a><a href="#panics-panic-try-and-catch" class="l3" data-id="panics-panic-try-and-catch">Panics: panic, try and catch</a><a href="#function-contracts-requires--ensures" class="l3" data-id="function-contracts-requires--ensures">Function contracts: requires / ensures</a><a href="#string-ownership" class="l3" data-id="string-ownership">String ownership</a><a href="#optionals" class="l2" data-id="optionals">Optionals</a><a href="#none-and-equality" class="l3" data-id="none-and-equality">none and equality</a><a href="#force-unwrap-" class="l3" data-id="force-unwrap-">Force-unwrap !</a><a href="#null-coalesce-" class="l3" data-id="null-coalesce-">Null-coalesce ??</a><a href="#optional-chaining-" class="l3" data-id="optional-chaining-">Optional chaining ?.</a><a href="#matching-on-optionals" class="l3" data-id="matching-on-optionals">Matching on optionals</a><a href="#narrowing" class="l3" data-id="narrowing">Narrowing</a><a href="#functions" class="l3" data-id="functions">Functions</a><a href="#codegen" class="l3" data-id="codegen">Codegen</a><a href="#enums" class="l2" data-id="enums">Enums</a><a href="#enum-indexed-arrays" class="l3" data-id="enum-indexed-arrays">Enum-indexed arrays</a><a href="#bit-sets" class="l2" data-id="bit-sets">Bit Sets</a><a href="#bitstructs" class="l2" data-id="bitstructs">Bitstructs</a><a href="#bit-layout-and-byte-order-are-separate-concerns" class="l3" data-id="bit-layout-and-byte-order-are-separate-concerns">Bit layout and byte order are separate concerns</a><a href="#sum--variant-types" class="l2" data-id="sum--variant-types">Sum / Variant Types</a><a href="#constructing-implicit-wrap" class="l3" data-id="constructing-implicit-wrap">Constructing, implicit wrap</a><a href="#matching-narrowing--exhaustiveness" class="l3" data-id="matching-narrowing--exhaustiveness">Matching, narrowing + exhaustiveness</a><a href="#recursive-sums" class="l3" data-id="recursive-sums">Recursive sums</a><a href="#codegen" class="l3" data-id="codegen">Codegen</a><a href="#structs" class="l2" data-id="structs">Structs</a><a href="#field-types" class="l3" data-id="field-types">Field Types</a><a href="#field-injection-with-using-composition-no-vtables" class="l3" data-id="field-injection-with-using-composition-no-vtables">Field injection with using (composition, no vtables)</a><a href="#function-pointer-struct-fields-a-vtable-of-callbacks" class="l3" data-id="function-pointer-struct-fields-a-vtable-of-callbacks">Function-pointer struct fields, a vtable of callbacks</a><a href="#pointer-to-struct-type-structname-and-expr-as-structname" class="l3" data-id="pointer-to-struct-type-structname-and-expr-as-structname">Pointer-to-struct type, *StructName and expr as *StructName</a><a href="#messages" class="l2" data-id="messages">Messages</a><a href="#actors" class="l2" data-id="actors">Actors</a><a href="#actor-definition" class="l3" data-id="actor-definition">Actor Definition</a><a href="#receive-timeouts" class="l3" data-id="receive-timeouts">Receive Timeouts</a><a href="#state-variables" class="l3" data-id="state-variables">State Variables</a><a href="#spawning-actors" class="l3" data-id="spawning-actors">Spawning Actors</a><a href="#sending-messages-fire-and-forget" class="l3" data-id="sending-messages-fire-and-forget">Sending Messages (Fire-and-Forget)</a><a href="#ask-pattern-request-reply" class="l3" data-id="ask-pattern-request-reply">Ask Pattern (Request-Reply)</a><a href="#reply-statement" class="l3" data-id="reply-statement">Reply Statement</a><a href="#wildcard-handler" class="l3" data-id="wildcard-handler">Wildcard Handler</a><a href="#operators" class="l2" data-id="operators">Operators</a><a href="#arithmetic-operators" class="l3" data-id="arithmetic-operators">Arithmetic Operators</a><a href="#comparison-operators" class="l3" data-id="comparison-operators">Comparison Operators</a><a href="#bitwise-operators" class="l3" data-id="bitwise-operators">Bitwise Operators</a><a href="#logical-operators" class="l3" data-id="logical-operators">Logical Operators</a><a href="#assignment-operators" class="l3" data-id="assignment-operators">Assignment Operators</a><a href="#increment-and-decrement" class="l3" data-id="increment-and-decrement">Increment and Decrement</a><a href="#actor-operators" class="l3" data-id="actor-operators">Actor Operators</a><a href="#member-access" class="l3" data-id="member-access">Member Access</a><a href="#operator-precedence-high-to-low" class="l3" data-id="operator-precedence-high-to-low">Operator Precedence (High to Low)</a><a href="#modules-and-imports" class="l2" data-id="modules-and-imports">Modules and Imports</a><a href="#standard-library-imports" class="l3" data-id="standard-library-imports">Standard Library Imports</a><a href="#selective-imports" class="l3" data-id="selective-imports">Selective Imports</a><a href="#what-a-file-can-reach" class="l3" data-id="what-a-file-can-reach">What a file can reach</a><a href="#module-public-api-exports-" class="l3" data-id="module-public-api-exports-">Module Public API, exports (…)</a><a href="#glob-import-import-mod--aka-unqualified-import" class="l3" data-id="glob-import-import-mod--aka-unqualified-import">Glob Import, import mod (*) (a.k.a. unqualified import)</a><a href="#import-with-alias" class="l3" data-id="import-with-alias">Import with Alias</a><a href="#targetavx2-import-m-as-alias-a-second-copy-compiled-for-avx2" class="l3" data-id="targetavx2-import-m-as-alias-a-second-copy-compiled-for-avx2">@target("avx2") import m as alias a second copy compiled for AVX2</a><a href="#local-module-imports" class="l3" data-id="local-module-imports">Local Module Imports</a><a href="#available-standard-library-modules" class="l3" data-id="available-standard-library-modules">Available Standard Library Modules</a><a href="#extern-functions" class="l2" data-id="extern-functions">Extern Functions</a><a href="#typed-and-qualified-c-pointers" class="l3" data-id="typed-and-qualified-c-pointers">Typed and qualified C pointers</a><a href="#an-externs-effects-are-unknown" class="l3" data-id="an-externs-effects-are-unknown">An extern's effects are unknown</a><a href="#retain-noescape-and-into-what-an-extern-does-with-a-parameter" class="l3" data-id="retain-noescape-and-into-what-an-extern-does-with-a-parameter">@retain, @noescape and @into: what an extern does with a parameter</a><a href="#externc_name-bind-to-a-renamed-c-symbol" class="l3" data-id="externc_name-bind-to-a-renamed-c-symbol">@extern("c_name") bind to a renamed C symbol</a><a href="#extern-const-name-type-c_import-import-an-object-like-c-macro" class="l3" data-id="extern-const-name-type-c_import-import-an-object-like-c-macro">extern const NAME: type @c_import import an object-like C macro</a><a href="#extern--c_import-let-a-c-header-own-the-prototype" class="l3" data-id="extern--c_import-let-a-c-header-own-the-prototype">extern ... @c_import let a C header own the prototype</a><a href="#va_list-forward-a-variadic-tail-to-c" class="l3" data-id="va_list-forward-a-variadic-tail-to-c">va_list forward a variadic tail to C</a><a href="#sourcefilec-a-c-file-the-module-ships" class="l3" data-id="sourcefilec-a-c-file-the-module-ships">@source("file.c") a C file the module ships</a><a href="#c_callback-export-an-aether-function-as-a-c-callback" class="l3" data-id="c_callback-export-an-aether-function-as-a-c-callback">@c_callback export an Aether function as a C callback</a><a href="#function-pointer-parameters-fnt1-t2---r" class="l3" data-id="function-pointer-parameters-fnt1-t2---r">Function-pointer parameters, fn(T1, T2) -&gt; R</a><a href="#closure-types-that-say-what-they-keep-fnkeep-ptr-float" class="l3" data-id="closure-types-that-say-what-they-keep-fnkeep-ptr-float">Closure types that say what they keep, fn(@keep ptr, float)</a><a href="#named-c-function-pointer-types-type-name--fnt1-t2---r" class="l3" data-id="named-c-function-pointer-types-type-name--fnt1-t2---r">Named C function-pointer types, type Name = fn(T1, T2) -&gt; R</a><a href="#observable-notify-on-every-field-store" class="l3" data-id="observable-notify-on-every-field-store">@observable notify on every field store</a><a href="#deriveeq-synthesize-an-equality-helper-for-a-struct" class="l3" data-id="deriveeq-synthesize-an-equality-helper-for-a-struct">@derive(eq) synthesize an equality helper for a struct</a><a href="#deriveschema-a-structs-field-table-for-inspectors-saves-and-replication" class="l3" data-id="deriveschema-a-structs-field-table-for-inspectors-saves-and-replication">@derive(schema) a struct's field table, for inspectors, saves and replication</a><a href="#built-in-functions" class="l2" data-id="built-in-functions">Built-in Functions</a><a href="#io" class="l3" data-id="io">I/O</a><a href="#heredoc-strings" class="l3" data-id="heredoc-strings">Heredoc strings</a><a href="#timing" class="l3" data-id="timing">Timing</a><a href="#concurrency" class="l3" data-id="concurrency">Concurrency</a><a href="#environment--process" class="l3" data-id="environment--process">Environment &amp; Process</a><a href="#compiler-errors" class="l2" data-id="compiler-errors">Compiler Errors</a><a href="#limits" class="l3" data-id="limits">Limits</a><a href="#a-pointer-given-to-a-string-local-e0202" class="l3" data-id="a-pointer-given-to-a-string-local-e0202">A Pointer Given to a String Local [E0202]</a><a href="#compiler-warnings" class="l2" data-id="compiler-warnings">Compiler Warnings</a><a href="#unused-variables-w1001" class="l3" data-id="unused-variables-w1001">Unused Variables [W1001]</a><a href="#unreachable-code-w1002" class="l3" data-id="unreachable-code-w1002">Unreachable Code [W1002]</a><a href="#constant-expression-overflow-w1003" class="l3" data-id="constant-expression-overflow-w1003">Constant-Expression Overflow [W1003]</a><a href="#unreachable-match-arm-w1004" class="l3" data-id="unreachable-match-arm-w1004">Unreachable Match Arm [W1004]</a><a href="#a-module-named-twice-w1006" class="l3" data-id="a-module-named-twice-w1006">A Module Named Twice [W1006]</a><a href="#match-expressions" class="l2" data-id="match-expressions">Match Expressions</a><a href="#keywords" class="l2" data-id="keywords">Keywords</a><a href="#raw-identifiers-using-a-keyword-as-a-name" class="l3" data-id="raw-identifiers-using-a-keyword-as-a-name">Raw identifiers, using a keyword as a name</a><a href="#source-files" class="l2" data-id="source-files">Source Files</a><a href="#comments" class="l2" data-id="comments">Comments</a><a href="#conditional-compilation" class="l2" data-id="conditional-compilation">Conditional Compilation</a><a href="#build-symbols" class="l3" data-id="build-symbols">Build symbols</a><a href="#when-regions" class="l3" data-id="when-regions">when regions</a><a href="#select-for-values" class="l3" data-id="select-for-values">select for values</a><a href="#compilation" class="l2" data-id="compilation">Compilation</a><a href="#using-the-cli" class="l3" data-id="using-the-cli">Using the CLI</a><a href="#using-the-compiler-directly" class="l3" data-id="using-the-compiler-directly">Using the Compiler Directly</a><a href="#type-system" class="l2" data-id="type-system">Type System</a><a href="#inference-rules" class="l3" data-id="inference-rules">Inference rules</a><a href="#type-annotations-are-optional" class="l3" data-id="type-annotations-are-optional">Type annotations are optional</a><a href="#extern-requires-annotations" class="l3" data-id="extern-requires-annotations">extern requires annotations</a><a href="#example-programs" class="l2" data-id="example-programs">Example Programs</a><a href="#hello-world" class="l3" data-id="hello-world">Hello World</a><a href="#factorial-with-pattern-matching" class="l3" data-id="factorial-with-pattern-matching">Factorial with Pattern Matching</a><a href="#counter-actor" class="l3" data-id="counter-actor">Counter Actor</a><a href="#resource-management-with-defer" class="l3" data-id="resource-management-with-defer">Resource Management with Defer</a></nav>
   </div>
 </div>
 <script src="/docs.js" defer></script>
@@ -3360,7 +3542,7 @@ process_file(path) {
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.849 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.850 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

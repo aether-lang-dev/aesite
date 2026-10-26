@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.849</span>
+      <span class="vtag">v0.850</span>
     </nav>
   </div>
 </header>
@@ -757,7 +757,7 @@ main() {
 
     <span class="com">// Contained code as a closure. Closures bind inside a function body,</span>
     <span class="com">// and the captured param is typed so the list passes as a ptr.</span>
-    worker_code = |perms: <span class="fn">ptr</span>| {
+    worker_code = | perms: <span class="fn">ptr</span> | {
         <span class="kw">if</span> sandboxed_tcp_connect(perms, <span class="str">"db.internal"</span>, <span class="num">5432</span>) == <span class="num">1</span> {
             println(<span class="str">"Connected to DB"</span>)
         } <span class="kw">else</span> {
@@ -920,7 +920,7 @@ seccomp_load(ctx);</code></pre>
 <ol><li><strong>Defense in depth</strong>, Even if an actor is malicious and bypasses language-level checks, Capsicum blocks the syscall.</li><li><strong>Incremental</strong>, Doesn't require rewriting Aether code; works with existing programs.</li><li><strong>Transparent</strong>, Aether code doesn't need to know about Capsicum.</li><li><strong>Portable</strong>, On non-FreeBSD systems, the language-level checks still work.</li></ol>
 <h4 id="example-flow">Example Flow</h4>
 <pre><code>// Untrusted plugin (could be malicious)
-plugin = |ctx| {
+plugin = | ctx | {
     // This is sandboxed: permission checks will deny it
     sandboxed_tcp_connect(ctx, "evil.com", 443)  // Denied by language check
     
@@ -952,7 +952,7 @@ capsicum.enter()                  // enter capability mode, irreversible
 capsicum.in_mode()                // 1 if already sandboxed
 capsicum.rights_limit(fd, mask)   // narrow an fd to R_* rights
 capsicum.fcntls_limit(fd, mask)   // narrow allowed fcntl commands</code></pre>
-<p>Rights are an integer bitmask (<code>capsicum.R_READ | capsicum.R_SEEK | ...</code>) the kernel's <code>cap_rights_t</code> is an opaque struct, so the C wrapper translates the mask into <code>cap_rights_set()</code> calls internally. Worked example: <code>examples/capsicum-demo.ae</code> (read a file, <code>enter()</code>, watch the next <code>open</code> get refused by the kernel).</p>
+<p>Rights are an integer bitmask (<code>capsicum.R_READ | capsicum.R_SEEK | ...</code>) the kernel's <code>cap_rights_t</code> is an opaque struct, so the C wrapper translates the mask into <code>cap_rights_set()</code> calls internally. Worked example: <code>examples/05-containment/05-capsicum.ae</code> (open a file, <code>enter()</code>, read the held descriptor, watch the next <code>open</code> get refused by the kernel).</p>
 <p>Not yet bound: process descriptors (<code>pdfork</code>/<code>pdwait</code>) and Casper service delegation, additive, can land without disturbing the above.</p>
 <p><strong>Benefit:</strong> hand-written Aether code can leverage Capsicum today.</p>
 <h4 id="phase-2-runtime-integration-done-self-sandbox-model">Phase 2: Runtime Integration, <strong>DONE (self-sandbox model)</strong></h4>
@@ -970,11 +970,11 @@ for (i = 0; i &lt; n; i = i + 1) {
     cat, res, allowed = audit.entry(i)
     // ...
 }</code></pre>
-<p>The hook lives in the compiler-emitted in-process checker, so it fires for any <code>sandbox { }</code> block and for embedded/hosted plugins. Worked example: <code>examples/audit-demo.ae</code>. Per-actor attribution (the <code>actor_id</code> argument the original sketch imagined) is not wired, the checker sees category + resource, not the calling actor; adding it would need the actor identity threaded into the check, an additive follow-up. <strong>Benefit:</strong> forensics and debugging without external instrumentation.</p>
+<p>The hook lives in the compiler-emitted in-process checker, so it fires for any <code>sandbox { }</code> block and for embedded/hosted plugins. Worked example: <code>examples/05-containment/03-audit.ae</code>. Per-actor attribution (the <code>actor_id</code> argument the original sketch imagined) is not wired, the checker sees category + resource, not the calling actor; adding it would need the actor identity threaded into the check, an additive follow-up. <strong>Benefit:</strong> forensics and debugging without external instrumentation.</p>
 <h4 id="phase-4-cross-language-capsicum-callbacks-high-effort-speculative">Phase 4: Cross-Language Capsicum Callbacks (High effort, speculative)</h4>
 <p>Allow hosted modules (Java, Python, Go) to declare Capsicum requirements:</p>
 <pre><code>// Aether code compiled to library, embedded in Java
-config = |ctx| {
+config = | ctx | {
     grant_tcp(ctx, "api.example.com", 443)
     grant_fs_read(ctx, "/etc/app/config")
     
@@ -1002,7 +1002,7 @@ capsicum.enter()
 
 // Phase 3, the channel still works, sandboxed
 ip, err = casper.dns_resolve(net, "example.com")</code></pre>
-<p>Three services are bound: <code>system.net</code> (DNS, <code>casper.dns_resolve</code>), <code>system.pwd</code> (<code>casper.pwd_uid</code> / <code>casper.pwd_home</code>) and <code>system.sysctl</code> (<code>casper.sysctl</code>). The C wrapper flattens the service result structs (<code>addrinfo</code>, <code>passwd</code>) to Aether strings/ints. Off FreeBSD every call fails cleanly and <code>casper.available()</code> returns 0. Worked example: <code>examples/casper-demo.ae</code> resolves a hostname <em>inside</em> capability mode, which would otherwise be impossible. <code>syslog</code> and <code>grp</code> services are unbound but additive. Note this build vendors the Casper prototypes inline (the dev headers are absent on some installs, e.g. GhostBSD; the base runtime <code>.so</code> files satisfy the link).</p>
+<p>Three services are bound: <code>system.net</code> (DNS, <code>casper.dns_resolve</code>), <code>system.pwd</code> (<code>casper.pwd_uid</code> / <code>casper.pwd_home</code>) and <code>system.sysctl</code> (<code>casper.sysctl</code>). The C wrapper flattens the service result structs (<code>addrinfo</code>, <code>passwd</code>) to Aether strings/ints. Off FreeBSD every call fails cleanly and <code>casper.available()</code> returns 0. Worked example: <code>examples/05-containment/06-casper.ae</code> resolves a hostname <em>inside</em> capability mode, which would otherwise be impossible. <code>syslog</code> and <code>grp</code> services are unbound but additive. Note this build vendors the Casper prototypes inline (the dev headers are absent on some installs, e.g. GhostBSD; the base runtime <code>.so</code> files satisfy the link).</p>
 <h4 id="2-jail-integration">2. Jail Integration</h4>
 <p>FreeBSD jails are lightweight OS-level containers. An Aether actor could be spawned in a jail with:</p>
 <ul><li>Restricted filesystem (chroot)</li><li>Network isolation (no access to host network stack)</li><li>Process isolation (can't see other jails)</li></ul>
@@ -1019,7 +1019,7 @@ grant_fds(ctx, 10)         // Max 10 open fds</code></pre>
 <h3 id="41-secure-configuration-management">4.1 Secure Configuration Management</h3>
 <p><strong>Scenario:</strong> A system administration tool (like Ansible or Puppet) uses Aether for configuration logic.</p>
 <pre><code>// Untrusted configuration script
-config = |ctx| {
+config = | ctx | {
     // Script can only access /etc/myapp/ and connect to config.internal
     grant_fs_read(ctx, "/etc/myapp/*")
     grant_tcp(ctx, "config.internal", 8080)
@@ -1038,7 +1038,7 @@ main() {
 <h3 id="42-plugin-system-for-services">4.2 Plugin System for Services</h3>
 <p><strong>Scenario:</strong> A database server or web server allows plugins written in Aether.</p>
 <pre><code>// User-supplied plugin
-plugin = |ctx| {
+plugin = | ctx | {
     // Plugin can query the database and read data files
     grant_tcp(ctx, "db.internal", 5432)
     grant_fs_read(ctx, "/var/lib/myapp/data/*")
@@ -1055,7 +1055,7 @@ main() {
 <h3 id="43-secure-scripting-in-system-tools">4.3 Secure Scripting in System Tools</h3>
 <p><strong>Scenario:</strong> A DevOps tool (like Terraform or Nomad) uses Aether for provisioning scripts.</p>
 <pre><code>// Provisioning script
-script = |ctx| {
+script = | ctx | {
     grant_tcp(ctx, "*.cloud.provider", 443)        // Only to cloud provider
     grant_fs_read(ctx, "/var/lib/provisioning/*")
     grant_fs_write(ctx, "/tmp/provision-*")         // Scratch space
@@ -1114,7 +1114,7 @@ main() {
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.849 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.850 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>
