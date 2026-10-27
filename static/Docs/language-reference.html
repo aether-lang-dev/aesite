@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.850</span>
+      <span class="vtag">v0.851</span>
     </nav>
   </div>
 </header>
@@ -2474,7 +2474,7 @@ main() {
         self ! Tick {}
     }
 }</code></pre>
-<p>and a handler that sends nothing leaves the actor idle, so <code>wait_for_idle()</code> returns. <code>wait_for_idle()</code> waits for every countdown that is running, so a poller that never stops keeps it waiting (#3162), and so does the end of <code>main</code>: a countdown of a minute that started just before <code>main</code> returned holds the exit for that minute. There is no way yet to let <code>main</code> end without it (#3219).</p>
+<p>and a handler that sends nothing leaves the actor idle, so <code>wait_for_idle()</code> returns. <code>wait_for_idle()</code> waits for every countdown that is running, so a poller that never stops keeps it waiting (#3162). The end of <code>main</code> waits for the messages sent to be handled, but not for countdowns: a countdown still running then does not hold the exit, and its timeout does not run (#3219). A program that wants a countdown to fire before it ends calls <code>wait_for_idle()</code> first.</p>
 <h3 id="state-variables">State Variables</h3>
 <p>State persists across messages. A state takes its type from its value, or from a type written as a struct field's is, <code>state name: T = value</code> (#3163), for every type a field takes: a number of any width, a string, a struct, an enum, a tuple, an optional, a fixed-size array, a closure, and an <code>actor_ref</code>, which holds another actor's reference. The value is checked against a written type as a typed binding's is, and a state written with no value starts at its type's zero. The type-first form <code>state int[100] history</code> is accepted too. An array of references takes its size after <code>actor_ref</code>, a number or a <code>const</code> of the file (<code>state members: actor_ref[8]</code>), and a typed one after its parameter (<code>actor_ref[Member][8]</code>): a name after <code>actor_ref[</code> that is not such a <code>const</code> is the actor type (#3189).</p>
 <pre><code>message Deposit {
@@ -2563,7 +2563,7 @@ if err != "" {
 <p>Two names after an ask are always the reply and the reason, whatever the reply's type: a reply that is a pair itself is the first name, whole, and is destructured from there (<code>p, err = store ? GetRange {}</code>, then <code>lo, hi = p</code>).</p>
 <div class="tw"><table><thead><tr><th><code>err</code></th><th>when</th></tr></thead><tbody><tr><td><code>""</code></td><td>the handler replied</td></tr><tr><td><code>"ask timed out after 5000 ms"</code></td><td>no reply within the timeout (default 5 seconds)</td></tr><tr><td><code>"the actor is dead"</code></td><td>the actor had died (or was released) before the ask reached it</td></tr><tr><td><code>"the actor died before it replied"</code></td><td>the handler panicked with the ask in hand</td></tr><tr><td><code>"the handler returned without replying"</code></td><td>the handler that took the ask finished without a <code>reply</code></td></tr></tbody></table></div>
 <p>An ask to a dead actor, in either form, ends at once rather than after the timeout, and so does one whose actor dies before replying or whose handler returns without a reply: a <code>reply</code> answers the ask its own handler took, so none can come later.</p>
-<p>An ask made inside a handler blocks the asking actor's core until the reply, and no actor is moved onto that core meanwhile. An asked actor that is the core's own (an actor the handler spawned starts there) is stepped by the waiting thread itself, as a send steps an idle actor of the core, so it answers, and one that asks another of the core's actors in turn has it stepped the same way: a chain of asks among one core's actors answers (#3196, #3220). The core's other actors wait for the reply, so an asked actor on another core that asks one of them in turn waits with it, to the timeout (#3197).</p>
+<p>An ask made inside a handler blocks the asking actor's core until the reply, and no actor is moved onto that core meanwhile. An asked actor that is the core's own (an actor the handler spawned starts there) is stepped by the waiting thread itself, as a send steps an idle actor of the core, so it answers, and one that asks another of the core's actors in turn has it stepped the same way: a chain of asks among one core's actors answers (#3196, #3220). The core's other actors keep running (#3197): a millisecond into the wait, and every millisecond after, the waiting thread delivers what is queued for them and moves each one with work to a core that runs it, the core waiting on that very actor when there is one, else an idle one. So an asked actor on another core that asks one of them in turn gets its answer. Nothing else is run inside the waiting handler: an actor of the core that asks the waiting actor waits until its handler is done, as it would have. An actor with more messages queued than its mailbox holds stays until the ask ends, since moved, its later messages could overtake them (#3241).</p>
 <h3 id="reply-statement">Reply Statement</h3>
 <p>The <code>reply</code> statement sends a response back to the waiting <code>?</code> caller. Omitting <code>reply</code> in a handler that was invoked via <code>?</code> causes the caller to time out (<code>err</code> is <code>"ask timed out after 5000 ms"</code> in the two-name form above).</p>
 <p>Actors respond using the <code>reply</code> statement:</p>
@@ -3542,7 +3542,7 @@ process_file(path: string) {
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.850 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.851 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>
