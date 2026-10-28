@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.854</span>
+      <span class="vtag">v0.855</span>
     </nav>
   </div>
 </header>
@@ -658,6 +658,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/compiled-module-artifacts.html">Compiled module artifacts (.aea)</a>
 <a href="/Docs/edge-cases.html">Edge cases: what is settled, and what only happens to be true</a>
 <a href="/Docs/gpu.html">The GPU tier</a>
+<a href="/Docs/package-fetching.html">Package fetching</a>
 <a href="/Docs/quote.html" class="on">quote: a trailing block handed over as a tree</a>
 <a href="/Docs/swiftui-ios-app.html">Using an Aether library from a SwiftUI iOS app</a>
 <a href="/Docs/writing-security-sensitive-code.html">Writing security-sensitive code in Aether</a></nav>
@@ -812,7 +813,7 @@ fxaa(screen: Texture, texel: vec2, edge: float, edge_min: float, subpixel: float
 <ul><li><strong>Built once, shared.</strong> Every evaluation of a quote builds a fresh tree; the parts without captures are the same every time and could be built once and shared.</li><li><strong>Freed at scope exit.</strong> A tree is freed by hand, <code>quote.free(t)</code> (<a href="#freeing-a-tree">Freeing a tree</a>).</li><li><strong>Uses outside the trailing position</strong>, as a value (<code>q = quote | x: float | -&gt; x * 2.0</code>): little extra once the trailing form exists, and the test-failure use below wants it. Not built.</li><li><strong>Build time instead of start-up</strong>: running the library at compile time, as a Lisp macro does, would mean running Aether inside <code>aetherc</code>. Not proposed now; the tree format does not rule it out.</li><li><strong>More kinds</strong>: <code>match</code>, interpolation (as a <code>CALL</code> of concat), casts, arrays, as back ends need them, each a version bump.</li><li><strong>A local declared inside an <code>if</code> arm and read after it</strong>, which Aether allows (the local is hoisted), reads in the tree as a <code>LOCAL</code> outside the block that declared it; a back end with C's block scoping has to hoist it itself.</li></ul>
 <h2 id="beyond-shaders">Beyond shaders</h2>
 <ul><li><strong>Test failures that show the expression.</strong> <code>expect() quote -&gt; a + b == c</code> lets the library print <code>a + b == c failed: a + b is 7, c is 8</code>, because it can evaluate each side of the <code>BINARY</code> node.</li><li><strong>Query builders.</strong> <code>where() quote | p: Person | -&gt; p.age &gt; 30</code> becomes <code>WHERE age &gt; 30</code>.</li><li><strong>Numeric functions</strong>: a quote with arguments and no pixel, such as a matrix product or a physics step, can go to a CPU evaluator, to C, or later to GPU compute.</li><li><strong>Symbolic maths and autodiff</strong>, by walking and rewriting the tree.</li><li><strong>aether-ui's</strong> reactive bindings could see which state a computed value reads, instead of being told.</li></ul>
-<nav class="doc-prevnext" aria-label="Previous and next page"><a class="pn-prev" href="/Docs/gpu.html"><span class="pn-k">Previous</span><span class="pn-t">The GPU tier</span></a><a class="pn-next" href="/Docs/swiftui-ios-app.html"><span class="pn-k">Next</span><span class="pn-t">Using an Aether library from a SwiftUI iOS app</span></a></nav>
+<nav class="doc-prevnext" aria-label="Previous and next page"><a class="pn-prev" href="/Docs/package-fetching.html"><span class="pn-k">Previous</span><span class="pn-t">Package fetching</span></a><a class="pn-next" href="/Docs/swiftui-ios-app.html"><span class="pn-k">Next</span><span class="pn-t">Using an Aether library from a SwiftUI iOS app</span></a></nav>
       </article>
     </main>
     <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#syntax" class="l2" data-id="syntax">Syntax</a><a href="#the-tree" class="l2" data-id="the-tree">The tree</a><a href="#freeing-a-tree" class="l2" data-id="freeing-a-tree">Freeing a tree</a><a href="#captures" class="l2" data-id="captures">Captures</a><a href="#helpers-quotable-functions" class="l2" data-id="helpers-quotable-functions">Helpers: @quotable functions</a><a href="#what-a-quote-may-contain-and-the-errors" class="l2" data-id="what-a-quote-may-contain-and-the-errors">What a quote may contain, and the errors</a><a href="#versioning" class="l2" data-id="versioning">Versioning</a><a href="#ae3ds-fxaa-written-with-quote" class="l2" data-id="ae3ds-fxaa-written-with-quote">ae3d's FXAA, written with quote</a><a href="#how-it-is-built" class="l2" data-id="how-it-is-built">How it is built</a><a href="#not-done-yet" class="l2" data-id="not-done-yet">Not done yet</a><a href="#beyond-shaders" class="l2" data-id="beyond-shaders">Beyond shaders</a></nav>
@@ -824,7 +825,7 @@ fxaa(screen: Texture, texel: vec2, edge: float, edge_min: float, subpixel: float
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.854 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.855 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

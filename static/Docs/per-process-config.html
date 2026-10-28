@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.854</span>
+      <span class="vtag">v0.855</span>
     </nav>
   </div>
 </header>
@@ -658,6 +658,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/compiled-module-artifacts.html">Compiled module artifacts (.aea)</a>
 <a href="/Docs/edge-cases.html">Edge cases: what is settled, and what only happens to be true</a>
 <a href="/Docs/gpu.html">The GPU tier</a>
+<a href="/Docs/package-fetching.html">Package fetching</a>
 <a href="/Docs/quote.html">quote: a trailing block handed over as a tree</a>
 <a href="/Docs/swiftui-ios-app.html">Using an Aether library from a SwiftUI iOS app</a>
 <a href="/Docs/writing-security-sensitive-code.html">Writing security-sensitive code in Aether</a></nav>
@@ -753,7 +754,7 @@ main() {
 <p><strong>Scalar config (log level, numeric limit, feature flag, pointer)</strong>:</p>
 <p>Use a module-level <code>var</code> (see <a href="#the-simple-case-a-module-level-var">The simple case</a>). A setter writes the parsed value at startup; reads are direct loads from the static, no round-trip, no message ceremony.</p>
 <p><strong>Hot-path reads where actor message overhead is too much</strong>:</p>
-<p>Measure first. A same-core actor message bypasses the incoming queue and writes directly to the target's mailbox or SPSC queue (see <a href="/Docs/runtime-optimizations.html">runtime-optimizations.md</a>, "SPSC Queue for Same-Core Messaging"), so the round-trip is cheap. For a per-HTTP-request auth-token check it is in the noise compared to the cost of the request itself.</p>
+<p>Measure first. A same-core actor message bypasses the incoming queue and writes directly to the target's mailbox (see <a href="/Docs/runtime-optimizations.html">runtime-optimizations.md</a>, "Direct Mailbox Delivery"), so the round-trip is cheap. For a per-HTTP-request auth-token check it is in the noise compared to the cost of the request itself.</p>
 <p>If you've measured and the round-trip really is too expensive (e.g. an inner loop reading the value 10⁹ times), the alternatives in order of preference:</p>
 <ol><li><strong>Pass the config value through your call chain.</strong> Plumb it as a parameter from the place that has the singleton's value to the place that needs it. This is the "explicit dependency" approach and is usually the right answer.</li><li><strong>Cache the value in a local actor's state.</strong> A worker actor that handles requests can ask the config actor once on startup and store the value in its own <code>state token = "…"</code>. Each subsequent handler invocation reads the local state, no round-trip. The trade-off is staleness if the config can change after the worker initialized.</li><li><strong>Use a <code>const</code> if the value is genuinely immutable across the process's life.</strong> <code>const TOKEN = "secret-xyz"</code> lowers to a <code>#define</code> and reads are zero-cost. Unlike a module-level <code>var</code>, a <code>const</code> can't be a setter's target, so it only works when the value is known at compile time (not for CLI-parsed config).</li></ol>
 <p><strong>Multi-tenant / per-request state</strong>:</p>
@@ -791,7 +792,7 @@ receive {
 }</code></pre>
 <p>This is more code than the C version, but it's also testable, thread-safe by construction, and amenable to "swap the config actor for a mock" in tests.</p>
 <h2 id="see-also">See also</h2>
-<ul><li><a href="/Docs/actor-concurrency.html">actor-concurrency.md</a>, runtime details on the scheduler, mailboxes, and message delivery</li><li><a href="/Docs/runtime-optimizations.html">runtime-optimizations.md</a>, the scheduler's message-passing optimizations, including same-core SPSC delivery</li><li><code>tests/integration/test_http_client_v2.ae</code> uses an actor singleton (<code>SrvActor</code>) for an in-process HTTP server's lifecycle</li></ul>
+<ul><li><a href="/Docs/actor-concurrency.html">actor-concurrency.md</a>, runtime details on the scheduler, mailboxes, and message delivery</li><li><a href="/Docs/runtime-optimizations.html">runtime-optimizations.md</a>, the scheduler's message-passing optimizations, including direct same-core mailbox delivery</li><li><code>tests/integration/test_http_client_v2.ae</code> uses an actor singleton (<code>SrvActor</code>) for an in-process HTTP server's lifecycle</li></ul>
 <nav class="doc-prevnext" aria-label="Previous and next page"><a class="pn-prev" href="/Docs/runtime-config.html"><span class="pn-k">Previous</span><span class="pn-t">Runtime Configuration - Quick Reference</span></a><a class="pn-next" href="/Docs/cic-help.html"><span class="pn-k">Next</span><span class="pn-t">ae help &lt;script&gt; Offline diagnostics for config-IS-code</span></a></nav>
       </article>
     </main>
@@ -804,7 +805,7 @@ receive {
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.854 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.855 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

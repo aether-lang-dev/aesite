@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.854</span>
+      <span class="vtag">v0.855</span>
     </nav>
   </div>
 </header>
@@ -658,6 +658,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/compiled-module-artifacts.html">Compiled module artifacts (.aea)</a>
 <a href="/Docs/edge-cases.html">Edge cases: what is settled, and what only happens to be true</a>
 <a href="/Docs/gpu.html">The GPU tier</a>
+<a href="/Docs/package-fetching.html">Package fetching</a>
 <a href="/Docs/quote.html">quote: a trailing block handed over as a tree</a>
 <a href="/Docs/swiftui-ios-app.html">Using an Aether library from a SwiftUI iOS app</a>
 <a href="/Docs/writing-security-sensitive-code.html">Writing security-sensitive code in Aether</a></nav>
@@ -1092,9 +1093,9 @@ extern other_c_function(s: string)         // ← still unwrapped (naive C contr
 //                          ^^^                      ^^^^^
 //          header preserved                 unwrapped to const char*</code></pre>
 <p><strong>When to reach for it:</strong></p>
-<ul><li>Calling a function exported via <code>export foo(s: string) { ... }</code> from another <code>.ae</code> file linked into the same binary.</li><li>The caller's value is binary content (contains NULs, returned from <code>bytes.finish</code> / <code>encoding.base64_decode</code> / <code>fs.read_binary</code> / etc.) and the receiver needs to see the full length, not the strlen-truncated prefix.</li></ul>
+<ul><li>Calling a function exported via <code>export foo(s: string) { ... }</code> from another <code>.ae</code> file linked into the same binary.</li><li>The caller's value is binary content (contains NULs, returned from <code>bytes.finish</code> / <code>encoding.base64_decode</code> / <code>fs.read_binary</code> / etc.) and the receiver needs to see the full length, not the strlen-truncated prefix.</li><li><strong>The C function looks for a header</strong> (<code>is_aether_string</code>, <code>aether_string_data</code>, <code>aether_string_length</code> on the parameter). It must be declared <code>@aether</code>, always (#3297). Unwrapped, it receives the characters and asks them whether they are a header: a payload that begins with the magic bytes <code>DE C0 57 AE</code> and plausible header fields is taken for one, and the "data pointer" read out of the payload is followed. A file, a network body or a blob an attacker shapes can point it anywhere. Declared <code>@aether</code>, the C function receives the counted string itself and never guesses. std's and contrib's externs follow this rule (std.bytes' <code>copy_from_string</code>, std.regex, std.tar, contrib.sqlite), and <code>http_response_set_body_n</code>, whose body is bytes with a length, reads it as bytes.</li></ul>
 <p><strong>When NOT to reach for it:</strong></p>
-<ul><li>The receiver is hand-written C that takes <code>const char*</code>. Use bare <code>s: string</code> the auto-unwrap is doing the right thing.</li><li>The receiver works on text content with no NULs. <code>strlen()</code> and the stored length agree, so either annotation works; bare is simpler.</li></ul>
+<ul><li>The receiver is hand-written C that takes <code>const char*</code> and treats it as characters. Use bare <code>s: string</code> the auto-unwrap is doing the right thing, and the C must then never call the header helpers on it.</li><li>The receiver works on text content with no NULs. <code>strlen()</code> and the stored length agree, so either annotation works; bare is simpler.</li></ul>
 <p>What the receiving side sees for a <code>string</code> argument:</p>
 <div class="tw"><table><thead><tr><th>Param declaration</th><th>Call site emits</th><th>Receiver sees</th></tr></thead><tbody><tr><td><code>s: string</code></td><td><code>foo(aether_string_data(s))</code></td><td>unwrapped <code>const char*</code> (strlen-bounded)</td></tr><tr><td><code>s: @aether string</code></td><td><code>foo(s)</code></td><td>AetherString pointer with header, dispatches via <code>str_len</code></td></tr><tr><td><code>s: ptr</code></td><td><code>foo((void*)aether_string_data(s))</code></td><td>unwrapped characters as a <code>void*</code></td></tr><tr><td><code>s: @aether ptr</code></td><td><code>foo((void*)(s))</code></td><td>AetherString pointer as a <code>void*</code>; the receiver dispatches with <code>aether_string_data</code> / <code>aether_string_length</code></td></tr></tbody></table></div>
 <p>A call through a typed function pointer (<code>f = p as fn(uint32, string) -&gt; int</code>, a <code>cb: fn(string) -&gt; int</code> parameter, or a <code>fn(...)</code>-typed struct field) unwraps a <code>string</code> argument the same way: <code>f(7, name)</code> emits <code>f(7, aether_string_data(name))</code>. A <code>ptr</code> parameter in the pointer's type passes the value as it is, for a callee that wants the header.</p>
@@ -1345,7 +1346,7 @@ server_get(raw, "/health", _h_health, 0)   // references ae_h_health</code></pre
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.854 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.855 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

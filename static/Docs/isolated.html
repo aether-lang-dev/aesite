@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.854</span>
+      <span class="vtag">v0.855</span>
     </nav>
   </div>
 </header>
@@ -658,6 +658,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/compiled-module-artifacts.html">Compiled module artifacts (.aea)</a>
 <a href="/Docs/edge-cases.html">Edge cases: what is settled, and what only happens to be true</a>
 <a href="/Docs/gpu.html">The GPU tier</a>
+<a href="/Docs/package-fetching.html">Package fetching</a>
 <a href="/Docs/quote.html">quote: a trailing block handed over as a tree</a>
 <a href="/Docs/swiftui-ios-app.html">Using an Aether library from a SwiftUI iOS app</a>
 <a href="/Docs/writing-security-sensitive-code.html">Writing security-sensitive code in Aether</a></nav>
@@ -701,7 +702,13 @@ bytes.length(buf)              // E0200: line 3 moved it</code></pre>
 <p>Refused, each with its own message:</p>
 <ul><li>a value that is not a <code>ptr</code>: a scalar is copied anyway, and a string already moves on a send when nothing else holds it (#2922), so <code>move</code> would claim a transfer the runtime makes on its own;</li><li>a borrowed parameter: a function's <code>ptr</code> parameter is borrowed for the call (the ownership model's R3), so handing it on needs <code>b: @keep ptr</code>;</li><li>a variable a closure captures, moved inside the closure;</li><li>a field (<code>move box.b</code>) or an element (<code>move xs[i]</code>) of something still live.</li></ul>
 <p><code>move</code> is contextual, not reserved: it is the operator only before a name on the same line. <code>fs.move(a, b)</code>, <code>mem.move(dst, src, n)</code> (bare after <code>import std.mem (*)</code>), a program's own <code>move()</code> and a variable called <code>move</code> are unaffected.</p>
-<p><strong>What is not done yet.</strong> The receiver owns the buffer and frees it as it would any other; the runtime does not. A receiver that drops the buffer without freeing it leaks it, and so does a message still queued when its receiver dies. Freeing it there needs the runtime to know how to free a <code>ptr</code>, which it does not, and the dead-actor delivery rules in #2974.</p>
+<p><strong>A buffer that is released wherever it ends up: an owned type (#3142).</strong> A plain <code>ptr</code> owns nothing, so a <code>ptr</code> field moved to a receiver is the receiver's to free by hand, and it leaks if the handler forgets or if the message is dropped undelivered. An owned type names the function that releases it, and then every place that holds one releases it:</p>
+<pre><code>type Buf = owned ptr drop bytes.free
+
+message Chunk { data: Buf }
+
+r ! Chunk { data: move buf }   // buf holds nothing now</code></pre>
+<p>The handler's binding releases it when the handler ends, unless the arm moves it on (<code>kept = move data</code> into a state field, <code>w ! Chunk { data: move data }</code> to another actor); a state field releases what it held when it is stored into or the actor ends; a message dropped undelivered (its actor died, the program is ending) releases it with the message. Freeing it by hand is refused, since it would be freed twice. The rules are in the language reference, <a href="/Docs/language-reference.html#owned-pointers-type-t--owned-ptr-drop-f">Owned pointers</a>.</p>
 <h2 id="what-lowers-and-runs-today-and-what-is-a-follow-up">What lowers and runs today, and what is a follow-up</h2>
 <p>Working and covered by tests (<code>tests/regression/test_isolated_basic.ae</code>, <code>tests/integration/isolated_move_reject/</code>):</p>
 <ul><li><code>Isolated[T]</code> for scalar, string, and struct payloads.</li><li><code>isolate()</code> / <code>consume()</code> and ownership transfer into a function.</li><li>The full move checker (use-after-consume, use-after-<code>send</code>, heap-source reuse, loop-external consume all rejected; single-use, both-branch consume, fresh-per-iteration, and scalar-source reuse all accepted).</li><li>Zero-cost lowering: <code>Isolated[T]</code> is <code>T</code> in the emitted C; <code>isolate</code> and <code>consume</code> are the identity.</li></ul>
@@ -719,7 +726,7 @@ bytes.length(buf)              // E0200: line 3 moved it</code></pre>
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.854 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.855 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>
