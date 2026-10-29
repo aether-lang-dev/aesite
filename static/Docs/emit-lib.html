@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.857</span>
+      <span class="vtag">v0.859</span>
     </nav>
   </div>
 </header>
@@ -822,19 +822,19 @@ AetherValue* aether_config_list_get        (AetherValue* list, <span class="kw">
 <p>Aether maps and lists are <strong>untyped</strong> internally, values are stored as opaque <code>void*</code> with no runtime tag. The accessors reinterpret the stored value as the requested type; they do not verify it. That makes the script-to-host interface a straight FFI contract: document what the script writes at each key, and the host must read it back with the matching accessor. If the script stored an <code>int</code> at <code>"port"</code> and the host asks for a string, the host gets garbage, treat this exactly the way you would treat any other cross-language value exchange.</p>
 <h2 id="capability-empty-default">Capability-empty default</h2>
 <p><code>--emit=lib</code> rejects <code>.ae</code> files that import:</p>
-<ul><li><code>std.net</code>, <code>std.http</code>, <code>std.tcp</code> networking</li><li><code>std.fs</code> filesystem</li><li><code>std.os</code> process / environment / shell</li></ul>
+<ul><li><code>std.net</code>, <code>std.http</code> and its children, <code>std.tcp</code>, <code>std.udp</code> networking</li><li><code>std.fs</code>, <code>std.file</code>, <code>std.dir</code> filesystem</li><li><code>std.os</code>, <code>std.dl</code> process, environment, shell, and dynamic loading</li><li><code>contrib.host.*</code> foreign-language runtimes</li></ul>
 <p>The rationale: a library embedded in a host process shouldn't have ambient network, filesystem, or process-spawning access. Those are capabilities the <strong>host</strong> grants; the script should only compute and return data. The host mediates I/O through whatever its own runtime provides.</p>
 <p><code>std.map</code>, <code>std.list</code>, <code>std.string</code>, <code>std.json</code>, <code>std.math</code>, and the other capability-free standard modules are allowed.</p>
-<p>It also rejects an <code>extern</code> declared in the program's own code (the entry file, an <code>@extern("…")</code> binding, or a local module it imports). An extern names a C function directly, so <code>extern system(cmd: string) -&gt; int</code> would reach what <code>import std.os</code> is gated to stop. Externs declared by <code>std.*</code> and <code>contrib.*</code> modules are not the program's and are unaffected: those modules sit behind the gates above. Opt in with <code>--with=extern</code>.</p>
+<p>It also rejects an <code>extern</code> declared in the program's own code (the entry file, an <code>@extern("…")</code> binding, or a local module it imports). An extern names a C function directly, so <code>extern system(cmd: string) -&gt; int</code> would reach what <code>import std.os</code> is gated to stop. Externs declared by other <code>std.*</code> modules are not the program's and are unaffected. Foreign-language host modules sit behind the <code>contrib.host.*</code> gate above. Opt in with <code>--with=extern</code>.</p>
 <h3 id="opting-in---withcapabilities">Opting in: <code>--with=&lt;capabilities&gt;</code></h3>
 <p>Projects that <strong>are</strong> the host, code that compiles <code>.ae</code> and handwritten C into one binary, rather than embedding Aether as an untrusted user script, opt into specific capability categories:</p>
-<pre><code>ae build --emit=lib --with=fs           file.ae   <span class="com"># std.fs</span>
-ae build --emit=lib --with=net          file.ae   <span class="com"># std.net, std.http, std.tcp</span>
-ae build --emit=lib --with=os           file.ae   <span class="com"># std.os</span>
+<pre><code>ae build --emit=lib --with=fs           file.ae   <span class="com"># std.fs, std.file, std.dir</span>
+ae build --emit=lib --with=net          file.ae   <span class="com"># std.net/http/tcp/udp families</span>
+ae build --emit=lib --with=os           file.ae   <span class="com"># std.os, std.dl</span>
 ae build --emit=lib --with=fs,os        file.ae   <span class="com"># multiple, comma-separated</span>
-ae build --emit=lib --with=extern       file.ae   <span class="com"># the program's own C externs</span>
-ae build --emit=lib --with=first-party  file.ae   <span class="com"># alias for fs,net,os</span>
-ae build --emit=lib --with=all          file.ae   <span class="com"># alias for fs,net,os</span></code></pre>
+ae build --emit=lib --with=extern       file.ae   <span class="com"># own C externs, contrib.host.*</span>
+ae build --emit=lib --with=first-party  file.ae   <span class="com"># alias for fs,net,os,extern</span>
+ae build --emit=lib --with=all          file.ae   <span class="com"># alias for fs,net,os,extern</span></code></pre>
 <p>The gate stays default-deny: a build without <code>--with=fs</code> still rejects <code>import std.fs</code>. Unknown capability names are a hard error (typos shouldn't silently leave a gate closed). The categories mirror the banned-import groupings above, three buckets, chosen coarsely enough that opting in is an auditable event in a project's build invocation.</p>
 <p><code>--with=first-party</code> and <code>--with=all</code> both expand to <code>fs,net,os,extern</code>. The two names are equivalent; pick whichever expresses intent better in your project. <code>first-party</code> reads as "this Aether code is trusted-as-first-party, give it everything"; <code>all</code> reads as a literal shorthand for the full set. Using either one is appropriate for tools like build systems and SDK generators where the <code>.ae</code> files ship with the toolchain itself; it is <strong>not</strong> appropriate for plugin / user- script scenarios, see "When NOT to use this" below.</p>
 <p><strong>When to use this.</strong> Systems code where the <code>.ae</code> files are first-party and version-controlled the same way as the <code>.c</code> files. The Aether-side <code>file_open_raw</code> is no different from the C side calling <code>fopen</code> there's no privilege boundary to police.</p>
@@ -1056,7 +1056,7 @@ for i in range(meta.function_count):
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.857 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.859 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

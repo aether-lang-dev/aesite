@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.857</span>
+      <span class="vtag">v0.859</span>
     </nav>
   </div>
 </header>
@@ -835,7 +835,7 @@ classify(req: Request) -&gt; int { ... }            // must touch no filesystem<
 Runtime:      check grants before stdlib operations</code></pre>
 <p>This matches Java's two-layer model: ClassLoader isolation (compile/link time) + SecurityManager checks (runtime). Java removed the runtime layer (SecurityManager) but kept the compile/link layer (module system). Aether should have both.</p>
 <h3 id="other-boundaries">Other boundaries</h3>
-<ul><li><strong>No <code>deny</code> grants.</strong> The model is deny-by-default, grant what's needed. There is no way to grant broadly then carve exceptions. This is intentional for the initial release.</li><li><strong>Ports are checked.</strong> <code>grant_tcp("db.internal", 5432)</code> allows that port only; <code>0</code> allows any port. The check names the resource <code>host:port</code> (<code>[v6]:port</code> for IPv6), in std.net and in the <code>LD_PRELOAD</code> layer's <code>connect()</code> alike. Grant an IPv6 host as <code>grant_tcp("::1", 8443)</code> (stored as <code>[::1]:8443</code>). A grant for one family never admits the other: <code>127.0.0.1</code> does not cover <code>::1</code>. An IPv4-mapped peer (<code>::ffff:127.0.0.1</code>, how a dual-stack socket reaches an IPv4 host) is the IPv4 host, and matches its grant.</li><li><strong>Application-level only.</strong> See "Cross-process containment" below for extending enforcement to child processes.</li></ul>
+<ul><li><strong>No <code>deny</code> grants.</strong> The model is deny-by-default, grant what's needed. There is no way to grant broadly then carve exceptions. This is intentional for the initial release.</li><li><strong>Ports are checked.</strong> <code>grant_tcp("db.internal", 5432)</code> allows that port only; <code>0</code> allows any port. The check names the resource <code>host:port</code> (<code>[v6]:port</code> for IPv6), in std.net and in the <code>LD_PRELOAD</code> layer's <code>connect()</code> alike. Grant an IPv6 host as <code>grant_tcp("::1", 8443)</code> (stored as <code>[::1]:8443</code>). A grant for one family never admits the other: <code>127.0.0.1</code> does not cover <code>::1</code>. An IPv4-mapped peer (<code>::ffff:127.0.0.1</code>, how a dual-stack socket reaches an IPv4 host) is the IPv4 host, and matches its grant.</li><li><strong>Unreadable grant sources deny everything.</strong> If the preload layer is configured with a grant source (<code>AETHER_SANDBOX_SHM</code> or <code>AETHER_SANDBOX_GRANTS</code>) that cannot be read, or is larger than the size limit, the sandbox stays active with zero grants rather than running unrestricted.</li><li><strong><code>execve</code> with an explicit environment keeps the sandbox controls.</strong> The preload layer re-adds <code>LD_PRELOAD</code> and the <code>AETHER_SANDBOX_*</code> / <code>AETHER_CAPSICUM</code> entries it captured at startup, so the child stays contained and edits to the live environment do not change them. Only <code>execve</code> is interposed; <code>execvp</code> and <code>posix_spawn</code> paths that reach the kernel through glibc internals are not (a known gap).</li><li><strong>Application-level only.</strong> See "Cross-process containment" below for extending enforcement to child processes.</li></ul>
 <h2 id="denial-logging">Denial logging</h2>
 <p>Denied operations are logged by default. Three modes controlled via the <code>AETHER_SANDBOX_LOG</code> environment variable:</p>
 <div class="tw"><table><thead><tr><th>Mode</th><th>Env var</th><th>Behaviour</th></tr></thead><tbody><tr><td><strong>File</strong> (default)</td><td><code>AETHER_SANDBOX_LOG=file</code> or unset</td><td>Writes to <code>./aether-sandbox.log</code></td></tr><tr><td><strong>Stderr</strong></td><td><code>AETHER_SANDBOX_LOG=stderr</code></td><td><code>AETHER_DENIED: category resource</code></td></tr><tr><td><strong>Silent</strong></td><td><code>AETHER_SANDBOX_LOG=none</code></td><td>No output</td></tr></tbody></table></div>
@@ -1286,7 +1286,7 @@ db.credentials.user = admin</code></pre>
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.857 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.859 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>
