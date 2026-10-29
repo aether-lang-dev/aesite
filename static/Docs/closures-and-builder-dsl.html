@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.859</span>
+      <span class="vtag">v0.860</span>
     </nav>
   </div>
 </header>
@@ -655,6 +655,8 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/bootstrap-from-source.html">Bootstrapping Aether from source (HEAD)</a>
 <a href="/Docs/release-glibc-portability.html">Release binary portability across glibc versions</a>
 <div class="grp">More</div>
+<a href="/Docs/abi-policy.html">ABI compatibility: what a shipped library promises</a>
+<a href="/Docs/aether-vs-hcl.html">Aether and HCL</a>
 <a href="/Docs/compiled-module-artifacts.html">Compiled module artifacts (.aea)</a>
 <a href="/Docs/edge-cases.html">Edge cases: what is settled, and what only happens to be true</a>
 <a href="/Docs/gpu.html">The GPU tier</a>
@@ -913,7 +915,7 @@ main() {
 }</code></pre>
 <h2 id="invisible-context-injection">Invisible Context Injection</h2>
 <p>The <code>_ctx: ptr</code> convention is the key to making builder DSLs feel declarative. When a function's first parameter is named <code>_ctx</code> with type <code>ptr</code>:</p>
-<ol><li><strong>The parameter is hidden from callers</strong>, it doesn't count toward arity</li><li><strong>Inside trailing blocks</strong>, the compiler auto-injects <code>builder_context()</code> as the first argument</li><li><strong>Outside trailing blocks</strong>, the function can still be called explicitly with a context value</li></ol>
+<ol><li><strong>The parameter is hidden from callers</strong>, it doesn't count toward arity: in a trailing block the call gives the parameters after <code>_ctx</code>, and any defaults among them fill what it leaves out (<code>item("a")</code> for <code>item(_ctx, name, kind = "plain")</code>). A call that passes the context itself first (<code>_ctx</code> or <code>builder_context()</code>), or gives every parameter, passes it explicitly</li><li><strong>Inside trailing blocks</strong>, the compiler auto-injects <code>builder_context()</code> as the first argument</li><li><strong>Outside trailing blocks</strong>, the function can still be called explicitly with a context value</li></ol>
 <p>This means the user writes:</p>
 <pre><code>frame("Address") {
     panel("Enter your address:") {
@@ -1136,7 +1138,7 @@ r = assert.expect_int(5).to_equal(5).to_be_gt(0)  // matchers imported, chain lo
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.859 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.860 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

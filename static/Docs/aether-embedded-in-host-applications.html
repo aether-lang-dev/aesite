@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.859</span>
+      <span class="vtag">v0.860</span>
     </nav>
   </div>
 </header>
@@ -655,6 +655,8 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/bootstrap-from-source.html">Bootstrapping Aether from source (HEAD)</a>
 <a href="/Docs/release-glibc-portability.html">Release binary portability across glibc versions</a>
 <div class="grp">More</div>
+<a href="/Docs/abi-policy.html">ABI compatibility: what a shipped library promises</a>
+<a href="/Docs/aether-vs-hcl.html">Aether and HCL</a>
 <a href="/Docs/compiled-module-artifacts.html">Compiled module artifacts (.aea)</a>
 <a href="/Docs/edge-cases.html">Edge cases: what is settled, and what only happens to be true</a>
 <a href="/Docs/gpu.html">The GPU tier</a>
@@ -741,7 +743,7 @@ main() {
 <blockquote>Not built. The v1 ABI carries data across the boundary cleanly but doesn't let the host hold a live Aether closure and invoke it later. This is the "Shape B" milestone explicitly deferred from v1.</blockquote>
 <p>The above works for <em>data</em> config.  But the whole point of Aether's DSL is that config includes <strong>live closures</strong>, route handlers, filters, factory callbacks.  You can't serialize a closure to JSON.</p>
 <p>For a Java app to use Aether-defined handlers, you'd need one of:</p>
-<ul><li><strong>Aether stays resident</strong>: the compiled <code>.so</code> stays loaded, Java calls into it to dispatch requests.  Aether handlers run as native code called from Java via FFI.  This is the GraalVM polyglot model.</li><li><strong>Code generation</strong>: Aether config compiles to Java source/bytecode (a much bigger project).</li><li><strong>Accept the boundary</strong>: Aether config produces the <em>wiring</em> (route table, scope policies, factory names) as data, but handlers are written in Java.  The config is the blueprint; Java is the runtime.  This is the Terraform model, HCL defines <em>what</em>, the provider plugin (Go code) defines <em>how</em>.</li></ul>
+<ul><li><strong>Aether stays resident</strong>: the compiled <code>.so</code> stays loaded, Java calls into it to dispatch requests.  Aether handlers run as native code called from Java via FFI.  This is the GraalVM polyglot model.</li><li><strong>Code generation</strong>: Aether config compiles to Java source/bytecode (a much bigger project).</li><li><strong>Accept the boundary</strong>: Aether config produces the <em>wiring</em> (route table, scope policies, factory names) as data, but handlers are written in Java.  The config is the blueprint; Java is the runtime.  This is the Terraform model, HCL defines <em>what</em>, the provider plugin (Go code) defines <em>how</em>. (<a href="/Docs/aether-vs-hcl.html">aether-vs-hcl.md</a> compares the two side by side.)</li></ul>
 <h4 id="summary-path-of-least-resistance-current-state">Summary: path of least resistance, current state</h4>
 <div class="tw"><table><thead><tr><th>Step</th><th>Status</th><th>What it gives you</th></tr></thead><tbody><tr><td>Stable C ABI header (<code>aether_config.h</code>)</td><td>✅ Shipped</td><td>Any C-FFI language walks Aether maps via opaque <code>AetherValue*</code></td></tr><tr><td><code>aetherc --emit=lib</code> → <code>.so</code></td><td>✅ Shipped</td><td>In-process eval from Java/Python/Ruby via FFI</td></tr><tr><td>Per-language SDK generators (Python ctypes, Java Panama, Ruby Fiddle)</td><td>✅ Shipped (v2)</td><td><code>ae build --namespace &lt;dir&gt;</code> emits a typed SDK per declared binding</td></tr><tr><td><code>ae eval</code> → JSON on stdout</td><td>📋 Deferred</td><td>Subprocess pattern for hosts without FFI</td></tr><tr><td>Aether resident runtime + callbacks</td><td>📋 Future (Shape B)</td><td>Java dispatches to live Aether closures</td></tr><tr><td>Wall-clock timeout / allocation budget</td><td>📋 Future</td><td>Safety primitives for embedding</td></tr></tbody></table></div>
 <p>The original prediction ("<code>ae eval</code> is the right first step") didn't play out, <code>--emit=lib</code> turned out to be the same effort and gives you the in-process path directly.  The closure-dispatching resident runtime (host → script callbacks) remains the next big milestone.</p>
@@ -901,7 +903,7 @@ aether_spawn_sandboxed(grants, "/tmp/pricing", input_json)</code></pre>
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.859 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.860 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

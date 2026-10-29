@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.859</span>
+      <span class="vtag">v0.860</span>
     </nav>
   </div>
 </header>
@@ -655,6 +655,8 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/bootstrap-from-source.html">Bootstrapping Aether from source (HEAD)</a>
 <a href="/Docs/release-glibc-portability.html">Release binary portability across glibc versions</a>
 <div class="grp">More</div>
+<a href="/Docs/abi-policy.html">ABI compatibility: what a shipped library promises</a>
+<a href="/Docs/aether-vs-hcl.html">Aether and HCL</a>
 <a href="/Docs/compiled-module-artifacts.html">Compiled module artifacts (.aea)</a>
 <a href="/Docs/edge-cases.html">Edge cases: what is settled, and what only happens to be true</a>
 <a href="/Docs/gpu.html">The GPU tier</a>
@@ -703,6 +705,10 @@ main() {
 <p>The TLS slot persists across calls until either:</p>
 <ul><li><code>aether_set_caller</code> overwrites it with new context, or</li><li><code>aether_clear_caller</code> wipes it.</li></ul>
 <p>The runtime does <strong>not</strong> auto-clear on export return. Hosts that multiplex multiple guests on one thread should call <code>aether_clear_caller</code> between invocations themselves.</p>
+<h3 id="nested-calls-2955">Nested calls (#2955)</h3>
+<p>Each call into an export (an execution, <a href="/Docs/emit-lib.html#failures-and-nested-calls-at-the-boundary">emit-lib.md</a>) sees the caller info that was set when it was entered. A host service the export calls may set another, for the exports it calls in turn: the running export keeps its own, so <code>host.caller_identity()</code> after the service returns is still the outer caller's. When the export that was running returns, however it ends, the setting it was entered with is back, so the host that called it finds its own again. <code>aether_set_call_deadline</code> from a host service works the same way: the deadline is for the exports it enters, and the running one keeps its own.</p>
+<p>Copying is done only then: a set or clear while an export runs keeps a copy of what the running exports see. When there is no memory for that copy, <code>aether_set_caller</code> returns <code>-1</code> and <code>aether_clear_caller</code> does nothing, so a running export never loses its view.</p>
+<p>An actor stepped on the export's thread, inside the call (a send that steps an idle actor of the same core inline, or a cooperative ask's poll), is not the export: it reads no caller info, as on a core's thread of its own, and a setting it makes is gone when its step ends, when the export's is back (#3396). With no memory to keep the export's setting aside while it runs, it still reads none and its settings are refused.</p>
 <h2 id="storage-limits">Storage limits</h2>
 <p>Default caps:</p>
 <ul><li>4096 bytes total (identity + all keys + all values, NUL bytes included).</li><li>32 attribute pairs.</li></ul>
@@ -715,7 +721,7 @@ main() {
 <nav class="doc-prevnext" aria-label="Previous and next page"><a class="pn-prev" href="/Docs/dsl-without-macros.html"><span class="pn-k">Previous</span><span class="pn-t">DSL without macros, why Aether doesn't need macro_rules!</span></a><a class="pn-next" href="/Docs/liveview-lite-roadmap.html"><span class="pn-k">Next</span><span class="pn-t">LiveView-lite: a roadmap (Phoenix LiveView, on actors, without the framework)</span></a></nav>
       </article>
     </main>
-    <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#trust-model-explicit-non-goal" class="l2" data-id="trust-model-explicit-non-goal">Trust model, explicit non-goal</a><a href="#host-c-api" class="l2" data-id="host-c-api">Host C API</a><a href="#aether-side-accessors" class="l2" data-id="aether-side-accessors">Aether-side accessors</a><a href="#lifetime" class="l2" data-id="lifetime">Lifetime</a><a href="#storage-limits" class="l2" data-id="storage-limits">Storage limits</a><a href="#threading" class="l2" data-id="threading">Threading</a><a href="#relationship-to-other-isolation-layers" class="l2" data-id="relationship-to-other-isolation-layers">Relationship to other isolation layers</a></nav>
+    <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#trust-model-explicit-non-goal" class="l2" data-id="trust-model-explicit-non-goal">Trust model, explicit non-goal</a><a href="#host-c-api" class="l2" data-id="host-c-api">Host C API</a><a href="#aether-side-accessors" class="l2" data-id="aether-side-accessors">Aether-side accessors</a><a href="#lifetime" class="l2" data-id="lifetime">Lifetime</a><a href="#nested-calls-2955" class="l3" data-id="nested-calls-2955">Nested calls (#2955)</a><a href="#storage-limits" class="l2" data-id="storage-limits">Storage limits</a><a href="#threading" class="l2" data-id="threading">Threading</a><a href="#relationship-to-other-isolation-layers" class="l2" data-id="relationship-to-other-isolation-layers">Relationship to other isolation layers</a></nav>
   </div>
 </div>
 <script src="/docs.js" defer></script>
@@ -724,7 +730,7 @@ main() {
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.859 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.860 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

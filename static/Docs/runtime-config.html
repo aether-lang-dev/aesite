@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.859</span>
+      <span class="vtag">v0.860</span>
     </nav>
   </div>
 </header>
@@ -655,6 +655,8 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/bootstrap-from-source.html">Bootstrapping Aether from source (HEAD)</a>
 <a href="/Docs/release-glibc-portability.html">Release binary portability across glibc versions</a>
 <div class="grp">More</div>
+<a href="/Docs/abi-policy.html">ABI compatibility: what a shipped library promises</a>
+<a href="/Docs/aether-vs-hcl.html">Aether and HCL</a>
 <a href="/Docs/compiled-module-artifacts.html">Compiled module artifacts (.aea)</a>
 <a href="/Docs/edge-cases.html">Edge cases: what is settled, and what only happens to be true</a>
 <a href="/Docs/gpu.html">The GPU tier</a>
@@ -680,7 +682,7 @@ Thread 2: Do Work (atomic operations)  ← No blocking!</code></pre>
 <hr>
 <h2 id="integrated-optimizations">Integrated Optimizations</h2>
 <h3 id="what-was-implemented">What Was Implemented</h3>
-<ol><li><strong>Lock-Free Message Pools</strong><ul><li>TLS pools have no mutex</li><li>Zero contention on hot path</li><li>Automatic per-thread allocation</li></ul></li><li><strong>Lock-Free Mailboxes</strong><ul><li>SPSC (Single Producer Single Consumer) atomic queue</li><li>64-byte cache line padding</li><li>Runtime switchable</li></ul></li><li><strong>Runtime Configuration API</strong><ul><li>Control optimizations via flags</li><li>Auto-detect CPU features</li><li>Enabled by default without manual configuration</li></ul></li></ol>
+<ol><li><strong>Lock-Free Mailboxes</strong><ul><li>SPSC (Single Producer Single Consumer) atomic queue</li><li>64-byte cache line padding</li><li>Runtime switchable</li></ul></li><li><strong>Runtime Configuration API</strong><ul><li>Control optimizations via flags</li><li>Auto-detect CPU features</li><li>Enabled by default without manual configuration</li></ul></li></ol>
 <hr>
 <h2 id="usage">Usage</h2>
 <h3 id="option-1-auto-detect-recommended">Option 1: Auto-Detect (Recommended)</h3>
@@ -695,13 +697,12 @@ Thread 2: Do Work (atomic operations)  ← No blocking!</code></pre>
     aether_runtime_shutdown();
 }</code></pre>
 <p><strong>Example output on a modern CPU:</strong></p>
-<ul><li>Lock-free mailboxes: ENABLED</li><li>Lock-free pools: ENABLED</li><li>MWAIT idle: ENABLED</li><li>AVX2 SIMD: ENABLED</li></ul>
+<ul><li>Lock-free mailboxes: ENABLED</li><li>MWAIT idle: ENABLED</li><li>AVX2 SIMD: ENABLED</li></ul>
 <hr>
 <h3 id="option-2-manual-control">Option 2: Manual Control</h3>
 <pre><code><span class="com">// Explicit flags - full control</span>
 aether_runtime_init(<span class="num">8</span>,
     AETHER_FLAG_LOCKFREE_MAILBOX |  <span class="com">// Use lock-free mailboxes</span>
-    AETHER_FLAG_LOCKFREE_POOLS   |  <span class="com">// Use lock-free TLS pools</span>
     AETHER_FLAG_ENABLE_SIMD      |  <span class="com">// Use AVX2 vectorization</span>
     AETHER_FLAG_ENABLE_MWAIT);      <span class="com">// Use MWAIT for idle</span></code></pre>
 <hr>
@@ -722,14 +723,13 @@ aether_runtime_init(<span class="num">0</span>,
 <span class="com">// CPU: &lt;detected processor&gt;</span>
 <span class="com">// Active Optimizations:</span>
 <span class="com">//   Lock-free mailbox: ENABLED</span>
-<span class="com">//   Lock-free pools:   ENABLED</span>
 <span class="com">//   ...</span></code></pre>
 <hr>
 <h2 id="available-flags">Available Flags</h2>
-<div class="tw"><table><thead><tr><th>Flag</th><th>Hex</th><th>Description</th></tr></thead><tbody><tr><td><code>AETHER_FLAG_AUTO_DETECT</code></td><td>0x01</td><td>Auto-detect CPU features (recommended)</td></tr><tr><td><code>AETHER_FLAG_LOCKFREE_MAILBOX</code></td><td>0x02</td><td>Use lock-free SPSC mailboxes</td></tr><tr><td><code>AETHER_FLAG_LOCKFREE_POOLS</code></td><td>0x04</td><td>Use lock-free TLS message pools</td></tr><tr><td><code>AETHER_FLAG_ENABLE_SIMD</code></td><td>0x08</td><td>Enable AVX2 vectorization</td></tr><tr><td><code>AETHER_FLAG_ENABLE_MWAIT</code></td><td>0x10</td><td>Enable MWAIT idle strategy</td></tr><tr><td><code>AETHER_FLAG_VERBOSE</code></td><td>0x20</td><td>Print configuration on init</td></tr></tbody></table></div>
+<div class="tw"><table><thead><tr><th>Flag</th><th>Hex</th><th>Description</th></tr></thead><tbody><tr><td><code>AETHER_FLAG_AUTO_DETECT</code></td><td>0x01</td><td>Auto-detect CPU features (recommended)</td></tr><tr><td><code>AETHER_FLAG_LOCKFREE_MAILBOX</code></td><td>0x02</td><td>Use lock-free SPSC mailboxes</td></tr><tr><td><code>AETHER_FLAG_LOCKFREE_POOLS</code></td><td>0x04</td><td>Deprecated: accepted and ignored. There is no message pool (#3374); a typed message's payload is a heap copy</td></tr><tr><td><code>AETHER_FLAG_ENABLE_SIMD</code></td><td>0x08</td><td>Enable AVX2 vectorization</td></tr><tr><td><code>AETHER_FLAG_ENABLE_MWAIT</code></td><td>0x10</td><td>Enable MWAIT idle strategy</td></tr><tr><td><code>AETHER_FLAG_VERBOSE</code></td><td>0x20</td><td>Print configuration on init</td></tr></tbody></table></div>
 <p><strong>Combine flags with bitwise OR:</strong></p>
-<pre><code><span class="kw">int</span> flags = AETHER_FLAG_LOCKFREE_MAILBOX | 
-            AETHER_FLAG_LOCKFREE_POOLS;
+<pre><code><span class="kw">int</span> flags = AETHER_FLAG_LOCKFREE_MAILBOX |
+            AETHER_FLAG_ENABLE_MWAIT;
 aether_runtime_init(<span class="num">8</span>, flags);</code></pre>
 <hr>
 <h2 id="performance-expectations">Performance Expectations</h2>
@@ -802,18 +802,9 @@ aether_runtime_init(<span class="num">8</span>, flags);</code></pre>
     scheduler_send_remote(actor, msg, my_core);
 }</code></pre>
 <p>Every send takes this path, whatever the number of actors (#3112). A same-core send goes straight into the mailbox unless a message of the actor is still in the queues or its overflow, which it then goes behind (<a href="https://github.com/aether-lang-dev/aether/tree/main/runtime/scheduler/multicore_scheduler.c"><code>runtime/scheduler/multicore_scheduler.c</code></a>).</p>
-<h3 id="message-pool-allocation">Message Pool Allocation</h3>
-<pre><code><span class="com">// runtime/actors/aether_message_pool.h, per-thread pool, abridged</span>
-<span class="kw">static</span> <span class="kw">inline</span> Message* message_pool_alloc(<span class="kw">void</span>) {
-    <span class="kw">if</span> (!g_msg_pool) message_pool_init_thread();
-    <span class="kw">if</span> (atomic_load_explicit(&amp;g_msg_pool-&gt;count, memory_order_relaxed) == <span class="num">0</span>) {
-        <span class="kw">return</span> malloc(<span class="kw">sizeof</span>(Message));   <span class="com">// pool exhausted: fall back to heap</span>
-    }
-    <span class="com">// pop an index off the thread's free list</span>
-}</code></pre>
 <hr>
 <h2 id="environment-variables">Environment Variables</h2>
-<div class="tw"><table><thead><tr><th>Variable</th><th>Effect</th></tr></thead><tbody><tr><td><code>AETHER_SINGLE_CORE</code></td><td>Pins all actors to core 0 (eliminates cross-core overhead)</td></tr><tr><td><code>AETHER_PROFILE</code></td><td>Memory profile: <code>micro</code>, <code>small</code>, <code>medium</code> (default), <code>large</code></td></tr><tr><td><code>AETHER_MSG_POOL_SIZE</code></td><td>Override message pool size (default from profile)</td></tr><tr><td><code>AETHER_VERBOSE</code></td><td>Print optimization configuration at startup</td></tr><tr><td><code>AETHER_PREEMPT</code></td><td>Enable cooperative preemption (time-based drain loop break, default 1ms)</td></tr><tr><td><code>AETHER_PREEMPT_MS</code></td><td>Override preemption threshold in milliseconds (default 1)</td></tr><tr><td><code>BENCHMARK_MESSAGES</code></td><td>Sets message count for benchmark programs</td></tr></tbody></table></div>
+<div class="tw"><table><thead><tr><th>Variable</th><th>Effect</th></tr></thead><tbody><tr><td><code>AETHER_SINGLE_CORE</code></td><td>Pins all actors to core 0 (eliminates cross-core overhead)</td></tr><tr><td><code>AETHER_VERBOSE</code></td><td>Print the runtime configuration once, when the scheduler starts (a program compiled with <code>-DAETHER_VERBOSE</code> prints it too, once)</td></tr><tr><td><code>AETHER_PREEMPT</code></td><td>Enable cooperative preemption (time-based drain loop break, default 1ms)</td></tr><tr><td><code>AETHER_PREEMPT_MS</code></td><td>Override preemption threshold in milliseconds (default 1)</td></tr><tr><td><code>BENCHMARK_MESSAGES</code></td><td>Sets message count for benchmark programs</td></tr></tbody></table></div>
 <hr>
 <h2 id="best-practices">Best Practices</h2>
 <ol><li><strong>Always use <code>AETHER_FLAG_AUTO_DETECT</code></strong> unless you have a specific reason not to</li><li><strong>Use <code>AETHER_FLAG_VERBOSE</code></strong> during development to see what's enabled</li><li><strong>Don't recompile</strong> for different CPUs - auto-detect handles it</li><li><strong>Test on target hardware</strong> to verify optimizations are available</li><li><strong>Profile first</strong> - measure actual performance gains</li></ol>
@@ -835,7 +826,7 @@ make stdlib PLATFORM=wasm</code></pre>
 make stdlib EXTRA_CFLAGS=<span class="str">"-DAETHER_NO_FILESYSTEM -DAETHER_NO_NETWORKING"</span>
 
 <span class="com"># Query capabilities at runtime</span>
-AETHER_VERBOSE=<span class="num">1</span> ./program</code></pre>
+AETHER_VERBOSE=<span class="num">1</span> ./program   <span class="com"># a program with actors: printed when its scheduler starts</span></code></pre>
 <p><strong>Apple Silicon Notes:</strong></p>
 <ul><li>P-cores (Performance) detected via <code>hw.perflevel0.physicalcpu</code></li><li>E-cores (Efficiency) excluded for consistent throughput</li><li>QoS hints encourage P-core scheduling</li><li>Thread affinity is advisory; macOS may migrate threads</li></ul>
 <hr>
@@ -851,7 +842,7 @@ AETHER_VERBOSE=<span class="num">1</span> ./program</code></pre>
 <nav class="doc-prevnext" aria-label="Previous and next page"><a class="pn-prev" href="/Docs/install-layout.html"><span class="pn-k">Previous</span><span class="pn-t">Aether install layout</span></a><a class="pn-next" href="/Docs/per-process-config.html"><span class="pn-k">Next</span><span class="pn-t">Per-process configuration in Aether</span></a></nav>
       </article>
     </main>
-    <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#what-does-lock-free-mean" class="l2" data-id="what-does-lock-free-mean">What Does "Lock-Free" Mean?</a><a href="#integrated-optimizations" class="l2" data-id="integrated-optimizations">Integrated Optimizations</a><a href="#what-was-implemented" class="l3" data-id="what-was-implemented">What Was Implemented</a><a href="#usage" class="l2" data-id="usage">Usage</a><a href="#option-1-auto-detect-recommended" class="l3" data-id="option-1-auto-detect-recommended">Option 1: Auto-Detect (Recommended)</a><a href="#option-2-manual-control" class="l3" data-id="option-2-manual-control">Option 2: Manual Control</a><a href="#option-3-compatibility-mode" class="l3" data-id="option-3-compatibility-mode">Option 3: Compatibility Mode</a><a href="#option-4-debugverbose" class="l3" data-id="option-4-debugverbose">Option 4: Debug/Verbose</a><a href="#available-flags" class="l2" data-id="available-flags">Available Flags</a><a href="#performance-expectations" class="l2" data-id="performance-expectations">Performance Expectations</a><a href="#examples" class="l2" data-id="examples">Examples</a><a href="#example-1-simple-program" class="l3" data-id="example-1-simple-program">Example 1: Simple Program</a><a href="#example-2-query-configuration" class="l3" data-id="example-2-query-configuration">Example 2: Query Configuration</a><a href="#example-3-feature-check" class="l3" data-id="example-3-feature-check">Example 3: Feature Check</a><a href="#testing" class="l2" data-id="testing">Testing</a><a href="#check-cpu-features" class="l3" data-id="check-cpu-features">Check CPU Features</a><a href="#run-configuration-example" class="l3" data-id="run-configuration-example">Run Configuration Example</a><a href="#how-it-works-internally" class="l2" data-id="how-it-works-internally">How It Works Internally</a><a href="#where-a-message-goes" class="l3" data-id="where-a-message-goes">Where a message goes</a><a href="#message-pool-allocation" class="l3" data-id="message-pool-allocation">Message Pool Allocation</a><a href="#environment-variables" class="l2" data-id="environment-variables">Environment Variables</a><a href="#best-practices" class="l2" data-id="best-practices">Best Practices</a><a href="#cross-platform-support" class="l2" data-id="cross-platform-support">Cross-Platform Support</a><a href="#cooperative-mode" class="l3" data-id="cooperative-mode">Cooperative Mode</a><a href="#platform-capability-flags" class="l3" data-id="platform-capability-flags">Platform Capability Flags</a><a href="#troubleshooting" class="l2" data-id="troubleshooting">Troubleshooting</a><a href="#issue-optimization-not-enabled" class="l3" data-id="issue-optimization-not-enabled">Issue: "Optimization not enabled"</a><a href="#issue-performance-not-as-expected" class="l3" data-id="issue-performance-not-as-expected">Issue: "Performance not as expected"</a><a href="#issue-works-on-development-machine-not-on-server" class="l3" data-id="issue-works-on-development-machine-not-on-server">Issue: "Works on development machine, not on server"</a></nav>
+    <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#what-does-lock-free-mean" class="l2" data-id="what-does-lock-free-mean">What Does "Lock-Free" Mean?</a><a href="#integrated-optimizations" class="l2" data-id="integrated-optimizations">Integrated Optimizations</a><a href="#what-was-implemented" class="l3" data-id="what-was-implemented">What Was Implemented</a><a href="#usage" class="l2" data-id="usage">Usage</a><a href="#option-1-auto-detect-recommended" class="l3" data-id="option-1-auto-detect-recommended">Option 1: Auto-Detect (Recommended)</a><a href="#option-2-manual-control" class="l3" data-id="option-2-manual-control">Option 2: Manual Control</a><a href="#option-3-compatibility-mode" class="l3" data-id="option-3-compatibility-mode">Option 3: Compatibility Mode</a><a href="#option-4-debugverbose" class="l3" data-id="option-4-debugverbose">Option 4: Debug/Verbose</a><a href="#available-flags" class="l2" data-id="available-flags">Available Flags</a><a href="#performance-expectations" class="l2" data-id="performance-expectations">Performance Expectations</a><a href="#examples" class="l2" data-id="examples">Examples</a><a href="#example-1-simple-program" class="l3" data-id="example-1-simple-program">Example 1: Simple Program</a><a href="#example-2-query-configuration" class="l3" data-id="example-2-query-configuration">Example 2: Query Configuration</a><a href="#example-3-feature-check" class="l3" data-id="example-3-feature-check">Example 3: Feature Check</a><a href="#testing" class="l2" data-id="testing">Testing</a><a href="#check-cpu-features" class="l3" data-id="check-cpu-features">Check CPU Features</a><a href="#run-configuration-example" class="l3" data-id="run-configuration-example">Run Configuration Example</a><a href="#how-it-works-internally" class="l2" data-id="how-it-works-internally">How It Works Internally</a><a href="#where-a-message-goes" class="l3" data-id="where-a-message-goes">Where a message goes</a><a href="#environment-variables" class="l2" data-id="environment-variables">Environment Variables</a><a href="#best-practices" class="l2" data-id="best-practices">Best Practices</a><a href="#cross-platform-support" class="l2" data-id="cross-platform-support">Cross-Platform Support</a><a href="#cooperative-mode" class="l3" data-id="cooperative-mode">Cooperative Mode</a><a href="#platform-capability-flags" class="l3" data-id="platform-capability-flags">Platform Capability Flags</a><a href="#troubleshooting" class="l2" data-id="troubleshooting">Troubleshooting</a><a href="#issue-optimization-not-enabled" class="l3" data-id="issue-optimization-not-enabled">Issue: "Optimization not enabled"</a><a href="#issue-performance-not-as-expected" class="l3" data-id="issue-performance-not-as-expected">Issue: "Performance not as expected"</a><a href="#issue-works-on-development-machine-not-on-server" class="l3" data-id="issue-works-on-development-machine-not-on-server">Issue: "Works on development machine, not on server"</a></nav>
   </div>
 </div>
 <script src="/docs.js" defer></script>
@@ -860,7 +851,7 @@ AETHER_VERBOSE=<span class="num">1</span> ./program</code></pre>
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.859 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.860 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

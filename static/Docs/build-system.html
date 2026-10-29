@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.859</span>
+      <span class="vtag">v0.860</span>
     </nav>
   </div>
 </header>
@@ -655,6 +655,8 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/bootstrap-from-source.html">Bootstrapping Aether from source (HEAD)</a>
 <a href="/Docs/release-glibc-portability.html">Release binary portability across glibc versions</a>
 <div class="grp">More</div>
+<a href="/Docs/abi-policy.html">ABI compatibility: what a shipped library promises</a>
+<a href="/Docs/aether-vs-hcl.html">Aether and HCL</a>
 <a href="/Docs/compiled-module-artifacts.html">Compiled module artifacts (.aea)</a>
 <a href="/Docs/edge-cases.html">Edge cases: what is settled, and what only happens to be true</a>
 <a href="/Docs/gpu.html">The GPU tier</a>
@@ -982,7 +984,7 @@ hello from wasi</code></pre>
 aether: panic outside any try/catch or actor: negative
 safe(-1) -&gt; trapped: RuntimeError</code></pre>
 <p>That message says "outside any try/catch" even when there <em>is</em> one, because the frame never registers. This is a real semantic reduction, and the alternative is that WASI cannot link at all. Nothing silently mis-executes: <code>abort()</code> is a trap the host observes, not a fallthrough into a half-unwound stack. Code targeting WASI should treat <code>panic</code> as fatal and use <code>(value, err)</code> returns for anything it expects to recover from.</p>
-<p><code>--target=wasm</code> remains the route to a runnable <strong>browser</strong> bundle with JS glue; <code>wasm32-wasi</code> produces a self-contained module for a WASI runtime.</p>
+<p><code>--target=wasm</code> remains the route to a runnable <strong>browser</strong> bundle with JS glue; <code>wasm32-wasi</code> produces a self-contained module for a WASI runtime. The runtime <code>--target=wasm</code> compiles beside the program is the cooperative one <code>runtime/coop_runtime_sources.txt</code> lists (installed as <code>share/aether/runtime/coop_runtime_sources.txt</code>), the list ci-wasm and the ESP32 build read too (#3383).</p>
 <p><code>wasm32-freestanding</code> is deliberately <strong>not</strong> offered: it ships no libc, so the generated C's <code>#include &lt;stdio.h&gt;</code> cannot resolve and <code>--emit=obj</code> fails outright. Its only working mode would be <code>--emit=csrc</code>, which emits the same target-neutral bytes as every other target anyway.</p>
 <p>The same vendored engine backs two native cases: a build box with no system libpcre2-8 (<code>make</code> compiles the vendored copy instead of stubbing <code>std.regex</code> out: <code>PCRE2=0</code> restores the stub, <code>PCRE2=vendored</code> forces the vendored engine even when a system library exists), and <code>ae</code>'s no-<code>libaether.a</code> source fallback, which always compiles the vendored engine so an installed toolchain never ships a silently-stubbed regex.</p>
 <h2 id="build-recommendations">Build Recommendations</h2>
@@ -1026,7 +1028,7 @@ make ae AETHER_ENABLE_LLM=<span class="num">1</span> \
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.859 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.860 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

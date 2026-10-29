@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.859</span>
+      <span class="vtag">v0.860</span>
     </nav>
   </div>
 </header>
@@ -655,6 +655,8 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/bootstrap-from-source.html">Bootstrapping Aether from source (HEAD)</a>
 <a href="/Docs/release-glibc-portability.html">Release binary portability across glibc versions</a>
 <div class="grp">More</div>
+<a href="/Docs/abi-policy.html">ABI compatibility: what a shipped library promises</a>
+<a href="/Docs/aether-vs-hcl.html">Aether and HCL</a>
 <a href="/Docs/compiled-module-artifacts.html">Compiled module artifacts (.aea)</a>
 <a href="/Docs/edge-cases.html">Edge cases: what is settled, and what only happens to be true</a>
 <a href="/Docs/gpu.html">The GPU tier</a>
@@ -760,7 +762,7 @@ diff before.txt after.txt</code></pre>
 <p>Look for operations with the highest cycle counts and compare them across runs:</p>
 <ul><li><code>Actor Step</code> dominating the report is the load signal, investigate handler code.</li><li><code>SPSC Queue</code> cycles indicate same-core fast-path health; a sudden rise hints at queue-full or cache-line contention.</li><li><code>Mailbox</code> cycles are the cross-core baseline; use it as the reference for relative changes.</li></ul>
 <h3 id="3-monitor-production">3. Monitor Production</h3>
-<p>Build your staging binary with profiling enabled to catch regressions before production. Profiling is a <strong>compile-time</strong> switch (<code>-DAETHER_PROFILE</code>), not a runtime setting, the <code>AETHER_PROFILE</code> <em>environment variable</em> is unrelated (it selects a runtime memory profile and does <strong>not</strong> enable profiling output).</p>
+<p>Build your staging binary with profiling enabled to catch regressions before production. Profiling is a <strong>compile-time</strong> switch (<code>-DAETHER_PROFILE</code>), not a runtime setting: no environment variable turns it on.</p>
 <pre><code><span class="com"># Staging binary, built with profiling instrumentation</span>
 gcc -O2 -march=native -DAETHER_PROFILE your_app.c -o staging_app
 ./run_staging_tests.sh   <span class="com"># exercises the instrumented staging_app</span>
@@ -806,7 +808,7 @@ fi</code></pre>
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.859 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.860 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>
