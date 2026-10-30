@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.860</span>
+      <span class="vtag">v0.864</span>
     </nav>
   </div>
 </header>
@@ -689,8 +689,8 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <div class="tw"><table><thead><tr><th>Name</th><th>Since</th><th>Now</th><th>Removed at</th></tr></thead><tbody><tr><td><code>AETHER_FLAG_LOCKFREE_POOLS</code> (<code>runtime/aether_runtime.h</code>)</td><td>#3374</td><td>accepted, ignored; <code>aether_runtime_has_feature()</code> reports it off</td><td>host ABI level 2</td></tr><tr><td><code>aether_message_pool_stats</code> (<code>runtime/actors/aether_send_message.h</code>)</td><td>#3374</td><td>reports zeros</td><td>host ABI level 2</td></tr></tbody></table></div>
 <h2 id="the-cross-version-matrix">The cross-version matrix</h2>
 <p><code>tests/integration/abi_matrix</code> builds <code>mlib.ae</code> with this Aether and with a release before it (<code>AETHER_ABI_OLD_HOME</code>, an extracted release archive) and runs every supported pair, and the refusals of the unsupported ones:</p>
-<ul><li>C hosts that read everything by name: this header with this library and with the old one, and the old header with this library: typed calls, a string given back with no byte kept, errors and deadlines at the levels the pair has;</li><li>the old and the new library in one process, each with its own runtime: calls interleaved, an account of the new one suspended while the old one runs and resumed, both unloaded;</li><li>Aether consumers both ways: this importer with the old library, the old importer with this one;</li><li>the shared runtime: each library on its own, the new library on the old runtime (refused at load or by its preflight), and this importer with the old shared-runtime library (refused).</li></ul>
-<p>What each case prints depends on the levels alone, so the matrix holds against whichever release came before. To run it:</p>
+<ul><li>C hosts that read everything by name: this header with this library and with the old one, and the old header with this library: typed calls, a string given back with no byte kept, errors and deadlines at the levels the pair has;</li><li>the old and the new library in one process, each with its own runtime: calls interleaved, an account of the new one suspended while the old one runs and resumed, both unloaded;</li><li>Aether consumers both ways: this importer with the old library, the old importer with this one;</li><li>the shared runtime: each library on its own, the new library on the old runtime, and this importer with the old shared-runtime library. Matching runtime ABI IDs must work; different IDs must be refused (at load or by the preflight for the C host, at import for the Aether consumer). The latest published release may have the same ABI as the tree under test.</li></ul>
+<p>Call output depends on the host ABI levels; shared-runtime acceptance depends on the full runtime ABI IDs, including revision and layout flags. To run it:</p>
 <pre><code>AETHER_ABI_OLD_HOME=/path/to/aether-<span class="num">0.856</span>.<span class="num">0</span> sh tests/integration/abi_matrix/test_abi_matrix.sh</code></pre>
 <p>Without <code>AETHER_ABI_OLD_HOME</code> it skips.</p>
 <h2 id="changing-the-abi">Changing the ABI</h2>
@@ -708,7 +708,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.860 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.864 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>
