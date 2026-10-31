@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.866</span>
+      <span class="vtag">v0.869</span>
     </nav>
   </div>
 </header>
@@ -825,7 +825,7 @@ AetherValue* aether_config_list_get        (AetherValue* list, <span class="kw">
 <p>Aether maps and lists are <strong>untyped</strong> internally, values are stored as opaque <code>void*</code> with no runtime tag. The accessors reinterpret the stored value as the requested type; they do not verify it. That makes the script-to-host interface a straight FFI contract: document what the script writes at each key, and the host must read it back with the matching accessor. If the script stored an <code>int</code> at <code>"port"</code> and the host asks for a string, the host gets garbage, treat this exactly the way you would treat any other cross-language value exchange.</p>
 <h2 id="capability-empty-default">Capability-empty default</h2>
 <p><code>--emit=lib</code> rejects <code>.ae</code> files that import:</p>
-<ul><li><code>std.net</code>, <code>std.http</code> and its children, <code>std.tcp</code>, <code>std.udp</code> networking</li><li><code>std.fs</code>, <code>std.file</code>, <code>std.dir</code> filesystem</li><li><code>std.os</code>, <code>std.dl</code> process, environment, shell, and dynamic loading</li><li><code>contrib.host.*</code> foreign-language runtimes</li></ul>
+<ul><li><code>std.net</code>, <code>std.http</code> and its children, <code>std.tcp</code>, <code>std.udp</code> networking</li><li><code>std.fs</code>, <code>std.file</code>, <code>std.dir</code> filesystem</li><li><code>std.os</code>, <code>std.dl</code>, <code>std.ipc</code> process, environment, shell, dynamic loading, and the parent channel (which can pass open descriptors)</li><li><code>contrib.host.*</code> foreign-language runtimes</li></ul>
 <p>The rationale: a library embedded in a host process shouldn't have ambient network, filesystem, or process-spawning access. Those are capabilities the <strong>host</strong> grants; the script should only compute and return data. The host mediates I/O through whatever its own runtime provides.</p>
 <p><code>std.map</code>, <code>std.list</code>, <code>std.string</code>, <code>std.json</code>, <code>std.math</code>, and the other capability-free standard modules are allowed.</p>
 <p>It also rejects an <code>extern</code> declared in the program's own code (the entry file, an <code>@extern("…")</code> binding, or a local module it imports). An extern names a C function directly, so <code>extern system(cmd: string) -&gt; int</code> would reach what <code>import std.os</code> is gated to stop. Externs declared by other <code>std.*</code> modules are not the program's and are unaffected. Foreign-language host modules sit behind the <code>contrib.host.*</code> gate above. Opt in with <code>--with=extern</code>.</p>
@@ -833,7 +833,7 @@ AetherValue* aether_config_list_get        (AetherValue* list, <span class="kw">
 <p>Projects that <strong>are</strong> the host, code that compiles <code>.ae</code> and handwritten C into one binary, rather than embedding Aether as an untrusted user script, opt into specific capability categories:</p>
 <pre><code>ae build --emit=lib --with=fs           file.ae   <span class="com"># std.fs, std.file, std.dir</span>
 ae build --emit=lib --with=net          file.ae   <span class="com"># std.net/http/tcp/udp families</span>
-ae build --emit=lib --with=os           file.ae   <span class="com"># std.os, std.dl</span>
+ae build --emit=lib --with=os           file.ae   <span class="com"># std.os, std.dl, std.ipc</span>
 ae build --emit=lib --with=fs,os        file.ae   <span class="com"># multiple, comma-separated</span>
 ae build --emit=lib --with=extern       file.ae   <span class="com"># own C externs, contrib.host.*</span>
 ae build --emit=lib --with=first-party  file.ae   <span class="com"># alias for fs,net,os,extern</span>
@@ -1096,7 +1096,7 @@ for i in range(meta.function_count):
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.866 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.869 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>
