@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.864</span>
+      <span class="vtag">v0.865</span>
     </nav>
   </div>
 </header>
@@ -581,7 +581,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <div class="docsearch"><input id="ds" type="search" placeholder="Search the docs" aria-label="Search documentation" autocomplete="off" spellcheck="false"><kbd>/</kbd><div class="ds-res" id="dsres" role="listbox"></div></div>
 <div class="grp">Start</div>
 <a href="/Docs/getting-started.html">Getting Started with Aether</a>
-<a href="/Docs/tutorial.html">Aether Language Tutorial</a>
+<a href="/Docs/tutorial.html">Learn Aether: the tutorial</a>
 <div class="grp">Language</div>
 <a href="/Docs/language-reference.html">Aether Language Reference</a>
 <a href="/Docs/type-inference-guide.html">Aether Type Inference Guide</a>
@@ -659,6 +659,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/aether-vs-hcl.html">Aether and HCL</a>
 <a href="/Docs/compiled-module-artifacts.html">Compiled module artifacts (.aea)</a>
 <a href="/Docs/edge-cases.html">Edge cases: what is settled, and what only happens to be true</a>
+<a href="/Docs/glossary.html">Glossary</a>
 <a href="/Docs/gpu.html">The GPU tier</a>
 <a href="/Docs/package-fetching.html">Package fetching</a>
 <a href="/Docs/quote.html">quote: a trailing block handed over as a tree</a>
@@ -951,7 +952,7 @@ ae build --target=aarch64-macos     hello.ae -o hello  <span class="com"># Mach-
 <p><strong>Scope.</strong> Cross binaries are built without OpenSSL / zlib / nghttp2 (zig ships none of those), so standard-library features that need them (HTTPS/TLS, hashing, base64, compression, HTTP/2) report errors at runtime, exactly like a native build on a host that lacks those libraries; plain sockets and pure helpers keep working. <code>ae build</code> prints a note when a program uses such a module (<code>std.http</code>, <code>std.net</code>, <code>std.cryptography</code>, <code>std.zlib</code>, <code>std.encoding</code>), then builds it anyway. Cross-building those libraries is the documented follow-up; staging them via <code>CROSSBUILD_SYSROOT</code> (provisioned by aether-crossbuild) links them for real today. <strong><code>std.regex</code> is the exception: it always works on cross builds, with no sysroot</strong>, because its engine is vendored in-tree (<code>std/regex/pcre2/</code>, pinned upstream PCRE2 compiled by <code>std/regex/aether_pcre2_vendored.c</code>; #1389), so a regex-using program cross-builds self-contained for every target. A CROSSBUILD_SYSROOT that stages a real libpcre2-8 takes precedence over the vendored copy. Executables, <strong><code>--emit=csrc</code>, <code>--emit=obj</code> and <code>--emit=lib</code></strong> are supported, and the host must be POSIX (Linux/macOS). The generated artifact targets another platform, so it is not runnable on the build host; copy it to a matching machine (or an emulator).</p>
 <p><code>--emit=csrc</code> is allowed under <code>--target</code> because it never links: it writes the portable C, its catalog header and the JSON catalog, and stops (#1648).</p>
 <p><strong><code>--emit=lib</code> under <code>--target</code></strong> produces a real shared library for the target (#1648): an ELF <code>.so</code>, a PE <code>.dll</code>, or a Mach-O <code>.dylib</code>, chosen by the <em>target</em> rather than the host. zig links a shared object for a target as readily as an executable, and the runtime and stdlib are already compiled from source for that target on the executable path, so <code>-shared -fPIC</code> instead of an executable link is the whole increment.</p>
-<div class="tw"><table><thead><tr><th>target</th><th>artifact</th><th>extra link flags</th></tr></thead><tbody><tr><td><code>*-linux</code>, other ELF</td><td><code>.so</code></td><td><code>-shared -fPIC</code></td></tr><tr><td><code>*-windows</code></td><td><code>.dll</code></td><td><code>-shared -fPIC -Wl,--export-all-symbols</code></td></tr><tr><td><code>*-macos</code>, <code>*-ios</code></td><td><code>.dylib</code></td><td><code>-dynamiclib -install_name @rpath/&lt;leaf&gt;</code></td></tr><tr><td><code>wasm32-*</code></td><td><code>.wasm</code></td><td><code>--no-entry --gc-sections</code> + <code>--export=</code> per symbol</td></tr></tbody></table></div>
+<div class="tw"><table><thead><tr><th>target</th><th>artifact</th><th>extra link flags</th></tr></thead><tbody><tr><td><code>*-linux</code>, other ELF</td><td><code>.so</code></td><td><code>-shared -fPIC -Wl,-Bsymbolic</code> (the library keeps the runtime it carries, #3481)</td></tr><tr><td><code>*-windows</code></td><td><code>.dll</code></td><td><code>-shared -fPIC -Wl,--export-all-symbols</code></td></tr><tr><td><code>*-macos</code>, <code>*-ios</code></td><td><code>.dylib</code></td><td><code>-dynamiclib -install_name @rpath/&lt;leaf&gt;</code></td></tr><tr><td><code>wasm32-*</code></td><td><code>.wasm</code></td><td><code>--no-entry --gc-sections</code> + <code>--export=</code> per symbol</td></tr></tbody></table></div>
 <p>Windows needs <code>--export-all-symbols</code> for the reason the native path documents (#993): GCC's auto-export heuristic switches off as soon as any symbol carries an explicit <code>__declspec(dllexport)</code>, and the <code>aether_&lt;name&gt;</code> catalog exports then vanish from the DLL. A Windows <code>--emit=lib</code> is named <code>.dll</code>, not <code>.exe</code>: the executable suffix is applied only to executables.</p>
 <p><strong><code>--emit=both</code> is still rejected under <code>--target</code></strong>: it wants an executable <em>and</em> a library from one invocation, and the cross path links once. Run it twice with different <code>--emit</code> modes. That makes it the route to a <strong>cross-compiled linkable library without cross-link support</strong>: emit the C here, and let the consumer compile it for their target into the <code>.so</code> / <code>.a</code> / <code>.wasm</code> they need.</p>
 <p>The emitted C is <strong>target-neutral</strong>, not target-parameterised: platform selection stays in <code>#if __linux__</code> / <code>__APPLE__</code> / <code>__wasi__</code> and is resolved by the consumer's compiler, which defines those macros for whatever target it builds. <code>--target</code> therefore does not change the bytes emitted (asserted by <code>tests/integration/emit_csrc_cross/</code>); it is accepted so one command line works for both native and cross consumers. For the same reason csrc under <code>--target</code> does <strong>not</strong> require <code>zig</code> on PATH: nothing is compiled or linked.</p>
@@ -1028,7 +1029,7 @@ make ae AETHER_ENABLE_LLM=<span class="num">1</span> \
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.864 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.865 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

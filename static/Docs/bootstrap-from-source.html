@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.864</span>
+      <span class="vtag">v0.865</span>
     </nav>
   </div>
 </header>
@@ -581,7 +581,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <div class="docsearch"><input id="ds" type="search" placeholder="Search the docs" aria-label="Search documentation" autocomplete="off" spellcheck="false"><kbd>/</kbd><div class="ds-res" id="dsres" role="listbox"></div></div>
 <div class="grp">Start</div>
 <a href="/Docs/getting-started.html">Getting Started with Aether</a>
-<a href="/Docs/tutorial.html">Aether Language Tutorial</a>
+<a href="/Docs/tutorial.html">Learn Aether: the tutorial</a>
 <div class="grp">Language</div>
 <a href="/Docs/language-reference.html">Aether Language Reference</a>
 <a href="/Docs/type-inference-guide.html">Aether Type Inference Guide</a>
@@ -659,6 +659,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/aether-vs-hcl.html">Aether and HCL</a>
 <a href="/Docs/compiled-module-artifacts.html">Compiled module artifacts (.aea)</a>
 <a href="/Docs/edge-cases.html">Edge cases: what is settled, and what only happens to be true</a>
+<a href="/Docs/glossary.html">Glossary</a>
 <a href="/Docs/gpu.html">The GPU tier</a>
 <a href="/Docs/package-fetching.html">Package fetching</a>
 <a href="/Docs/quote.html">quote: a trailing block handed over as a tree</a>
@@ -763,7 +764,7 @@ printf <span class="str">'main() { println("ok") }\n'</span> &gt; /tmp/smoke.ae
 <ul><li><strong>Do not run the test suite</strong> (<code>make test</code>, <code>make test-ae</code>, <code>make ci</code>) to <em>use</em> Aether, those validate changes <em>to</em> Aether and are slow. Building + installing is sufficient and touches no test code.</li><li><strong>Treat contrib <code>SKIP</code> lines as success</strong>, not failure, they mean a dev library is absent. Only a non-zero exit from <code>make contrib</code> / <code>make install-contrib</code> is a real failure.</li><li><strong>Always link downstream C with <code>$(ae cflags)</code></strong>, do not synthesize <code>-I</code> / <code>-L</code> / <code>-laether</code> by hand; the include path and the <code>lib/aether/</code> archive location vary by install mode and <code>ae cflags</code> resolves them.</li><li>Re-running <code>make ae</code> / <code>make install</code> is safe. After a <code>git pull</code>, run <code>make clean &amp;&amp; make ae</code> before reinstalling so the version stamp and any compiler reshape are picked up.</li><li>Use a writable <code>PREFIX=…</code> to avoid <code>sudo</code>, and make sure <code>$(PREFIX)/bin</code> is on <code>PATH</code> (or invoke <code>ae</code> by absolute path as above). The default <code>PREFIX</code> is <code>~/.aether</code>; as root, <code>make install</code> refuses to run without an explicit one.</li><li>A <code>--emit=lib</code> link error mentioning <code>recompile with -fPIC</code> means a stale pre-0.181 <code>libaether.a</code>; rebuild from current <code>HEAD</code>.</li><li>If <code>ae --version</code> and the <code>VERSION</code> file disagree, the binary is stale: <code>make clean &amp;&amp; make ae</code>. If it warns that its <code>aetherc</code> is a different version, two installs are mixed; <code>install.sh</code> defaults to <code>~/.aether/bin</code> and <code>get.sh</code> to <code>~/.local/bin</code>, and whichever is earlier on <code>PATH</code> wins. Both installers now name the shadowing binary when they see one.</li></ul>
 <hr>
 <h2 id="see-also">See also</h2>
-<ul><li><a href="/Docs/install-layout.html">install-layout.md</a>, exactly what <code>make install</code> / <code>install.sh</code> lay down, and the MANIFEST contract aeb relies on.</li><li><a href="/Docs/getting-started.html">getting-started.md</a>, first program, project config, error handling, the language tour.</li><li><a href="/Docs/emit-lib.html">emit-lib.md</a>, building Aether as a <code>.so</code>/<code>.dylib</code> for FFI hosts (<code>--emit=lib</code>).</li><li><a href="https://github.com/aether-lang-dev/aether/blob/main/CONTRIBUTING.md">CONTRIBUTING.md</a>, the contributor flow, including the full CI suite you'd run if you were changing Aether itself.</li></ul>
+<ul><li><a href="/Docs/install-layout.html">install-layout.md</a>, exactly what <code>make install</code> / <code>install.sh</code> lay down, and the MANIFEST contract aeb relies on.</li><li><a href="/Docs/getting-started.html">getting-started.md</a>, installing, a first program, a project and the tools; the language itself is taught by the path in <a href="https://github.com/aether-lang-dev/aether/blob/main/examples/README.md">examples/README.md</a> and <a href="/Docs/tutorial.html">tutorial.md</a>.</li><li><a href="/Docs/emit-lib.html">emit-lib.md</a>, building Aether as a <code>.so</code>/<code>.dylib</code> for FFI hosts (<code>--emit=lib</code>).</li><li><a href="https://github.com/aether-lang-dev/aether/blob/main/CONTRIBUTING.md">CONTRIBUTING.md</a>, the contributor flow, including the full CI suite you'd run if you were changing Aether itself.</li></ul>
 <nav class="doc-prevnext" aria-label="Previous and next page"><a class="pn-prev" href="/Docs/stdlib-vs-contrib.html"><span class="pn-k">Previous</span><span class="pn-t">std/ vs contrib/ placement decisions</span></a><a class="pn-next" href="/Docs/release-glibc-portability.html"><span class="pn-k">Next</span><span class="pn-t">Release binary portability across glibc versions</span></a></nav>
       </article>
     </main>
@@ -776,7 +777,7 @@ printf <span class="str">'main() { println("ok") }\n'</span> &gt; /tmp/smoke.ae
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.864 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.865 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

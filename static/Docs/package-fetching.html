@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.864</span>
+      <span class="vtag">v0.865</span>
     </nav>
   </div>
 </header>
@@ -581,7 +581,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <div class="docsearch"><input id="ds" type="search" placeholder="Search the docs" aria-label="Search documentation" autocomplete="off" spellcheck="false"><kbd>/</kbd><div class="ds-res" id="dsres" role="listbox"></div></div>
 <div class="grp">Start</div>
 <a href="/Docs/getting-started.html">Getting Started with Aether</a>
-<a href="/Docs/tutorial.html">Aether Language Tutorial</a>
+<a href="/Docs/tutorial.html">Learn Aether: the tutorial</a>
 <div class="grp">Language</div>
 <a href="/Docs/language-reference.html">Aether Language Reference</a>
 <a href="/Docs/type-inference-guide.html">Aether Type Inference Guide</a>
@@ -659,6 +659,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/aether-vs-hcl.html">Aether and HCL</a>
 <a href="/Docs/compiled-module-artifacts.html">Compiled module artifacts (.aea)</a>
 <a href="/Docs/edge-cases.html">Edge cases: what is settled, and what only happens to be true</a>
+<a href="/Docs/glossary.html">Glossary</a>
 <a href="/Docs/gpu.html">The GPU tier</a>
 <a href="/Docs/package-fetching.html" class="on">Package fetching</a>
 <a href="/Docs/quote.html">quote: a trailing block handed over as a tree</a>
@@ -692,7 +693,20 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 &lt;mirror&gt;/&lt;host&gt;/&lt;owner&gt;/&lt;repo&gt;/archive/HEAD.tar.gz
 &lt;mirror&gt;/&lt;host&gt;/&lt;owner&gt;/&lt;repo&gt;/tags.json        # [{"name": "v1.2.0"}, ...]</code></pre>
 <p>A mirror can be an HTTP server or a directory (<code>file:///srv/mirror</code>, <code>file://C:/mirror</code>), for a machine with no network. The hash makes a mirror safe to use: it cannot hand over another tree than the one pinned.</p>
-<p>A package that publishes a release artifact for the host (a binary package, or <code>&lt;repo&gt;-&lt;tag&gt;-&lt;os&gt;-&lt;arch&gt;.tar.gz</code>) is installed from it instead when a version is given, verified by its <code>.sha256</code> (getting-started.md, "Add a package"). <code>--source</code> skips that and takes the source archive.</p>
+<p>A package that publishes a release artifact for the host (a binary package, or <code>&lt;repo&gt;-&lt;tag&gt;-&lt;os&gt;-&lt;arch&gt;.tar.gz</code>) is installed from it instead when a version is given, verified by its <code>.sha256</code> ("Release artifacts" below). <code>--source</code> skips that and takes the source archive.</p>
+<h2 id="release-artifacts">Release artifacts</h2>
+<p>With <code>@version</code>, <code>ae add</code> prefers a <strong>published release artifact</strong> when the package ships one for your platform, and takes the source archive otherwise. The asset is expected at the same layout Aether's own releases use:</p>
+<pre><code>https://&lt;package&gt;/releases/download/&lt;tag&gt;/&lt;repo&gt;-&lt;tag&gt;-&lt;os&gt;-&lt;arch&gt;.tar.gz</code></pre>
+<p>(<code>.zip</code> is tried too; <code>&lt;os&gt;-&lt;arch&gt;</code> is <code>linux-x86_64</code>, <code>macos-arm64</code>, and so on.) A sibling <code>&lt;asset&gt;.sha256</code> is verified when present: a <strong>mismatch is fatal and installs nothing</strong>, and there is no silent fall-back to the source, which would defeat the check. An artifact with no published checksum installs with a warning.</p>
+<p>Prebuilt <code>--emit=lib</code> artifacts are directly importable: the binary-import prepass reads the artifact's catalog and synthesizes the interface, so a released library needs no toolchain to consume. Set <code>AE_RELEASE_BASE_URL</code> to point at an internal mirror serving the same layout, and the source archives at <code>&lt;package&gt;/archive/&lt;tag&gt;.tar.gz</code>.</p>
+<h3 id="publishing-a-binary-package">Publishing a binary package</h3>
+<p>For a <strong>binary package</strong>, publish <code>aether.toml</code> with a <code>[package]</code> section containing <code>binary = "&lt;stem&gt;"</code> and <code>modules = "."</code>, plus <code>&lt;stem&gt;-&lt;tag&gt;-&lt;triple&gt;.&lt;ext&gt;</code> and its <code>.sha256</code> sidecar. Unlike the archive path, a binary package requires the checksum: a missing or mismatched checksum is fatal. If the declared binary is missing for the selected target, <code>ae add</code> fails without trying another libc or a source archive.</p>
+<p>Publish Linux binary packages under distinct glibc and musl identities:</p>
+<div class="tw"><table><thead><tr><th>Build target</th><th>Release triple</th></tr></thead><tbody><tr><td><code>x86_64-linux</code> (glibc)</td><td><code>linux-x86_64</code></td></tr><tr><td><code>aarch64-linux</code> (glibc)</td><td><code>linux-arm64</code></td></tr><tr><td><code>x86_64-linux-musl</code></td><td><code>linux-x86_64-musl</code></td></tr><tr><td><code>aarch64-linux-musl</code></td><td><code>linux-arm64-musl</code></td></tr></tbody></table></div>
+<p>Automatic selection uses the CPU and libc that <code>ae</code> was built for, retaining the existing unsuffixed glibc names. To fetch a foreign binary, give its <strong>release triple</strong> explicitly (rather than the compiler's build-target spelling):</p>
+<pre><code>ae add github.com/user/repo@v1.<span class="num">0.0</span> --target linux-arm64-musl</code></pre>
+<p>The explicit target is preserved in the asset name; it does not fall back to the host's libc. The package cache holds one target per package. Use a separate <code>HOME</code> per target when assembling a multi-target release. <code>ae add</code> refuses to reuse an installed binary for a different target and preserves its bytes. Older binary caches without a target record must be removed and fetched again so the selected asset and its checksum are verified.</p>
+<p>For example, a stem of <code>libfoo</code> yields <code>libfoo-v1.0.0-linux-arm64-musl.so</code> and <code>libfoo-v1.0.0-linux-arm64-musl.so.sha256</code>.</p>
 <h2 id="the-fetcher">The fetcher</h2>
 <p>The fetching is done by <code>ae-fetch</code>, an Aether program (<code>tools/ae-fetch</code>): std.http fetches (OpenSSL, or the pure-Aether TLS where there is none), std.zlib inflates, std.tar unpacks and std.cryptography hashes. std.tar reads the pax and GNU archives forges produce, and refuses an entry whose path leaves the destination. A repository's symlinks are installed as symlinks (#3306), and std.tar refuses one whose target leaves the package and any entry under a symlinked directory. Windows creates a symlink only with Developer Mode on (Settings, System, For developers) or as an administrator. Elsewhere, a package that holds a symlink fails to install with that reason, and leaves nothing.</p>
 <p>Every install ships the fetcher's source (<code>share/aether/tools/ae-fetch</code>), not a binary per platform. The first <code>ae add</code> builds it with the installed toolchain into <code>~/.aether/tools/ae-fetch-&lt;key&gt;</code>, keyed as <code>ae run</code>'s build cache is (the source, what it imports, the compiler, the runtime), so it is rebuilt when the toolchain changes and never older than the std it uses. The build takes a few seconds, once. <code>AE_FETCH</code> names a fetcher to use instead.</p>
@@ -711,7 +725,7 @@ ae add github.com/acme/widget --update          <span class="com"># what the pin
 <nav class="doc-prevnext" aria-label="Previous and next page"><a class="pn-prev" href="/Docs/gpu.html"><span class="pn-k">Previous</span><span class="pn-t">The GPU tier</span></a><a class="pn-next" href="/Docs/quote.html"><span class="pn-k">Next</span><span class="pn-t">quote: a trailing block handed over as a tree</span></a></nav>
       </article>
     </main>
-    <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#a-package-is-its-trees-hash" class="l2" data-id="a-package-is-its-trees-hash">A package is its tree's hash</a><a href="#where-the-bytes-come-from" class="l2" data-id="where-the-bytes-come-from">Where the bytes come from</a><a href="#the-fetcher" class="l2" data-id="the-fetcher">The fetcher</a><a href="#what-is-checked" class="l2" data-id="what-is-checked">What is checked</a><a href="#moving-a-pin" class="l2" data-id="moving-a-pin">Moving a pin</a></nav>
+    <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#a-package-is-its-trees-hash" class="l2" data-id="a-package-is-its-trees-hash">A package is its tree's hash</a><a href="#where-the-bytes-come-from" class="l2" data-id="where-the-bytes-come-from">Where the bytes come from</a><a href="#release-artifacts" class="l2" data-id="release-artifacts">Release artifacts</a><a href="#publishing-a-binary-package" class="l3" data-id="publishing-a-binary-package">Publishing a binary package</a><a href="#the-fetcher" class="l2" data-id="the-fetcher">The fetcher</a><a href="#what-is-checked" class="l2" data-id="what-is-checked">What is checked</a><a href="#moving-a-pin" class="l2" data-id="moving-a-pin">Moving a pin</a></nav>
   </div>
 </div>
 <script src="/docs.js" defer></script>
@@ -720,7 +734,7 @@ ae add github.com/acme/widget --update          <span class="com"># what the pin
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.864 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.865 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

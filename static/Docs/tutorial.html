@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Aether Language Tutorial · Aether</title>
-<meta name="description" content="This tutorial walks through Aether&#x27;s core features with working examples you can run.">
+<title>Learn Aether: the tutorial · Aether</title>
+<meta name="description" content="This tutorial is the story told alongside the path through the examples. The path is the code: one file per idea, each saying how to run it and ending...">
 <link rel="canonical" href="https://aether-lang.dev/Docs/tutorial.html">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Aether Language Tutorial · Aether">
-<meta property="og:description" content="This tutorial walks through Aether&#x27;s core features with working examples you can run.">
+<meta property="og:title" content="Learn Aether: the tutorial · Aether">
+<meta property="og:description" content="This tutorial is the story told alongside the path through the examples. The path is the code: one file per idea, each saying how to run it and ending...">
 <meta property="og:url" content="https://aether-lang.dev/Docs/tutorial.html">
 <meta property="og:image" content="https://aether-lang.dev/og.png">
 <meta name="twitter:card" content="summary_large_image">
@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.864</span>
+      <span class="vtag">v0.865</span>
     </nav>
   </div>
 </header>
@@ -581,7 +581,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <div class="docsearch"><input id="ds" type="search" placeholder="Search the docs" aria-label="Search documentation" autocomplete="off" spellcheck="false"><kbd>/</kbd><div class="ds-res" id="dsres" role="listbox"></div></div>
 <div class="grp">Start</div>
 <a href="/Docs/getting-started.html">Getting Started with Aether</a>
-<a href="/Docs/tutorial.html" class="on">Aether Language Tutorial</a>
+<a href="/Docs/tutorial.html" class="on">Learn Aether: the tutorial</a>
 <div class="grp">Language</div>
 <a href="/Docs/language-reference.html">Aether Language Reference</a>
 <a href="/Docs/type-inference-guide.html">Aether Type Inference Guide</a>
@@ -659,6 +659,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/aether-vs-hcl.html">Aether and HCL</a>
 <a href="/Docs/compiled-module-artifacts.html">Compiled module artifacts (.aea)</a>
 <a href="/Docs/edge-cases.html">Edge cases: what is settled, and what only happens to be true</a>
+<a href="/Docs/glossary.html">Glossary</a>
 <a href="/Docs/gpu.html">The GPU tier</a>
 <a href="/Docs/package-fetching.html">Package fetching</a>
 <a href="/Docs/quote.html">quote: a trailing block handed over as a tree</a>
@@ -667,346 +668,403 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
     <main class="doc-main">
       <article class="doc-body" id="doc">
         <div class="bc"><span class="prompt">$</span>docs / start</div>
-<h1 id="aether-language-tutorial">Aether Language Tutorial</h1>
-<p>This tutorial walks through Aether's core features with working examples you can run. Aether is a compiled language built around the <strong>actor model</strong>, lightweight concurrent entities that communicate through messages.</p>
-<p>Run any example with:</p>
-<pre><code>ae run myfile.ae</code></pre>
-<h2 id="table-of-contents">Table of Contents</h2>
-<ol><li><a href="#1-hello-world">Hello World</a></li><li><a href="#2-your-first-actor">Your First Actor</a></li><li><a href="#3-actor-state--multiple-messages">Actor State &amp; Multiple Messages</a></li><li><a href="#4-control-flow">Control Flow</a></li><li><a href="#5-pattern-matching">Pattern Matching</a></li><li><a href="#6-multiple-actors">Multiple Actors</a></li><li><a href="#7-string-interpolation">String Interpolation</a></li><li><a href="#8-constants-null-and-bitwise">Constants, Null, and Bitwise</a></li><li><a href="#9-ergonomic-syntax">Ergonomic Syntax</a></li></ol>
+<h1 id="learn-aether-the-tutorial">Learn Aether: the tutorial</h1>
+<p>This tutorial is the story told alongside <a href="https://github.com/aether-lang-dev/aether/blob/main/examples/README.md">the path through the examples</a>. The path is the code: one file per idea, each saying how to run it and ending with what it prints. This page says what each step shows and why it comes where it does. The first two chapters, the language and actors, also list the mistakes newcomers make and end with exercises and their answers. A <a href="#quick-reference">quick reference</a> of the syntax closes the page.</p>
+<p>Read a chapter, then run its examples in order from the repository root and change them:</p>
+<pre><code>ae run examples/<span class="num">01</span>-language/<span class="num">01</span>-hello.ae</code></pre>
+<p>Every program on this page is compiled by CI, and the ones followed by their output are run and compared, so what you read is what Aether does today. <a href="/Docs/getting-started.html">Getting started</a> installs the toolchain; the <a href="/Docs/glossary.html">glossary</a> defines the words this page uses; the <a href="/Docs/language-reference.html">language reference</a> has everything else.</p>
+<ol><li><a href="#1-the-language">The language</a></li><li><a href="#2-actors">Actors</a></li><li><a href="#3-the-standard-library">The standard library</a></li><li><a href="#4-c-and-other-languages">C and other languages</a></li><li><a href="#5-containing-code">Containing code</a></li><li><a href="#6-tools">Tools</a></li><li><a href="#7-programs">Programs</a></li></ol>
 <hr>
-<h2 id="1-hello-world">1. Hello World</h2>
+<h2 id="1-the-language">1. The language</h2>
+<p>Aether compiles to C: <code>ae run</code> turns a file into a native program and runs it. A program is a set of functions, and it starts at <code>main()</code>. There are no classes and no methods: structs are plain data, behaviour is functions, and the one stateful thing with an inside and an outside is the actor (chapter 2).</p>
+<h3 id="values-strings-and-control-flow">Values, strings and control flow</h3>
+<p><a href="https://github.com/aether-lang-dev/aether/tree/main/examples/01-language/01-hello.ae">01-hello</a>, <a href="https://github.com/aether-lang-dev/aether/tree/main/examples/01-language/02-values-and-types.ae">02-values-and-types</a>, <a href="https://github.com/aether-lang-dev/aether/tree/main/examples/01-language/03-strings.ae">03-strings</a>, <a href="https://github.com/aether-lang-dev/aether/tree/main/examples/01-language/04-control-flow.ae">04-control-flow</a></p>
+<p>A line ends a statement, and <code>${...}</code> puts any value into a string. A local takes its type from the first value it is given and keeps it. Conditions need no parentheses, every body takes braces, and <code>if</code> is also a value:</p>
 <pre><code>main() {
-    println(<span class="str">"Hello, Aether!"</span>)
-
-    x = <span class="num">42</span>
-    y = <span class="num">8</span>
-
-    <span class="kw">if</span> (x &gt; y) {
-        println(<span class="str">"x is greater than y"</span>)
+    temps = [12, 19, 25, 31]
+    for i in 0..temps.len {
+        t = temps[i]
+        feel = if t &lt; 15 { "cold" } else if t &lt; 28 { "mild" } else { "hot" }
+        println("${t} C is ${feel}")
     }
-
-    sum = x + y
-    println(<span class="str">"Sum: ${sum}"</span>)
 }</code></pre>
-<p><strong>What you see:</strong></p>
-<ul><li><code>main()</code> is the entry point</li><li>Variables use <strong>type inference</strong>, no explicit types needed</li><li><code>println</code> prints with a newline; <code>print</code> prints without</li><li><code>${variable}</code> embeds a value into a string</li></ul>
+<pre><code>12 C is cold
+19 C is mild
+25 C is mild
+31 C is hot</code></pre>
+<p>A string is immutable text that knows its length; <code>==</code> compares contents. What takes strings apart and builds new ones is in <code>std.string</code>, called through the module's name: <code>string.length(s)</code>, <code>string.to_upper(s)</code>.</p>
+<h3 id="functions">Functions</h3>
+<p><a href="https://github.com/aether-lang-dev/aether/tree/main/examples/01-language/05-functions.ae">05-functions</a></p>
+<p>Parameters can have defaults and calls can name their arguments. A function can return several values, which the caller takes apart, and a function can be written as clauses, each for one shape of argument:</p>
+<pre><code>min_max(xs: int[]) -&gt; (int, int) {
+    lo = xs[0]
+    hi = xs[0]
+    for i in 1..xs.len {
+        if xs[i] &lt; lo { lo = xs[i] }
+        if xs[i] &gt; hi { hi = xs[i] }
+    }
+    return lo, hi
+}
+
+describe(0) -&gt; "zero"
+describe(n) when n &lt; 0 -&gt; "negative"
+describe(n) -&gt; "positive"
+
+greet(name: string, greeting: string = "Hello") -&gt; string {
+    return "${greeting}, ${name}"
+}
+
+main() {
+    lo, hi = min_max([7, -2, 9, 4])
+    println("${lo} .. ${hi}")
+    println("${describe(0)} ${describe(-5)} ${describe(3)}")
+    println(greet("Ada"))
+    println(greet(greeting: "Welcome", name: "Grace"))
+}</code></pre>
+<pre><code>-2 .. 9
+zero negative positive
+Hello, Ada
+Welcome, Grace</code></pre>
+<h3 id="data-structs-enums-sum-types-and-match">Data: structs, enums, sum types and match</h3>
+<p><a href="https://github.com/aether-lang-dev/aether/tree/main/examples/01-language/06-structs.ae">06-structs</a>, <a href="https://github.com/aether-lang-dev/aether/tree/main/examples/01-language/07-enums-and-sums.ae">07-enums-and-sums</a>, <a href="https://github.com/aether-lang-dev/aether/tree/main/examples/01-language/08-match.ae">08-match</a></p>
+<p>A struct is a record held by value: assigning or passing one copies it, and a function that should change the caller's takes its address, <code>&amp;p</code>. An enum is a set of named constants. A sum type is a value that is exactly one of several structs, and <code>match</code> over it must cover every one, so adding a variant shows every place that has to learn it:</p>
+<pre><code>struct Deposit { amount: int }
+struct Withdraw { amount: int }
+struct Close {}
+
+type Command = Deposit | Withdraw | Close
+
+apply(balance: int, c: Command) -&gt; int {
+    return match c {
+        Deposit -&gt; balance + c.amount
+        Withdraw -&gt; balance - c.amount
+        Close -&gt; 0
+    }
+}
+
+main() {
+    let cmds: Command[3] = [Deposit { amount: 50 }, Withdraw { amount: 20 }, Deposit { amount: 5 }]
+    balance = 0
+    for i in 0..cmds.len {
+        balance = apply(balance, cmds[i])
+    }
+    println("balance: ${balance}")
+}</code></pre>
+<pre><code>balance: 35</code></pre>
+<p>Inside an arm, the value is that variant, so <code>c.amount</code> reads its field. <code>match</code> also takes literals, ranges, strings, list patterns such as <code>[head | tail]</code> and struct patterns; it is an expression, so it has a value.</p>
+<h3 id="absence-and-failure">Absence and failure</h3>
+<p><a href="https://github.com/aether-lang-dev/aether/tree/main/examples/01-language/09-optionals.ae">09-optionals</a>, <a href="https://github.com/aether-lang-dev/aether/tree/main/examples/01-language/10-errors.ae">10-errors</a></p>
+<p>Two different things, two different tools. A value that may be absent is an optional, <code>T?</code>: <code>none</code> or a value, read with <code>??</code> for a fallback. An operation that can fail returns its value and an error string, <code>""</code> when it worked; <code>-&gt; T!</code> names that pair, and <code>or</code> gives a fallback:</p>
+<pre><code>import std.string
+
+first_even(xs: int[]) -&gt; int? {
+    for i in 0..xs.len {
+        if xs[i] % 2 == 0 {
+            return xs[i]
+        }
+    }
+    return none
+}
+
+parse_percent(text: string) -&gt; int! {
+    n, err = string.to_int(text)
+    if err != "" {
+        return 0, "'${text}' is not a number"
+    }
+    if n &lt; 0 || n &gt; 100 {
+        return 0, "${n} is not a percentage"
+    }
+    return n
+}
+
+main() {
+    println(first_even([3, 8, 5]) ?? -1)
+    println(first_even([3, 5]) ?? -1)
+
+    v, err = parse_percent("120")
+    println("${v} [${err}]")
+    println(parse_percent("42") or 0)
+    println(parse_percent("lots") or 0)
+}</code></pre>
+<pre><code>8
+-1
+0 [120 is not a percentage]
+42
+0</code></pre>
+<p>A panic is neither: it is for a bug. It unwinds to the nearest <code>try</code>, and outside one it ends the program. A bad index, a broken contract and a <code>none</code> forced open with <code>!</code> are panics.</p>
+<h3 id="arrays-slices-and-collections">Arrays, slices and collections</h3>
+<p><a href="https://github.com/aether-lang-dev/aether/tree/main/examples/01-language/11-arrays-and-slices.ae">11-arrays-and-slices</a>, <a href="https://github.com/aether-lang-dev/aether/tree/main/examples/01-language/12-collections.ae">12-collections</a></p>
+<p><code>[1, 2, 3]</code> is a fixed array, a value like a struct. A slice, <code>int[]</code>, is a view of elements stored elsewhere, so a parameter typed <code>int[]</code> takes any array without copying it. Every index is checked. For things that grow, <code>std.list</code>, <code>std.map</code> and <code>std.set</code> give handles (below).</p>
+<h3 id="functions-as-values-and-modules">Functions as values, and modules</h3>
+<p><a href="https://github.com/aether-lang-dev/aether/tree/main/examples/01-language/13-closures.ae">13-closures</a>, <a href="https://github.com/aether-lang-dev/aether/tree/main/examples/01-language/14-modules/main.ae">14-modules</a></p>
+<p><code>|x| -&gt; x * 2</code> is a function value, and a closure sees the variables around it. A call followed by a block passes the block as its last argument: the trailing-block form that most of std's builders use. A module is a directory under <code>lib/</code> with a <code>module.ae</code> whose <code>exports(...)</code> line names what other files may use.</p>
+<h3 id="contracts-defer-and-ownership">Contracts, defer and ownership</h3>
+<p><a href="https://github.com/aether-lang-dev/aether/tree/main/examples/01-language/15-contracts.ae">15-contracts</a>, <a href="https://github.com/aether-lang-dev/aether/tree/main/examples/01-language/16-defer.ae">16-defer</a>, <a href="https://github.com/aether-lang-dev/aether/tree/main/examples/01-language/17-ownership.ae">17-ownership</a></p>
+<p><code>requires</code> and <code>ensures</code> state what a function needs and what it promises, and a broken one is a panic naming the clause. <code>defer</code> runs its statement however the block ends.</p>
+<p>Ownership is the last step of the chapter because it explains the others. Aether has no garbage collector, and it does not ask you to free everything either. Three rules cover it:</p>
+<ul><li><strong>Counted values</strong>: strings, closures, string sequences, and the structs, tuples, optionals, sum values and fixed-size arrays made from them. The compiler counts them and frees them; you write no free.</li><li><strong>A slice's buffer</strong> (<code>make([]T, n)</code>, or one <code>push</code> grows) has one owner. A local that holds it releases it when its scope ends, as does a local, a caller or a <code>@keep</code> parameter it moves to. Put in a struct's field, a module <code>var</code>, a tuple or a message, or held by a local a closure captures, it is yours to give back with <code>free</code> (<code>free(s.items)</code> empties the field).</li><li><strong>A handle</strong>, a <code>ptr</code> a module gave you (a list, a map, a JSON document, a socket), is the program's to free, through its module, and <code>defer</code> keeps the free next to the <code>new</code>:</li></ul>
+<pre><code>import std.list
+
+main() {
+    names = list.new()
+    defer list.free(names)
+    list.add(names, "ada")
+    list.add(names, "grace")
+    println("${list.size(names)} names")
+}</code></pre>
+<pre><code>2 names</code></pre>
+<h3 id="common-mistakes">Common mistakes</h3>
+<ul><li><strong>Freeing what the compiler frees, or not freeing what it leaves.</strong> A string needs no free, nor does a <code>make</code> buffer a local holds; freeing a parameter the function only borrows is refused (E0901). A buffer stored in a struct's field is not freed with the struct: free it.</li><li><strong>Forgetting a handle.</strong> A <code>list.new()</code> with no <code>list.free</code> leaks it. Write the <code>defer</code> on the next line.</li><li><strong>Changing a local's type.</strong> <code>count = 0</code> then <code>count = "many"</code> is a compile error, not a new variable.</li><li><strong>A panic for an expected failure.</strong> Bad input from a user is an error to return (<code>T!</code>), not a panic; panics are for bugs.</li><li><strong>Reading an element of a list or map as a string without its getter.</strong> Elements come back untyped; <code>list.get_string</code> and <code>map.get_string</code> say when one is not a string.</li></ul>
+<h3 id="exercises">Exercises</h3>
+<p><strong>1. FizzBuzz.</strong> Print 1 to 15, but "Fizz" for multiples of 3, "Buzz" for multiples of 5, and "FizzBuzz" for both.</p>
+<p>&lt;details&gt; &lt;summary&gt;An answer&lt;/summary&gt;</p>
+<pre><code>fizzbuzz(n: int) -&gt; string {
+    if n % 15 == 0 { return "FizzBuzz" }
+    if n % 3 == 0 { return "Fizz" }
+    if n % 5 == 0 { return "Buzz" }
+    return "${n}"
+}
+
+main() {
+    line = ""
+    for i in 1..16 {
+        line = "${line}${fizzbuzz(i)} "
+    }
+    println(line)
+}</code></pre>
+<pre><code>1 2 Fizz 4 Buzz Fizz 7 8 Fizz Buzz 11 Fizz 13 14 FizzBuzz </code></pre>
+<p>&lt;/details&gt;</p>
+<p><strong>2. The largest.</strong> Write <code>largest(xs: int[]) -&gt; int?</code>, <code>none</code> for an empty slice, and print the largest of <code>[4, 11, 7]</code> and of <code>[]</code>, with "nothing" for the second.</p>
+<p>&lt;details&gt; &lt;summary&gt;An answer&lt;/summary&gt;</p>
+<pre><code>largest(xs: int[]) -&gt; int? {
+    if xs.len == 0 {
+        return none
+    }
+    best = xs[0]
+    for i in 1..xs.len {
+        if xs[i] &gt; best { best = xs[i] }
+    }
+    return best
+}
+
+show(v: int?) -&gt; string {
+    return match v {
+        none -&gt; "nothing"
+        some(n) -&gt; "${n}"
+    }
+}
+
+main() {
+    println(show(largest([4, 11, 7])))
+    println(show(largest([])))
+}</code></pre>
+<pre><code>11
+nothing</code></pre>
+<p>&lt;/details&gt;</p>
+<p><strong>3. A result that can fail.</strong> Write <code>divide(a: int, b: int) -&gt; int!</code> that fails with "division by zero", and print <code>divide(9, 3)</code> and, with <code>or</code> and a fallback of -1, <code>divide(1, 0)</code>.</p>
+<p>&lt;details&gt; &lt;summary&gt;An answer&lt;/summary&gt;</p>
+<pre><code>divide(a: int, b: int) -&gt; int! {
+    if b == 0 {
+        return 0, "division by zero"
+    }
+    return a / b
+}
+
+main() {
+    q, err = divide(9, 3)
+    println("${q} [${err}]")
+    println(divide(1, 0) or -1)
+}</code></pre>
+<pre><code>3 []
+-1</code></pre>
+<p>&lt;/details&gt;</p>
 <hr>
-<h2 id="2-your-first-actor">2. Your First Actor</h2>
-<p>Actors are the core abstraction in Aether, lightweight concurrent entities that process messages.</p>
-<pre><code>message Ping {}
+<h2 id="2-actors">2. Actors</h2>
+<p>Aether's concurrency is actors: a piece of state that messages reach. Other code sends an actor a message, and the actor changes its own state, one message at a time, so there are no locks to take. The scheduler runs actors on every core, so many actors use the whole machine.</p>
+<h3 id="a-first-actor-its-state-and-asking-it">A first actor, its state, and asking it</h3>
+<p><a href="https://github.com/aether-lang-dev/aether/tree/main/examples/02-actors/01-first-actor.ae">01-first-actor</a>, <a href="https://github.com/aether-lang-dev/aether/tree/main/examples/02-actors/02-state.ae">02-state</a>, <a href="https://github.com/aether-lang-dev/aether/tree/main/examples/02-actors/03-ask-reply.ae">03-ask-reply</a></p>
+<p><code>message</code> declares what can be sent, <code>actor</code> what an actor does with each kind, <code>spawn</code> starts one, <code>!</code> sends without waiting, and <code>?</code> sends and waits for the handler's <code>reply</code>:</p>
+<pre><code>message Add { n: int }
+message Total {}
 
 actor Counter {
-    state count = 0
-
+    state total = 0
     receive {
-        Ping() -&gt; {
-            count = count + 1
-            println("Count: ${count}")
-        }
+        Add(n) -&gt; { total = total + n }
+        Total() -&gt; { reply total }
     }
 }
 
 main() {
     c = spawn(Counter())
-    c ! Ping {}
-    c ! Ping {}
-    c ! Ping {}
-
-    wait_for_idle()
+    c ! Add { n: 5 }
+    c ! Add { n: 7 }
+    int t = c ? Total {}
+    println("total: ${t}")
 }</code></pre>
-<pre><code>Count: 1
-Count: 2
-Count: 3</code></pre>
-<p><strong>Key concepts:</strong></p>
-<ul><li><code>message Ping {}</code> defines a message type (empty here, but can have fields)</li><li><code>actor Counter { state ... receive { ... } }</code> an actor with private state</li><li><code>spawn(Counter())</code> creates a Counter actor; returns a handle</li><li><code>c ! Ping {}</code> sends an asynchronous message</li><li><code>wait_for_idle()</code> blocks until all actors have finished processing</li></ul>
-<p>Without <code>wait_for_idle()</code>, main could exit before the actor processes its messages.</p>
-<hr>
-<h2 id="3-actor-state--multiple-messages">3. Actor State &amp; Multiple Messages</h2>
-<p>Actors can handle multiple message types and carry state across messages:</p>
-<pre><code>message Increment { amount: int }
-message Decrement { amount: int }
-message Reset {}
-message GetValue {}
+<pre><code>total: 12</code></pre>
+<p>The ask sees both adds: messages from one sender reach an actor in the order they were sent. <code>wait_for_idle()</code> is the other way to wait: it returns once every actor has nothing left to do, receive timeouts that are counting down included, so main can go on knowing what they did. (The end of <code>main</code> waits for the messages already sent anyway.)</p>
+<h3 id="actors-that-talk-to-each-other">Actors that talk to each other</h3>
+<p><a href="https://github.com/aether-lang-dev/aether/tree/main/examples/02-actors/04-actor-refs.ae">04-actor-refs</a>, <a href="https://github.com/aether-lang-dev/aether/tree/main/examples/02-actors/05-messages.ae">05-messages</a>, <a href="https://github.com/aether-lang-dev/aether/tree/main/examples/02-actors/06-pipeline.ae">06-pipeline</a>, <a href="https://github.com/aether-lang-dev/aether/tree/main/examples/02-actors/07-worker-pool.ae">07-worker-pool</a></p>
+<p>What <code>spawn</code> returns is an <code>actor_ref</code>, a value that goes into messages and state, so an actor can be told whom to answer; <code>self</code> is an actor's own. A message owns the strings and arrays in it, so the sender can reuse its variables at once; a <code>ptr</code> in a message hands the handle over. With refs come the shapes of concurrent programs: a pipeline of stages, and a pool of workers whose results a collector gathers. Order holds between one sender and one receiver, never between two senders.</p>
+<h3 id="shapes-of-an-actors-life">Shapes of an actor's life</h3>
+<p><a href="https://github.com/aether-lang-dev/aether/tree/main/examples/02-actors/08-state-machine.ae">08-state-machine</a>, <a href="https://github.com/aether-lang-dev/aether/tree/main/examples/02-actors/09-timeouts.ae">09-timeouts</a></p>
+<p>An enum as an actor's state, with a transition table, makes a state machine that applies one event at a time. <code>receive { ... } after N -&gt; { ... }</code> does something when no message has come for N milliseconds: a watchdog.</p>
+<h3 id="when-actors-fail">When actors fail</h3>
+<p><a href="https://github.com/aether-lang-dev/aether/tree/main/examples/02-actors/10-crash-isolation.ae">10-crash-isolation</a>, <a href="https://github.com/aether-lang-dev/aether/tree/main/examples/02-actors/11-ending.ae">11-ending</a>, <a href="https://github.com/aether-lang-dev/aether/tree/main/examples/02-actors/12-links.ae">12-links</a>, <a href="https://github.com/aether-lang-dev/aether/tree/main/examples/02-actors/13-supervisor.ae">13-supervisor</a></p>
+<p>A panic in a handler ends that actor and nothing else. An actor also ends when it stops itself (<code>actors.stop()</code>) or something kills it (<code>actors.kill(ref)</code>), and whoever monitors it gets a <code>Down</code> with the reason. A link ties two actors so that one's failure ends the other, unless that one traps exits and takes the <code>Down</code> instead. A supervisor is built from those: it links its children, and when one fails it restarts it in place, so every ref to the child reaches the new one.</p>
+<h3 id="holding-a-producer-back">Holding a producer back</h3>
+<p><a href="https://github.com/aether-lang-dev/aether/tree/main/examples/02-actors/14-bounded-mailbox.ae">14-bounded-mailbox</a>, <a href="https://github.com/aether-lang-dev/aether/tree/main/examples/02-actors/15-streams.ae">15-streams</a>, <a href="https://github.com/aether-lang-dev/aether/tree/main/examples/02-actors/16-sharded-map.ae">16-sharded-map</a></p>
+<p>A send never blocks, so an actor that receives faster than it handles grows its mailbox without bound. <code>@mailbox(bound: N)</code> caps it: past N, a send is refused at once, and <code>try_send</code> says so. <code>std.stream</code> bounds a flow between two actors with credits, so a fast producer never has more than a window of chunks in flight. And when one actor's mailbox is the bottleneck, its work can be split over several by key.</p>
+<h3 id="common-mistakes">Common mistakes</h3>
+<ul><li><strong>Reading an actor's state while it runs.</strong> A reference reaches an actor's state (<code>c.total</code>), but read while the actor is handling messages it races them. Ask it (<code>?</code>), or read after <code>wait_for_idle()</code>.</li><li><strong>Expecting order between two senders.</strong> Main and another actor sending to the same actor interleave in any order. Wait for one before the other, or route both through one sender.</li><li><strong>Calling <code>wait_for_idle()</code> inside an actor.</strong> It waits for every actor, this one too, so it can never return there; it panics instead. Call it from main.</li><li><strong>Blocking in a handler.</strong> A handler that sleeps, waits on a socket or computes for long stalls every actor that shares its core. Keep handlers short, and hand blocking work to <a href="https://github.com/aether-lang-dev/aether/blob/main/std/worker/README.md">std.worker</a>, a thread pool outside the scheduler.</li><li><strong>Using a handle after sending it.</strong> A <code>ptr</code> sent in a message belongs to the receiver now; the sender must not touch it again.</li></ul>
+<h3 id="exercises">Exercises</h3>
+<p><strong>1. A bank account.</strong> An actor with a balance takes <code>Deposit { n }</code> and <code>Withdraw { n }</code>, refusing a withdrawal larger than the balance, and answers <code>Balance {}</code>. Deposit 100, withdraw 30, then try to withdraw 500, and print the balance.</p>
+<p>&lt;details&gt; &lt;summary&gt;An answer&lt;/summary&gt;</p>
+<pre><code>message Deposit { n: int }
+message Withdraw { n: int }
+message Balance {}
 
-actor Counter {
-    state count = 0
-
+actor Account {
+    state balance = 0
     receive {
-        Increment(amount) -&gt; {
-            count = count + amount
-        }
-        Decrement(amount) -&gt; {
-            count = count - amount
-        }
-        Reset() -&gt; {
-            count = 0
-        }
-        GetValue() -&gt; {
-            println("Current value: ${count}")
-        }
-    }
-}
-
-main() {
-    c = spawn(Counter())
-    c ! Increment { amount: 10 }
-    c ! Increment { amount: 5 }
-    c ! GetValue {}
-    c ! Decrement { amount: 3 }
-    c ! GetValue {}
-    c ! Reset {}
-    c ! GetValue {}
-
-    wait_for_idle()
-}</code></pre>
-<pre><code>Current value: 15
-Current value: 12
-Current value: 0</code></pre>
-<p>Messages are processed <strong>in order</strong> within a single actor. State (<code>count</code>) is private, nothing outside the actor can access it directly.</p>
-<hr>
-<h2 id="4-control-flow">4. Control Flow</h2>
-<p>Aether has standard control structures:</p>
-<pre><code>main() {
-    // For loops (with compound assignment operators)
-    sum = 0
-    for (i = 1; i &lt;= 10; i++) {
-        sum += i
-    }
-    println("Sum 1..10 = ${sum}")
-
-    // While loops
-    n = 16
-    steps = 0
-    while (n &gt; 1) {
-        if (n % 2 == 0) {
-            n = n / 2
-        } else {
-            n = n * 3 + 1
-        }
-        steps = steps + 1
-    }
-    println("Collatz steps for 16: ${steps}")
-
-    // If / else if / else
-    score = 85
-    if (score &gt;= 90) {
-        println("Grade: A")
-    } else if (score &gt;= 80) {
-        println("Grade: B")
-    } else {
-        println("Grade: C or below")
-    }
-}</code></pre>
-<pre><code>Sum 1..10 = 55
-Collatz steps for 16: 4
-Grade: B</code></pre>
-<hr>
-<h2 id="5-pattern-matching">5. Pattern Matching</h2>
-<p>Pattern matching, inspired by Erlang, lets you dispatch on argument values and structure.</p>
-<h3 id="function-clauses">Function Clauses</h3>
-<p>Define functions with multiple clauses that match on argument values:</p>
-<pre><code>// Recursive factorial with pattern matching
-factorial(0) -&gt; 1
-factorial(n) when n &gt; 0 -&gt; n * factorial(n - 1)
-
-// Fibonacci
-fib(0) -&gt; 0
-fib(1) -&gt; 1
-fib(n) when n &gt; 1 -&gt; fib(n - 1) + fib(n - 2)
-
-// Classify a number
-classify(x) when x &lt; 0 -&gt; "negative"
-classify(x) when x == 0 -&gt; "zero"
-classify(x) when x &gt; 0 -&gt; "positive"
-
-main() {
-    println("5! = ${factorial(5)}")
-    println("fib(8) = ${fib(8)}")
-    println("classify(-3) = ${classify(-3)}")
-    println("classify(0) = ${classify(0)}")
-    println("classify(7) = ${classify(7)}")
-}</code></pre>
-<pre><code>5! = 120
-fib(8) = 21
-classify(-3) = negative
-classify(0) = zero
-classify(7) = positive</code></pre>
-<h3 id="match-statements">Match Statements</h3>
-<p>For value dispatch inside functions or message handlers:</p>
-<pre><code>message Process { code: int }
-
-actor Dispatcher {
-    receive {
-        Process(code) -&gt; {
-            match (code) {
-                0 -&gt; { println("OK") }
-                1 -&gt; { println("Warning") }
-                2 -&gt; { println("Error") }
-                _ -&gt; { println("Unknown code: ${code}") }
+        Deposit(n) -&gt; { balance = balance + n }
+        Withdraw(n) -&gt; {
+            if n &gt; balance {
+                println("refused: ${n} is more than ${balance}")
+            } else {
+                balance = balance - n
             }
         }
+        Balance() -&gt; { reply balance }
     }
 }
 
 main() {
-    d = spawn(Dispatcher())
-    d ! Process { code: 0 }
-    d ! Process { code: 2 }
-    d ! Process { code: 99 }
+    a = spawn(Account())
+    a ! Deposit { n: 100 }
+    a ! Withdraw { n: 30 }
+    a ! Withdraw { n: 500 }
+    int b = a ? Balance {}
+    println("balance: ${b}")
+}</code></pre>
+<pre><code>refused: 500 is more than 70
+balance: 70</code></pre>
+<p>&lt;/details&gt;</p>
+<p><strong>2. A two-stage pipeline.</strong> A <code>Doubler</code> doubles each number it gets and sends the result on to a <code>Printer</code>, which prints it. Send 1, 2 and 3 through.</p>
+<p>&lt;details&gt; &lt;summary&gt;An answer&lt;/summary&gt;</p>
+<pre><code>message Num { n: int }
+message Connect { next: actor_ref }
+
+actor Printer {
+    receive {
+        Num(n) -&gt; { println("got ${n}") }
+    }
+}
+
+actor Doubler {
+    state next: actor_ref = null
+    receive {
+        Connect(next: n) -&gt; { next = n }
+        Num(n) -&gt; { next ! Num { n: n * 2 } }
+    }
+}
+
+main() {
+    printer = spawn(Printer())
+    doubler = spawn(Doubler())
+    doubler ! Connect { next: printer }
+    for i in 1..4 {
+        doubler ! Num { n: i }
+    }
     wait_for_idle()
 }</code></pre>
-<pre><code>OK
-Error
-Unknown code: 99</code></pre>
+<pre><code>got 2
+got 4
+got 6</code></pre>
+<p>&lt;/details&gt;</p>
 <hr>
-<h2 id="6-multiple-actors">6. Multiple Actors</h2>
-<p>Actors can be spawned in any number and run concurrently across all CPU cores:</p>
-<pre><code><span class="kw">message</span> Work { id: <span class="fn">int</span>, value: <span class="fn">int</span> }
-<span class="kw">message</span> Done {}
+<h2 id="3-the-standard-library">3. The standard library</h2>
+<p><a href="https://github.com/aether-lang-dev/aether/tree/main/examples/03-std/01-files.ae">01-files</a> · <a href="https://github.com/aether-lang-dev/aether/tree/main/examples/03-std/02-json.ae">02-json</a> · <a href="https://github.com/aether-lang-dev/aether/tree/main/examples/03-std/03-processes.ae">03-processes</a> · <a href="https://github.com/aether-lang-dev/aether/tree/main/examples/03-std/04-http.ae">04-http</a> · <a href="https://github.com/aether-lang-dev/aether/tree/main/examples/03-std/05-http-server.ae">05-http-server</a> · <a href="https://github.com/aether-lang-dev/aether/tree/main/examples/03-std/06-http2-tls.ae">06-http2-tls</a> · <a href="https://github.com/aether-lang-dev/aether/tree/main/examples/03-std/07-reverse-proxy.ae">07-reverse-proxy</a> · <a href="https://github.com/aether-lang-dev/aether/tree/main/examples/03-std/08-proxy-pool.ae">08-proxy-pool</a> · <a href="https://github.com/aether-lang-dev/aether/tree/main/examples/03-std/09-logging.ae">09-logging</a> · <a href="https://github.com/aether-lang-dev/aether/tree/main/examples/03-std/10-tcp.ae">10-tcp</a> · <a href="https://github.com/aether-lang-dev/aether/tree/main/examples/03-std/11-cryptography.ae">11-cryptography</a></p>
+<p>The standard library follows two rules from chapter 1 everywhere. A call that can fail returns its value and an error string, so a program checks <code>err</code> and goes on. What a module hands out as a <code>ptr</code> (a JSON document, a server, a socket) is a handle the program frees through that module.</p>
+<ul><li><strong>Files and processes.</strong> <code>std.fs</code> reads, writes and walks the file system. <code>std.os</code> runs a program from an argument list, with no shell in between, and reads what it prints and its status.</li><li><strong>Data.</strong> <code>std.json</code> parses into a tree the program frees once, and builds documents to encode.</li><li><strong>The network.</strong> <code>std.http</code> serves by route and fetches: the same server API carries middleware, health probes and metrics, HTTP/2 and TLS, and <code>std.http.proxy</code> forwards to upstreams. <code>std.tcp</code> is the socket itself, the layer HTTP runs on: a byte stream, so a protocol says where a message ends.</li><li><strong>Logs and secrets.</strong> <code>std.log</code> writes levelled lines. The <code>std.cryptography</code> modules are written in Aether: hashes, HMACs, signatures, and the pure-Aether TLS.</li></ul>
+<p>The <a href="/Docs/stdlib-reference.html">standard library reference</a> lists every module and call.</p>
+<hr>
+<h2 id="4-c-and-other-languages">4. C and other languages</h2>
+<p><a href="https://github.com/aether-lang-dev/aether/tree/main/examples/04-interop/01-libc.ae">01-libc</a> · <a href="https://github.com/aether-lang-dev/aether/tree/main/examples/04-interop/02-own-c/main.ae">02-own-c</a> · <a href="https://github.com/aether-lang-dev/aether/tree/main/examples/04-interop/03-callbacks.ae">03-callbacks</a> · <a href="https://github.com/aether-lang-dev/aether/tree/main/examples/04-interop/04-embedding/greeter.ae">04-embedding</a> · <a href="https://github.com/aether-lang-dev/aether/tree/main/examples/04-interop/05-hosts/python.ae">05-hosts</a> · <a href="https://github.com/aether-lang-dev/aether/tree/main/examples/04-interop/06-java-host/aether/manifest.ae">06-java-host</a> · <a href="https://github.com/aether-lang-dev/aether/tree/main/examples/04-interop/07-limits/script.ae">07-limits</a></p>
+<p>Aether compiles to C, so C is one declaration away in both directions. <code>extern</code> declares a C function to call; <code>@source</code> ships a C file with a module; <code>@c_callback</code> hands an Aether function to C as a function pointer. The other way, <code>ae build --emit=obj</code> (or <code>--emit=lib</code>) makes an Aether file a library a C program links, each function an <code>aether_&lt;name&gt;</code> export.</p>
+<p>A program that runs Aether code it does not control bounds it: every export runs in an execution frame, so a panic, a deadline, a cancel from another thread or a memory budget ends the call and gives the host an outcome. A deadline or a cancel lands at the call's next safe point, a loop head, so code with no loop (straight-line code, or a long C call) runs on until it returns. Aether also hosts other languages under the sandbox of chapter 5: Python, Lua and Tcl inside the program, a Go program as a child process, and a Go library built as a C shared library in-process. <a href="/Docs/c-interop.html">C interoperability</a> and <a href="/Docs/emit-lib.html">emit=lib</a> are the references.</p>
+<hr>
+<h2 id="5-containing-code">5. Containing code</h2>
+<p><a href="https://github.com/aether-lang-dev/aether/tree/main/examples/05-containment/01-sandbox.ae">01-sandbox</a> · <a href="https://github.com/aether-lang-dev/aether/tree/main/examples/05-containment/02-trusted-calls.ae">02-trusted-calls</a> · <a href="https://github.com/aether-lang-dev/aether/tree/main/examples/05-containment/03-audit.ae">03-audit</a> · <a href="https://github.com/aether-lang-dev/aether/tree/main/examples/05-containment/04-spawn-sandboxed.ae">04-spawn-sandboxed</a> · <a href="https://github.com/aether-lang-dev/aether/tree/main/examples/05-containment/05-capsicum.ae">05-capsicum</a> · <a href="https://github.com/aether-lang-dev/aether/tree/main/examples/05-containment/06-casper.ae">06-casper</a></p>
+<p>A sandbox is a list of grants: files it may read or write, environment variables, programs, network hosts. <code>sandbox.enforce(grants) callback { ... }</code> runs a block under them, and anything not granted is refused, the refusal recorded where <code>std.audit</code> can read it back. A trusted call lets the block use one service with your authority. A child process can be held to grants at its own libc calls, and on FreeBSD, Capsicum has the kernel enforce it. <a href="/Docs/containment-sandbox.html">The containment sandbox</a> is the reference.</p>
+<hr>
+<h2 id="6-tools">6. Tools</h2>
+<p><a href="https://github.com/aether-lang-dev/aether/tree/main/examples/06-tooling/01-testing/discount_test.ae">01-testing</a> · <a href="https://github.com/aether-lang-dev/aether/tree/main/examples/06-tooling/02-mutation/mutate.ae">02-mutation</a> · <a href="https://github.com/aether-lang-dev/aether/tree/main/examples/06-tooling/03-project/src/main.ae">03-project</a> · <a href="https://github.com/aether-lang-dev/aether/tree/main/examples/06-tooling/04-lib-path/main.ae">04-lib-path</a> · <a href="https://github.com/aether-lang-dev/aether/tree/main/examples/06-tooling/05-ae-help/broken.ae">05-ae-help</a></p>
+<p><code>std.spec</code> writes tests (<code>describe</code>, <code>it</code>, assertions) and <code>ae test</code> finds and runs them; <code>std.mutation</code> checks that the tests would notice a change to the code. A project is a directory with an <code>aether.toml</code>, its program in <code>src/</code> and its modules in <code>lib/</code>. <code>ae help</code> explains what the compiler found in a script and suggests the fix. <a href="/Docs/testing.html">Testing</a> and <a href="/Docs/formatter.html">the formatter</a> cover the rest of the everyday tools.</p>
+<hr>
+<h2 id="7-programs">7. Programs</h2>
+<p><a href="https://github.com/aether-lang-dev/aether/tree/main/examples/07-applications/01-word-count/main.ae">01-word-count</a> · <a href="https://github.com/aether-lang-dev/aether/tree/main/examples/07-applications/02-chat-room.ae">02-chat-room</a> · <a href="https://github.com/aether-lang-dev/aether/tree/main/examples/07-applications/03-build-supervisor.ae">03-build-supervisor</a> · <a href="https://github.com/aether-lang-dev/aether/tree/main/examples/07-applications/04-calculator.ae">04-calculator</a></p>
+<p>The last part puts the others together: a word counter (files, sorting, errors), a chat room (actors keeping each other in state), a build supervisor (a process with a deadline and nothing left behind) and a terminal calculator (a builder DSL with closures). Read them for how the pieces fit, then write your own.</p>
+<p>The path ends with <a href="https://github.com/aether-lang-dev/aether/blob/main/examples/README.md#8-rosetta-code">Rosetta Code tasks</a>: classic problems (FizzBuzz, the N queens, quicksort, Levenshtein distance) solved in Aether, with their length beside the Go and Python solutions. They are good exercises too: try one before reading its file.</p>
+<h2 id="quick-reference">Quick reference</h2>
+<pre><code>// Values
+x = 42                         // a local's type comes from its value
+long big = 3_000_000_000       // or is written before the name
+const LIMIT = 10
+name = "Ada"
+println("${name} is ${x}")     // interpolation
 
-<span class="kw">actor</span> Worker {
-    <span class="kw">state</span> processed = <span class="num">0</span>
+// Control flow
+if x &gt; 10 { ... } else if x &gt; 5 { ... } else { ... }
+kind = if x &gt; 10 { "big" } else { "small" }
+while x &gt; 0 { x = x - 1 }
+for i in 0..10 { ... }         // 0 to 9
+for item in xs { ... }
 
-    <span class="kw">receive</span> {
-        Work(id, value) -&gt; {
-            result = value * value
-            println(<span class="str">"Worker ${id}: ${value}^2 = ${result}"</span>)
-            processed = processed + <span class="num">1</span>
-        }
-        Done() -&gt; {
-            println(<span class="str">"Worker finished ${processed} tasks"</span>)
-        }
+// Functions
+add(a: int, b: int) -&gt; int { return a + b }
+square(x: int) -&gt; x * x
+split(n: int) -&gt; (int, int) { return n / 2, n % 2 }
+greet(name: string, greeting: string = "Hello") -&gt; string { ... }
+fact(0) -&gt; 1
+fact(n) when n &gt; 0 -&gt; n * fact(n - 1)
+
+// Data
+struct Point { x: int y: int }
+p = Point { x: 1, y: 2 }
+enum Color { Red, Green }
+type Shape = Circle | Rect
+area = match s { Circle -&gt; ... Rect -&gt; ... }
+int? maybe = none
+v = maybe ?? 0
+
+// Failure
+parse(s: string) -&gt; int! { ... return 0, "why" }
+n = parse("7") or 0
+try { ... } catch msg { ... }
+defer list.free(items)
+
+// Actors
+message Add { n: int }
+message Total {}
+actor Counter {
+    state total = 0
+    receive {
+        Add(n) -&gt; { total = total + n }
+        Total() -&gt; { reply total }
     }
 }
-
-main() {
-    w1 = <span class="kw">spawn</span>(Worker())
-    w2 = <span class="kw">spawn</span>(Worker())
-    w3 = <span class="kw">spawn</span>(Worker())
-
-    <span class="com">// Distribute work across workers</span>
-    w1 ! Work { id: <span class="num">1</span>, value: <span class="num">3</span> }
-    w2 ! Work { id: <span class="num">2</span>, value: <span class="num">5</span> }
-    w3 ! Work { id: <span class="num">3</span>, value: <span class="num">7</span> }
-    w1 ! Work { id: <span class="num">1</span>, value: <span class="num">9</span> }
-    w2 ! Work { id: <span class="num">2</span>, value: <span class="num">11</span> }
-
-    w1 ! Done {}
-    w2 ! Done {}
-    w3 ! Done {}
-
-    wait_for_idle()
-}</code></pre>
-<p>The Aether runtime automatically distributes actors across CPU cores. Message ordering is guaranteed <strong>within</strong> a single actor, but messages to different actors may be processed in any order.</p>
-<hr>
-<h2 id="7-string-interpolation">7. String Interpolation</h2>
-<p>Use <code>${expression}</code> to embed values in strings:</p>
-<pre><code>main() {
-    name = <span class="str">"Aether"</span>
-    version = <span class="num">1</span>
-    pi = <span class="num">3</span>
-
-    println(<span class="str">"Welcome to ${name} v${version}!"</span>)
-    println(<span class="str">"Pi is approximately ${pi}"</span>)
-
-    <span class="kw">for</span> (i = <span class="num">1</span>; i &lt;= <span class="num">5</span>; i = i + <span class="num">1</span>) {
-        squared = i * i
-        println(<span class="str">"${i}^2 = ${squared}"</span>)
-    }
-}</code></pre>
-<p>String interpolation works with <code>println</code> and any function that accepts a string. Variables of any type (int, string) can be interpolated.</p>
-<p>Interpolated strings produce a real string value when assigned to a variable, so they can be passed to any function:</p>
-<pre><code>msg = "Hello, ${name}!"     // msg owns the new string; it is released with msg</code></pre>
-<hr>
-<h2 id="8-constants-null-and-bitwise">8. Constants, Null, and Bitwise</h2>
-<h3 id="constants">Constants</h3>
-<p>Define named values at the top level with <code>const</code>:</p>
-<pre><code><span class="kw">const</span> WIDTH = <span class="num">80</span>
-<span class="kw">const</span> HEIGHT = <span class="num">24</span>
-<span class="kw">const</span> TITLE = <span class="str">"My App"</span>
-
-main() {
-    println(TITLE)
-    area = WIDTH * HEIGHT
-    println(<span class="str">"Area: ${area}"</span>)
-}</code></pre>
-<h3 id="null">Null</h3>
-<p>Use <code>null</code> for uninitialized pointers:</p>
-<pre><code>main() {
-    conn = <span class="kw">null</span>
-    <span class="kw">if</span> conn == <span class="kw">null</span> {
-        println(<span class="str">"Not connected"</span>)
-    }
-}</code></pre>
-<h3 id="bitwise-operators">Bitwise Operators</h3>
-<p>Aether supports <code>&amp;</code>, <code>|</code>, <code>^</code>, <code>~</code>, <code>&lt;&lt;</code>, <code>&gt;&gt;</code> for bit manipulation:</p>
-<pre><code>main() {
-    flags = <span class="num">5</span> &amp; <span class="num">3</span>         <span class="com">// AND: 1</span>
-    mask = <span class="num">5</span> | <span class="num">3</span>          <span class="com">// OR: 7</span>
-    flipped = <span class="num">5</span> ^ <span class="num">3</span>       <span class="com">// XOR: 6</span>
-    shifted = <span class="num">1</span> &lt;&lt; <span class="num">4</span>      <span class="com">// Left shift: 16</span>
-    println(<span class="str">"${flags} ${mask} ${flipped} ${shifted}"</span>)
-}</code></pre>
-<hr>
-<h2 id="9-ergonomic-syntax">9. Ergonomic Syntax</h2>
-<p>Aether includes several features that reduce boilerplate.</p>
-<h3 id="hex-octal-and-binary-literals">Hex, Octal, and Binary Literals</h3>
-<pre><code>main() {
-    flags = 0xFF
-    mask = 0x0F
-    bits = 0b1010_0101
-    perms = 0o755
-
-    println(flags &amp; mask)    <span class="com">// 15</span>
-    println(bits &gt;&gt; <span class="num">4</span>)       <span class="com">// 10</span>
-}</code></pre>
-<h3 id="if-expressions">If-Expressions</h3>
-<p>Use <code>if</code>/<code>else</code> as a value-producing expression. The <code>else</code> is required, and the branches must have a type in common (an <code>int</code> and a <code>string</code> do not):</p>
-<pre><code>main() {
-    x = <span class="num">10</span>
-    sign = <span class="kw">if</span> x &gt; <span class="num">0</span> { <span class="num">1</span> } <span class="kw">else</span> { -<span class="num">1</span> }
-    println(sign)   <span class="com">// 1</span>
-}</code></pre>
-<h3 id="range-based-for-loops">Range-Based For Loops</h3>
-<pre><code>main() {
-    <span class="com">// Instead of: for (i = 0; i &lt; 10; i++) { ... }</span>
-    <span class="kw">for</span> i <span class="kw">in</span> <span class="num">0</span>..<span class="num">10</span> {
-        print(i)
-        print(<span class="str">" "</span>)
-    }
-    <span class="com">// prints: 0 1 2 3 4 5 6 7 8 9</span>
-}</code></pre>
-<p>To visit the elements of a slice or array rather than a count, loop over it directly:</p>
-<pre><code>main() {
-    <span class="kw">for</span> word <span class="kw">in</span> [<span class="str">"a"</span>, <span class="str">"b"</span>, <span class="str">"c"</span>] {
-        print(word)
-    }
-    <span class="com">// prints: abc</span>
-}</code></pre>
-<h3 id="multi-statement-arrow-bodies">Multi-Statement Arrow Bodies</h3>
-<p>Arrow functions can contain multiple statements. The last expression is the implicit return:</p>
-<pre><code>distance(x1, y1, x2, y2) -&gt; {
-    dx = x2 - x1
-    dy = y2 - y1
-    dx * dx + dy * dy
-}
-
-main() {
-    println(distance(<span class="num">0</span>, <span class="num">0</span>, <span class="num">3</span>, <span class="num">4</span>))  <span class="com">// 25</span>
-}</code></pre>
-<hr>
-<h2 id="next-steps">Next Steps</h2>
-<h3 id="best-practices">Best Practices</h3>
-<ol><li><strong>One responsibility per actor</strong>, keep actors focused on a single task</li><li><strong>No shared state</strong>, communicate only through messages, never share memory</li><li><strong>Always <code>wait_for_idle()</code></strong> when you need to read actor state or coordinate completion</li><li><strong>Descriptive message names</strong>, <code>Increment</code> is clearer than <code>Update</code></li></ol>
-<h3 id="further-reading">Further Reading</h3>
-<ul><li><a href="/Docs/getting-started.html">Getting Started</a>, Installation and project setup</li><li><a href="/Docs/language-reference.html">Language Reference</a>, Complete syntax specification</li><li><a href="/Docs/stdlib-reference.html">Standard Library</a>, Collections, I/O, networking</li><li><a href="/Docs/architecture.html">Architecture</a>, Compiler and runtime internals</li><li><a href="/Docs/runtime-optimizations.html">Runtime Optimizations</a>, Performance details</li></ul>
-<hr>
-<h2 id="summary">Summary</h2>
-<div class="tw"><table><thead><tr><th>Feature</th><th>Syntax</th></tr></thead><tbody><tr><td>Define message</td><td><code>message Name { field: type }</code></td></tr><tr><td>Define actor</td><td><code>actor Name { state x = 0; receive { ... } }</code></td></tr><tr><td>Spawn actor</td><td><code>a = spawn(ActorName())</code></td></tr><tr><td>Send message</td><td><code>a ! MessageName { field: value }</code></td></tr><tr><td>Wait for all</td><td><code>wait_for_idle()</code></td></tr><tr><td>Pattern clause</td><td><code>fn(0) -&gt; result</code></td></tr><tr><td>Guard</td><td><code>fn(n) when n &gt; 0 -&gt; ...</code></td></tr><tr><td>Match</td><td><code>match (x) { 0 -&gt; {...} _ -&gt; {...} }</code></td></tr><tr><td>Interpolation</td><td><code>"text ${variable}"</code></td></tr><tr><td>Constant</td><td><code>const NAME = value</code></td></tr><tr><td>Null</td><td><code>x = null</code></td></tr><tr><td>Bitwise</td><td><code>&amp;</code> <code>\|</code> <code>^</code> <code>~</code> <code>&lt;&lt;</code> <code>&gt;&gt;</code></td></tr><tr><td>Compound assign</td><td><code>+=</code> <code>-=</code> <code>*=</code> <code>/=</code> <code>%=</code> <code>&amp;=</code> <code>\|=</code> <code>^=</code></td></tr><tr><td>Hex/bin/oct</td><td><code>0xFF</code>, <code>0b1010</code>, <code>0o755</code></td></tr><tr><td>If-expression</td><td><code>if cond { a } else { b }</code></td></tr><tr><td>Range for</td><td><code>for i in 0..10 { ... }</code></td></tr><tr><td>For-in (slice/array)</td><td><code>for x in xs { ... }</code></td></tr><tr><td>Arrow block</td><td><code>f(x) -&gt; { stmts; expr }</code></td></tr></tbody></table></div>
+c = spawn(Counter())
+c ! Add { n: 5 }               // send
+int t = c ? Total {}           // ask
+wait_for_idle()</code></pre>
+<h2 id="where-next">Where next</h2>
+<ul><li><a href="/Docs/language-reference.html">Language reference</a>: every construct, in full.</li><li><a href="/Docs/memory-management.html">Memory management</a>: the ownership rules.</li><li><a href="/Docs/actor-concurrency.html">Actor concurrency</a>: how the runtime delivers, orders and ends.</li><li><a href="/Docs/glossary.html">Glossary</a>: the words, defined.</li></ul>
 <nav class="doc-prevnext" aria-label="Previous and next page"><a class="pn-prev" href="/Docs/getting-started.html"><span class="pn-k">Previous</span><span class="pn-t">Getting Started with Aether</span></a><a class="pn-next" href="/Docs/language-reference.html"><span class="pn-k">Next</span><span class="pn-t">Aether Language Reference</span></a></nav>
       </article>
     </main>
-    <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#table-of-contents" class="l2" data-id="table-of-contents">Table of Contents</a><a href="#1-hello-world" class="l2" data-id="1-hello-world">1. Hello World</a><a href="#2-your-first-actor" class="l2" data-id="2-your-first-actor">2. Your First Actor</a><a href="#3-actor-state--multiple-messages" class="l2" data-id="3-actor-state--multiple-messages">3. Actor State &amp; Multiple Messages</a><a href="#4-control-flow" class="l2" data-id="4-control-flow">4. Control Flow</a><a href="#5-pattern-matching" class="l2" data-id="5-pattern-matching">5. Pattern Matching</a><a href="#function-clauses" class="l3" data-id="function-clauses">Function Clauses</a><a href="#match-statements" class="l3" data-id="match-statements">Match Statements</a><a href="#6-multiple-actors" class="l2" data-id="6-multiple-actors">6. Multiple Actors</a><a href="#7-string-interpolation" class="l2" data-id="7-string-interpolation">7. String Interpolation</a><a href="#8-constants-null-and-bitwise" class="l2" data-id="8-constants-null-and-bitwise">8. Constants, Null, and Bitwise</a><a href="#constants" class="l3" data-id="constants">Constants</a><a href="#null" class="l3" data-id="null">Null</a><a href="#bitwise-operators" class="l3" data-id="bitwise-operators">Bitwise Operators</a><a href="#9-ergonomic-syntax" class="l2" data-id="9-ergonomic-syntax">9. Ergonomic Syntax</a><a href="#hex-octal-and-binary-literals" class="l3" data-id="hex-octal-and-binary-literals">Hex, Octal, and Binary Literals</a><a href="#if-expressions" class="l3" data-id="if-expressions">If-Expressions</a><a href="#range-based-for-loops" class="l3" data-id="range-based-for-loops">Range-Based For Loops</a><a href="#multi-statement-arrow-bodies" class="l3" data-id="multi-statement-arrow-bodies">Multi-Statement Arrow Bodies</a><a href="#next-steps" class="l2" data-id="next-steps">Next Steps</a><a href="#best-practices" class="l3" data-id="best-practices">Best Practices</a><a href="#further-reading" class="l3" data-id="further-reading">Further Reading</a><a href="#summary" class="l2" data-id="summary">Summary</a></nav>
+    <nav class="toc" aria-label="On this page"><div class="toc-h">On this page</div><a href="#1-the-language" class="l2" data-id="1-the-language">1. The language</a><a href="#values-strings-and-control-flow" class="l3" data-id="values-strings-and-control-flow">Values, strings and control flow</a><a href="#functions" class="l3" data-id="functions">Functions</a><a href="#data-structs-enums-sum-types-and-match" class="l3" data-id="data-structs-enums-sum-types-and-match">Data: structs, enums, sum types and match</a><a href="#absence-and-failure" class="l3" data-id="absence-and-failure">Absence and failure</a><a href="#arrays-slices-and-collections" class="l3" data-id="arrays-slices-and-collections">Arrays, slices and collections</a><a href="#functions-as-values-and-modules" class="l3" data-id="functions-as-values-and-modules">Functions as values, and modules</a><a href="#contracts-defer-and-ownership" class="l3" data-id="contracts-defer-and-ownership">Contracts, defer and ownership</a><a href="#common-mistakes" class="l3" data-id="common-mistakes">Common mistakes</a><a href="#exercises" class="l3" data-id="exercises">Exercises</a><a href="#2-actors" class="l2" data-id="2-actors">2. Actors</a><a href="#a-first-actor-its-state-and-asking-it" class="l3" data-id="a-first-actor-its-state-and-asking-it">A first actor, its state, and asking it</a><a href="#actors-that-talk-to-each-other" class="l3" data-id="actors-that-talk-to-each-other">Actors that talk to each other</a><a href="#shapes-of-an-actors-life" class="l3" data-id="shapes-of-an-actors-life">Shapes of an actor's life</a><a href="#when-actors-fail" class="l3" data-id="when-actors-fail">When actors fail</a><a href="#holding-a-producer-back" class="l3" data-id="holding-a-producer-back">Holding a producer back</a><a href="#common-mistakes" class="l3" data-id="common-mistakes">Common mistakes</a><a href="#exercises" class="l3" data-id="exercises">Exercises</a><a href="#3-the-standard-library" class="l2" data-id="3-the-standard-library">3. The standard library</a><a href="#4-c-and-other-languages" class="l2" data-id="4-c-and-other-languages">4. C and other languages</a><a href="#5-containing-code" class="l2" data-id="5-containing-code">5. Containing code</a><a href="#6-tools" class="l2" data-id="6-tools">6. Tools</a><a href="#7-programs" class="l2" data-id="7-programs">7. Programs</a><a href="#quick-reference" class="l2" data-id="quick-reference">Quick reference</a><a href="#where-next" class="l2" data-id="where-next">Where next</a></nav>
   </div>
 </div>
 <script src="/docs.js" defer></script>
@@ -1015,7 +1073,7 @@ main() {
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.864 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.865 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>
