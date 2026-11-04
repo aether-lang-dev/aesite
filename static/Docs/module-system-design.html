@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.875</span>
+      <span class="vtag">v0.878</span>
     </nav>
   </div>
 </header>
@@ -912,22 +912,23 @@ main() {
 <pre><code>ae run main.ae --lib ./lib:./vendor/stdlib    <span class="com"># separator-string</span>
 ae run main.ae --lib ./lib --lib ./vendor     <span class="com"># repeated flag</span>
 AETHER_LIB_DIR=./lib:./vendor ae run main.ae  <span class="com"># env var</span></code></pre>
-<p>Both forms can be mixed (<code>--lib a:b --lib c</code> → <code>[a, b, c]</code>). The default is the single entry <code>lib</code> (the legacy behaviour); supplying any explicit <code>--lib</code> or <code>AETHER_LIB_DIR</code> replaces the default with the given list. Up to 8 entries. Caching invalidates on lib-path changes, two builds of the same source with different <code>--lib</code> chains get distinct cache slots, and every entry's mtime feeds into the cache key so a <code>touch</code> in a vendored module reuses the right cache bucket.</p>
+<p>Both forms can be mixed (<code>--lib a:b --lib c</code> → <code>[lib, a, b, c]</code>). The project's <code>lib</code> always comes first: an explicit <code>--lib</code>, or <code>AETHER_LIB_DIR</code> when no <code>--lib</code> is given, adds its directories after it rather than replacing it, so a program that imports a module of its own <code>lib/</code> and one from elsewhere names only the other (#3504). <code>./lib</code>, <code>lib/</code> and <code>lib</code> are one entry. Up to 8 entries besides <code>lib</code>. Caching invalidates on lib-path changes, two builds of the same source with different <code>--lib</code> chains get distinct cache slots, and every entry's mtime feeds into the cache key so a <code>touch</code> in a vendored module reuses the right cache bucket.</p>
 <p>The shape matches Java <code>-cp</code>, Python <code>PYTHONPATH</code>, Ruby <code>-I</code> / <code>RUBYLIB</code>. Useful for layering project-local modules over a vendored stdlib, sharing a common lib root across two projects, or pinning a stdlib snapshot alongside HEAD-tracking deps.</p>
 <p>Trailing slashes are normalised: <code>--lib ./lib/</code> and <code>--lib ./lib</code> register the same entry (the dedup catches them), and lookup paths stay clean, <code>&lt;entry&gt;/&lt;module&gt;.ae</code> rather than <code>./lib//&lt;module&gt;.ae</code>. Root paths (<code>/</code> on POSIX, <code>C:\</code> on Windows) are preserved as-is.</p>
 <h4 id="introspecting-the-resolved-chain">Introspecting the resolved chain</h4>
 <p><code>ae lib-path</code> prints the resolved search order, one entry per line, in the same order the toolchain walks them. Useful when debugging "why isn't my import resolving?" without re-reading the user's shell config:</p>
 <pre><code>$ ae lib-path --lib ./lib:./vendor/stdlib
-./lib
-./vendor/stdlib
+lib
+vendor/stdlib
 
 $ AETHER_LIB_DIR=/usr/share/aether:./local ae lib-path
+lib
 /usr/share/aether
-./local
+local
 
 $ ae lib-path                          <span class="com"># defaults, single entry</span>
 lib</code></pre>
-<p>Inputs are merged in the same priority order the build path uses: explicit <code>--lib</code> flags first, then <code>AETHER_LIB_DIR</code>, then the default <code>lib</code>.</p>
+<p>The chain is built the same way the build path builds it: the project's <code>lib</code> first, then the explicit <code>--lib</code> flags, or <code>AETHER_LIB_DIR</code> when there are none, then the resolved dependencies.</p>
 <h4 id="dependencies-resolve-onto-the-search-path">Dependencies resolve onto the search path</h4>
 <p><code>ae add</code> installs into <code>~/.aether/packages/&lt;host&gt;/&lt;owner&gt;/&lt;name&gt;</code> and records the dependency, with the hash of the tree it installed:</p>
 <pre><code>[dependencies]
@@ -1044,7 +1045,7 @@ main() {
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.875 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.878 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

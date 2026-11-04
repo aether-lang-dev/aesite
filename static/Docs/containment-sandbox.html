@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.875</span>
+      <span class="vtag">v0.878</span>
     </nav>
   </div>
 </header>
@@ -878,6 +878,7 @@ audit.clear()                            // scope the next query</code></pre>
 <p><code>os.run_socket</code>'s channel (the child's fd 3, <code>AETHER_IPC_FD=3</code>, <code>AETHER_IPC_KIND=socket</code>) with <code>spawn_sandboxed</code>'s containment, held to the grant list: the preload library, and the kernel layer below ("Kernel layer"). <code>argv</code> is a <code>std.list</code> of the arguments after the program and <code>env</code> the child's whole environment as <code>"KEY=VALUE"</code> (null for this process's); the sandbox adds its own variables. It returns at once with the parent's end of the socket and the child's pid; reap the child with <code>os.wait_pid</code> and close the socket.</p>
 <p>It <strong>fails closed</strong>. Where the child cannot be contained (macOS, Windows, Android, and FreeBSD until it has a kernel layer for a foreign program), and on Linux when the preload library cannot be found or the kernel layer cannot be set up as asked, it returns <code>(-1, -1, reason)</code> and starts nothing. A host that wants a child with no sandbox at all asks for one by name, <code>sandbox.spawn_socket_uncontained(perms, ...)</code>: the same signature (the grants are ignored), so the two differ by one word and the uncontained one is easy to find in review.</p>
 <p>The grants reach the child's preload on a sealed memfd it inherits (<code>AETHER_SANDBOX_GRANTS_FD</code>), not on a named shared-memory object: <code>spawn_sandboxed</code> waits for its child and then removes the object, and <code>spawn_socket</code> does not wait. The memfd has no name to remove, its seals stop the child changing it, and a program the child is granted to exec reads the same grants from it.</p>
+<p>For a guest that runs scripts for the host (an engine compiled into a worker, or an interpreter), <code>std.guest</code> is the conversation on top of this socket: it spawns with <code>spawn_socket</code>, mounts the functions the script may call, answers each call (a file as an open descriptor), and bounds every exchange with a deadline, then a <code>CANCEL</code>, then a kill. <code>std.guest.child</code> is an Aether worker's side, and enters <code>sandbox.enforce</code> with no grants before the script's first step. Its README (<code>std/guest/README.md</code>) has the protocol.</p>
 <h3 id="starting-a-foreign-interpreter-grant_runtime">Starting a foreign interpreter: <code>grant_runtime</code></h3>
 <p>Under the kernel layer a child reads nothing it is not granted, and an interpreter has to read its own library before it runs a line. Two kinds of guest, two answers (aether#3503):</p>
 <ul><li><strong>An Aether worker</strong> locks itself down after it starts: it calls <code>sandbox.enforce</code> before its first step, so it needs no start-up grants and no platform paths (the <code>cap_enter</code> shape).</li><li><strong>A foreign interpreter</strong> cannot, so the host grants what it needs to start with a preset:</li></ul>
@@ -1329,7 +1330,7 @@ db.credentials.user = admin</code></pre>
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.875 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.878 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>
