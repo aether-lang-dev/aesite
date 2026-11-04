@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.880</span>
+      <span class="vtag">v0.881</span>
     </nav>
   </div>
 </header>
@@ -872,6 +872,8 @@ AetherActorRef scheduler_actor_ref(ActorBase* actor);   <span class="com">// the
     <span class="kw">int</span> sender_id;      <span class="com">// Sender actor ID</span>
     intptr_t payload_int; <span class="com">// For single-int messages (intptr_t to pass actor refs without truncation)</span>
     <span class="kw">void</span>* payload_ptr;  <span class="com">// For complex payloads</span>
+    <span class="kw">struct</span> { <span class="kw">void</span>* data; <span class="kw">int</span> size; <span class="kw">int</span> owned; } zerocopy;  <span class="com">// owned: the payload's kind</span>
+    <span class="kw">void</span>* _reply_slot;  <span class="com">// An ask's reply slot</span>
 } Message;
 
 <span class="com">// Send to actor on same core (fast path)</span>
@@ -896,7 +898,7 @@ AetherActorRef scheduler_actor_ref(ActorBase* actor);   <span class="com">// the
     <span class="kw">char</span>* my_string;
 } MyActor;</code></pre>
 <p>The <code>ActorBase</code> contains:</p>
-<ul><li><code>active</code>: Processing flag (<code>atomic_int</code>)</li><li><code>id</code>: Unique actor ID</li><li><code>mailbox</code>: Message queue (ring buffer)</li><li><code>step</code>: Your message handler</li><li><code>assigned_core</code>: Current core assignment (<code>atomic_int</code>, safe for cross-core reads)</li><li><code>migrate_to</code>: Affinity hint for message-driven migration (<code>atomic_int</code>)</li><li><code>spsc_queue</code>: unused, NULL (kept for the layout, #3292)</li><li><code>reply_slot</code>: Non-NULL during ask/reply (<code>_Atomic</code> pointer)</li><li><code>step_lock</code>: Prevents concurrent <code>step()</code> during work-steal handoff (<code>atomic_flag</code>)</li><li><code>timeout_ns</code>, <code>last_activity_ns</code>: Receive timeout and when idling began</li><li><code>dead</code>: Set once the actor panicked or was released; it is skipped after</li><li><code>alloc_size</code>, <code>destroy_state</code>, <code>scheduler_owned</code>: How the scheduler frees it</li><li><code>inbox</code>, <code>thread_parked</code>: For an actor with its own thread (<code>auto_process</code>), where every sender puts its messages and whether the thread sleeps idle. That thread is not its core's scheduler thread, so what its step sends goes as a foreign thread's sends do, through the locked channel (#3246), and an ask it makes waits without stepping anything for the core</li><li><code>step_payload</code>, <code>step_type</code>: The message a generated handler is running on, for the step barrier to drop if the handler panics (#3142)</li><li><code>release_message</code>: Releases what a dropped message's fields own; NULL for an actor you register, whose messages are yours</li><li><code>inflight</code>: Messages for the actor on their way through a core's queues; it moves to another core only while this is 0</li></ul>
+<ul><li><code>active</code>: Processing flag (<code>atomic_int</code>)</li><li><code>id</code>: Unique actor ID</li><li><code>mailbox</code>: Message queue (ring buffer)</li><li><code>step</code>: Your message handler</li><li><code>assigned_core</code>: Current core assignment (<code>atomic_int</code>, safe for cross-core reads)</li><li><code>migrate_to</code>: Affinity hint for message-driven migration (<code>atomic_int</code>)</li><li><code>spsc_queue</code>: unused, NULL (kept for the layout, #3292)</li><li><code>reply_slot</code>: Non-NULL during ask/reply (<code>_Atomic</code> pointer)</li><li><code>step_lock</code>: Prevents concurrent <code>step()</code> during work-steal handoff (<code>atomic_flag</code>)</li><li><code>timeout_ns</code>, <code>last_activity_ns</code>: Receive timeout and when idling began</li><li><code>dead</code>: Set once the actor panicked or was released; it is skipped after</li><li><code>alloc_size</code>, <code>destroy_state</code>, <code>scheduler_owned</code>: How the scheduler frees it</li><li><code>inbox</code>, <code>thread_parked</code>: For an actor with its own thread (<code>auto_process</code>), where every sender puts its messages and whether the thread sleeps idle. That thread is not its core's scheduler thread, so what its step sends goes as a foreign thread's sends do, through the locked channel (#3246), and an ask it makes waits without stepping anything for the core</li><li><code>step_payload</code>, <code>step_type</code>: The message a generated handler is running on, for the step barrier to drop if the handler panics (#3142); <code>step_inline</code> says the payload is the actor's own copy of one that travelled in its message (#3534), which the barrier does not free</li><li><code>release_message</code>: Releases what a dropped message's fields own; NULL for an actor you register, whose messages are yours</li><li><code>inflight</code>: Messages for the actor on their way through a core's queues; it moves to another core only while this is 0</li></ul>
 <p>Embedding <code>ActorBase</code> as the first member, as above, keeps the layout right whatever fields it gains. The full list, in order, with a comment for each, is the <code>AETHER_ACTOR_BASE_FIELDS</code> macro in <code>runtime/scheduler/multicore_scheduler.h</code>.</p>
 <h2 id="message-handler-pattern">Message Handler Pattern</h2>
 <p>A step takes <strong>one</strong> message per call, as a generated step does: the scheduler calls it once for each message it delivers and counts each call as one message processed. A step that drained its whole mailbox would leave <code>scheduler_wait()</code>, and so <code>scheduler_shutdown()</code>, waiting for messages it counts as never processed.</p>
@@ -912,8 +914,10 @@ AetherActorRef scheduler_actor_ref(ActorBase* actor);   <span class="com">// the
             <span class="kw">break</span>;
 
         <span class="kw">case</span> MSG_TYPE_2:
-            <span class="com">// Handle message type 2</span>
-            handle_type_2(actor, (SomeStruct*)msg.payload_ptr);
+            <span class="com">// Handle message type 2: a typed message's struct, sent with</span>
+            <span class="com">// aether_send_message</span>
+            handle_type_2(actor, (SomeStruct*)aether_message_payload(&amp;msg));
+            aether_message_free_payload(&amp;msg);
             <span class="kw">break</span>;
 
         <span class="kw">default</span>:
@@ -921,6 +925,7 @@ AetherActorRef scheduler_actor_ref(ActorBase* actor);   <span class="com">// the
             <span class="kw">break</span>;
     }
 }</code></pre>
+<p>A typed message whose struct fits the bytes from <code>payload_int</code> up to <code>zerocopy.owned</code> (28 on 64-bit targets, 16 on 32-bit) travels in the <code>Message</code> itself, with <code>zerocopy.owned</code> set to <code>AETHER_MSG_INLINE</code>; a larger one is a heap copy in <code>payload_ptr</code> (#3534). <code>aether_message_payload(&amp;msg)</code> reads either, and <code>aether_message_free_payload(&amp;msg)</code> gives either back once its fields are read or released; never read or free <code>payload_ptr</code> of a typed message directly. <code>zerocopy.owned</code> compares to <code>AETHER_MSG_ZC_BORROWED</code>, <code>AETHER_MSG_ZC_OWNED</code> (<code>zerocopy.data</code> is the message's to free) and <code>AETHER_MSG_INLINE</code> (<code>runtime/actors/actor_state_machine.h</code>).</p>
 <h2 id="build-configuration">Build Configuration</h2>
 <h3 id="makefile-example">Makefile Example</h3>
 <p><code>ae cflags</code> is the canonical way to obtain the include and link flags it covers in-tree dev builds, <code>~/.aether</code> user installs, and <code>/usr/local</code> system installs uniformly. Do not hand-craft <code>-I</code> / <code>-L</code> / <code>-l</code>: the install layout puts the archive at <code>&lt;prefix&gt;/lib/aether/</code> (not flat under <code>&lt;prefix&gt;/lib/</code>), so <code>-laether</code> alone wouldn't find it without an explicit <code>-L</code>.</p>
@@ -1015,7 +1020,7 @@ Counter* spawn_Counter(<span class="kw">void</span>);
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.880 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.881 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

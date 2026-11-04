@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.880</span>
+      <span class="vtag">v0.881</span>
     </nav>
   </div>
 </header>
@@ -685,6 +685,9 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <h3 id="heap-path-for-json_create_">Heap path for <code>json_create_*</code></h3>
 <p>Values created standalone (<code>json_create_null</code>, <code>json_create_string</code>, <code>json_create_array</code>, etc.) are heap-allocated individually via <code>malloc</code>. Their children are similarly heap-allocated. <code>json_free</code> on such a value walks the tree and frees each node.</p>
 <p>When a standalone value is handed to <code>json_array_add_raw</code> or <code>json_object_set_raw</code> on an arena-backed container, the mutator <strong>deep-copies the subtree into the parent's arena</strong> and frees the original. After insertion the entire tree is arena-owned; a single <code>json_free</code> at the root tears everything down.</p>
+<p>A value that is the root of an arena of its own (a parsed document, or a built container something was set into) is not copied (#3538): its arena is adopted by the container's, destroyed with it from then on, and the node is kept where it is. Copying it made a document built level by level cost O(depth x size). Only a node inside another document, which that document owns, and a small heap tree are still copied whole.</p>
+<p>An arena is adopted only when at least a third of its own space is in use, so an adopted arena holds at most three times what it uses, and a document of many adopted arenas at most three times what its parts use. A parse gives every document a 16 KB first chunk, which a small document leaves nearly empty: adopting 2000 parsed <code>{"id":N,"ok":true}</code> into one array held 32 MB, where copies take 0.5 MB. Such a document is copied instead, the nodes of its own arena only: the arenas it adopted are handed over to the container's, with the nodes in them kept where they are. So a copy never takes more than a third of the donor's own arena, and never what it adopted. A container an arena is made for starts it at 512 bytes, and an arena that grows by doubling is a third used or more once it is past its first chunk, so a document built level by level copies little at each level.</p>
+<p>Objects past 16 keys get a hash index (open addressing over the key positions, in the object's arena) when a set adds to them, so building an object of k keys is not O(k^2) in key compares. A lookup uses the index when there is one and never builds it, so a parsed document read from many threads is never written.</p>
 <p>This double-path (arena for parse, heap for create, deep-copy on merge) is the only real complexity cost of preserving the mutation API. The parse path is a tight loop with no branching on allocation mode; the mutation path is rare and pays for its complexity only when invoked.</p>
 <h2 id="character-classification-via-a-256-entry-lut">Character classification via a 256-entry LUT</h2>
 <p><code>JSON_CC_RW[256]</code> holds per-byte flag bits: <code>CC_WHITESPACE</code>, <code>CC_DIGIT</code>, <code>CC_STRUCTURAL</code>, <code>CC_STR_OK</code>, <code>CC_HEX</code>, <code>CC_NUM_START</code>.</p>
@@ -796,7 +799,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.880 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.881 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

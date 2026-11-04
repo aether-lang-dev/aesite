@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.880</span>
+      <span class="vtag">v0.881</span>
     </nav>
   </div>
 </header>
@@ -765,8 +765,8 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
        AETHER_ACTOR_BASE_FIELDS
        <span class="kw">int</span> count;                       <span class="com">// the actor's own state follows</span>
    } CounterActor;</code></pre>
-<p>The fields, in order: <code>active</code>, <code>id</code>, <code>mailbox</code>, <code>step</code>, <code>thread</code>, <code>auto_process</code>, <code>assigned_core</code>, <code>migrate_to</code>, <code>spsc_queue</code>, <code>reply_slot</code>, <code>step_lock</code>, <code>exit_flags</code>, <code>mailbox_bound</code>, <code>timeout_ns</code>, <code>last_activity_ns</code>, <code>step_payload</code>, <code>step_type</code>, <code>dead</code>, <code>alloc_size</code>, <code>destroy_state</code>, <code>release_message</code>, <code>scheduler_owned</code>, <code>incarnation</code>, <code>inbox</code>, <code>thread_parked</code>, <code>inflight</code>, <code>death_watch</code>, <code>mailbox_pending</code>, <code>full_drops</code>. The header comments each one.</p>
-<ol><li><strong>Message Structure</strong> (<code>runtime/actors/actor_state_machine.h</code>) ``<code>c typedef struct { int type; int sender_id; intptr_t payload_int; void* payload_ptr; struct { void* data; int size; int owned; } zerocopy; } Message; </code>``</li><li><strong>Message Queue</strong> (<code>runtime/scheduler/lockfree_queue.h</code>)<ul><li>Lock-free SPSC ring buffer with cache-line aligned head/tail</li><li>Batch enqueue and dequeue to reduce atomic operations</li><li>Power-of-2 sizing with bitwise AND masking</li></ul></li><li><strong>Message Dispatch</strong> (generated code)<ul><li>Computed goto dispatch table for direct label jumps</li><li>Message ID read from <code>msg.type</code> (not pointer dereference)</li></ul></li></ol>
+<p>The fields, in order: <code>active</code>, <code>id</code>, <code>mailbox</code>, <code>step</code>, <code>thread</code>, <code>auto_process</code>, <code>assigned_core</code>, <code>migrate_to</code>, <code>spsc_queue</code>, <code>reply_slot</code>, <code>step_lock</code>, <code>exit_flags</code>, <code>step_inline</code>, <code>mailbox_bound</code>, <code>timeout_ns</code>, <code>last_activity_ns</code>, <code>step_payload</code>, <code>step_type</code>, <code>dead</code>, <code>alloc_size</code>, <code>destroy_state</code>, <code>release_message</code>, <code>scheduler_owned</code>, <code>incarnation</code>, <code>inbox</code>, <code>thread_parked</code>, <code>inflight</code>, <code>death_watch</code>, <code>mailbox_pending</code>, <code>full_drops</code>. The header comments each one.</p>
+<ol><li><strong>Message Structure</strong> (<code>runtime/actors/actor_state_machine.h</code>) ``<code>c typedef struct { int type; int sender_id; intptr_t payload_int; void* payload_ptr; struct { void* data; int size; int owned;   // AETHER_MSG_ZC_BORROWED, _OWNED, or AETHER_MSG_INLINE (#3534) } zerocopy; void* _reply_slot; } Message; </code>``</li><li><strong>Message Queue</strong> (<code>runtime/scheduler/lockfree_queue.h</code>)<ul><li>Lock-free SPSC ring buffer with cache-line aligned head/tail</li><li>Batch enqueue and dequeue to reduce atomic operations</li><li>Power-of-2 sizing with bitwise AND masking</li></ul></li><li><strong>Message Dispatch</strong> (generated code)<ul><li>Computed goto dispatch table for direct label jumps</li><li>Message ID read from <code>msg.type</code> (not pointer dereference)</li></ul></li></ol>
 <h3 id="scheduler">Scheduler</h3>
 <p><strong>Design:</strong> Partitioned multicore scheduler with work stealing and message-driven migration</p>
 <p><strong>Architecture:</strong></p>
@@ -816,7 +816,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <p>On Windows <code>aether_thread.h</code> implements pthreads with Win32 primitives and includes <code>windows.h</code> for them, but a program's generated C defines <code>AETHER_THREAD_TYPES_ONLY</code> and gets the types alone: <code>pthread_t</code>, <code>pthread_mutex_t</code> and <code>pthread_cond_t</code> are declared with the layout of <code>HANDLE</code>, <code>CRITICAL_SECTION</code> and <code>CONDITION_VARIABLE</code> (checked with static asserts where <code>windows.h</code> is included), and the few Windows services a program needs (console setup, the monotonic clock, the preemption yield, an actor's own thread) are runtime functions. mingw-w64's <code>winnt.h</code> includes every x86 intrinsics header GCC ships, and keeping <code>windows.h</code> out of the program's C took about 80,000 lines off every build (#2673).</p>
 <h3 id="memory-management">Memory Management</h3>
 <p><strong>Message Payloads:</strong></p>
-<ul><li>A typed message's payload is a heap copy made by the send</li><li><code>aether_free_message</code> frees it (<code>free()</code>) once the message is handled or dropped</li><li>No payload pool: an actor can move to another core after a message is sent, so a pooled payload would be released by a thread that does not own the pool (#3374)</li></ul>
+<ul><li>A typed message whose struct fits the bytes from <code>payload_int</code> up to <code>zerocopy.owned</code> (28 on 64-bit targets) travels in the message, marked <code>AETHER_MSG_INLINE</code>, with no heap copy (#3534)</li><li>Any other typed message's payload is a heap copy made by the send</li><li><code>aether_free_message</code> frees it (<code>free()</code>) once the message is handled or dropped</li><li>No payload pool: an actor can move to another core after a message is sent, so a pooled payload would be released by a thread that does not own the pool (#3374)</li></ul>
 <p><strong>Actor Allocation:</strong></p>
 <ul><li><code>scheduler_spawn_actor</code> allocates via <code>aether_numa_alloc_aligned</code> with the full derived-struct size, on a 64-byte boundary (generated actor structs are declared <code>aligned(64)</code>)</li><li>NUMA-aware placement on the local node of the assigned core</li><li>Falls back to standard allocation on non-NUMA systems</li></ul>
 <p><strong>Ownership of strings, closures and composites</strong> (the rules are in <a href="/Docs/memory-management.html#values-the-program-owns">memory-management.md</a>, the design and its record in <a href="https://github.com/aether-lang-dev/aether/blob/main/docs/design/ownership-model.md">design/ownership-model.md</a>):</p>
@@ -868,7 +868,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.880 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.881 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

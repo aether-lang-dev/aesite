@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.880</span>
+      <span class="vtag">v0.881</span>
     </nav>
   </div>
 </header>
@@ -722,11 +722,11 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
     <span class="kw">int</span> type;           <span class="com">// Message type ID</span>
     <span class="kw">int</span> sender_id;      <span class="com">// Sender actor ID</span>
     intptr_t payload_int; <span class="com">// Integer payload (intptr_t to avoid truncation of actor refs on 64-bit)</span>
-    <span class="kw">void</span>* payload_ptr;  <span class="com">// Pointer to message data (pool or malloc allocated)</span>
+    <span class="kw">void</span>* payload_ptr;  <span class="com">// A typed message's heap copy (unless it travels inline)</span>
     <span class="kw">struct</span> {
         <span class="kw">void</span>* data;
         <span class="kw">int</span> size;
-        <span class="kw">int</span> owned;
+        <span class="kw">int</span> owned;      <span class="com">// The payload's kind: AETHER_MSG_ZC_BORROWED, _OWNED, AETHER_MSG_INLINE</span>
     } zerocopy;
     <span class="kw">void</span>* _reply_slot;  <span class="com">// ActorReplySlot* for ask messages, NULL for fire-and-forget</span>
 } Message;</code></pre>
@@ -739,6 +739,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
     scheduler_send_remote(actor, msg, current_core_id);
 }</code></pre>
 <p>For single-int messages, the code generator emits an inline path that stores the value directly in <code>msg.payload_int</code>, with no payload allocation.</p>
+<p>Any other typed message whose struct fits the bytes from <code>payload_int</code> up to <code>zerocopy.owned</code> (28 on 64-bit targets, 16 on 32-bit: two ints, an int and a string, a <code>Down</code>) travels in the message itself (#3534): the send copies the struct there and sets <code>zerocopy.owned</code> to <code>AETHER_MSG_INLINE</code>, so there is no heap copy to make or free, and a send under memory pressure cannot fail for want of one. What its fields own moves with the bytes, as it moves into a heap copy. Only a larger struct is copied to the heap. C code that takes messages from a mailbox itself reads either with <code>aether_message_payload(&amp;msg)</code> and gives either back with <code>aether_message_free_payload(&amp;msg)</code> (<a href="/Docs/c-embedding.html#message-handler-pattern">C embedding</a>).</p>
 <p>A <code>ptr</code> field (a <code>std.bytes</code> handle, a <code>*T</code>) crosses as the pointer, with no copy. To hand the buffer over rather than share it, send it with <code>move</code>: <code>r ! Chunk { data: move buf }</code>. The sender's <code>buf</code> is then moved-from, and any later use of it is a compile error naming the line of the move. See <a href="/Docs/isolated.html#move-handing-a-buffer-over-2975"><code>move</code></a>.</p>
 <h3 id="receiving-messages">Receiving Messages</h3>
 <p>The <code>receive</code> block in the actor definition becomes the step function. The code generator emits a computed goto dispatch table for message handler selection:</p>
@@ -748,7 +749,10 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
         self-&gt;base.active = <span class="num">0</span>;
         <span class="kw">return</span>;
     }
-    <span class="kw">void</span>* _msg_data = msg.payload_ptr;
+    <span class="com">// A payload that travelled in the message is copied to the actor's</span>
+    <span class="com">// _aether_step_inline, the last member of its struct (#3534).</span>
+    <span class="kw">void</span>* _msg_data = aether_message_take_payload(&amp;self-&gt;_aether_base, &amp;msg,
+                                                  &amp;self-&gt;_aether_step_inline);
     <span class="kw">int</span> _msg_id = msg.type;
 
     <span class="kw">static</span> <span class="kw">void</span>* dispatch_table[<span class="num">256</span>] = {
@@ -768,7 +772,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
         ActorName_handle_MessageA(self, _msg_data);
         self-&gt;_aether_base.step_payload = NULL;
         _aether_msg_release_MessageA(_msg_data);   <span class="com">// what its fields own</span>
-        aether_free_message(_msg_data);
+        aether_message_payload_done(_msg_data, &amp;self-&gt;_aether_step_inline);  <span class="com">// a heap copy is freed</span>
         <span class="kw">return</span>;
 }</code></pre>
 <h3 id="a-message-that-is-not-handled">A message that is not handled</h3>
@@ -905,7 +909,7 @@ Stack trace (most recent call first):
 <ul><li><strong>Same-core messages:</strong> Direct mailbox write (verified via <code>current_core_id</code>), behind any message of the actor still in the queues or its overflow (#3241)</li><li><strong>Cross-core messages:</strong> Counted in the target's <code>inflight</code>, then enqueued to the target core's lock-free incoming queue</li><li><strong>A message on a core the actor has left:</strong> Only one routed by a stale read or by the runtime itself, since a counted message holds the actor where it was routed; forwarded to the actor's current core, still counted</li></ul>
 <h2 id="memory-management">Memory Management</h2>
 <p>Actor memory is allocated using NUMA-aware allocation (<code>aether_numa_alloc_aligned</code>, on a 64-byte boundary) at spawn time. The <code>scheduler_spawn_actor</code> function accepts the full derived-struct size to ensure correct allocation for user-defined actor types.</p>
-<p>A typed message's payload is a heap copy, freed with <code>free()</code> by <code>aether_free_message</code> once the message is handled or dropped. There is no payload pool: an actor can move to another core after a message is sent, so a pooled payload would be released by a thread that does not own the pool (#3374).</p>
+<p>A typed message's payload travels in the message when it fits (<code>AETHER_MSG_INLINE</code>, #3534), else it is a heap copy, freed with <code>free()</code> by <code>aether_free_message</code> once the message is handled or dropped. There is no payload pool: an actor can move to another core after a message is sent, so a pooled payload would be released by a thread that does not own the pool (#3374).</p>
 <h2 id="memory-model">Memory Model</h2>
 <p>The actor runtime uses several allocation strategies for automatic cleanup:</p>
 <ul><li><strong>Actor memory</strong>: one NUMA-aware, 64-byte-aligned allocation per actor at spawn time (<code>aether_numa_alloc_aligned</code>), or the kept block of a released actor of the same size. <code>scheduler_release_actor</code> takes the actor out of its core's table and retires it; it is reclaimed once every core's scheduler thread and every per-actor thread has passed the top of its loop since, and no other thread is walking the tables. The scheduler threads, per-actor threads and <code>wait_for_idle</code>'s scan for armed timeouts read the tables without a lock, so the reclaim has to wait for them; a core blocked in a long step delays it. A reclaimed block is not returned to the allocator while the scheduler runs: it stays marked released, so a send to it is dropped rather than reading freed memory, and the next spawn of that size takes it. The blocks go back with the scheduler's tables. The mailbox is an inline struct member, not a separate allocation.</li><li><strong>Message payloads</strong>: a heap copy per typed message, freed when it is handled or dropped</li><li><strong>Arenas</strong>: a general-purpose arena allocator provides bulk deallocation without per-object tracking for opt-in uses (<code>std.arena</code>, JSON parsing). The actor path does not use arenas.</li></ul>
@@ -924,7 +928,7 @@ Stack trace (most recent call first):
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.880 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.881 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

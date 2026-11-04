@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.880</span>
+      <span class="vtag">v0.881</span>
     </nav>
   </div>
 </header>
@@ -679,7 +679,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <p>A send (<code>!</code>) is asynchronous whatever the number of actors: the payload is copied to the heap and handed to the scheduler, and the sender goes on while a scheduler thread runs the handler. The runtime once ran the first actor's handler inside the sender's <code>!</code> until a second actor was spawned ("main-thread mode"), so a handler that blocked, waiting on something its sender was about to do, deadlocked a one-actor program, and the order of a program's output depended on how many actors it had (#3112). The cooperative (no-threads) runtime queues a send the same way and runs it at the next <code>wait_for_idle</code>, <code>aether_scheduler_poll</code> or shutdown.</p>
 <h3 id="message-payloads">Message Payloads</h3>
 <p><strong>Implementation:</strong> <code>runtime/actors/aether_send_message.c</code></p>
-<p>A typed message's payload is a heap copy, made by the send and freed with <code>free()</code> by whoever handles or drops the message (<code>aether_free_message</code>). There is no payload pool (#3374): a per-thread pool was tried, but an actor can move to another core after a message is sent, so a pooled payload would be released by a thread that does not own the pool. <code>AETHER_FLAG_LOCKFREE_POOLS</code> is accepted and ignored, and <code>aether_message_pool_stats</code> reports zeros; both are deprecated.</p>
+<p>A typed message whose struct fits the bytes <code>Message</code> has from <code>payload_int</code> up to <code>zerocopy.owned</code> (28 on 64-bit targets, 16 on 32-bit) travels in the message itself, with <code>zerocopy.owned</code> set to <code>AETHER_MSG_INLINE</code> (#3534): two ints, an int and a string, a reference and a string. The generated step copies it to the actor's <code>_aether_step_inline</code> and runs the handler there, so such a send makes no allocation and its handling frees none. Any other typed message's payload is a heap copy, made by the send and freed with <code>free()</code> by whoever handles or drops the message (<code>aether_free_message</code>). There is no payload pool (#3374): a per-thread pool was tried, but an actor can move to another core after a message is sent, so a pooled payload would be released by a thread that does not own the pool. <code>AETHER_FLAG_LOCKFREE_POOLS</code> is accepted and ignored, and <code>aether_message_pool_stats</code> reports zeros; both are deprecated.</p>
 <h3 id="message-coalescing-with-batch-dequeue">Message Coalescing with Batch Dequeue</h3>
 <p><strong>Implementation:</strong> <code>runtime/scheduler/multicore_scheduler.c</code>, <code>runtime/scheduler/lockfree_queue.h</code></p>
 <p>The scheduler drains multiple messages from the lock-free incoming queue in a single batch dequeue operation. This reduces atomic operations from one-per-message to one-per-batch.</p>
@@ -947,7 +947,7 @@ while j &lt; N {
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.880 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.881 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>
