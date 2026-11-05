@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.882</span>
+      <span class="vtag">v0.883</span>
     </nav>
   </div>
 </header>
@@ -677,6 +677,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <div class="tw"><table><thead><tr><th>Duty</th><th>What the importer must do</th></tr></thead><tbody><tr><td><code>outcome_check</code></td><td>read each call's outcome and raise a failure in the program (schema 1.10)</td></tr><tr><td><code>string_release</code></td><td>give a returned string back through the library's release (1.9)</td></tr><tr><td><code>shared_runtime</code></td><td>link the program against the shared runtime the library runs on (1.5)</td></tr><tr><td><code>runtime_abi</code></td><td>check that runtime is the one the library was made for (1.11)</td></tr><tr><td><code>actors</code></td><td>run the library's actors on the program's scheduler (1.7)</td></tr><tr><td><code>own_runtime</code></td><td>keep apart from the program's the runtime the library carries: refuse what needs one runtime, warn that its actors are not drained (#3481; named on ELF only, by a static-runtime library that has such an export or runs actors)</td></tr></tbody></table></div>
 <p>An importer that finds a duty it does not know refuses the library, naming the duty, both Aether versions and the fix (upgrade <code>ae</code>, or rebuild the library). A newer minor whose duties it knows is read.</p>
 <p><strong>The runtime ABI.</strong> <code>AETHER_RUNTIME_ABI_ID</code> (<code>runtime/aether_abi.h</code>) is the Aether version, <code>/abi</code> and <code>AETHER_RUNTIME_ABI_REV</code>, and the flags that change layouts (<code>+debug-mailbox</code>). A self-contained library carries its own runtime, so this ABI never crosses its edge: on ELF <code>ae</code> links it <code>-Bsymbolic</code>, so its runtime calls bind to its own copy, not to the one a program linked <code>-rdynamic</code> exports, as macOS and Windows keep them apart by themselves (#3481). A <code>--shared-runtime</code> library, and C emitted with <code>--emit=csrc</code> or <code>--emit=obj</code>, must run on the runtime it was made for. The shared runtime reports its ID (<code>aether_runtime_abi()</code>), and the catalog of a shared-runtime library records the one it was made for (<code>runtime_abi</code>).</p>
+<p>The revisions since the last release: 2, a typed message that fits is carried in the Message itself (#3534); 3, a slice's <code>make</code> buffer is counted (#3568): its storage starts a 32-byte header before the first element, and a slice of it carries the mark <code>AETHER_SLICE_MADE</code> and its offset into the buffer in the padding after <code>flags</code> (and that field's bits 8 to 31), so C code compiled for revision 2 that freed a buffer's <code>.ptr</code>, or built a view by moving <code>.ptr</code>, is refused at revision 3 (<a href="/Docs/c-interop.html">c-interop.md</a>, Counted buffers).</p>
 <p><strong>Shared facilities.</strong> A library without <code>--shared-runtime</code> brings a copy of the runtime, and copies in one process share the sandbox levels and the execution accounts through the first copy loaded that has them, by its record in its image (a PE section, an ELF note, a Mach-O section, #3445). The record's layout never changes, so a copy of any release reads any other's. Each rendezvous starts with its version and its size, and the accounts' also carry the sizes of what the copies pass each other. A copy that finds another layout refuses that one facility, says so once on stderr naming <code>--shared-runtime</code>, and reads nothing of the other's but the version and sizes.</p>
 <h2 id="where-an-unsupported-pair-is-refused">Where an unsupported pair is refused</h2>
 <p>Every check runs before any code of the library does.</p>
@@ -709,7 +710,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.882 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.883 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

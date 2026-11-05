@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.882</span>
+      <span class="vtag">v0.883</span>
     </nav>
   </div>
 </header>
@@ -679,7 +679,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <h3 id="2-mutable-captures-miscompiled">2. Mutable captures miscompiled</h3>
 <p><code>count = count + 1</code> inside a closure body emitted a shadowing local that wrote to uninitialised stack, silent wrong answers, even in-scope. Two collaborating problems: <code>is_local_var</code> treated any assignment target as a fresh local, and the closure prologue unconditionally aliased each capture to a read-only C local.</p>
 <p><strong>Fix:</strong> keep the alias pattern for read-only captures (zero cost), but detect captures that are assigned to in the body and route their reads and writes through <code>_env-&gt;name</code> directly. Scope analysis distinguishes captures from fresh body-locals while honouring Python-style <code>x = expr</code> shadowing: if the RHS does not read <code>x</code>, treat <code>x</code> as a fresh local.</p>
-<p><strong>Resulting semantics:</strong> a read-only capture stays an aliased copy (zero cost). A capture the closure <em>assigns to</em> is heap-promoted, so the enclosing binding and the closure env share one heap cell and writes are visible in both directions (the Ruby/Groovy model, verified by <code>tests/syntax/test_closure_mutable_capture_probe.ae</code>). A simple named local therefore needs no ref cell to share mutable state; ref cells remain useful for state that isn't a plain captured local (an explicit <code>ptr</code> argument, a struct field, or an actor boundary). See <code>docs/closures-and-builder-dsl.md</code>.</p>
+<p><strong>Resulting semantics:</strong> a read-only capture stays an aliased copy (zero cost). A capture the closure <em>assigns to</em>, or pushes into when it is a slice (#3568), is heap-promoted, so the enclosing binding and the closure env share one heap cell and writes are visible in both directions (the Ruby/Groovy model, verified by <code>tests/syntax/test_closure_mutable_capture_probe.ae</code>). A simple named local therefore needs no ref cell to share mutable state; ref cells remain useful for state that isn't a plain captured local (an explicit <code>ptr</code> argument, a struct field, or an actor boundary). See <code>docs/closures-and-builder-dsl.md</code>.</p>
 <h3 id="3-escaping-closure-use-after-free">3. Escaping-closure use-after-free</h3>
 <p>A closure variable <code>bump = || { ... }</code> pushed an unconditional <code>free(bump.env)</code> onto the defer stack; at return the compiler emitted every defer before returning, including the env-free of the closure being returned. The caller received a closure whose env was already freed.</p>
 <p><strong>Fix:</strong> at return emission, walk the return expression to collect every closure variable that appears (including <code>box_closure</code> wrappers) and transitively any closure vars they capture, and skip their env-free defers. Ownership transfers to the caller, matching the documented contract for <code>box_closure</code>.</p>
@@ -765,7 +765,7 @@ r = call(f, o)</code></pre>
 <p>Closures inside actor handlers correctly capture and mutate arm-local variables (Route 1 + arm promotion, tested by <code>tests/syntax/test_closure_in_actor_handler.ae</code>). But when the closure writes a name that's an actor <strong>state field</strong>, the closure has no access to <code>self</code>, so state accesses would compile to unscoped local reads, a silent wrong answer.</p>
 <p><strong>Status:</strong> the compiler walks every closure body inside every actor receive arm and, for each write to a state field, reports an error at the offending line with a suggestion to use the arm-local workaround. Regression pinned by <code>tests/integration/closure_actor_state_reject/</code>.</p>
 <p><strong>Workaround:</strong> copy state into an arm-local first, mutate that, then write back. See <code>tests/syntax/README_closure_actor_state_limitation.md</code> for the full pattern.</p>
-<p>A closure that only <em>reads</em> a state field compiles: it captures the field's value when the closure is made, read through <code>self</code> as the arm reads it, as it captures a local (#2890). A closure kept past the handler holds that value, not the field's later ones. The copy must hold what it reads, because the next store into the state releases what the field held, so the copy takes a reference of its own to everything it holds: scalars, enums, bitsets and handles (<code>ptr</code>, actor references) are values; a string or a closure is retained; a struct, a tuple, an optional and a fixed-size array take a reference to each part they own (#2921). A sum or a slice is refused at compile time, naming the field: read what the closure needs into arm locals first and use those.</p>
+<p>A closure that only <em>reads</em> a state field compiles: it captures the field's value when the closure is made, read through <code>self</code> as the arm reads it, as it captures a local (#2890). A closure kept past the handler holds that value, not the field's later ones. The copy must hold what it reads, because the next store into the state releases what the field held, so the copy takes a reference of its own to everything it holds: scalars, enums, bitsets and handles (<code>ptr</code>, actor references) are values; a string or a closure is retained; a struct, a tuple, an optional, a sum and a fixed-size array take a reference to each part they own (#2921, #3005); a slice takes one to its buffer, which is counted, so a store into the state after the closure was made leaves the closure's copy whole (#3568). Anything else (a fixed-size array of slices) is refused at compile time, naming the field: read what the closure needs into arm locals first and use those.</p>
 <p><strong>Proper fix:</strong> thread <code>self</code> through the closure's env so state writes compile to <code>self-&gt;field = ...</code>. Medium-sized codegen change; until it lands, the compile-time rejection prevents silent wrong answers.</p>
 <h3 id="l5-closure-var-reassignment-leaked-the-previous-env">L5. Closure-var reassignment leaked the previous env</h3>
 <pre><code>op = | x: int | { return x + 1 }
@@ -787,7 +787,7 @@ op = | x: int | { return x * 2 }  // a capturing old env used to leak here</code
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.882 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.883 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.882</span>
+      <span class="vtag">v0.883</span>
     </nav>
   </div>
 </header>
@@ -1010,7 +1010,7 @@ builder execute_query(db: string) with query_builder_new { ... }</code></pre>
 <p>The factory just needs to be a zero-argument function returning <code>ptr</code>. The trailing block's setter functions and the builder function body must agree on the protocol, the compiler doesn't care what the object is, only that it can be pushed to the context stack as <code>void*</code>.</p>
 <h3 id="leaving-the-block-early">Leaving the block early</h3>
 <p>The builder takes the config when the block ends. A <code>return</code>, <code>break</code> or <code>continue</code> that leaves the block skips the builder, so the call itself releases the config on that way out: with <code>map_free</code> for the default <code>map_new</code>, and with <code>&lt;stem&gt;_free</code> for a <code>&lt;stem&gt;_new</code> factory the program defines or declares with one <code>ptr</code> parameter (<code>list_new</code> and <code>list_free</code>, or a <code>query_builder_free(m: ptr)</code> beside <code>query_builder_new</code> above). In a nested builder call's block, the way out releases both calls' configs. A factory named otherwise has no release the compiler can find, and an early exit leaves its object unreleased (#2802), so pair a custom factory with its <code>_free</code>.</p>
-<p>A panic that leaves the block skips the builder too. When a <code>try</code> catches it, the catch puts the builder context stack back to its depth at the <code>try</code> and releases, with the same function, the configs of the blocks the panic abandoned; a block after the <code>try</code> fills its own call's config. Before (#2810), each caught panic left an entry on the stack, and after 64 of them a block's setters filled the config of a call a panic had abandoned.</p>
+<p>A panic that leaves the block skips the builder too. Whatever catches it, a <code>try</code> or the barrier of an actor's step when the handler has none, the builder context stack is put back to its depth where the panic is caught, and the configs of the blocks the panic abandoned are released with the same function; a block after the <code>try</code>, or the next handler on the actor's thread, fills its own call's config. Before (#2810), each caught panic left an entry on the stack, and after 64 of them a block's setters filled the config of a call a panic had abandoned; until #3574 a handler that panicked inside blocks left them on its thread's stack, unreleased.</p>
 <h3 id="generated-code">Generated code</h3>
 <p>For <code>compile("Main.java") { set_release("21") }</code>, the compiler generates:</p>
 <pre><code>{
@@ -1029,7 +1029,7 @@ builder execute_query(db: string) with query_builder_new { ... }</code></pre>
 }
 _aether_ctx_pop();                                  <span class="com">// 3. pop</span></code></pre>
 <h2 id="ref-cells-shared-mutable-state-for-closures">Ref Cells, Shared Mutable State for Closures</h2>
-<p>Aether heap-promotes a captured variable that a closure <strong>assigns to</strong>: the enclosing binding and every closure capturing it then share one heap cell, so <code>count = count + 1</code> inside a closure is visible to the outer scope and to sibling closures (the Ruby/Groovy model). A simple named local needs no ref cell to share mutable state this way. A capture the closure only reads stays a cheap aliased copy.</p>
+<p>Aether heap-promotes a captured variable that a closure <strong>assigns to</strong>: the enclosing binding and every closure capturing it then share one heap cell, so <code>count = count + 1</code> inside a closure is visible to the outer scope and to sibling closures (the Ruby/Groovy model). A push into a captured slice (<code>xs.push(v)</code>) is such a write too (#3568): the outer scope sees what the closure pushed. A simple named local needs no ref cell to share mutable state this way. A capture the closure only reads stays a cheap aliased copy.</p>
 <p><strong>Ref cells</strong> are for shared mutable state that isn't a plain captured local: a value passed explicitly as a <code>ptr</code> argument to callbacks (UI event handlers), threaded through a struct field, or handed across an actor boundary:</p>
 <pre><code>count = ref(0)           // heap-allocated mutable cell
 defer ref_free(count)
@@ -1118,8 +1118,8 @@ r = assert.expect_int(5).to_equal(5).to_be_gt(0)  // matchers imported, chain lo
 <h2 id="implementation-notes">Implementation Notes</h2>
 <p>Closures compile to C as:</p>
 <ul><li>A <code>_AeClosure</code> struct: <code>{ void (*fn)(void); void* env; }</code></li><li>Hoisted static functions: <code>_closure_fn_N(_closure_env_N* _env, params...)</code></li><li>Heap-allocated environment structs for captured variables</li><li>NULL environment for zero-capture closures</li></ul>
-<p>The builder context stack is a simple C array:</p>
-<ul><li><code>_aether_ctx_push(void*)</code> / <code>_aether_ctx_pop()</code> / <code>_aether_ctx_get()</code></li><li>Maximum nesting depth: 64 levels</li><li>Zero overhead when not used (the stack is static, no allocation)</li></ul>
+<p>The builder context stack is each thread's own C array:</p>
+<ul><li><code>_aether_ctx_push(void*)</code> / <code>_aether_ctx_pop()</code> / <code>_aether_ctx_get()</code></li><li>Blocks on different threads (actors on different scheduler threads) never see each other's contexts, and <code>builder_depth()</code> counts the thread's own</li><li>The first 64 levels are the thread's own storage, with no allocation; a deeper stack goes on the heap until the blocks are half that deep again, so nesting has no fixed limit and a thread whose blocks have all ended holds no heap for it</li></ul>
 <p>Trailing blocks (parameterless <code>{ }</code>) are inlined at the call site, no closure allocation, no function pointer overhead. They are pure syntactic sugar for sequential code with automatic context management.</p>
 <p>Ref cells compile to:</p>
 <ul><li><code>ref(val)</code> → <code>malloc(sizeof(intptr_t))</code> + store</li><li><code>ref_get(r)</code> → <code>*(intptr_t*)r</code></li><li><code>ref_set(r, val)</code> → <code>*(intptr_t*)r = val</code></li><li><code>ref_free(r)</code> → <code>free(r)</code></li></ul>
@@ -1139,7 +1139,7 @@ r = assert.expect_int(5).to_equal(5).to_be_gt(0)  // matchers imported, chain lo
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.882 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.883 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>
