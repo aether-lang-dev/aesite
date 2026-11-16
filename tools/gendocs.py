@@ -396,7 +396,16 @@ def convert(md):
             block_html, i = parse_list(lines, i, len(LIST_RE.match(line).group(1)))
             out.append(block_html)
             continue
-        buf = []
+        # A paragraph, and the fallback for a line that looks like the start
+        # of a block none of the branches above takes: a `|` row with no
+        # separator line under it, an indented `# word`. It takes its first
+        # line whatever that line is, so every pass consumes at least one
+        # line. It used to stop before a block-looking first line and take
+        # nothing, and this loop then ran forever: one stray table row in
+        # aether's containment-sandbox.md (v0.888.0 onwards) hung every
+        # release sync until its 15-minute limit cancelled it.
+        buf = [s]
+        i += 1
         while i < n and lines[i].strip() and not is_block_start(lines[i]):
             buf.append(lines[i].strip())
             i += 1
