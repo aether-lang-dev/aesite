@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.888</span>
+      <span class="vtag">v0.919</span>
     </nav>
   </div>
 </header>
@@ -838,7 +838,7 @@ main() {
 }</code></pre>
 <p>The literal <code>[a, b, c]</code> in the message-field initializer is disambiguated by the field type:</p>
 <ul><li>field typed <code>string[]</code> → static C array (existing behaviour).</li><li>field typed <code>*StringSeq</code> → cons chain (this addition).</li></ul>
-<p>Both shapes are first-class; pick by what the receiver wants.</p>
+<p>Both shapes are first-class; pick by what the receiver wants. A call argument follows the same rule: a literal of strings given to a <code>*StringSeq</code> parameter is a cons chain, a temporary the statement drops, so <code>string.join(["a", "b", "c"], ",")</code> is <code>"a,b,c"</code>. A <code>string[]</code> <em>value</em> is not a sequence and is a compile error there (E0200, naming <code>string.seq_from_strings</code> and <code>string.join_strings</code>): it used to pass, and the callee walked the C array as cons cells.</p>
 <h2 id="refcount--structural-sharing">Refcount + structural sharing</h2>
 <p><code>cons(h, t)</code> retains both <code>h</code> (via the AetherString refcount path, <code>string_retain</code> is a no-op on plain <code>char*</code> literals) and <code>t</code> (via <code>string.seq_retain</code>). So:</p>
 <pre><code>shared = string.seq_cons("y", string.seq_cons("z", string.seq_empty()))
@@ -878,7 +878,7 @@ string.seq_free(b)        // b's head frees, then [y, z] drops to 0
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.888 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.919 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

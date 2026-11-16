@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.888</span>
+      <span class="vtag">v0.919</span>
     </nav>
   </div>
 </header>
@@ -765,7 +765,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
        AETHER_ACTOR_BASE_FIELDS
        <span class="kw">int</span> count;                       <span class="com">// the actor's own state follows</span>
    } CounterActor;</code></pre>
-<p>The fields, in order: <code>active</code>, <code>id</code>, <code>mailbox</code>, <code>step</code>, <code>thread</code>, <code>auto_process</code>, <code>assigned_core</code>, <code>migrate_to</code>, <code>spsc_queue</code>, <code>reply_slot</code>, <code>step_lock</code>, <code>exit_flags</code>, <code>step_inline</code>, <code>mailbox_bound</code>, <code>timeout_ns</code>, <code>last_activity_ns</code>, <code>step_payload</code>, <code>step_type</code>, <code>dead</code>, <code>alloc_size</code>, <code>destroy_state</code>, <code>release_message</code>, <code>scheduler_owned</code>, <code>incarnation</code>, <code>inbox</code>, <code>thread_parked</code>, <code>inflight</code>, <code>death_watch</code>, <code>mailbox_pending</code>, <code>full_drops</code>. The header comments each one.</p>
+<p>The fields, in order: <code>active</code>, <code>id</code>, <code>mailbox</code>, <code>step</code>, <code>step_payload</code>, <code>reply_slot</code>, <code>timer_slot</code>, <code>step_type</code>, <code>step_lock</code>, <code>step_inline</code>, <code>exit_flags</code>, <code>ready_queued</code>, <code>scheduler_owned</code>, <code>dead</code>, <code>mailbox_bound</code>, <code>assigned_core</code>, <code>auto_process</code>, <code>inflight</code>, <code>migrate_to</code>, <code>mailbox_pending</code>, <code>full_drops</code>, <code>thread_parked</code>, <code>incarnation</code>, <code>inbox</code>, <code>death_watch</code>, <code>thread</code>, <code>timeout_ns</code>, <code>last_activity_ns</code>, <code>alloc_size</code>, <code>destroy_state</code>, <code>release_message</code>, <code>spsc_queue</code>. The header comments each one.</p>
 <ol><li><strong>Message Structure</strong> (<code>runtime/actors/actor_state_machine.h</code>) ``<code>c typedef struct { int type; int sender_id; intptr_t payload_int; void* payload_ptr; struct { void* data; int size; int owned;   // AETHER_MSG_ZC_BORROWED, _OWNED, or AETHER_MSG_INLINE (#3534) } zerocopy; void* _reply_slot; } Message; </code>``</li><li><strong>Message Queue</strong> (<code>runtime/scheduler/lockfree_queue.h</code>)<ul><li>Lock-free SPSC ring buffer with cache-line aligned head/tail</li><li>Batch enqueue and dequeue to reduce atomic operations</li><li>Power-of-2 sizing with bitwise AND masking</li></ul></li><li><strong>Message Dispatch</strong> (generated code)<ul><li>Computed goto dispatch table for direct label jumps</li><li>Message ID read from <code>msg.type</code> (not pointer dereference)</li></ul></li></ol>
 <h3 id="scheduler">Scheduler</h3>
 <p><strong>Design:</strong> Partitioned multicore scheduler with work stealing and message-driven migration</p>
@@ -782,7 +782,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <p><strong>Locality-Aware Placement:</strong></p>
 <ol><li>Actors placed on the caller's core at spawn time</li><li>Main thread spawns default to core 0, keeping top-level actor groups co-located</li><li>Actors spawned from within actor handlers inherit the parent's core</li><li>Each core processes only its local actors in the fast path</li><li>Same-core messages delivered directly to mailbox (no queue overhead)</li><li>Cross-core messages enqueued to target core's lock-free incoming queue</li></ol>
 <p><strong>Message-Driven Migration:</strong></p>
-<ol><li>Cross-core sender sets <code>migrate_to</code> hint on target actor, requesting migration to the sender's core</li><li>Owning scheduler checks migration hints after coalesce-buffer processing (targeted, O(batch_size)) and during idle actor scans (full, O(actor_count))</li><li>Actor relocated using ascending core-id lock ordering with non-blocking try-lock</li><li>Migrated-actor messages forwarded with spin-retry to prevent drops</li></ol>
+<ol><li>Cross-core sender sets <code>migrate_to</code> hint on target actor, requesting migration to the sender's core</li><li>Owning scheduler checks migration hints after coalesce-buffer processing (targeted, O(batch_size)) and when it takes the actor from its ready list (#3540): a work steal pushes the actor it asks for there, and a move that fails is pushed again and asked on the next pass</li><li>Actor relocated using ascending core-id lock ordering with non-blocking try-lock</li><li>Migrated-actor messages forwarded with spin-retry to prevent drops</li></ol>
 <p><strong>Work Stealing (idle cores):</strong></p>
 <ol><li>Core becomes idle after extended empty cycles</li><li>Scans all cores to find busiest (most pending work)</li><li>Non-blocking try-lock attempt using ascending core-id ordering</li><li>Steals one actor if victim has more than 4 actors</li><li>Stolen actor reassigned to idle core</li></ol>
 <p><strong>NUMA-Aware Allocation:</strong></p>
@@ -804,7 +804,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <ul><li><code>scheduler_init()</code> forces <code>num_cores = 1</code></li><li><code>scheduler_start()</code> / <code>scheduler_stop()</code> are no-ops (no threads to manage)</li><li>A send queues: into the actor's mailbox, and past its 32 messages into its inbox (an unbounded FIFO); it never runs a handler (#3112)</li><li><code>scheduler_wait()</code> drains via <code>aether_scheduler_poll()</code> loop</li><li>All sends are local (no cross-core queues, no migration)</li><li>Ask/reply polls until reply_ready</li></ul>
 <p><strong>Selection:</strong> The Makefile selects the scheduler based on <code>PLATFORM</code> or auto-detects <code>AETHER_NO_THREADING</code> in <code>EXTRA_CFLAGS</code>. Only one scheduler .c file is compiled into the binary. Users can also use <code>ae build --target wasm</code> for Emscripten builds.</p>
 <h3 id="actor-timeouts">Actor Timeouts</h3>
-<p>Actors with <code>receive { ... } after N -&gt; { ... }</code> carry <code>timeout_ns</code> and <code>last_activity_ns</code> fields in <code>ActorBase</code>. The generated step function checks <code>_aether_clock_ns()</code> before <code>mailbox_receive()</code>. If the idle duration exceeds the threshold, the timeout handler fires (one-shot, cancelled when any message arrives). Both schedulers poll timeout-active actors even when their mailbox is empty.</p>
+<p>Actors with <code>receive { ... } after N -&gt; { ... }</code> carry <code>timeout_ns</code> and <code>last_activity_ns</code> fields in <code>ActorBase</code>. The generated step function checks <code>_aether_clock_ns()</code> before <code>mailbox_receive()</code>. If the idle duration exceeds the threshold, the timeout handler fires (one-shot, cancelled when any message arrives). The cooperative scheduler polls timeout-active actors even when their mailbox is empty; the multicore one keeps each core's armed countdowns in a min-heap of deadlines (#3540), fires the due ones each pass, and parks no longer than until the earliest.</p>
 <h3 id="cooperative-preemption-opt-in">Cooperative Preemption (Opt-In)</h3>
 <p>Two independent mechanisms prevent long-running handlers from starving other actors:</p>
 <ol><li><strong>Scheduler-side</strong> (<code>AETHER_PREEMPT=1</code>): Time-based drain loop break after configurable threshold (default 1ms)</li><li><strong>Codegen-side</strong> (<code>aetherc --preempt</code>): <code>sched_yield()</code> inserted at loop back-edges with reduction counter (every 10000 iterations)</li></ol>
@@ -868,7 +868,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.888 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.919 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

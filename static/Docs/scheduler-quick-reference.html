@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.888</span>
+      <span class="vtag">v0.919</span>
     </nav>
   </div>
 </header>
@@ -689,7 +689,7 @@ make stdlib PLATFORM=wasm</code></pre>
 <h2 id="actor-timeouts">Actor Timeouts</h2>
 <p>Actors with a <code>receive ... after N</code> clause have <code>timeout_ns</code> and <code>last_activity_ns</code> fields in <code>ActorBase</code>. The generated step function checks the clock via <code>_aether_clock_ns()</code> before <code>mailbox_receive()</code>:</p>
 <ol><li>If the mailbox is empty and <code>timeout_ns &gt; 0</code>, <code>last_activity_ns</code> is set to the current time (start countdown)</li><li>On the next poll, if <code>(now - last_activity_ns) &gt;= timeout_ns</code>, the timeout handler fires and the timeout is disabled (one-shot)</li><li>If a message arrives, both <code>timeout_ns</code> and <code>last_activity_ns</code> are reset to 0 (cancelled)</li></ol>
-<p>Both the multicore and cooperative schedulers poll actors with active timeouts even when their mailbox is empty.</p>
+<p>The cooperative scheduler polls actors with active timeouts even when their mailbox is empty. The multicore scheduler keeps each core's armed countdowns in a min-heap of deadlines and fires the due ones on every pass, and a core parks no longer than until the earliest (#3540). A countdown armed by hand, outside the actor's step, is told to its core with <code>scheduler_timeout_armed</code>.</p>
 <hr>
 <h2 id="cooperative-preemption">Cooperative Preemption</h2>
 <p>Opt-in, zero cost when disabled. Two independent levels:</p>
@@ -760,14 +760,14 @@ scheduler_release_actor(actor);</code></pre>
 <p><code>scheduler_wait()</code> blocks until all messages have been processed (quiescence). It is <strong>non-destructive</strong>: scheduler threads continue running after it returns, so it can be called multiple times in a program (e.g., between test phases or message bursts). It uses per-core counters to detect idle state without atomic contention on the message-passing hot path:</p>
 <p><code>scheduler_shutdown()</code> calls <code>scheduler_wait()</code> internally, then stops scheduler threads and joins them. Call it once at program exit.</p>
 <pre><code><span class="com">// Per-core counters in Scheduler struct</span>
-<span class="kw">uint64_t</span> messages_sent;      <span class="com">// Incremented on send (no atomic)</span>
-<span class="kw">uint64_t</span> messages_processed; <span class="com">// Incremented on process (no atomic)</span>
+_Atomic <span class="kw">uint64_t</span> messages_sent;      <span class="com">// Added to by its own core's thread alone,</span>
+_Atomic <span class="kw">uint64_t</span> messages_processed; <span class="com">// with a load and a release store (#3541)</span>
 
 <span class="com">// scheduler_wait() sums across cores</span>
 <span class="kw">while</span> (total_sent != total_processed) {
     <span class="com">// spin-wait</span>
 }</code></pre>
-<p>Messages sent from the main thread (before scheduler threads start) use a separate atomic counter. This path is infrequent.</p>
+<p>Messages sent from the main thread, or handled on a thread that is no core'"'"'s, use separate atomic counters. These paths are infrequent.</p>
 <h2 id="core-assignment-and-migration">Core Assignment and Migration</h2>
 <p>Actors are assigned to cores at spawn time using locality-aware placement: the runtime places each actor on the caller's core so that parent-child messaging stays local. Actors spawned from the main thread default to core 0, keeping all top-level actors co-located for efficient intra-group messaging. Actors spawned from within actor handlers (on scheduler threads) inherit the parent's core.</p>
 <p>During operation, cross-core senders set a <code>migrate_to</code> hint on the target actor. The owning scheduler checks migration hints after processing messages in the coalesce buffer and migrates the actor to the sender's core. This co-locates communicating actors regardless of their initial placement.</p>
@@ -783,7 +783,7 @@ scheduler_release_actor(actor);</code></pre>
 <h3 id="high-latency">High Latency</h3>
 <ul><li>Tune <code>SCHEDULER_DRAIN_BATCH</code> for latency-sensitive workloads (lower = less batching delay)</li><li>Check progressive backoff thresholds</li><li>Avoid blocking operations in actor step functions</li></ul>
 <h3 id="crashes">Crashes</h3>
-<ul><li>Verify every actor struct starts with <code>ActorBase</code>'s fields: expand <code>AETHER_ACTOR_BASE_FIELDS</code> first (or put an <code>ActorBase</code> member first) rather than copying the list, which drifts as fields are added. In order, they are <code>active</code>, <code>id</code>, <code>mailbox</code>, <code>step</code>, <code>thread</code>, <code>auto_process</code>, <code>assigned_core</code>, <code>migrate_to</code>, <code>spsc_queue</code>, <code>reply_slot</code>, <code>step_lock</code>, <code>exit_flags</code>, <code>mailbox_bound</code>, <code>timeout_ns</code>, <code>last_activity_ns</code>, <code>step_payload</code>, <code>step_type</code>, <code>dead</code>, <code>alloc_size</code>, <code>destroy_state</code>, <code>release_message</code>, <code>scheduler_owned</code>, <code>incarnation</code>, <code>inbox</code>, <code>thread_parked</code>, <code>inflight</code>, <code>death_watch</code>, <code>mailbox_pending</code>, <code>full_drops</code>.</li><li>Initialize <code>migrate_to = -1</code> after actor creation</li><li>Use <code>scheduler_send_remote</code> instead of direct mailbox writes for cross-core messages</li><li>Call <code>scheduler_shutdown()</code> before process exit (waits for quiescence, stops and joins threads)</li></ul>
+<ul><li>Verify every actor struct starts with <code>ActorBase</code>'s fields: expand <code>AETHER_ACTOR_BASE_FIELDS</code> first (or put an <code>ActorBase</code> member first) rather than copying the list, which drifts as fields are added. In order, they are <code>active</code>, <code>id</code>, <code>mailbox</code>, <code>step</code>, <code>step_payload</code>, <code>reply_slot</code>, <code>timer_slot</code>, <code>step_type</code>, <code>step_lock</code>, <code>step_inline</code>, <code>exit_flags</code>, <code>ready_queued</code>, <code>scheduler_owned</code>, <code>dead</code>, <code>mailbox_bound</code>, <code>assigned_core</code>, <code>auto_process</code>, <code>inflight</code>, <code>migrate_to</code>, <code>mailbox_pending</code>, <code>full_drops</code>, <code>thread_parked</code>, <code>incarnation</code>, <code>inbox</code>, <code>death_watch</code>, <code>thread</code>, <code>timeout_ns</code>, <code>last_activity_ns</code>, <code>alloc_size</code>, <code>destroy_state</code>, <code>release_message</code>, <code>spsc_queue</code>.</li><li>Initialize <code>migrate_to = -1</code> after actor creation</li><li>Use <code>scheduler_send_remote</code> instead of direct mailbox writes for cross-core messages</li><li>Call <code>scheduler_shutdown()</code> before process exit (waits for quiescence, stops and joins threads)</li></ul>
 <h2 id="files-reference">Files Reference</h2>
 <h3 id="headers">Headers</h3>
 <ul><li><code>runtime/actors/actor_state_machine.h</code> - Message struct, mailbox</li><li><code>runtime/scheduler/multicore_scheduler.h</code> - Scheduler API, ActorBase, spinlock</li><li><code>runtime/scheduler/lockfree_queue.h</code> - Cross-core message queue</li><li><code>runtime/actors/aether_spsc_queue.h</code> - Same-core SPSC queue</li><li><code>runtime/actors/aether_adaptive_batch.h</code> - Adaptive batch sizing</li></ul>
@@ -803,7 +803,7 @@ scheduler_release_actor(actor);</code></pre>
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.888 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.919 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>
