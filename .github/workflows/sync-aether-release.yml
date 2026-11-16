@@ -89,7 +89,16 @@ jobs:
           # gendocs reads the VERSION file next to the docs directory, so the
           # version on the page comes from the tree being published rather
           # than from anything typed here.
-          python3 tools/gendocs.py .aether-src/docs static/Docs
+          # It takes about a second. A generator that never finishes has to
+          # fail this run, not run into the job's limit: a run cancelled for
+          # time notifies nobody, and that is how a hang on one stray table
+          # row (aether v0.888.0 onwards) kept the site at v0.888 for eleven
+          # days.
+          timeout 300 python3 tools/gendocs.py .aether-src/docs static/Docs || {
+            rc=$?
+            [ "$rc" = 124 ] && echo "::error::gendocs.py did not finish in 5 minutes"
+            exit "$rc"
+          }
           count=$(ls static/Docs/*.html | wc -l)
           echo "generated $count pages"
           # A generator that silently produced nothing would otherwise commit
