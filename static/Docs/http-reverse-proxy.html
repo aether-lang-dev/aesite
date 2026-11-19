@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.923</span>
+      <span class="vtag">v0.924</span>
     </nav>
   </div>
 </header>
@@ -753,10 +753,12 @@ proxy.pool_set_cookie_name(pool, "SESSIONID")</code></pre>
 <p><code>failure_threshold = 0</code> disables the breaker (default, opt in via <code>proxy.breaker_configure</code>).</p>
 <h2 id="response-cache">Response cache</h2>
 <p>In-memory LRU with TTL eviction. Open-chained hash + doubly-linked LRU list. Cacheability gates per RFC 7234 conservative subset:</p>
-<ul><li>Methods: GET, HEAD only.</li><li>Status codes: 200, 203, 204, 300, 301, 404, 410.</li><li>Request <code>Cache-Control: no-store</code> → bypass.</li><li>Response <code>Cache-Control: no-store</code> / <code>private</code> → bypass.</li><li>Response <code>Vary: *</code> → uncacheable.</li><li>Body length ≤ <code>max_body_bytes</code>.</li></ul>
+<ul><li>Methods: GET, HEAD only.</li><li>Status codes: 200, 203, 204, 300, 301, 404, 410.</li><li>Request <code>Cache-Control: no-store</code> → bypass.</li><li>Response <code>Cache-Control: no-store</code> / <code>private</code> → bypass.</li><li>Response <code>Vary: *</code> → uncacheable.</li><li>Request with <code>Authorization</code> → stored only when the response says <code>public</code>, <code>s-maxage</code> or <code>must-revalidate</code> (RFC 9111 3.5).</li><li>Response with <code>Set-Cookie</code> → not stored.</li><li>Body length ≤ <code>max_body_bytes</code>.</li></ul>
 <p>TTL resolution: response <code>Cache-Control: max-age</code> (clamped to 1 hour for v1 conservatism), else <code>default_ttl_sec</code>. <code>s-maxage</code> and <code>Expires</code> are not consulted in v1.</p>
+<p>A hit is copied into the response after the cache lock is released, so a store on another worker can evict the entry meanwhile. Each entry therefore carries a reference count: the cache holds one, the request serving a hit holds another until its copy is done, and the entry is freed when the last one is dropped. An eviction never frees an entry a request is still reading (#3756).</p>
 <h3 id="key-strategies">Key strategies</h3>
 <div class="tw"><table><thead><tr><th>Strategy</th><th>Key</th><th>Use when</th></tr></thead><tbody><tr><td><code>url</code></td><td><code>path?query</code></td><td>method-agnostic, POST/GET share entries (rare; usually wrong)</td></tr><tr><td><code>method_url</code></td><td><code>METHOD path?query</code></td><td>safe default, GET and HEAD don't share entries with each other or with POST</td></tr><tr><td><code>method_url_vary</code></td><td>as above + <code>\0name=value</code> for each header in upstream's <code>Vary:</code></td><td>the response varies on <code>Accept-Encoding</code> / <code>Accept-Language</code> / etc.</td></tr></tbody></table></div>
+<p>The query is part of every key, as it is sent upstream. With <code>proxy.opts_set_preserve_host(opts, 1)</code> the client's <code>Host</code> is part of the key too, since the upstream then answers by it.</p>
 <h2 id="idempotent-retry-proxy_next_upstream-semantics">Idempotent retry, <code>proxy_next_upstream</code> semantics</h2>
 <p>Off by default. Opt in with:</p>
 <pre><code>proxy.opts_set_retry_policy(opts, 3, 100)   // max_retries=3, backoff_base_ms=100</code></pre>
@@ -908,7 +910,7 @@ proxy.pool_metrics_text(pool) -&gt; string              // Prometheus 0.0.4</cod
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.923 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.924 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>
