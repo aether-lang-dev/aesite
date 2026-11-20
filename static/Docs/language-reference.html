@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.925</span>
+      <span class="vtag">v0.926</span>
     </nav>
   </div>
 </header>
@@ -1772,7 +1772,7 @@ Give the function an error result (`-&gt; (T, string)` or `-&gt; T!`), or use a 
     // Local bindings created inside this block are still visible.
 }</code></pre>
 <h3 id="key-semantics">Key semantics</h3>
-<p>A directive is scope-level: its position within the block doesn't matter, and it blocks both reads and writes of the affected names. The denial propagates into nested blocks, with no way to un-hide deeper in. It does not reach through call boundaries, though: a visible function can still use hidden names via its own lexical chain, since this is name-resolution denial, not an effect system. Local bindings created inside the block stay visible, because directives only affect lookups that walk out to parent scopes. Qualified names are covered too, so <code>hide http</code> also blocks <code>http.get(url)</code>. <code>hide http.get</code> blocks that one member and leaves the rest of <code>http</code> visible, and <code>import http hiding (get)</code> does that for every body in the file. The directives work inside actor receive arms (handler bodies are block scopes), and a hidden name cannot be redeclared in the same scope, though a nested child scope may.</p>
+<p>A directive is scope-level: its position within the block doesn't matter, and it blocks both reads and writes of the affected names. The denial propagates into nested blocks, with no way to un-hide deeper in. It does not reach through call boundaries, though: a visible function can still use hidden names via its own lexical chain, since this is name-resolution denial, not an effect system. Local bindings created inside the block stay visible, because directives only affect lookups that walk out to parent scopes, and a seal on a function's body admits the function's parameters. Qualified names are covered too, so <code>hide http</code> also blocks <code>http.get(url)</code>. <code>hide http.get</code> blocks that one member and leaves the rest of <code>http</code> visible, and <code>import http hiding (get)</code> does that for every body in the file. The directives work inside actor receive arms (handler bodies are block scopes), and a hidden name cannot be redeclared in the same scope, though a nested child scope may.</p>
 <p>For the full design rationale, edge cases, and worked examples, see <a href="/Docs/hide-and-seal.html">hide-and-seal.md</a>.</p>
 <hr>
 <h2 id="memory-management">Memory Management</h2>
@@ -3750,7 +3750,7 @@ process_file(path: string) {
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.925 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.926 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>
