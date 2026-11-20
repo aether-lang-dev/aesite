@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.927</span>
+      <span class="vtag">v0.931</span>
     </nav>
   </div>
 </header>
@@ -656,6 +656,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/release-glibc-portability.html">Release binary portability across glibc versions</a>
 <div class="grp">More</div>
 <a href="/Docs/abi-policy.html">ABI compatibility: what a shipped library promises</a>
+<a href="/Docs/ae-pad.html">ae pad, struct layout and padding</a>
 <a href="/Docs/aether-vs-hcl.html">Aether and HCL</a>
 <a href="/Docs/compiled-module-artifacts.html">Compiled module artifacts (.aea)</a>
 <a href="/Docs/edge-cases.html">Edge cases: what is settled, and what only happens to be true</a>
@@ -929,7 +930,7 @@ audit.clear()                            // scope the next query</code></pre>
     grant_fs_read("python/guest.py")   // the script is the host's to grant
 }
 ch, pid, err = sandbox.spawn_socket(guest, "python3", argv, null)</code></pre>
-<p><code>grant_runtime</code> asks the interpreter, in the unsandboxed host, when the grant list is built: <code>python3 -I -c ...</code> prints the directories on its <code>sys.path</code> (<code>-I</code> leaves out <code>PYTHONPATH</code>, the user's site-packages and the current directory) and libpython's file, and each becomes a read grant (<code>dir/*</code>, a file, or <code>libpython3.X.so*</code>). The interpreter knows where this machine's install keeps them, a distribution's <code>/usr/lib/python3.X</code>, a Homebrew or pyenv prefix, <code>/usr/local</code>; a table of paths would guess, per platform, and go stale. The table in <code>std/sandbox/module.ae</code> says only which interpreters can be asked and how (<code>python3</code>, <code>python</code> today). A name it does not know, or an interpreter that cannot be asked, panics with the reason, rather than leave a list that fails later inside the child. It grants no exec (the interpreter is the program the spawn runs) and not the guest's script.</p>
+<p><code>grant_runtime</code> asks the interpreter, in the unsandboxed host, when the grant list is built: <code>python3 -I -c ...</code> prints the directories on its <code>sys.path</code> (<code>-I</code> leaves out <code>PYTHONPATH</code>, the user's site-packages and the current directory) and libpython's file, and each becomes a read grant (<code>dir/*</code>, a file, or <code>libpython3.X.so*</code>). The interpreter knows where this machine's install keeps them, a distribution's <code>/usr/lib/python3.X</code>, a Homebrew or pyenv prefix, <code>/usr/local</code>; a table of paths would guess, per platform, and go stale. The table in <code>std/sandbox/module.ae</code> says only which interpreters can be asked and how (<code>python3</code>, <code>python</code> today). A name it does not know, or an interpreter that cannot be asked (not on <code>PATH</code>, or exiting non-zero), grants nothing and returns the reason, <code>""</code> otherwise: check it where the list is built (<code>why = grant_runtime("python3")</code> in the block) to report that rather than the child's failure to start. A list without the runtime's library fails closed. (Through 0.926.0 it panicked, which took a host process down with it.) It grants no exec (the interpreter is the program the spawn runs) and not the guest's script.</p>
 <h3 id="where-spawn_sandboxed-finds-the-preload-library">Where <code>spawn_sandboxed</code> finds the preload library</h3>
 <p>The child starts with <code>libaether_sandbox.so</code> in <code>LD_PRELOAD</code>, so the parent has to find it wherever the parent program runs: in <code>ae run</code>'s build cache, in a directory <code>ae build -o</code> wrote to, or installed beside other programs (#3177). <code>spawn_sandboxed</code>, the contrib process host (<code>contrib/host/aether</code>) and the go and java bridges of aether-guest-languages look in this order:</p>
 <ol><li><code>AETHER_SANDBOX_PRELOAD</code>, the library's own path, when it is set;</li><li>beside the running program, where a deployment can ship it;</li><li>under <code>AETHER_HOME</code>, which <code>ae</code> sets for every program it runs: <code>lib/aether/</code> (what <code>install.sh</code> and <code>make install</code> install), <code>lib/</code> (a release archive's layout), then <code>build/</code> (a source tree, where <code>make</code> builds it);</li><li>the same three under the program's directory's parent: a program installed in <code>&lt;prefix&gt;/bin</code>, or one in a source tree's directory.</li></ol>
@@ -1368,7 +1369,7 @@ db.credentials.user = admin</code></pre>
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.927 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.931 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

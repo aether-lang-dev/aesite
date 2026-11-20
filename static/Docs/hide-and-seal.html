@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.927</span>
+      <span class="vtag">v0.931</span>
     </nav>
   </div>
 </header>
@@ -656,6 +656,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/release-glibc-portability.html">Release binary portability across glibc versions</a>
 <div class="grp">More</div>
 <a href="/Docs/abi-policy.html">ABI compatibility: what a shipped library promises</a>
+<a href="/Docs/ae-pad.html">ae pad, struct layout and padding</a>
 <a href="/Docs/aether-vs-hcl.html">Aether and HCL</a>
 <a href="/Docs/compiled-module-artifacts.html">Compiled module artifacts (.aea)</a>
 <a href="/Docs/edge-cases.html">Edge cases: what is settled, and what only happens to be true</a>
@@ -704,7 +705,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <h3 id="reads-and-writes-both-blocked">Reads AND writes both blocked</h3>
 <p><code>hide x</code> blocks <code>println(x)</code>, <code>x = 5</code>, <code>x += 1</code>, and <code>do_stuff(x)</code>, every form of access. Half-hiding (read-only or write-only) would be a footgun.</p>
 <h3 id="propagates-to-all-nested-blocks">Propagates to all nested blocks</h3>
-<p>If the outer block hides <code>x</code>, every nested block, closure, and trailing-block lambda inside it also has <code>x</code> hidden. There is no way to "un-hide" a name in a nested block, declaring a fresh variable with the same name in a nested block is allowed, but that's a fresh binding in a child scope, not a re-exposure of the parent's hidden binding.</p>
+<p>If the outer block hides <code>x</code>, every nested block, closure, and trailing-block lambda inside it also has <code>x</code> hidden. There is no way to "un-hide" a name in a nested block. A nested block may bind a new local named like a hidden file-level name (a function, a constant, an extern), which shadows it; it may not bind one named like a hidden <em>local</em> of an enclosing block (see <a href="#interaction-with-shadowing">Interaction with shadowing</a>).</p>
 <h3 id="does-not-reach-through-call-boundaries">Does NOT reach through call boundaries</h3>
 <p><code>hide</code> removes a name from THIS scope's resolution. A function you call has a scope of its own and never resolved that name to begin with, so hiding changes nothing about what it can do:</p>
 <pre><code>log_secret(token: <span class="fn">string</span>) { println(token) }
@@ -739,6 +740,7 @@ main() {
     r = http.get("http://example.com")   // rejected: http is hidden here
 }</code></pre>
 <p>The hidden prefix is refused before namespace resolution, so the call never resolves, and the diagnostic is <code>E0304: 'http.get' is hidden in this scope</code>, as for a hidden bare name. A member taken as a value (<code>f = http.get</code>) or a module constant (<code>http.STATUS_OK</code>) is refused the same way. (A qualified call used to be reported as an undefined function, <code>E0301</code>, and a member taken as a value was not refused at all.)</p>
+<p>A list names a module as the source writes it: by the import's last segment (<code>import services.mq</code>, then <code>hide mq</code>), or by its alias (<code>import engines.mq as engine</code>, then <code>seal except engine</code>). That holds when another loaded module ends in the same segment, which gives this one its full path as its internal name (<code>services_mq</code>): that name is the compiler's, and a list never needs it. The diagnostic says which module it was, as in <code>'mq.bump' of module 'services.mq' is hidden in this scope</code>. (Through 0.926.0 such a module, and any module imported under an alias, was admitted by a seal only under the internal name, and <code>hide mq</code> or <code>hide engine</code> hid none of its members.)</p>
 <p>(Don't reach for a built-in type keyword like <code>string</code> here: <code>hide string</code> fails earlier with <code>E0100</code>, because <code>string</code> is a reserved keyword and can't be used as an identifier at all.)</p>
 <h3 id="one-member-of-a-module">One member of a module</h3>
 <p><code>hide ns.member</code> hides one member of an imported module and leaves the rest of it visible:</p>
@@ -794,6 +796,7 @@ main() { println(<span class="str">"${f(1, 2)}"</span>) }</code></pre>
     local_thing = "fresh"
     println(local_thing)    // OK, local_thing is local, not from outside
 }</code></pre>
+<p>A new local may take the name of a file-level function, constant or extern the block does not list: it shadows that name for the rest of the block, and the outer one stays out of reach. This holds for every way a block binds a name: <code>r = f()</code>, a tuple destructure <code>r, err = f()</code>, a <code>for</code> loop's variable, a <code>match</code> arm's binding. Listing the name instead would admit the outer one, which is the opposite of what the block wants. (Through 0.926.0 a destructure was refused with E0304 where the plain binding was accepted.)</p>
 <h3 id="a-value-keeps-its-type">A value keeps its type</h3>
 <p>The directives decide which <em>names</em> a block may write. They do not change the types of the values it holds. A parameter <code>b: *Browser</code> in a body sealed without <code>Browser</code> is still a <code>*Browser</code>: <code>b.app_dir</code> is its <code>string</code> field, compared, copied and released as a string. Writing the name <code>Browser</code> in that body (<code>heap.new(Browser)</code>, <code>Browser { ... }</code>) is reaching for the name, and needs it on the list. <code>hide Browser</code> is the same: values of the type keep it.</p>
 <h3 id="no-change-to-the-code-generated">No change to the code generated</h3>
@@ -812,17 +815,21 @@ main() { println(<span class="str">"${f(1, 2)}"</span>) }</code></pre>
     hide x
     var x = 5     // E0304: cannot declare 'x', it is hidden
 }</code></pre>
-<p>You MAY declare it in a nested child block, that's a fresh binding in the child's own scope, lexically unrelated to the hidden outer one:</p>
-<pre><code>{
-    hide x
+<p>A nested block may bind a new local named like a hidden file-level name (a function, a constant, an extern): that is a fresh binding which shadows it, as above. It may NOT bind one named like a hidden local of an enclosing block (a parameter, an outer block's local, an actor's state field):</p>
+<pre><code>f(p: int) -&gt; int {
+    x = 1
     {
-        var x = 5     // OK, fresh binding in inner block
-        println(x)    // refers to the inner binding
+        hide x
+        {
+            x = 5         // E0304: cannot declare 'x', it is hidden ...
+            p, err = g()  // E0304: the same, for a parameter
+        }
     }
+    return x
 }</code></pre>
-<p>This is consistent with normal lexical shadowing and means <code>hide</code> cannot trap a programmer who wants to use a popular name like <code>i</code> or <code>x</code> for unrelated purposes deeper in the call tree.</p>
+<p>Aether has no block-level shadowing of a local: <code>x = 5</code> in a nested block re-binds the enclosing <code>x</code>. Through 0.926.0 the checker took the binding beneath the hide for a new local and the generated code wrote the hidden outer variable, so a hidden or sealed-out local could be overwritten from inside the block that hid it. Pick another name. A <code>for</code> loop's own variable and a <code>match</code> arm's binding are fresh variables of their own, and may take the name.</p>
 <h2 id="minimal-reference-card">Minimal reference card</h2>
-<div class="tw"><table><thead><tr><th>Form</th><th>Effect</th></tr></thead><tbody><tr><td><code>hide a, b, c</code></td><td>Names <code>a</code>, <code>b</code>, <code>c</code> from outer scopes are not in this block (or any nested block within it).</td></tr><tr><td><code>seal except a, b, c</code></td><td>EVERY name from outer scopes is invisible in this block, except <code>a</code>, <code>b</code>, <code>c</code>. Local bindings inside the block are still visible, and on a function's body so are its parameters.</td></tr><tr><td><code>hide x</code> followed by <code>var x = …</code> in the same scope</td><td>Compile error, cannot redeclare a hidden name.</td></tr><tr><td><code>hide x</code> then a nested block declaring <code>var x = …</code></td><td>OK, fresh binding in the child scope.</td></tr><tr><td><code>hide x</code> then calling a visible function that reads <code>x</code> from its own scope</td><td>OK, name resolution at the call site doesn't touch <code>x</code>.</td></tr><tr><td><code>seal except printf, malloc</code> then trying to call <code>free</code></td><td>Compile error, <code>free</code> is not in the whitelist.</td></tr><tr><td><code>hide http</code> then <code>http.get("x")</code></td><td>Compile error, qualified access blocked because the prefix is hidden (reported as <code>E0301</code> undefined, since the hidden prefix resolves to no symbol).</td></tr><tr><td><code>hide http</code> then <code>http.get("x")</code> in a nested block, <code>if</code> body or closure</td><td>Compile error, the same as at the hiding block's own level.</td></tr><tr><td><code>seal except http</code> then <code>http.get("x")</code> or <code>http.STATUS_OK</code>, at any depth</td><td>OK, a whitelisted prefix admits all of its exported members, functions and constants.</td></tr><tr><td><code>hide</code> or <code>seal except</code> inside an actor receive arm</td><td>Works, receive arm bodies are block scopes like any other.</td></tr></tbody></table></div>
+<div class="tw"><table><thead><tr><th>Form</th><th>Effect</th></tr></thead><tbody><tr><td><code>hide a, b, c</code></td><td>Names <code>a</code>, <code>b</code>, <code>c</code> from outer scopes are not in this block (or any nested block within it).</td></tr><tr><td><code>seal except a, b, c</code></td><td>EVERY name from outer scopes is invisible in this block, except <code>a</code>, <code>b</code>, <code>c</code>. Local bindings inside the block are still visible, and on a function's body so are its parameters.</td></tr><tr><td><code>hide x</code> followed by <code>var x = …</code> in the same scope</td><td>Compile error, cannot redeclare a hidden name.</td></tr><tr><td><code>hide x</code> then a nested block declaring <code>x = …</code>, <code>x</code> a file-level function, const or extern</td><td>OK, a new local that shadows it (a tuple destructure too).</td></tr><tr><td><code>hide x</code> or <code>seal except …</code> then a nested block declaring <code>x = …</code>, <code>x</code> a local of an enclosing block</td><td>Compile error: a local is not shadowed. A <code>for</code> variable or <code>match</code> binding of that name is fine.</td></tr><tr><td><code>hide x</code> then calling a visible function that reads <code>x</code> from its own scope</td><td>OK, name resolution at the call site doesn't touch <code>x</code>.</td></tr><tr><td><code>seal except printf, malloc</code> then trying to call <code>free</code></td><td>Compile error, <code>free</code> is not in the whitelist.</td></tr><tr><td><code>hide http</code> then <code>http.get("x")</code></td><td>Compile error, qualified access blocked because the prefix is hidden (reported as <code>E0301</code> undefined, since the hidden prefix resolves to no symbol).</td></tr><tr><td><code>hide http</code> then <code>http.get("x")</code> in a nested block, <code>if</code> body or closure</td><td>Compile error, the same as at the hiding block's own level.</td></tr><tr><td><code>seal except http</code> then <code>http.get("x")</code> or <code>http.STATUS_OK</code>, at any depth</td><td>OK, a whitelisted prefix admits all of its exported members, functions and constants.</td></tr><tr><td><code>hide</code> or <code>seal except</code> inside an actor receive arm</td><td>Works, receive arm bodies are block scopes like any other.</td></tr></tbody></table></div>
 <h2 id="implementation-note">Implementation note</h2>
 <p><code>hide</code> and <code>seal except</code> are enforced entirely at compile time, in <code>compiler/analysis/typechecker.c</code>'s <code>lookup_symbol()</code> and <code>lookup_qualified_symbol()</code>. When a name is not found in the current scope, <code>lookup_symbol()</code> checks the scope's <code>hidden_names</code> list and <code>seal_whitelist</code> before walking to the parent. <code>lookup_qualified_symbol()</code> checks hide/seal on the dotted prefix before namespace resolution, so <code>hide http</code> blocks <code>http.get()</code> too. Local bindings always win, the hide/seal sets only affect the boundary crossing into outer scopes.</p>
 <p>There is no runtime overhead. There is no codegen change: the type checker removes every directive once the program has checked (<code>ast_drop_scope_directives</code>), and the declaration of a type a value already has is looked up past them (<code>lookup_type_symbol</code>). The feature is a pure compile-time hygiene check.</p>
@@ -914,7 +921,7 @@ db(ctx)        { return dep(ctx, "db") }</code></pre>
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.927 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.931 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

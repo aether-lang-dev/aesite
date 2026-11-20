@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.927</span>
+      <span class="vtag">v0.931</span>
     </nav>
   </div>
 </header>
@@ -656,6 +656,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <a href="/Docs/release-glibc-portability.html">Release binary portability across glibc versions</a>
 <div class="grp">More</div>
 <a href="/Docs/abi-policy.html">ABI compatibility: what a shipped library promises</a>
+<a href="/Docs/ae-pad.html">ae pad, struct layout and padding</a>
 <a href="/Docs/aether-vs-hcl.html">Aether and HCL</a>
 <a href="/Docs/compiled-module-artifacts.html">Compiled module artifacts (.aea)</a>
 <a href="/Docs/edge-cases.html">Edge cases: what is settled, and what only happens to be true</a>
@@ -679,7 +680,7 @@ a  = alloc.system()          // malloc/free; the default everywhere
 p  = alloc.raw(a, 128)       // 128 bytes
 p  = alloc.resize(a, p, 128, 256)
 alloc.release(a, p, 256)</code></pre>
-<div class="tw"><table><thead><tr><th>Function</th><th>Meaning</th></tr></thead><tbody><tr><td><code>alloc.system()</code></td><td>The process-wide system allocator (malloc/realloc/free). Static, never freed.</td></tr><tr><td><code>alloc.raw(a, n)</code></td><td>Allocate <code>n</code> bytes through <code>a</code>. Null on failure.</td></tr><tr><td><code>alloc.resize(a, p, old, n)</code></td><td>Resize <code>p</code> from <code>old</code> to <code>n</code> bytes. <code>n == 0</code> frees and returns null; a null <code>p</code> allocates.</td></tr><tr><td><code>alloc.release(a, p, n)</code></td><td>Release a block. <code>n</code> is the size it was allocated with (a hint size-aware allocators use).</td></tr></tbody></table></div>
+<div class="tw"><table><thead><tr><th>Function</th><th>Meaning</th></tr></thead><tbody><tr><td><code>alloc.system()</code></td><td>The process-wide system allocator (malloc/realloc/free). Static, never freed.</td></tr><tr><td><code>alloc.raw(a, n)</code></td><td>Allocate <code>n</code> bytes through <code>a</code>. Null on failure.</td></tr><tr><td><code>alloc.resize(a, p, old, n)</code></td><td>Resize <code>p</code> from <code>old</code> to <code>n</code> bytes. <code>n == 0</code> frees and returns null; a null <code>p</code> allocates.</td></tr><tr><td><code>alloc.release(a, p, n)</code></td><td>Release a block. <code>n</code> is the size it was allocated with (a hint size-aware allocators use).</td></tr><tr><td><code>alloc.raw_aligned(a, n, al)</code></td><td>Allocate <code>n</code> bytes at an address that is a multiple of <code>al</code>, a power of two at least the size of a pointer (64 for a record that owns a cache line). Null for another alignment or on failure.</td></tr><tr><td><code>alloc.release_aligned(a, p, n, al)</code></td><td>Release a block from <code>raw_aligned</code>, with its size and alignment. Never <code>release</code>: the block starts inside what the allocator gave.</td></tr></tbody></table></div>
 <h3 id="arena-backed">Arena-backed</h3>
 <p><code>alloc.of_arena</code> turns an existing <code>std.arena</code> into an allocator: every allocation bump-allocates from the arena and individual frees are no-ops. Reclaim everything at once with <code>arena.reset</code> (O(1)); it is ideal for a request-scoped structure that is built up and thrown away as a unit.</p>
 <pre><code>import std.alloc
@@ -731,7 +732,7 @@ tracking.destroy(t)</code></pre>
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.927 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.931 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>
