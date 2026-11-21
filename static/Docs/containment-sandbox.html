@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.933</span>
+      <span class="vtag">v0.934</span>
     </nav>
   </div>
 </header>
@@ -1014,6 +1014,7 @@ cat sandbox-config.ae</code></pre>
 <p><code>AF_UNIX</code> and other families pass: the channel is a Unix socket, and glibc's resolver talks to netlink. A network grant opens <code>AF_INET</code> sockets of every type, since resolving a name for a TCP grant needs UDP to the resolver; which hosts are reached is the preload's to check, and on Linux 6.7+ Landlock holds connect to the granted ports.</p>
 <p><strong>The program's own exec.</strong> The filter is installed before the child execs its program, and that one <code>execve</code> has to pass. Without <code>grant_exec</code>, the filter allows <code>execve</code> only when its first argument is the exact pointer the child passes (the resolved program, or <code>/bin/sh</code> for a file with no <code>#!</code> line), compared in all 64 bits; a compat ABI's <code>execve</code> is always refused. Once the program runs that pointer means nothing, and the preload's constructor, before any of the program's own code, installs a second filter that refuses every <code>execve</code> and <code>execveat</code> (the spawn sets <code>AETHER_SANDBOX_NO_EXEC=1</code>; a filter that cannot be installed stops the process with exit 126). Filters stack and the strictest answer wins, so the child cannot undo it. A static program, which the preload never enters, keeps the pointer check and Landlock, under which it can execute only its own file and its loader.</p>
 <p><strong>ABIs.</strong> The filter dispatches on <code>seccomp_data.arch</code>: the native ABI's numbers, on x86_64 also i386 (<code>int 0x80</code>) and x32 (the number with <code>0x40000000</code> set, masked off, plus x32's own numbers for <code>execve</code>, <code>execveat</code>, <code>ptrace</code> and <code>process_vm_*</code>), on aarch64 also 32-bit ARM. Any other ABI kills the process. On an architecture the filter does not cover, both spawns refuse to start the child. The numbers are literals, checked against the kernel headers zig ships for every architecture by <code>tests/integration/sandbox_clone_fence</code>, and every filter the builder can make is checked well formed by <code>tests/integration/sandbox_spawn_socket</code>.</p>
+<p><strong><code>os.spawn_tree_to</code> inside a sandboxed child.</strong> Its supervisor is a fork of the program that called it, so it runs under the same preload and filter. It needs <code>grant_fork()</code> (without it the spawn fails with "fork failed", the filter's <code>EPERM</code>) and, on Linux, a read of <code>/proc</code> (<code>grant_fs_read("/proc/*")</code>), which is how it finds a descendant that left the program's group. The spawn probes that read first and fails with "cannot read /proc" when the sandbox refuses it, so a tree is never started that <code>tree_kill</code> could only half end. Its other calls (<code>prctl</code> for the subreaper, <code>kill</code>, <code>waitpid</code>) pass the filter. <code>tests/integration/sandbox_spawn_tree</code> runs the three cases.</p>
 <h3 id="interception-surface-what-ld_preload-sees-and-what-it-doesnt">Interception surface, what LD_PRELOAD sees and what it doesn't</h3>
 <p><strong>Lesson from Google App Engine (2013):</strong> An intern broke out of App Engine's Java sandbox by exploiting a gap between what the bytecode rewriter (ASM) thought it serialized and what the JVM actually parsed. The architectural lesson: if the enforcement layer and the execution layer see different things, an attacker can exploit the difference.</p>
 <p>For Aether, the equivalent gap is: <strong>we intercept specific libc functions, but the kernel offers many alternative paths to the same operations.</strong> A determined attacker who knows Linux internals can use paths we don't intercept. The tables below enumerate the surface so you can reason about it explicitly rather than assume coverage. Every libc path call is either wrapped or listed as a lookup; the coverage test fails on one that is neither (#3751).</p>
@@ -1369,7 +1370,7 @@ db.credentials.user = admin</code></pre>
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.933 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.934 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>
