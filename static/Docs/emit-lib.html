@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.935</span>
+      <span class="vtag">v0.936</span>
     </nav>
   </div>
 </header>
@@ -888,6 +888,7 @@ call_into_aether();                        <span class="com">// returns inside b
 <p>The trip is also observable via <code>aether_deadline_tripped()</code>. Retrying a tripped deadline is the host's policy: re-arm + call again with a more generous budget, or surface <code>Deadline</code> to the user.</p>
 <h3 id="execution-accounts-2954">Execution accounts (#2954)</h3>
 <p>The cap and the deadline above belong to the process and to one call. A host that runs many scripts on one thread, each yielding to it and resumed later (a game's scripts, an editor's plugins), needs a budget that belongs to the script: an execution account.</p>
+<p>Everything here is per thread: the account in use, the call deadline, the last outcome, the cancel token and the caller info. A cooperative runtime (<code>AETHER_NO_THREADING</code>, an ESP32) has no threads; a host that calls in from more than one FreeRTOS task gives each its own of all of these with a task context (<a href="https://github.com/aether-lang-dev/aether/blob/main/docs/design/task-execution-contexts.md">design/task-execution-contexts.md</a>).</p>
 <pre><code>AetherExecLimits lim = { <span class="num">256</span> * <span class="num">1024</span>, <span class="num">5000</span>, AETHER_DEADLINE_ACTIVE, NULL };
 AetherExecAccount* script = aether_exec_account_new(&amp;lim);
 
@@ -1098,7 +1099,7 @@ for i in range(meta.function_count):
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.935 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.936 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>
