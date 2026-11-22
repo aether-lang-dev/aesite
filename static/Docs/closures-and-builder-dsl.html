@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.934</span>
+      <span class="vtag">v0.935</span>
     </nav>
   </div>
 </header>
@@ -810,8 +810,8 @@ store(action) callback | a: int, b: int | { return a + b }
 store(action) callback | x: int | -&gt; x * 2</code></pre>
 <h2 id="dsl-block-receiver-scoping">DSL Block Receiver Scoping</h2>
 <p>When a trailing closure is bound to a member-access call, <code>receiver.method(args) { body }</code> bare-name function references inside <code>body</code> fall back through the receiver's namespace before erroring as undefined. Resolution order:</p>
-<ol><li>Block-local definitions (closure params, <code>let</code> bindings).</li><li><code>&lt;receiver&gt;_&lt;name&gt;</code> looked up walking the scope chain.</li><li>The current file's scope (existing imports, top-level decls).</li><li>Otherwise: undefined-name error.</li></ol>
-<p>So the receiver's function also comes before a local of the function the block is written in, and before a top-level function of the same name: in <code>blk.run("x") { return note(n) }</code>, <code>note</code> is <code>blk.note</code> even beside a <code>note(n: int) -&gt; int</code> of the program, and the function returns what <code>blk.note</code> returns.</p>
+<ol><li>A name the program binds itself, walking out from the block: the block's own locals and closure params, the locals and parameters of the function (and of any block) it is written in, and the program's own top-level functions, types, constants and <code>var</code>s, declared before or after the call.</li><li><code>&lt;receiver&gt;_&lt;name&gt;</code>, the innermost block's receiver first, then the receivers of the blocks around it.</li><li>What else the file scope holds: builtins, names the program's imports bound.</li><li>Otherwise: undefined-name error.</li></ol>
+<p>So a program's own function comes before the receiver's of the same name: in <code>blk.run("x") { return note(n) }</code> beside the program's <code>note(n: int) -&gt; int</code>, <code>note</code> is the program's, and the function returns its int. Where the program binds nothing of that name, <code>note</code> is <code>blk.note</code>. A local of the name hides the receiver's function as it hides the program's own outside a block: <code>note = 3</code> and then <code>note(n)</code> in the block is refused, naming <code>blk.note</code>; call it <code>blk.note(n)</code> or rename the local. Inside a module's body, the module's own functions are its program.</p>
 <p>Pre-fix, every downstream project consuming an SDK module had to write a two-line import preamble:</p>
 <pre><code>import bash
 import bash (script, jobs, env)        // ← this companion line
@@ -833,9 +833,9 @@ main() {
         jobs(8)                         // (no companion import needed)
     }
 }</code></pre>
-<p>Pure additive. Existing code with explicit selective imports keeps working unchanged; existing qualified calls (<code>bash.script("x")</code> inside the block) still resolve via the <code>module.func</code> path; explicit local definitions still shadow the receiver fallback.</p>
+<p>Pure additive. Existing code with explicit selective imports keeps working unchanged; existing qualified calls (<code>bash.script("x")</code> inside the block) still resolve via the <code>module.func</code> path; the program's own definitions (locals, parameters, top-level functions) still shadow the receiver fallback.</p>
 <p>Receiver resolution: the prefix is checked first as a visible namespace (the <code>bash</code> case above); if not, the prefix's typed-value struct name (e.g. <code>b: Builder</code> → receiver = <code>Builder</code>).</p>
-<p>Nested DSL blocks stack naturally: <code>outer.method(o) { mark("o"); inner.method(i) { note("i") } }</code> resolves <code>mark</code> as <code>outer_mark</code> and <code>note</code> as <code>inner_note</code> the inner block's receiver wins for inner-namespace names; outer's receiver applies to outer-namespace names by the natural scope-walk in <code>lookup_symbol</code>.</p>
+<p>Nested DSL blocks stack naturally: <code>outer.method(o) { mark("o"); inner.method(i) { note("i") } }</code> resolves <code>mark</code> as <code>outer_mark</code> and <code>note</code> as <code>inner_note</code> the inner block's receiver wins for inner-namespace names; outer's receiver applies to outer-namespace names. A name the program binds comes before both.</p>
 <h2 id="higher-order-functions">Higher-Order Functions</h2>
 <p>Closures enable functional patterns with standard library collections:</p>
 <pre><code><span class="kw">import</span> std.list
@@ -1141,7 +1141,7 @@ r = assert.expect_int(5).to_equal(5).to_be_gt(0)  // matchers imported, chain lo
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.934 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.935 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

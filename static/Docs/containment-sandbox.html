@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.934</span>
+      <span class="vtag">v0.935</span>
     </nav>
   </div>
 </header>
@@ -921,7 +921,7 @@ audit.clear()                            // scope the next query</code></pre>
 <p><code>os.run_socket</code>'s channel (the child's fd 3, <code>AETHER_IPC_FD=3</code>, <code>AETHER_IPC_KIND=socket</code>) with <code>spawn_sandboxed</code>'s containment, held to the grant list: the preload library, and the kernel layer below ("Kernel layer"). <code>argv</code> is a <code>std.list</code> of the arguments after the program and <code>env</code> the child's whole environment as <code>"KEY=VALUE"</code> (null for this process's); the sandbox adds its own variables. It returns at once with the parent's end of the socket and the child's pid; reap the child with <code>os.wait_pid</code> and close the socket.</p>
 <p>It <strong>fails closed</strong>. Where the child cannot be contained (macOS, Windows, Android, and FreeBSD until it has a kernel layer for a foreign program), and on Linux when the preload library cannot be found or the kernel layer cannot be set up as asked, it returns <code>(-1, -1, reason)</code> and starts nothing. A host that wants a child with no sandbox at all asks for one by name, <code>sandbox.spawn_socket_uncontained(perms, ...)</code>: the same signature (the grants are ignored), so the two differ by one word and the uncontained one is easy to find in review.</p>
 <p>The grants reach the child's preload on a sealed memfd it inherits (<code>AETHER_SANDBOX_GRANTS_FD</code>), not on a named shared-memory object: <code>spawn_sandboxed</code> waits for its child and then removes the object, and <code>spawn_socket</code> does not wait. The memfd has no name to remove, its seals stop the child changing it, and a program the child is granted to exec reads the same grants from it.</p>
-<p>For a guest that runs scripts for the host (an engine compiled into a worker, or an interpreter), <code>std.guest</code> is the conversation on top of this socket: it spawns with <code>spawn_socket</code>, mounts the functions the script may call, answers each call (a file as an open descriptor), and bounds every exchange with a deadline, then a <code>CANCEL</code>, then a kill. <code>std.guest.child</code> is an Aether worker's side, and enters <code>sandbox.enforce</code> with no grants before the script's first step. Its README (<code>std/guest/README.md</code>) has the protocol.</p>
+<p>For a guest that runs scripts for the host (an engine compiled into a worker, or an interpreter), <code>std.guest</code> is the conversation on top of this socket: it spawns with <code>spawn_socket</code>, mounts the functions the script may call, answers each call (a file as an open descriptor), and bounds every exchange with a deadline, then a <code>CANCEL</code>, then a kill. <code>std.guest.child</code> is an Aether worker's side, and enters <code>sandbox.enforce</code> with no grants before the script's first step. A script may also leave functions behind for the host to call later (<code>READY</code>, then <code>INVOKE</code> and <code>RETURN</code> or <code>RAISE</code>, strictly alternating, each exchange under the same deadline); an invoked function reaches only what the host mounted, so being callable gives the child no new capability. Its README (<code>std/guest/README.md</code>) has the protocol, and <code>docs/design/guest-host-calls-guest.md</code> the design of the host-calls-guest direction.</p>
 <h3 id="starting-a-foreign-interpreter-grant_runtime">Starting a foreign interpreter: <code>grant_runtime</code></h3>
 <p>Under the kernel layer a child reads nothing it is not granted, and an interpreter has to read its own library before it runs a line. Two kinds of guest, two answers (aether#3503):</p>
 <ul><li><strong>An Aether worker</strong> locks itself down after it starts: it calls <code>sandbox.enforce</code> before its first step, so it needs no start-up grants and no platform paths (the <code>cap_enter</code> shape).</li><li><strong>A foreign interpreter</strong> cannot, so the host grants what it needs to start with a preset:</li></ul>
@@ -1248,8 +1248,8 @@ sandbox.enforce(worker) callback {
 <p>Aether can run foreign language runtimes and their code inside sandboxes, in process or as a contained child. The bridges for the languages live in <a href="https://github.com/aether-lang-dev/aether-guest-languages">aether-guest-languages</a>, a separate repository:</p>
 <pre><code>ae add github.com/aether-lang-dev/aether-guest-languages</code></pre>
 <pre><code>import tcl      // in place of the contrib.host import it had here</code></pre>
-<div class="tw"><table><thead><tr><th>Language</th><th>Import there</th><th>Moved from this tree</th></tr></thead><tbody><tr><td>Lua</td><td><code>import lua</code></td><td>2026-11-04</td></tr><tr><td>Python</td><td><code>import python</code></td><td>2026-11-05</td></tr><tr><td>Duktape (ES5), with <code>js</code> its alias</td><td><code>import duktape</code>, <code>import js</code></td><td>2026-11-05</td></tr><tr><td>QuickJS (ES2023)</td><td><code>import quickjs</code></td><td>2026-11-05</td></tr><tr><td>Perl 5</td><td><code>import perl</code></td><td>2026-11-05</td></tr><tr><td>CRuby 3</td><td><code>import ruby</code></td><td>2026-11-05</td></tr><tr><td>Tcl 8.5+</td><td><code>import tcl</code></td><td>2026-11-05</td></tr><tr><td>Go (a child process), TinyGo (c-shared, in process)</td><td><code>import go</code>, <code>import tinygo</code></td><td>2026-11-05</td></tr><tr><td>Java (a child JVM)</td><td><code>import java</code></td><td>2026-11-05</td></tr><tr><td>Factor</td><td><code>import factor</code></td><td>2026-11-05</td></tr><tr><td>Racket CS, Rhombus</td><td><code>import racket</code>, <code>import rhombus</code></td><td>2026-11-05</td></tr></tbody></table></div>
-<p>There each language is held to stunt's catalogue by name, in process and in a <code>std.guest</code> contained child, and its README has the resulting containment table: which rows the in-process bridge holds (and which it cannot, such as CPython's copy of the environment or Lua's <code>os.execute</code> under the preload) and which the contained child holds. The engine behind the QuickJS bridge, <code>contrib.quickjs</code>, stays in this tree.</p>
+<div class="tw"><table><thead><tr><th>Language</th><th>Import there</th><th>Moved from this tree</th></tr></thead><tbody><tr><td>Lua</td><td><code>import lua</code></td><td>2026-11-04</td></tr><tr><td>Python</td><td><code>import python</code></td><td>2026-11-05</td></tr><tr><td>Duktape (ES5)</td><td><code>import duktape</code></td><td>2026-11-05</td></tr><tr><td>QuickJS (ES2023), with the full <code>vm_*</code> API</td><td><code>import quickjs</code></td><td>2026-11-05</td></tr><tr><td>Perl 5</td><td><code>import perl</code></td><td>2026-11-05</td></tr><tr><td>CRuby 3</td><td><code>import ruby</code></td><td>2026-11-05</td></tr><tr><td>Tcl 8.5+</td><td><code>import tcl</code></td><td>2026-11-05</td></tr><tr><td>Go (a child process), TinyGo (c-shared, in process)</td><td><code>import go</code>, <code>import tinygo</code></td><td>2026-11-05</td></tr><tr><td>Java (a child JVM)</td><td><code>import java</code></td><td>2026-11-05</td></tr><tr><td>Factor</td><td><code>import factor</code></td><td>2026-11-05</td></tr><tr><td>Racket CS, Rhombus</td><td><code>import racket</code>, <code>import rhombus</code></td><td>2026-11-05</td></tr><tr><td>Rexx, on RexxAE (an engine written in Aether, from its own repository)</td><td><code>import rexx</code></td><td>never here: written there</td></tr></tbody></table></div>
+<p>There each language is held to stunt's catalogue by name, in process and in a <code>std.guest</code> contained child, and its README has the resulting containment table: which rows the in-process bridge holds (and which it cannot, such as CPython's copy of the environment or Lua's <code>os.execute</code> under the preload) and which the contained child holds. The engine behind the QuickJS bridge, <code>contrib.quickjs</code>, stays in this tree. That repository is tested on the current Aether release only, so a bridge there is known to work on that release and on no other.</p>
 <p>What stays in <code>contrib/host/</code> is:</p>
 <ul><li><code>contrib/host/stunt</code>, a test double for a hosted language: not a language, but a C engine loaded the way a bridge loads an interpreter (or run as a child under <code>sandbox.spawn_socket</code>) that does, by name, each thing a hosted language can do that the sandbox has to hold: open, getenv, connect, exec, dlopen of libc, a raw syscall, a callback, the shared map, a loop that must be stopped. Its catalogue and tests (<code>tests/integration/contrib_host_stunt</code>) cover those rows with no interpreter installed; see <a href="https://github.com/aether-lang-dev/aether/blob/main/contrib/host/stunt/README.md"><code>contrib/host/stunt/README.md</code></a>.</li><li><code>contrib/host/aether</code>, Aether hosting Aether: a compiled Aether program run as a child under the preload.</li></ul>
 <h3 id="two-containment-models">Two containment models</h3>
@@ -1294,23 +1294,24 @@ stunt.run_sandboxed(worker, "open-etc-passwd refused")</code></pre>
 <h3 id="token-guard">Token guard</h3>
 <p>The map is accessed from hosted code via a one-time token. The token is generated randomly, validated on every get/put, and revoked after the hosted code returns. A stale or guessed token returns nothing.</p>
 <h3 id="native-bindings">Native bindings</h3>
-<p>Each host bridge provides two bindings to the hosted language, <code>aether_map_get(key)</code> and <code>aether_map_put(key, value)</code>: stunt's <code>map-*</code> checks here, and the Lua, JS, Perl, Ruby and Tcl bridges of aether-guest-languages under the same names.</p>
+<p>Each host bridge provides two bindings to the hosted language, <code>aether_map_get(key)</code> and <code>aether_map_put(key, value)</code>: stunt's <code>map-*</code> checks here, and the Lua, Python, Duktape, QuickJS, Perl, Ruby and Tcl bridges of aether-guest-languages under the same names (the Rexx bridge spells them <code>AETHER_MAP_GET</code> and <code>AETHER_MAP_PUT</code>).</p>
 <h3 id="example">Example</h3>
-<p>With the JS bridge of aether-guest-languages (<code>import js</code> there):</p>
-<pre><code>import js
+<p>With the Duktape bridge of aether-guest-languages (<code>import duktape</code> there):</p>
+<pre><code>import duktape
 
 worker = sandbox.new("worker") {
     grant_env("HOME")
     grant_fs_read("/etc/*")
 }
 
-// Create map with inputs
-map = shared_map_new(&amp;token)
-shared_map_put(map, "user", "alice")
-shared_map_put(map, "threshold", "42")
+// Create map with inputs (std.sharedmap)
+map = sharedmap.new()
+_p1 = sharedmap.put(map, "user", "alice")
+_p2 = sharedmap.put(map, "threshold", "42")
+token = sharedmap.token(map)
 
 // Run JavaScript, it reads inputs, writes outputs
-js.run_sandboxed_with_map(worker, &lt;&lt;JS
+duktape.run_sandboxed_with_map(worker, &lt;&lt;JS
     var user = aether_map_get("user");
     var threshold = aether_map_get("threshold");
     aether_map_put("result", "processed " + user);
@@ -1319,15 +1320,17 @@ JS
 , token)
 
 // Read outputs
-println(shared_map_get(map, "result"))  // "processed alice"
-println(shared_map_get(map, "count"))   // "1000"
-shared_map_free(map)</code></pre>
+result, _f1 = sharedmap.get(map, "result")
+count, _f2 = sharedmap.get(map, "count")
+println(result)  // "processed alice"
+println(count)   // "1000"
+sharedmap.free(map)</code></pre>
 <h3 id="type-convention">Type convention</h3>
-<p>All values are strings. Numbers, booleans, and other types are encoded as strings by the sender and parsed by the receiver:</p>
-<pre><code>shared_map_put(map, "threshold", "42")      // int
-shared_map_put(map, "rate", "3.14")         // float
-shared_map_put(map, "enabled", "true")      // bool
-shared_map_put(map, "tags", "a,b,c")        // list (caller's convention)</code></pre>
+<p>All values are strings, carried by their length: a NUL inside a key or a value is a byte like any other, in the map and in the shared memory block a sandboxed child reads (layout 2, length-prefixed, with a magic and a version; <code>runtime/aether_shared_map.h</code>). Numbers, booleans, and other types are encoded as strings by the sender and parsed by the receiver:</p>
+<pre><code>_a = sharedmap.put(map, "threshold", "42")      // int
+_b = sharedmap.put(map, "rate", "3.14")         // float
+_c = sharedmap.put(map, "enabled", "true")      // bool
+_d = sharedmap.put(map, "tags", "a,b,c")        // list (caller's convention)</code></pre>
 <pre><code>local threshold = tonumber(aether_map_get("threshold"))  -- 42
 local rate = tonumber(aether_map_get("rate"))             -- 3.14
 local enabled = aether_map_get("enabled") == "true"       -- true</code></pre>
@@ -1355,7 +1358,7 @@ db.credentials.user = admin</code></pre>
 <p>Most embeddable languages (Lua, Wren, Starlark, Hermes) give you the embedding but leave capability management to the host. Most capability-secure languages (Pony, E) don't ship polyglot SDK generators or in-process interpreter bridges. Aether bundles both directions (guest + host) behind one permissions model.</p>
 <h3 id="cross-cutting-gaps-contributor-surface">Cross-cutting gaps (contributor surface)</h3>
 <p>Active work listed in <a href="https://github.com/aether-lang-dev/aether/blob/main/contrib/host/TODO.md"><code>../contrib/host/TODO.md</code></a>:</p>
-<ul><li>Capturing stdout/stderr from hosted scripts, pipe rewire vs. shared-map key vs. pass-through, design undecided.</li><li>Native shared-map bindings for Perl and Ruby (in aether-guest-languages), currently tied-hash via <code>eval</code>, which swallows writes. Tcl and JS already have proper native C bindings.</li><li><code>bytes</code> mode on the shared map, so callers don't have to base64 binary payloads across the boundary.</li></ul>
+<ul><li>Capturing stdout/stderr from hosted scripts, pipe rewire vs. shared-map key vs. pass-through, design undecided.</li><li><code>bytes</code> mode on the shared map, so callers don't have to base64 binary payloads across the boundary.</li></ul>
 <h3 id="worked-examples-and-tests">Worked examples and tests</h3>
 <ul><li><code>examples/04-interop/06-java-host/</code> direction 1 (Aether as guest, Java host).</li><li><code>examples/05-containment/04-spawn-sandboxed.ae</code>, <code>examples/05-containment/01-sandbox.ae</code>, direction 2 (Aether as host).</li><li><code>tests/integration/namespace_{python,ruby,java}/</code>, <code>tests/integration/embedded_java_trading_e2e/</code> per-SDK regression tests for direction 1.</li></ul>
 <nav class="doc-prevnext" aria-label="Previous and next page"><a class="pn-prev" href="/Docs/http-handler-context.html"><span class="pn-k">Previous</span><span class="pn-t">HTTP handlers with per-server / per-route state</span></a><a class="pn-next" href="/Docs/hide-and-seal.html"><span class="pn-k">Next</span><span class="pn-t">hide and seal except scope-level capability denial</span></a></nav>
@@ -1370,7 +1373,7 @@ db.credentials.user = admin</code></pre>
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.934 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.935 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>
