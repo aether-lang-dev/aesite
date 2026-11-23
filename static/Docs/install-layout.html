@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.937</span>
+      <span class="vtag">v0.938</span>
     </nav>
   </div>
 </header>
@@ -756,7 +756,7 @@ std/http/server/h2/aether_h2.c
 <p>Apps that #include runtime/std headers and link against <code>libaether.a</code> from a plain <code>make install</code> tree must compile with the <strong>same preprocessor defines</strong> the install was built with, otherwise the header-side macros and the library-side symbols disagree. The flag that matters:</p>
 <ul><li><strong><code>-DAETHER_HAS_SANDBOX</code></strong>, gates <code>aether_sandbox_check()</code>. When defined, <code>runtime/aether_sandbox.h</code> provides a <code>static inline aether_sandbox_check()</code> that reads the count of threads with a grant level in force and, when there is one, checks the calling thread's levels (<code>aether_sandbox_check_slow</code>, defined in <code>libaether.a</code>); when undefined, the header replaces it with a no-op macro that always returns 1. There's no linker error on skew, the macro branch links nothing, so a build that compiles the header without the flag silently loses sandbox enforcement even when linked against a sandbox-enabled library. The shipped <code>libaether.a</code> is always built with this flag (see <code>CFLAGS</code> in the Makefile, which carries <code>-DAETHER_HAS_SANDBOX</code>), so downstream consumers should compile with it too. <code>ae cflags --cflags</code> prints it, so a build that takes its flags from there (<code>gcc your.c $(ae cflags)</code>, or one compiling the runtime from the MANIFEST) has it.</li><li>Any future <code>AETHER_HAS_*</code> flags introduced for optional runtime subsystems will follow the same pattern.</li></ul>
 <p>The version stamp at <code>lib/aether/VERSION</code> catches the ae-vs-libaether version skew separately; the define skew is its own thing and silent unless a symbol is actually missing.</p>
-<p><code>lib/aether/libaether.crt</code> (in a release archive, <code>lib/libaether.crt</code>, beside <code>lib/libaether.a</code>) names the C runtime the archive was built against, one word on one line. A build tool that links the archive with a compiler of its own can compare it with what that compiler targets (<code>runtime/aether_crt_id.h</code> names it); <code>ae</code> does, and compiles the runtime from source when they differ. The MANIFEST's format does not change: the record is a file of its own.</p>
+<p><code>lib/aether/libaether.crt</code> (in a release archive, <code>lib/libaether.crt</code>, beside <code>lib/libaether.a</code>) names the C runtime the archive was built against, one word on the first line. Lines after it may follow: <code>mingw-w64 &lt;major&gt;</code> on Windows, and <code>cc &lt;id&gt;</code>, the identity of the compiler that built the archive (as <code>ae cache ccid</code> prints it). A build tool that links the archive with a compiler of its own can compare the first line with what that compiler targets (<code>runtime/aether_crt_id.h</code> names it); <code>ae</code> does, and compiles the runtime from source when they differ, and does not ask the compiler <code>cc &lt;id&gt;</code> names when the build gives no cflags. The MANIFEST's format does not change: the record is a file of its own.</p>
 <p>The MANIFEST never references trimmed paths, the regression test at <code>tests/integration/install_manifest/</code> verifies this on every build.</p>
 <h2 id="option-c-alternative-status-quo--docs">Option C alternative (status quo + docs)</h2>
 <p>Three options were considered for cleaning up the install layout:</p>
@@ -774,7 +774,7 @@ std/http/server/h2/aether_h2.c
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.937 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.938 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

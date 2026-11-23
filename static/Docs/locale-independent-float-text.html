@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.937</span>
+      <span class="vtag">v0.938</span>
     </nav>
   </div>
 </header>
@@ -717,6 +717,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
 <p><strong>MinGW question SETTLED: verified empirically on winbaz, 2026-08-08.</strong> A probe using <code>_create_locale(LC_NUMERIC, "C")</code> + <code>_snprintf_l</code> + <code>_strtod_l</code> + <code>_strtof_l</code> + <code>_free_locale</code> compiled clean (<code>-Wall -Wextra</code>) and ran correctly under <strong>both</strong> MSYS2 environments, GCC 16.1.0:</p>
 <ul><li><strong>MINGW64</strong> (what <code>.github/workflows/ci.yml:292</code> builds under): PROBE OK</li><li><strong>UCRT64</strong>: PROBE OK</li></ul>
 <p>The probe also demonstrated the bug live: with the ambient locale set to German, plain <code>snprintf("%.2f", 3.14)</code> printed <code>3,14</code> while <code>_snprintf_l</code> with the C locale printed <code>3.1400000000000001</code> and <code>_strtod_l("3.14")</code> consumed all four chars. So Windows takes backend 1 (<code>_</code>-prefixed) unconditionally; no <code>#error</code> branch will be reachable on any supported platform.</p>
+<p><strong>Later (#3818): <code>_strtof_l</code> is not msvcrt.dll's.</strong> msvcrt.dll exports no <code>_strtof_l</code>. The one MINGW64's mingw-w64 15 links is its own, <code>(float)_strtod_l(...)</code>, which rounds twice: decimal text just above a float tie came out one ulp low, and the text just under <code>FLT_MAX</code> plus half an ulp overflowed. mingw-w64 12 (the msvcrt WinLibs GCC 14.2) has none, so a runtime built with it did not link (<code>undefined reference to __imp__strtof_l</code>). msvcrt.dll's own <code>_strtod_l</code> misrounds doubles next to a tie as well. Under mingw-w64 (<code>__MINGW32__</code>, msvcrt or UCRT), <code>aether_c_strtof</code> and <code>aether_c_strtod</code> now parse with mingw-w64's correctly rounded <code>__mingw_strtof</code> and <code>__mingw_strtod</code>, linked into the program; those parsers read the ambient radix and msvcrt has no per-thread locale, so under a radix other than <code>.</code> they parse a copy of the C-locale text with the <code>.</code> spelt as that radix. UCRT builds take the same path because the program runs on whatever ucrtbase.dll it finds: Windows' rounds correctly, Wine's narrows a double as mingw-w64 15's msvcrt one does (the halfway test failed under Wine with <code>zig cc</code>). MSVC keeps <code>_strtof_l</code> and <code>_strtod_l</code>.</p>
 <p>Windows locale-name detail for the §4.3 test's candidate list: <code>setlocale(LC_ALL, "de-DE")</code> succeeds on UCRT64 but fails on MINGW64 (msvcrt), which needs <code>"German_Germany.1252"</code>. Try <code>de-DE</code>, then <code>German_Germany.utf8</code>, then <code>German_Germany.1252</code>, and SKIP if all return NULL.</p>
 <h3 id="32-cache-the-locale_t">3.2 Cache the <code>locale_t</code></h3>
 <p>Do <strong>not</strong> <code>newlocale</code>/<code>freelocale</code> per call: <code>string.from_double</code> sits on hot paths (JSON serialization, string interpolation). Create one process-lifetime C locale on first use. The same caching applies to <strong>both</strong> handle types: POSIX <code>locale_t</code> (<code>newlocale</code>) and Windows <code>_locale_t</code> (<code>_create_locale</code>), one static handle each, never per-call.</p>
@@ -809,7 +810,7 @@ LOCPATH=<span class="str">"$PWD/loc"</span> ./my_test                           
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.937 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.938 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>
