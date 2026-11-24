@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.939</span>
+      <span class="vtag">v0.940</span>
     </nav>
   </div>
 </header>
@@ -987,7 +987,7 @@ Counter* spawn_Counter(<span class="kw">void</span>);
 <span class="kw">static</span> <span class="kw">inline</span> <span class="kw">void</span> Counter_Label(Counter* actor, <span class="kw">int</span> tag, <span class="kw">const</span> <span class="kw">char</span>* text, <span class="kw">double</span> weight) { ... }
 
 #endif</code></pre>
-<p>Include the header in your C host application and send through the helpers, or build a struct by field name and pass it to <code>aether_send_message(actor, &amp;msg, sizeof msg)</code>. A <code>string</code> field takes a <code>const char*</code> the host keeps alive until the message has been handled; the actor does not free it.</p>
+<p>Include the header in your C host application and send through the helpers, or build a struct by field name and pass it to <code>aether_send_message(actor, &amp;msg, sizeof msg)</code>. A <code>string</code> field takes a <code>const char*</code> the host keeps alive until the message has been handled; the actor does not free it. A message with a <code>ptr</code> field also has <code>unsigned char _ae_boxed[n]</code> right after <code>_message_id</code>: one bit per <code>ptr</code> field, set by an Aether send that boxed a closure there, so the message gives the box back if no handler takes it (#3847). A host builds the struct zero-initialised, with a designated initializer (<code>Label msg = { ._message_id = MSG_Label, .tag = 1 }</code>, as the helpers do) or after a <code>memset(&amp;msg, 0, sizeof msg)</code>: the marks are then 0 and a host's pointer is never released. A struct left uninitialised can carry a set mark, and the message's release then unboxes the host's pointer as a closure and panics. The member changes the layout of every message with a <code>ptr</code> field, so a host built against a header from before it must be rebuilt against the new one.</p>
 <hr>
 <h2 id="polling-from-a-c-event-loop">Polling from a C Event Loop</h2>
 <p>With threads, actors run on the scheduler's threads from the first spawn on, so a C event loop (raylib, SDL, a game loop) that holds the main thread does not hold them up, and has nothing to poll: <code>aether_scheduler_poll</code> returns 0 there (#3112). In the cooperative (no-threads) runtime the actors run only when the host lets them, so a C loop calls <code>aether_scheduler_poll()</code> between frames:</p>
@@ -1022,7 +1022,7 @@ Counter* spawn_Counter(<span class="kw">void</span>);
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.939 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.940 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

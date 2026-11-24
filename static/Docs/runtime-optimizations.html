@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.939</span>
+      <span class="vtag">v0.940</span>
     </nav>
   </div>
 </header>
@@ -696,7 +696,7 @@ count = queue_dequeue_batch(&amp;incoming_queue, buffer.actors, buffer.messages,
 <p>The batch dequeue reads <code>head</code> and <code>tail</code> once, copies all available messages, then advances <code>head</code> with a single <code>atomic_store</code>. This matches the existing batch enqueue pattern used by <code>queue_enqueue_batch</code>.</p>
 <h3 id="batch-send-for-fan-out-patterns">Batch Send for Fan-Out Patterns</h3>
 <p><strong>Implementation:</strong> <code>runtime/scheduler/multicore_scheduler.c</code>, <code>compiler/codegen/codegen.c</code></p>
-<p>For main thread fan-out patterns (fork-join), batch send reduces atomic operations from N to num_cores. The compiler wraps a while loop of a non-actor function in batch start/flush calls when the loop sends and cannot wait between its sends (#3117): it calls nothing, prints nothing, asks nothing and reads no actor's state, and has no <code>return</code>, labeled <code>break</code> or <code>continue</code> (which can leave for an enclosing loop) or closure in it. Sends, arithmetic, assignments, branches and inner loops are fine, the counting and fork-join shape. A loop that sleeps, reads a line or waits between sends is not batched, since its messages would wait for the loop's end.</p>
+<p>For main thread fan-out patterns (fork-join), batch send reduces atomic operations from N to num_cores. The compiler wraps a <code>while</code> or <code>for</code> loop (#3826) of a non-actor function in batch start/flush calls when the loop sends and cannot wait between its sends (#3117): it calls nothing, prints nothing, asks nothing and reads no actor's state, and has no <code>return</code>, labeled <code>break</code> or <code>continue</code> (which can leave for an enclosing loop) or closure in it. Sends, arithmetic, assignments, branches and inner loops are fine, the counting and fork-join shape. A loop that sleeps, reads a line or waits between sends is not batched, since its messages would wait for the loop's end.</p>
 <pre><code><span class="com">// Generated code for fork-join pattern:</span>
 scheduler_send_batch_start();
 <span class="kw">while</span> (i &lt; total) {
@@ -706,7 +706,7 @@ scheduler_send_batch_start();
 scheduler_send_batch_flush();  <span class="com">// Bulk send with one atomic per core</span></code></pre>
 <p>The flush snapshots each message's target core, sorts by core using radix sort, then calls <code>queue_enqueue_batch</code> for each core. This reduces atomics from N (one per message) to num_cores (one per core). Target cores are read once per message at flush time to produce a consistent snapshot, this prevents buffer overflows that could occur if an actor migrates between the time a message is buffered and the time the batch is flushed.</p>
 <p><strong>Partial batch enqueue:</strong> <code>queue_enqueue_batch</code> enqueues as many messages as fit in the queue and returns the count, rather than failing the entire batch when the queue is near full. This lets the common case (queue has room) complete with a single atomic store per core. When the queue can't absorb the full batch, the flush falls back to <code>scheduler_send_remote</code> for each remaining message, which handles its own routing and counting. The fallback path is rare in practice because the cross-core queue holds 1024 items.</p>
-<p><strong>Pattern detection:</strong> Only applied outside actor receive handlers, which preserves low-latency actor-to-actor messaging while optimizing main-to-actors fan-out. Inside a batch every send joins it, a message with a payload included (<code>aether_send_message_batch</code>), so the loop's sends to one actor arrive in the order they were made; an inner loop joins the outer loop's batch. A send that goes around a pending batch flushes it first, and so does <code>wait_for_idle()</code>; opening a batch never drops what one holds. On a scheduler thread nothing is batched: its sends keep their core's own channel and overflow order.</p>
+<p><strong>Pattern detection:</strong> Only applied outside actor receive handlers, which preserves low-latency actor-to-actor messaging while optimizing main-to-actors fan-out. Inside a batch every send joins it, a message with a payload included (<code>aether_send_message_batch</code>), so the loop's sends to one actor arrive in the order they were made; an inner loop joins the outer loop's batch. A send that goes around a pending batch flushes it first, and so does <code>wait_for_idle()</code>; opening a batch never drops what one holds. A panic that leaves the loop for a <code>try</code> sends the batch from the unwind, in order, and closes it (#3826): the open batch is an entry of the unwind journal, which the loop's end forgets. On a scheduler thread nothing is batched: its sends keep their core's own channel and overflow order.</p>
 <h3 id="adaptive-batch-size">Adaptive Batch Size</h3>
 <p><strong>Implementation:</strong> <code>runtime/actors/aether_adaptive_batch.h</code></p>
 <p>The batch size adjusts dynamically based on queue utilization. Under sustained load the batch size increases (up to 1024) to amortize overhead. During idle periods it decreases (down to 64) to maintain responsiveness.</p>
@@ -951,7 +951,7 @@ while j &lt; N {
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.939 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.940 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>

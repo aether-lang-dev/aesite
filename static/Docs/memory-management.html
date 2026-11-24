@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.939</span>
+      <span class="vtag">v0.940</span>
     </nav>
   </div>
 </header>
@@ -728,7 +728,7 @@ true [not a string]</code></pre>
 <p>A string stored into a header-defined struct's field (<code>extern struct ... @c_import</code>) is given a reference of its own, recorded by the characters the field holds; nothing releases it behind C's back, and the program gives it back with <code>string.release_kept(s.field)</code> when C is done with it (#3567). A field read back is the string it was given, so <code>old = s.field</code>, a store of the next value and <code>string.release_kept(old)</code> give the old one back. One stored into C memory viewed as <code>string[]</code> is given no reference (see <code>ptr</code> slots, below).</p>
 <h3 id="ptr-slots"><code>ptr</code> slots</h3>
 <p>A <code>ptr</code> slot owns nothing. A string goes into one only through <code>string.keep(s)</code>, which hands over a reference the program gives back with <code>string.release_kept(p)</code>. A module-level <code>ptr</code> var takes a string as it stands (<code>gp = s</code>, <code>gp = string.concat(a, b)</code>) and gives it that same recorded reference (#3567): the string outlives the local or the statement it came from, and <code>string.release_kept(gp)</code> gives it back before the next store. Nothing gives it back on a re-bind: as with <code>keep</code>, that is the program's to do. C memory viewed as <code>string[]</code> owns nothing either: <code>(names as string[])[i] = s</code> gives C the characters and no reference, so the string must outlive every read. A local does only while the memory ends with the function (an argv array built, handed to C and freed in one function). Memory that outlives it (reached through a parameter, a module-level <code>var</code>, a field or a heap box, or whose pointer is returned or stored) takes <code>(names as ptr[])[i] = string.keep(s)</code>, given back with <code>string.release_kept</code> where the memory is freed; any other string stored there is refused (E0902), as is a string built in the statement. A literal is pinned and goes into either as it is.</p>
-<p>A closure goes into a <code>ptr</code> slot boxed (<code>box_closure(f)</code>, or the coercion a store into a <code>ptr</code> makes), the box holding a reference of its own, which <code>release_closure(p)</code> gives back.</p>
+<p>A closure goes into a <code>ptr</code> slot boxed (<code>box_closure(f)</code>, or the coercion a store into a <code>ptr</code> makes), the box holding a reference of its own, which <code>release_closure(p)</code> gives back. In a message's <code>ptr</code> field the box is the message's until a handler binds the field to a name the arm reads, and the handler's from then on. A message no handler takes it from (dropped at a dead or released actor or a full mailbox, refused by <code>try_send</code>, an ask to an actor that has ended, sent to a null reference, a reply the asker reads another field of or that comes after its ask timed out, or handled by an arm that leaves the field unbound or never reads its binding) gives the box back itself (#3847).</p>
 <p>A function that keeps a <code>ptr</code> parameter (stores it where it outlives the call, returns it, or passes it to another keeping parameter) declares it <code>@keep</code>; keeping one that is not declared so is E0902. A struct local to the function, or a closure that runs and is dropped inside the call, does not outlive it: putting the parameter in one keeps nothing unless the struct or the closure escapes itself. A <code>ptr</code> parameter that only borrows is given a closure in a box on the caller's stack, so nothing is allocated.</p>
 <p>A function that only hands a <code>ptr</code> parameter to its result (a constructor that builds a recorder, an iterator or a view around it) declares it <code>@into</code> instead: it may return it, alone or in a struct, a tuple, an optional or a closure, and nothing else. The caller holds the result as it holds a struct local that holds its argument: in a local, read, lent to borrowing parameters, and E0902 only where the result escapes with a borrowed parameter of the caller. So <code>@into</code> does not spread up the call chain as <code>@keep</code> does; a function that returns such a result made from its own parameter declares that one <code>@into</code> too. A string goes to an <code>@into ptr</code> through <code>string.keep(s)</code>, and a closure goes in a heap box with its own reference. The full rule, with what counts as escaping, is in the language reference's <a href="/Docs/language-reference.html#string-ownership">String ownership</a>.</p>
 <h3 id="panics">Panics</h3>
@@ -882,7 +882,7 @@ main() {
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.939 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.940 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>
