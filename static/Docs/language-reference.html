@@ -571,7 +571,7 @@ main code{font-family:var(--mono);font-size:.85em;background:var(--bg-2);border:
       <a href="/repl.html">Examples</a>
       <a href="/Docs/getting-started.html" class="on">Docs</a>
       <a class="src" href="https://github.com/aether-lang-dev/aether">Source</a>
-      <span class="vtag">v0.944</span>
+      <span class="vtag">v0.945</span>
     </nav>
   </div>
 </header>
@@ -2857,6 +2857,7 @@ _format(prefix: string, target: string) {
 <p>The legacy per-function <code>export &lt;fn&gt;</code> form is still accepted but emits a one-shot deprecation warning per module. Migrate by collecting every <code>export</code>-tagged name into a single <code>exports (…)</code> line at the top, then removing the <code>export</code> keywords from each declaration. Mixing both forms in one module is a hard error.</p>
 <h3 id="glob-import-import-mod--aka-unqualified-import">Glob Import, <code>import mod (*)</code> (a.k.a. unqualified import)</h3>
 <p>Expose <strong>every public name</strong> in a module as an unqualified short alias, without enumerating each symbol individually. Names with a leading underscore (<code>_helper</code>, <code>_internal</code>) stay private and are not aliased. This is Aether's spelling for what other languages call "unqualified import" (Rust's <code>use mod::*;</code>, Java's <code>import static mod.*</code>, Python's <code>from mod import *</code>).</p>
+<p>In a module with an <code>exports (…)</code> list, public means listed: a function, constant or module-level <code>var</code> the list leaves out is not bound by the glob, so a local, loop variable or parameter of the importer spelt like one is the importer's own, never the module's cell.</p>
 <pre><code><span class="kw">import</span> std.math (*)
 
 main() {
@@ -3753,7 +3754,7 @@ process_file(path: string) {
     <div class="foot-brand">
       <span class="ae">ae</span>
       <p class="foot-tag">Actors that compile to C.</p>
-      <p class="foot-status">v0.944 &middot; pre-1.0, actively developed</p>
+      <p class="foot-status">v0.945 &middot; pre-1.0, actively developed</p>
     </div>
     <div class="foot-col">
       <h3 class="foot-h">Docs</h3>
